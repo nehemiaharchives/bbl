@@ -1,3 +1,4 @@
+import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.MissingArgument
 
@@ -5,8 +6,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.types.int
-
-fun parseBook(book: List<String>) = parseBook(book.map { it.lowercase() }.joinToString(separator = " "))
 
 fun parseBook(book: String) = when (book) {
     "genesis", "gen", "ge", "gn" -> 1
@@ -17,8 +16,8 @@ fun parseBook(book: String) = when (book) {
     "joshua", "josh", "jos", "jsh" -> 6
     "judges", "judg", "jdg", "jg", "jdgs" -> 7
     "ruth", "rth", "ru" -> 8
-    "1st samuel", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam" -> 9
-    "2nd samuel", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
+    "1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam" -> 9
+    "2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
     "1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
     "2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
     "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
@@ -72,24 +71,74 @@ fun parseBook(book: String) = when (book) {
     "2 peter", "2peter", "2 pet", "2pet", "2 pe", "2pe", "2 pt", "2pt", "2p", "2nd peter", "second peter" -> 61
     "1 john", "1john", "1 jhn", "1jhn", "1 jn", "1jn", "1j", "1st john", "first john" -> 62
     "2 john", "2john", "2 jhn", "2jhn", "2 jn", "2jn", "2j", "2nd john", "second john" -> 63
-    "3 john", "3john", "3 jhn", "3jhn", "3 jn", "3jn", "3j", "3rd  john", "third  john" -> 64
+    "3 john", "3john", "3 jhn", "3jhn", "3 jn", "3jn", "3j", "3rd  john", "third john" -> 64
     "jude", "jud", "jd" -> 65
     "revelation", "rev", "re", "the revelation" -> 66
     else -> throw Exception()
 }
 
+fun maxChapter(book: Int): Int = when (book) {
+    19 -> 150
+    23 -> 66
+    24 -> 52
+    1 -> 50
+    26 -> 48
+    18 -> 42
+    2 -> 40
+    4, 14 -> 36
+    5 -> 34
+    9, 20 -> 31
+    13 -> 29
+    40, 44 -> 28
+    3 -> 27
+    12 -> 25
+    6, 10, 42 -> 24
+    11, 66 -> 22
+    7, 43 -> 21
+    41, 45, 46 -> 16
+    28, 38 -> 14
+    16, 47, 58 -> 13
+    21, 27 -> 12
+    15, 17 -> 10
+    30 -> 9
+    22 -> 8
+    33 -> 7
+    48, 49, 54 -> 6
+    25, 52, 59, 60, 62 -> 5
+    8, 32, 39, 50, 51, 55 -> 4
+    29, 34, 35, 36, 53, 56, 61 -> 3
+    37 -> 2
+    31, 57, 63, 64, 65 -> 1
+    else -> 50
+}
+
 class Bbl : CliktCommand() {
-    val book: List<String> by argument().multiple(required = true, default = listOf("gen"))
-    val chapter: Int by argument().int().default(1)
+
+    val book: List<String> by argument().multiple(default = listOf("1", "sam"))
+    val chapter: String by argument().default("3")
 
     override fun run() {
 
+        var bookString = book.map { it.lowercase() }.joinToString(separator = " ")
+
         val bookNumber = try {
-            parseBook(book)
+            parseBook(bookString)
         } catch (e: Exception) {
-            throw MissingArgument(argument = argument("book"))
+            throw MissingArgument(argument = argument("book '$bookString' not found in the list of book names"))
         }
-        echo("book: $bookNumber, chapter: $chapter")
+
+        val chapterNumber = try {
+            chapter.toInt()
+        } catch (e: NumberFormatException) {
+            throw MissingArgument(argument = argument("chapter"))
+        }
+
+        val maxChapter = maxChapter(bookNumber)
+        if (chapterNumber > maxChapter){
+            throw BadParameterValue("you requested chapter $chapterNumber but number of chapters of the book $bookString is only $maxChapter.")
+        }
+
+        echo("book: $bookNumber, chapter: $chapterNumber")
     }
 }
 
