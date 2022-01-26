@@ -1,60 +1,62 @@
+buildscript {
+    ext.ktor_version = "2.0.0-beta-1"
+}
+
 plugins {
-    id 'org.jetbrains.kotlin.multiplatform' version '1.6.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id "org.beryx.jlink" version "2.24.4"
+    id "org.javamodularity.moduleplugin" version "1.8.10"
 }
 
 group = 'org.gnit.bible'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
-kotlin {
-    def hostOs = System.getProperty("os.name")
-    def isMingwX64 = hostOs.startsWith("Windows")
-    def nativeTarget
-    if (hostOs == "Mac OS X") nativeTarget = macosX64('native')
-    else if (hostOs == "Linux") nativeTarget = linuxX64("native")
-    else if (isMingwX64) nativeTarget = mingwX64("native")
-    else throw new GradleException("Host OS is not supported in Kotlin/Native.")
+dependencies {
+    implementation "io.ktor:ktor-client-okhttp:$ktor_version"
+    implementation("com.github.ajalt.clikt:clikt:3.4.0")
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
 
-    nativeTarget.with {
-        binaries {
-            executable('bbl') {
-                entryPoint = 'main'
-            }
-        }
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '1.8'
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '1.8'
+}
+
+compileKotlin.destinationDirectory = compileJava.destinationDirectory
+
+application {
+    mainClassName = 'org.gnit.bible.MainKt'
+    mainModule = 'org.gnit.bible'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jlink {
+    mergedModule {
+        additive = true
+        forceMerge "kotlin"
     }
 
-    mingwX64 {
+    launcher {
+        name = 'bbl'
     }
-    linuxX64 {
-    }
-    macosX64 {
-    }
-
-    sourceSets {
-        nativeMain {
-            dependencies {
-                implementation("com.github.ajalt.clikt:clikt:3.4.0")
-            }
-        }
-        nativeTest {
-        }
-        mingwX64Main {
-        }
-        mingwX64Test {
-
-        }
-        linuxX64Main {
-        }
-        linuxX64Test {
-
-        }
-        macosX64Main {
-        }
-        macosX64Test {
-
+    jpackage {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            installerOptions += ['--win-per-user-install', '--win-dir-chooser', '--win-menu', '--win-shortcut']
+            imageOptions += ['--win-console']
         }
     }
 }
