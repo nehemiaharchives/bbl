@@ -19,8 +19,8 @@ fun parseBook(book: String) = when (book) {
     "ruth", "rth", "ru" -> 8
     "1st samuel", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam" -> 9
     "2nd samuel", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
-    "1st kings", "1kings", "1 kings", "1kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
-    "2nd kings", "2kings", "2 kings", "2kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
+    "1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
+    "2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
     "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
     "2nd chronicles", "2chronicles", "2 chronicles", "2chr", "2 chr", "2ch", "2ndchr", "2nd chr", "second chronicles", "second chr" -> 14
     "ezra", "ezr", "ez" -> 15
@@ -48,8 +48,33 @@ fun parseBook(book: String) = when (book) {
     "haggai", "hag", "hg" -> 37
     "zechariah", "zech", "zec", "zc" -> 38
     "malachi", "mal", "ml" -> 39
-
-
+    "matthew", "matt", "mt" -> 40
+    "mark", "mrk", "mar", "mk", "mr" -> 41
+    "luke", "luk", "lk" -> 42
+    "john", "joh", "jhn", "jn" -> 43
+    "acts", "act", "ac" -> 44
+    "romans", "rom", "ro", "rm" -> 45
+    "1 corinthians", "1corinthians", "1 cor", "1cor", "1 co", "1co", "1st corinthians", "first corinthians" -> 46
+    "2 corinthians", "2corinthians", "2 cor", "2cor", "2 co", "2co", "2nd corinthians", "second corinthians" -> 47
+    "galatians", "gal", "ga" -> 48
+    "ephesians", "eph", "ephes" -> 49
+    "philippians", "phil", "php", "pp" -> 50
+    "colossians", "col", "co" -> 51
+    "1 thessalonians", "1thessalonians", "1 thess", "1thess", "1 thes", "1thes", "1 th", "1th", "1st thessalonians", "1st thess", "first thessalonians", "first thess" -> 52
+    "2 thessalonians", "2thessalonians", "2 thess", "2thess", "2 thes", "2thes", "2 th", "2th", "2nd thessalonians", "2nd thess", "second thessalonians", "second thess" -> 53
+    "1 timothy", "1timothy", "1 tim", "1tim", "1 ti", "1ti", "1st timothy", "1st tim", "first timothy", "first tim" -> 54
+    "2 timothy", "2timothy", "2 tim", "2tim", "2 ti", "2ti", "2nd timothy", "2nd tim", "second timothy", "second tim" -> 55
+    "titus", "tit", "ti" -> 56
+    "philemon", "philem", "phm", "pm" -> 57
+    "hebrews", "heb" -> 58
+    "james", "jas", "jm" -> 59
+    "1 peter", "1peter", "1 pet", "1pet", "1 pe", "1pe", "1 pt", "1pt", "1p", "1st peter", "first peter" -> 60
+    "2 peter", "2peter", "2 pet", "2pet", "2 pe", "2pe", "2 pt", "2pt", "2p", "2nd peter", "second peter" -> 61
+    "1 john", "1john", "1 jhn", "1jhn", "1 jn", "1jn", "1j", "1st john", "first john" -> 62
+    "2 john", "2john", "2 jhn", "2jhn", "2 jn", "2jn", "2j", "2nd john", "second john" -> 63
+    "3 john", "3john", "3 jhn", "3jhn", "3 jn", "3jn", "3j", "3rd  john", "third  john" -> 64
+    "jude", "jud", "jd" -> 65
+    "revelation", "rev", "re", "the revelation" -> 66
     else -> throw Exception()
 }
 
