@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="bbl" Language="1033" Version="1.0.0.0"
+    Manufacturer="Gospel and Information Technology"
+    UpgradeCode="f10d913e-7669-4962-aa3f-963425ecf10b">
+
+        <Package InstallerVersion="200"
+        Description="bbl is a command line bible reader"
+        Manufacturer="Gospel and Information Technology"
+        Compressed="yes"
+        InstallScope="perMachine" />
+        <Icon Id="bbl.ico" SourceFile="src\main\resources\installer\windows\bbl.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="bbl.ico" />
+
+    </Product>
+</Wix>
