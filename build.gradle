@@ -96,7 +96,7 @@ jlink {
         //https://www.debian.org/doc/manuals/debian-faq/pkg-basics.ja.html#maintscripts
         //https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
         if (os.linux) {
-            installerOptions += ['--install-dir', '/opt',
+            installerOptions += ['--install-dir', '/usr/local/lib',
                                  '--resource-dir', (resourceDir + "/linux"),
                                  '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
 
