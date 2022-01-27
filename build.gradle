@@ -84,6 +84,8 @@ jlink {
             installerOptions += ['--install-dir', '/usr/local/bin',
                                  '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
 
+            installerType = 'deb'
+
             targetPlatform("linux-x64") {
                 jdkHome = "/usr/lib/jvm/java-16-openjdk-amd64"
             }
