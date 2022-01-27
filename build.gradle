@@ -62,7 +62,9 @@ jlink {
                 '--description', 'bbl, bible command line, read bible in your terminal.'
         ]
 
-        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+
+        OperatingSystem os = org.gradle.internal.os.OperatingSystem.current()
+        if (os.windows) {
             installerOptions += ['--win-per-user-install', '--win-dir-chooser', '--win-menu', '--win-shortcut']
             imageOptions += ['--win-console']
 
@@ -75,13 +77,17 @@ jlink {
 
         //https://docs.oracle.com/javase/jp/14/docs/specs/man/jpackage.html
         //https://developer.apple.com/jp/developer-id/
-        if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
+        if (os.macOsX) {
             installerType = 'pkg'
         }
 
-        if (org.gradle.internal.os.OperatingSystem.current().linux) {
+        //https://docs.oracle.com/en/java/javase/16/jpackage/override-jpackage-resources.html#GUID-405708DC-0243-49FC-84D9-B2A7F0A011A9
+        //https://docs.oracle.com/javase/jp/14/jpackage/override-jpackage-resources.html#GUID-1B718F8B-B68D-4D46-B1DB-003D7729AAB6
+        //https://www.debian.org/doc/manuals/debian-faq/pkg-basics.ja.html#maintscripts
+        //https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+        if (os.linux) {
 
-            installerOptions += ['--install-dir', '/usr/local/bin',
+            installerOptions += ['--install-dir', '/opt',
                                  '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
 
             installerType = 'deb'
