@@ -66,10 +66,8 @@ jlink {
                 '--description', 'bbl, command line bible reader'
         ]
 
-        def os = org.gradle.internal.os.OperatingSystem.current()
-
         //https://wix-tutorial-ja.github.io/ch01/index.html
-        if (os.windows) {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
             icon = "$resourceDir/bbl.ico"
             installerOptions += ['--win-per-user-install',
                                  '--win-dir-chooser',
@@ -88,7 +86,7 @@ jlink {
 
         //https://docs.oracle.com/javase/jp/14/docs/specs/man/jpackage.html
         //https://developer.apple.com/jp/developer-id/
-        if (os.macOsX) {
+        if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
             installerType = 'pkg'
         }
 
@@ -96,7 +94,7 @@ jlink {
         //https://docs.oracle.com/javase/jp/14/jpackage/override-jpackage-resources.html#GUID-1B718F8B-B68D-4D46-B1DB-003D7729AAB6
         //https://www.debian.org/doc/manuals/debian-faq/pkg-basics.ja.html#maintscripts
         //https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
-        if (os.linux) {
+        if (org.gradle.internal.os.OperatingSystem.current().linux) {
             icon = "$resourceDir/bbl.png"
             installerOptions += ['--install-dir', '/usr/local/lib',
                                  '--resource-dir', (resourceDir + "/linux"),
