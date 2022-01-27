@@ -20,7 +20,7 @@ set -e
 case "$1" in
 
   configure)
-    ln -s /usr/local/lib/bbl/lib/runtime/bin/bbl /usr/sbin/bbl
+    ln -s /usr/local/lib/bbl/bin/bbl /usr/sbin/bbl
   ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)
