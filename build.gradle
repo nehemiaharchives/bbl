@@ -58,7 +58,7 @@ jlink {
 
     jpackage {
         installerName = 'bbl'
-        icon = "$resourceDir/bbl.ico"
+
         appVersion = "$version"
         installerOptions += [
                 '--copyright', 'Copyright © 2022, Joel H. Ide, gnit.org',
@@ -70,6 +70,7 @@ jlink {
 
         //https://wix-tutorial-ja.github.io/ch01/index.html
         if (os.windows) {
+            icon = "$resourceDir/bbl.ico"
             installerOptions += ['--win-per-user-install',
                                  '--win-dir-chooser',
                                  '--win-menu',
@@ -96,6 +97,7 @@ jlink {
         //https://www.debian.org/doc/manuals/debian-faq/pkg-basics.ja.html#maintscripts
         //https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
         if (os.linux) {
+            icon = "$resourceDir/bbl.png"
             installerOptions += ['--install-dir', '/usr/local/lib',
                                  '--resource-dir', (resourceDir + "/linux"),
                                  '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
