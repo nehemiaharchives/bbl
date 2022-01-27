@@ -56,6 +56,11 @@ jlink {
 
     jpackage {
         installerName = 'bbl'
+        installerOptions += [
+                '--app-version', "$version",
+                '--copyright', 'Joel H. Ide',
+                '--description', 'bbl, bible command line, read bible in your terminal.'
+        ]
 
         if (org.gradle.internal.os.OperatingSystem.current().windows) {
             installerOptions += ['--win-per-user-install', '--win-dir-chooser', '--win-menu', '--win-shortcut']
@@ -68,7 +73,17 @@ jlink {
             }
         }
 
+        //https://docs.oracle.com/javase/jp/14/docs/specs/man/jpackage.html
+        //https://developer.apple.com/jp/developer-id/
+        if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            installerType = 'pkg'
+        }
+
         if (org.gradle.internal.os.OperatingSystem.current().linux) {
+
+            installerOptions += ['--install-dir', '/usr/local/bin',
+                                 '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
+
             targetPlatform("linux-x64") {
                 jdkHome = "/usr/lib/jvm/java-16-openjdk-amd64"
             }
