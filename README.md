@@ -80,9 +80,9 @@ Following abbreviation are accepted as command argument for book:
 
 ## Installation
 Linux Installation (Debian based only): 
-1. Download bbl_1.0-1_amd64.deb from below
-2. Run ```sudo apt install bbl_1.0-1_amd64.deb -y``` then 
+1. Download [bbl_1.0-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl_1.0-1_amd64.deb)
+2. Run ```sudo apt install bbl_1.0-1_amd64.deb -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
-1. Download installer from below and click Install button on ```bbl-1.0.msi```
-2. Add folder where you put ```bbl.exe``` to your PATH by editing environmental variable setting.
+1. Download [bbl-1.0.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl-1.0.msi), choose where to install, and click Install button,.
+2. Add folder where you put ```bbl.exe``` to your ```%PATH%``` by editing environmental variable setting, then```bbl``` command should be available.
