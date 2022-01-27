@@ -1,6 +1,8 @@
 # bbl
 A command line tool to read Holy Bible
 
+![screenshot](bbl700px-screenshot.png)
+
 ## Usage
 In the command line, type ```bbl genesis 1```. Then you start to read Genesis chapter 1 in King James Version.
 The text is hosted at [data](https://github.com/nehemiaharchives/bbl/tree/master/data) directory of this repository.
