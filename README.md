@@ -81,7 +81,11 @@ Following abbreviation are accepted as command argument for book:
 ```
 
 ## Installation
-Linux Installation (Debian based only): 
+MacOS Installation
+1. Download [bbl-1.0.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl-1.0.pkg)
+2. Click install button, then ```bbl``` command should be available from within ```/usr/local/bin/bbl```
+
+Linux Installation (Debian based only for now): 
 1. Download [bbl_1.0-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl_1.0-1_amd64.deb)
 2. Run ```sudo apt install bbl_1.0-1_amd64.deb -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
