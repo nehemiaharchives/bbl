@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm -rf /Applications/bbl.app
+rm -f /usr/local/bin/bbl
+
+exit 0 # all good

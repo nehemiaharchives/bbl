@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ln -s /Applications/bbl.app/Contents/MacOS/bbl /usr/local/bin/bbl
+
+exit 0 # all good

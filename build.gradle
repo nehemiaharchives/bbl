@@ -86,8 +86,13 @@ jlink {
 
         //https://docs.oracle.com/javase/jp/14/docs/specs/man/jpackage.html
         //https://developer.apple.com/jp/developer-id/
+        //https://stackoverflow.com/questions/44081611/how-can-i-change-the-icon-used-by-javapackager-for-pkg-installers
         if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            icon = "$resourceDir/bbl.icns"
             installerType = 'pkg'
+            installerOptions += [/*'--mac-sign', //TODO input after enrolling developer program
+                                 '--mac-signing-key-user-name', 'x',*/
+                                 '--resource-dir', (resourceDir + "/macos")]
         }
 
         //https://docs.oracle.com/en/java/javase/16/jpackage/override-jpackage-resources.html#GUID-405708DC-0243-49FC-84D9-B2A7F0A011A9
