@@ -1,16 +1,26 @@
 package org.gnit.bible
 
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.MissingArgument
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
+import java.io.File
+
+const val dataDirName = ".bbl"
+const val configFileName = "config.json"
 
 fun parseBook(book: String) = when (book) {
     "genesis", "gen", "ge", "gn" -> 1
@@ -117,10 +127,40 @@ fun maxChapter(book: Int): Int = when (book) {
     else -> 50
 }
 
-const val version = "kjv"
-const val dataDir = ".bbl"
+enum class LogLevel { DEBUG, ERROR }
+
+@Serializable
+data class Config(
+    val defaultVersion: String = "kjv",
+    val logLevel: LogLevel = LogLevel.ERROR
+)
+
+val logger = LoggerFactory.getLogger("bbl")
+
+fun config(): Config {
+    val configFile =
+        File(System.getProperty("user.home") + File.separator + dataDirName + File.separator + configFileName)
+
+    return if (configFile.exists()) {
+        logger.debug("config file found at $configFile")
+        runCatching { Json.decodeFromString<Config>(configFile.readText()) }
+            .onFailure { error -> logger.error("error occurred while trying open and parse config file at $configFile, error: ${error.message}") }
+            .getOrDefault(Config())
+    } else {
+        logger.debug("config file NOT found at $configFile. loading default configuration")
+        Config()
+    }
+}
 
 class Bbl : CliktCommand() {
+
+    val config = config()
+
+    val bibleVersion by option(
+        "-b",
+        "--bible",
+        help = "bible version abbreviation, such as kjv"
+    ).default(config.defaultVersion)
 
     val book: List<String> by argument().multiple(default = listOf("gen"))
     val chapter: String by argument().default("1")
@@ -147,7 +187,7 @@ class Bbl : CliktCommand() {
         }
 
         val url =
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl/master/data/$version.$bookNumber.$chapterNumber.txt"
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl/master/data/$bibleVersion.$bookNumber.$chapterNumber.txt"
 
         val client = HttpClient(OkHttp)
 
