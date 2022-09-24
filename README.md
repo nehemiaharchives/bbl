@@ -87,8 +87,9 @@ MacOS Installation
 2. Click install button, then ```bbl``` command should be available from within ```/usr/local/bin/bbl```
 
 Linux Installation (Debian based only for now): 
-1. Download [bbl_1.1-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl_1.1-1_amd64.deb)
-2. Run ```sudo apt install bbl_1.0-1_amd64.deb -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
+1. Download [bbl_1.1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl_1.1_amd64.deb)
+2. Run ```sudo apt install bbl_1.1_amd64.deb
+ -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
 1. Download [bbl-1.1.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.msi), choose where to install, and click Install button,.
