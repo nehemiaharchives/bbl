@@ -4,9 +4,10 @@ A command line tool to read Holy Bible
 ![screenshot](bbl700px-screenshot.png)
 
 ## Usage
-In the command line, type ```bbl genesis 1```. Then you start to read Genesis chapter 1 in King James Version.
-The text is hosted at [data](https://github.com/nehemiaharchives/bbl/tree/master/data) directory of this repository.
-The program is internally using [ktor](https://github.com/ktorio/ktor) to fetch verses of a chapter of the Bible.
+In the command line, type ```bbl genesis 1```. Then you start to read Genesis chapter 1 in World English Bible, or specify King James Version by ```bbl genesis 1 in kjv```, Chinese Union Version with New Punctuation ```cunp```, Korean Revised Version ```krv```, or Japanese Colloquial in ```jc```.
+
+A config file named ```.bbl/config.json``` with content such as ```{ "translation": "kjv" }``` in user home directory is optionally supported to set default translations.
+
 Command functionality is powered by [Clikt](https://github.com/ajalt/clikt).
 It validates the input of the number of chapters of a book, emits error when you request more chapter than the book has.
 
@@ -82,13 +83,13 @@ Following abbreviation are accepted as command argument for book:
 
 ## Installation
 MacOS Installation
-1. Download [bbl-1.0.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl-1.0.pkg)
+1. Download [bbl-1.1.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.pkg)
 2. Click install button, then ```bbl``` command should be available from within ```/usr/local/bin/bbl```
 
 Linux Installation (Debian based only for now): 
-1. Download [bbl_1.0-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl_1.0-1_amd64.deb)
+1. Download [bbl_1.1-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl_1.1-1_amd64.deb)
 2. Run ```sudo apt install bbl_1.0-1_amd64.deb -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
-1. Download [bbl-1.0.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.0/bbl-1.0.msi), choose where to install, and click Install button,.
+1. Download [bbl-1.1.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.msi), choose where to install, and click Install button,.
 2. Add folder where you put ```bbl.exe``` to your ```%PATH%``` by editing environmental variable setting, then```bbl``` command should be available.
