@@ -1,203 +1,130 @@
 package org.gnit.bible
 
-import org.slf4j.LoggerFactory
-import org.slf4j.Logger
-import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.MissingArgument
+import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
-import java.io.File
+import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
-const val dataDirName = ".bbl"
-const val configFileName = "config.json"
-
-fun parseBook(book: String) = when (book) {
-    "genesis", "gen", "ge", "gn" -> 1
-    "exodus", "ex", "exod", "exo" -> 2
-    "leviticus", "lev", "le", "lv" -> 3
-    "numbers", "num", "nu", "nm", "nb" -> 4
-    "deuteronomy", "deut", "de", "dt" -> 5
-    "joshua", "josh", "jos", "jsh" -> 6
-    "judges", "judg", "jdg", "jg", "jdgs" -> 7
-    "ruth", "rth", "ru" -> 8
-    "1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam" -> 9
-    "2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
-    "1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
-    "2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
-    "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
-    "2nd chronicles", "2chronicles", "2 chronicles", "2chr", "2 chr", "2ch", "2ndchr", "2nd chr", "second chronicles", "second chr" -> 14
-    "ezra", "ezr", "ez" -> 15
-    "nehemiah", "neh", "ne" -> 16
-    "esther", "est", "esth", "es" -> 17
-    "job", "jb" -> 18
-    "psalms", "ps", "psalm", "pslm", "psa", "psm", "pss" -> 19
-    "proverbs", "prov", "pro", "prv", "pr" -> 20
-    "ecclesiastes", "eccles", "eccle", "ecc", "ec", "qoh" -> 21
-    "song of solomon", "song", "song of songs", "sos", "so", "canticle of canticles", "canticles", "cant" -> 22
-    "isaiah", "isa", "is" -> 23
-    "jeremiah", "jer", "je", "jr" -> 24
-    "lamentations", "lam", "la" -> 25
-    "ezekiel", "ezek", "eze", "ezk" -> 26
-    "daniel", "dan", "da", "dn" -> 27
-    "hosea", "hos", "ho" -> 28
-    "joel", "jl" -> 29
-    "amos", "am" -> 30
-    "obadiah", "obad", "ob" -> 31
-    "jonah", "jnh", "jon" -> 32
-    "micah", "mic", "mc" -> 33
-    "nahum", "nah", "na" -> 34
-    "habakkuk", "hab", "hb" -> 35
-    "zephaniah", "zeph", "zep", "zp" -> 36
-    "haggai", "hag", "hg" -> 37
-    "zechariah", "zech", "zec", "zc" -> 38
-    "malachi", "mal", "ml" -> 39
-    "matthew", "matt", "mt" -> 40
-    "mark", "mrk", "mar", "mk", "mr" -> 41
-    "luke", "luk", "lk" -> 42
-    "john", "joh", "jhn", "jn" -> 43
-    "acts", "act", "ac" -> 44
-    "romans", "rom", "ro", "rm" -> 45
-    "1 corinthians", "1corinthians", "1 cor", "1cor", "1 co", "1co", "1st corinthians", "first corinthians" -> 46
-    "2 corinthians", "2corinthians", "2 cor", "2cor", "2 co", "2co", "2nd corinthians", "second corinthians" -> 47
-    "galatians", "gal", "ga" -> 48
-    "ephesians", "eph", "ephes" -> 49
-    "philippians", "phil", "php", "pp" -> 50
-    "colossians", "col", "co" -> 51
-    "1 thessalonians", "1thessalonians", "1 thess", "1thess", "1 thes", "1thes", "1 th", "1th", "1st thessalonians", "1st thess", "first thessalonians", "first thess" -> 52
-    "2 thessalonians", "2thessalonians", "2 thess", "2thess", "2 thes", "2thes", "2 th", "2th", "2nd thessalonians", "2nd thess", "second thessalonians", "second thess" -> 53
-    "1 timothy", "1timothy", "1 tim", "1tim", "1 ti", "1ti", "1st timothy", "1st tim", "first timothy", "first tim" -> 54
-    "2 timothy", "2timothy", "2 tim", "2tim", "2 ti", "2ti", "2nd timothy", "2nd tim", "second timothy", "second tim" -> 55
-    "titus", "tit", "ti" -> 56
-    "philemon", "philem", "phm", "pm" -> 57
-    "hebrews", "heb" -> 58
-    "james", "jas", "jm" -> 59
-    "1 peter", "1peter", "1 pet", "1pet", "1 pe", "1pe", "1 pt", "1pt", "1p", "1st peter", "first peter" -> 60
-    "2 peter", "2peter", "2 pet", "2pet", "2 pe", "2pe", "2 pt", "2pt", "2p", "2nd peter", "second peter" -> 61
-    "1 john", "1john", "1 jhn", "1jhn", "1 jn", "1jn", "1j", "1st john", "first john" -> 62
-    "2 john", "2john", "2 jhn", "2jhn", "2 jn", "2jn", "2j", "2nd john", "second john" -> 63
-    "3 john", "3john", "3 jhn", "3jhn", "3 jn", "3jn", "3j", "3rd  john", "third john" -> 64
-    "jude", "jud", "jd" -> 65
-    "revelation", "rev", "re", "the revelation" -> 66
-    else -> throw Exception()
-}
-
-fun maxChapter(book: Int): Int = when (book) {
-    19 -> 150
-    23 -> 66
-    24 -> 52
-    1 -> 50
-    26 -> 48
-    18 -> 42
-    2 -> 40
-    4, 14 -> 36
-    5 -> 34
-    9, 20 -> 31
-    13 -> 29
-    40, 44 -> 28
-    3 -> 27
-    12 -> 25
-    6, 10, 42 -> 24
-    11, 66 -> 22
-    7, 43 -> 21
-    41, 45, 46 -> 16
-    28, 38 -> 14
-    16, 47, 58 -> 13
-    21, 27 -> 12
-    15, 17 -> 10
-    30 -> 9
-    22 -> 8
-    33 -> 7
-    48, 49, 54 -> 6
-    25, 52, 59, 60, 62 -> 5
-    8, 32, 39, 50, 51, 55 -> 4
-    29, 34, 35, 36, 53, 56, 61 -> 3
-    37 -> 2
-    31, 57, 63, 64, 65 -> 1
-    else -> 50
-}
-
-enum class LogLevel { DEBUG, ERROR }
-
-@Serializable
-data class Config(
-    val defaultVersion: String = "kjv",
-    val logLevel: LogLevel = LogLevel.ERROR
-)
+const val DEFAULT_TRANSLATION = "webus"
 
 val logger = LoggerFactory.getLogger("bbl")
 
-fun config(): Config {
-    val configFile =
-        File(System.getProperty("user.home") + File.separator + dataDirName + File.separator + configFileName)
+data class VersePointer(
+    var translation: String = DEFAULT_TRANSLATION,
+    val book: Int = 0,
+    val chapter: Int = 0,
+    val startVerse: Int? = null,
+    val endVerse: Int? = null
+)
 
-    return if (configFile.exists()) {
-        logger.debug("config file found at $configFile")
-        runCatching { Json.decodeFromString<Config>(configFile.readText()) }
-            .onFailure { error -> logger.error("error occurred while trying open and parse config file at $configFile, error: ${error.message}") }
-            .getOrDefault(Config())
-    } else {
-        logger.debug("config file NOT found at $configFile. loading default configuration")
-        Config()
-    }
+fun parse(translation: String, book: List<String>, chapterVerse: String): VersePointer {
+
+    val bookString = book.joinToString(separator = " ") { it.lowercase() }
+
+    val bookNumber = parseBook(bookString)
+
+    val chapterVerseSplit = chapterVerse.split(":")
+
+    val chapterNumber = chapterVerseSplit[0].toInt()
+
+    val startVerse = if (chapterVerseSplit.size == 2) chapterVerseSplit[1].split("-")[0].toInt() else null
+
+    val endVerse =
+        if (chapterVerseSplit.size == 2 && chapterVerse.contains("-")) chapterVerseSplit[1].split("-")[1].toInt() else null
+
+    return VersePointer(
+        translation = translation,
+        book = bookNumber,
+        chapter = chapterNumber,
+        startVerse = startVerse,
+        endVerse = endVerse
+    )
 }
 
-class Bbl : CliktCommand() {
+fun readFromResources(versePointer: VersePointer): String {
+    val path =
+        "/data/${versePointer.translation}/${versePointer.translation}.${versePointer.book}.${versePointer.chapter}.txt"
 
-    val config = config()
+    val text = object {}.javaClass.getResourceAsStream(path)?.use { it.reader(Charsets.UTF_8).readText() }
 
-    val bibleVersion by option(
-        "-b",
-        "--bible",
-        help = "bible version abbreviation, such as kjv"
-    ).default(config.defaultVersion)
+    return text!!
+}
+
+fun splitChapterToVerses(aChapter: String): Array<String> {
+    return aChapter.substring(2).split("\\n\\d{1,3} ".toRegex()).toTypedArray()
+}
+
+fun selectVerses(versePointer: VersePointer, aChapter: String): String {
+
+    val start = versePointer.startVerse
+    val end = versePointer.endVerse
+
+    var selected = aChapter
+
+    if (start != null) {
+
+        val verses = splitChapterToVerses(aChapter)
+
+        if (end == null) {
+            selected = start.toString() + " " + verses[start - 1]
+        } else {
+            val list = mutableListOf<String>()
+
+            (start..end).forEach { verseNumber ->
+                list.add(verseNumber.toString() + " " + verses[verseNumber - 1])
+            }
+
+            selected = list.joinToString("\n")
+        }
+    }
+
+    return selected
+}
+
+class Bbl(val config: Config) : CliktCommand(invokeWithoutSubcommand = true) {
 
     val book: List<String> by argument().multiple(default = listOf("gen"))
-    val chapter: String by argument().default("1")
+    val chapterVerse: String by argument().default("1")
+
+    lateinit var versePointer: VersePointer
+    lateinit var chapterText: String
+    lateinit var selectedVerses: String
 
     override fun run() {
 
-        val bookString = book.joinToString(separator = " ") { it.lowercase() }
+        val translation = config.translation
+        versePointer = parse(translation, book, chapterVerse)
 
-        val bookNumber = try {
-            parseBook(bookString)
-        } catch (e: Exception) {
-            throw MissingArgument(argument = argument("book '$bookString' not found in the list of book names"))
+        val subcommand = currentContext.invokedSubcommand
+        if (subcommand == null) {
+
+            chapterText = readFromResources(versePointer)
+            selectedVerses = selectVerses(versePointer, chapterText)
+            echo(selectedVerses)
+
+        } else {
+            //going to move on subcommand
+            currentContext.findOrSetObject { versePointer }
         }
-
-        val chapterNumber = try {
-            chapter.toInt()
-        } catch (e: NumberFormatException) {
-            throw MissingArgument(argument = argument("chapter"))
-        }
-
-        val maxChapter = maxChapter(bookNumber)
-        if (chapterNumber > maxChapter) {
-            throw BadParameterValue("you requested chapter $chapterNumber but number of chapters of the book $bookString is only $maxChapter.")
-        }
-
-        val url =
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl/master/data/$bibleVersion.$bookNumber.$chapterNumber.txt"
-
-        val client = HttpClient(OkHttp)
-
-        runBlocking {
-            val text = client.get(url).bodyAsText()
-            echo(text)
-            client.close()
-        }
-
     }
 }
 
-fun main(args: Array<String>) = Bbl().main(args)
+class In : CliktCommand(){
+
+    val translationOverride: String by argument()
+    val versePointer by requireObject<VersePointer>()
+
+    lateinit var selectedVerses: String
+
+    override fun run() {
+        versePointer.translation = translationOverride
+        selectedVerses = selectVerses(versePointer, readFromResources(versePointer))
+        echo(selectedVerses)
+    }
+}
+
+fun main(args: Array<String>) = Bbl(readConfigFromFileSystem()).subcommands(In()).main(args)
