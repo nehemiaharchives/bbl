@@ -7,7 +7,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import org.slf4j.LoggerFactory
-import kotlin.system.exitProcess
 
 const val DEFAULT_TRANSLATION = "webus"
 
