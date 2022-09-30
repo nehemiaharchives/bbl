@@ -4,14 +4,76 @@ A command line tool to read Holy Bible
 ![screenshot](bbl700px-screenshot.png)
 
 ## Usage
-In the command line, type ```bbl genesis 1```. Then you start to read Genesis chapter 1 in World English Bible, or specify King James Version by ```bbl genesis 1 in kjv```, Chinese Union Version with New Punctuation ```cunp```, Korean Revised Version ```krv```, or Japanese Colloquial in ```jc```.
 
-A config file named ```.bbl/config.json``` with content such as ```{ "translation": "kjv" }``` in user home directory is optionally supported to set default translations.
+bbl, with no argument/option will defaults to output Genesis chapter 1 in World English Bible.
 
-Command functionality is powered by [Clikt](https://github.com/ajalt/clikt).
-It validates the input of the number of chapters of a book, emits error when you request more chapter than the book has.
+```
+joel@JOEL-LAPTOP:~$ bbl
+1 In the beginning, God created the heavens and the earth.
+2 The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.
+3 God said, “Let there be light,” and there was light.
+...
+31 God saw everything that he had made, and, behold, it was very good. There was evening and there was morning, a sixth day.
+```
 
-Following abbreviation are accepted as command argument for book:
+bbl is expected to use specifying a book and a chapter for reading Bible like this:
+```
+joel@JOEL-LAPTOP:~$ bbl ex 1
+1 Now these are the names of the sons of Israel, who came into Egypt (every man and his household came with Jacob):
+2 Reuben, Simeon, Levi, and Judah,
+3 Issachar, Zebulun, and Benjamin,
+...
+22 Pharaoh commanded all his people, saying, “You shall cast every son who is born into the river, and every daughter you shall save alive.”
+```
+bbl allows to specify a verse:
+```
+joel@JOEL-LAPTOP:~$ bbl john 3:16
+16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life.
+```
+
+or a range of verses
+```
+joel@JOEL-LAPTOP:~$ bbl matt 28:18-20
+18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
+19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
+20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
+```
+
+bbl also let you specify other translation of Bibles such as King James Version by supplying "in {translation}" subcommand.
+```
+joel@JOEL-LAPTOP:~$ bbl genesis 1 in kjv
+1 In the beginning God created the heaven and the earth.
+2 And the earth was without form, and void; and darkness [was] upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+3 And God said, Let there be light: and there was light.
+...
+31 And God saw every thing that he had made, and, behold, [it was] very good. And the evening and the morning were the sixth day.
+```
+
+## Translations embedded in bbl
+Following abbreviations are supported to switch bible translations: 
+
+* ```webus``` World English Bible
+* ```kjv``` King James Version
+* ```cunp``` Chinese Union Version with New Punctuation
+* ```krv``` Korean Revised Version
+* ```jc``` Japanese Colloquial
+
+## Configure custom default behavior
+bbl, assuming that the username of the computer is "joel", tries to look for ```config.json``` at 
+* ```C:\Users\joel\.bbl\config.json``` in Windows
+* ```/Users/joel/.bbl/config.json``` in MacOS
+* ```/home/joel/.bbl/config.json``` in Linux
+
+for now, translation and number of search result verses can be configured by ```config.json``` as following: 
+```json
+    { 
+        "translation": "kjv",
+        "searchResult": 10
+    }
+``` 
+
+## Bible book names
+bbl acceptes following abbreviation as command argument to specify book:
 ```
     genesis, gen, ge, gn
     exodus, ex, exod, exo
@@ -81,6 +143,64 @@ Following abbreviation are accepted as command argument for book:
     revelation, rev, re, the revelation
 ```
 
+## Search
+```bbl search {keywords and phrases}``` coomand finds related verses and sorts in order they appear in the Bible.
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ
+matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
+matthew 1:16 Jacob became the father of Joseph, the husband of Mary, from whom was born Jesus, who is called Christ.
+matthew 1:17 So all the generations from Abraham to David are fourteen generations; from David to the exile to Babylon fourteen generations; and from the carrying away to Babylon to the Christ, fourteen generations.
+```
+
+bbl search can specify a book
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans
+romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,
+romans 1:4 who was declared to be the Son of God with power according to the Spirit of holiness, by the resurrection from the dead, Jesus Christ our Lord,
+romans 1:6 among whom you are also called to belong to Jesus Christ;
+```
+
+a chapter
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 3
+romans 3:22 even the righteousness of God through faith in Jesus Christ to all and on all those who believe. For there is no distinction,
+romans 3:24 being justified freely by his grace through the redemption that is in Christ Jesus,
+romans 3:26 to demonstrate his righteousness at this present time, that he might himself be just and the justifier of him who has faith in Jesus.
+```
+
+or a range of chapters
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 4-6
+romans 4:24 but for our sake also, to whom it will be accounted, who believe in him who raised Jesus our Lord from the dead,
+romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;
+romans 5:6 For while we were yet weak, at the right time Christ died for the ungodly.
+```
+
+translation can be specified too
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in kjv
+matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.
+matthew 1:16 And Jacob begat Joseph the husband of Mary, of whom was born Jesus, who is called Christ.
+matthew 1:17 So all the generations from Abraham to David [are] fourteen generations; and from David until the carrying away into Babylon [are] fourteen generations; and from the carrying away into Babylon unto Christ [are] fourteen generations.
+```
+
+book and chapter(s) can be specified together with a translation
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 4-6 in kjv
+romans 4:24 But for us also, to whom it shall be imputed, if we believe on him that raised up Jesus our Lord from the dead;
+romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:
+romans 5:6 For when we were yet without strength, in due time Christ died for the ungodly.
+```
+
+translation can be specified first before book (and chapter(s))
+```
+joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in kjv in romans 7-9
+romans 7:4 Wherefore, my brethren, ye also are become dead to the law by the body of Christ; that ye should be married to another, [even] to him who is raised from the dead, that we should bring forth fruit unto God.
+romans 7:25 I thank God through Jesus Christ our Lord. So then with the mind I myself serve the law of God; but with the flesh the law of sin.
+
+romans 8:1 [There is] therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.
+```
+
 ## Installation
 MacOS Installation
 1. Download [bbl-1.1.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.pkg)
@@ -88,9 +208,16 @@ MacOS Installation
 
 Linux Installation (Debian based only for now): 
 1. Download [bbl_1.1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl_1.1_amd64.deb)
-2. Run ```sudo apt install bbl_1.1_amd64.deb
+2. Run ```sudo apt install ./bbl_1.1_amd64.deb
  -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
 1. Download [bbl-1.1.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.msi), choose where to install, and click Install button,.
 2. Add folder where you put ```bbl.exe``` to your ```%PATH%``` by editing environmental variable setting, then```bbl``` command should be available.
+
+## Powered by
+bbl was made available thanks to following:
+* God the Father, Jesus Christ the son, and Holy Spirit who encouraged me to make this software.
+* Command functionality is powered by [Clikt](https://github.com/ajalt/clikt). It validates the input of the number of chapters of a book, emits error when you request more chapter than the book has.
+* Search is powered by [Apache Lucene](https://github.com/apache/lucene)
+* The code is written in [Kotlin](https://kotlinlang.org/) Programming Language
