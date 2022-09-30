@@ -217,7 +217,7 @@ Windows Installation:
 
 ## Powered by
 bbl was made available thanks to following:
-* God the Father, Jesus Christ the son, and Holy Spirit who encouraged me to make this software.
+* God the Father, Jesus Christ the Son and The Holy Spirit who encouraged me to make this software.
 * Command functionality is powered by [Clikt](https://github.com/ajalt/clikt). It validates the input of the number of chapters of a book, emits error when you request more chapter than the book has.
 * Search is powered by [Apache Lucene](https://github.com/apache/lucene)
 * The code is written in [Kotlin](https://kotlinlang.org/) Programming Language
