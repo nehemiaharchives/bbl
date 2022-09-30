@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        lucene_version = '9.3.0'
         kotlin_version = '1.7.10'
+        lucene_version = '9.3.0'
         tinlylog_version = '2.5.0'
     }
 }
@@ -15,20 +15,26 @@ plugins {
 }
 
 group = 'org.gnit.bible'
-version = '1.1'
+version = '1.2'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    /*implementation "org.apache.lucene:lucene-queryparser:$lucene_version"
-    implementation "org.apache.lucene:lucene-analyzers-common:$lucene_version"*/
     implementation "com.github.ajalt.clikt:clikt:3.5.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
     implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation "org.tinylog:slf4j-tinylog:$tinlylog_version"
     implementation "org.tinylog:tinylog-impl:$tinlylog_version"
+
+    //search
+    implementation 'com.google.jimfs:jimfs:1.2'
+    implementation "org.apache.lucene:lucene-queryparser:$lucene_version"
+    implementation "org.apache.lucene:lucene-analysis-common:$lucene_version"
+    implementation "org.apache.lucene:lucene-analysis-smartcn:$lucene_version"
+    implementation "org.apache.lucene:lucene-analysis-kuromoji:$lucene_version"
+    implementation "org.apache.lucene:lucene-analysis-nori:$lucene_version"
 
     //test
     implementation 'org.jetbrains.kotlin:kotlin-test'

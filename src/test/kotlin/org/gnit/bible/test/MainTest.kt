@@ -47,6 +47,10 @@ class MainTest {
         assertEquals(listOf("1", "co"), bbl.book)
         assertEquals("2:2", bbl.chapterVerse)
         assertEquals(VersePointer(book = 46, chapter = 2, startVerse = 2), bbl.versePointer)
+
+        println("ex: 2 For I determined not to know anything among you except Jesus Christ and him crucified.")
+        println("ac: ${bbl.selectedVerses}")
+
         assertEquals(
             "2 For I determined not to know anything among you except Jesus Christ and him crucified.",
             bbl.selectedVerses
@@ -71,11 +75,10 @@ class MainTest {
 
     @Test
     fun readFromResourcesTest() {
-
         val versePointer = VersePointer(book = 1, chapter = 3)
-        val text = readFromResources(versePointer)
-
-        assertEquals(text, webusGen3)
+        val actual = ProdResourceReader().readText(chapterTextPath(versePointer))
+        val expected = webusGen3
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -114,7 +117,7 @@ class MainTest {
     }
 
     @Test
-    fun selectJcTest(){
+    fun selectJcTest() {
         val subCommand = In()
         bbl.subcommands(subCommand).parse(arrayOf("john", "8:15", "in", "jc"))
 
@@ -122,7 +125,7 @@ class MainTest {
     }
 
     @Test
-    fun wrongBookNameError(){
+    fun wrongBookNameError() {
         assertFailsWith<Exception>("book '1col' not found in the list of book names") {
             bbl.parse(arrayOf("1col", "1"))
         }

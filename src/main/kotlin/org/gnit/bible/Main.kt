@@ -6,25 +6,28 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.option
 import org.slf4j.LoggerFactory
 
-const val DEFAULT_TRANSLATION = "webus"
+enum class Translation { webus, kjv, cunp, krv, jc }
 
-val logger = LoggerFactory.getLogger("bbl")
+val DEFAULT_TRANSLATION = Translation.webus
+
+val logger = LoggerFactory.getLogger("bbl.cli")!!
 
 data class VersePointer(
-    var translation: String = DEFAULT_TRANSLATION,
+    var translation: Translation = DEFAULT_TRANSLATION,
     val book: Int = 0,
     val chapter: Int = 0,
     val startVerse: Int? = null,
     val endVerse: Int? = null
 )
 
-fun parse(translation: String, book: List<String>, chapterVerse: String): VersePointer {
+fun parse(translation: Translation, book: List<String>, chapterVerse: String): VersePointer {
 
     val bookString = book.joinToString(separator = " ") { it.lowercase() }
 
-    val bookNumber = parseBook(bookString)
+    val bookNumber = bookNumber(bookString)
 
     val chapterVerseSplit = chapterVerse.split(":")
 
@@ -44,14 +47,8 @@ fun parse(translation: String, book: List<String>, chapterVerse: String): VerseP
     )
 }
 
-fun readFromResources(versePointer: VersePointer): String {
-    val path =
-        "/data/${versePointer.translation}/${versePointer.translation}.${versePointer.book}.${versePointer.chapter}.txt"
-
-    val text = object {}.javaClass.getResourceAsStream(path)?.use { it.reader(Charsets.UTF_8).readText() }
-
-    return text!!
-}
+fun chapterTextPath(versePointer: VersePointer) =
+    "texts/${versePointer.translation}/${versePointer.translation}.${versePointer.book}.${versePointer.chapter}.txt"
 
 fun splitChapterToVerses(aChapter: String): Array<String> {
     return aChapter.substring(2).split("\\n\\d{1,3} ".toRegex()).toTypedArray()
@@ -95,13 +92,13 @@ class Bbl(val config: Config) : CliktCommand(invokeWithoutSubcommand = true) {
 
     override fun run() {
 
-        val translation = config.translation
-        versePointer = parse(translation, book, chapterVerse)
+        versePointer = parse(config.translation, book, chapterVerse)
 
         val subcommand = currentContext.invokedSubcommand
         if (subcommand == null) {
 
-            chapterText = readFromResources(versePointer)
+            val path = chapterTextPath(versePointer)
+            chapterText = getResourceReader().readText(path)
             selectedVerses = selectVerses(versePointer, chapterText)
             echo(selectedVerses)
 
@@ -112,7 +109,7 @@ class Bbl(val config: Config) : CliktCommand(invokeWithoutSubcommand = true) {
     }
 }
 
-class In : CliktCommand(){
+class In : CliktCommand() {
 
     val translationOverride: String by argument()
     val versePointer by requireObject<VersePointer>()
@@ -120,10 +117,86 @@ class In : CliktCommand(){
     lateinit var selectedVerses: String
 
     override fun run() {
-        versePointer.translation = translationOverride
-        selectedVerses = selectVerses(versePointer, readFromResources(versePointer))
+        versePointer.translation = Translation.valueOf(translationOverride)
+        val path = chapterTextPath(versePointer)
+        selectedVerses = selectVerses(versePointer, getResourceReader().readText(path))
         echo(selectedVerses)
     }
 }
 
-fun main(args: Array<String>) = Bbl(readConfigFromFileSystem()).subcommands(In()).main(args)
+data class BookChapterFilter(
+    val book: Int? = null,
+    val startChapter: Int? = null,
+    val endChapter: Int? = null,
+    val term: String
+)
+
+class Search(val config: Config) : CliktCommand() {
+
+    val numberOfSearchResultVersesOverride by option("-r", "--result", help = "number of search result verses")
+    val searchInputs: List<String> by argument().multiple()
+
+    fun getTranslationFrom(searchInput: String): Translation? {
+
+        var overridden: Translation? = null
+
+        Translation.values().forEach { translation ->
+            if (searchInput.endsWith("in $translation")) {
+                overridden = translation
+            }
+        }
+
+        return overridden
+    }
+
+    lateinit var term: String
+    lateinit var translation: Translation
+    lateinit var result: List<String>
+
+    override fun run() {
+        val searchInput = searchInputs.joinToString(separator = " ")
+
+        // bbl search God in kjv -> "in kjv" will be detected
+        val overrideTranslation = getTranslationFrom(searchInput)
+        if (overrideTranslation == null) {
+            translation = config.translation
+            term = searchInput
+        } else {
+            translation = overrideTranslation
+            term = searchInput.replace("in $overrideTranslation", "").trim()
+        }
+
+        // bbl search Gdo in gen, in gen 1, or in gen 2-4 will be detected
+        val bookChapterFilter = filterByBookChapter(term)
+        term = bookChapterFilter.term
+
+        // bbl search God in kjv in gen 1 -> "in kjv" will be detected
+        val overrideTranslationInMiddle = getTranslationFrom(term)
+        if (overrideTranslationInMiddle != null) {
+            translation = overrideTranslationInMiddle
+            term = term.replace("in $overrideTranslationInMiddle", "").trim()
+        }
+
+        result = search(
+            term = term,
+            bookNumber = bookChapterFilter.book,
+            startChapter = bookChapterFilter.startChapter,
+            endChapter = bookChapterFilter.endChapter,
+            verses = numberOfSearchResultVersesOverride?.toInt() ?: config.searchResult,
+            translation = translation
+        )
+
+        result.forEach { verse ->
+            echo(verse)
+        }
+    }
+}
+
+fun main(args: Array<String>) {
+    val config = readConfigFromFileSystem()
+
+    Bbl(config).subcommands(
+        In(),
+        Search(config)
+    ).main(args)
+}
