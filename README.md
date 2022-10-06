@@ -203,16 +203,16 @@ romans 8:1 [There is] therefore now no condemnation to them which are in Christ 
 
 ## Installation
 MacOS Installation
-1. Download [bbl-1.1.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.pkg)
+1. Download [bbl-1.2.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.2/bbl-1.2.pkg)
 2. Click install button, then ```bbl``` command should be available from within ```/usr/local/bin/bbl```
 
 Linux Installation (Debian based only for now): 
-1. Download [bbl_1.1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl_1.1_amd64.deb)
+1. Download [bbl_1.2_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.2/bbl_1.2_amd64.deb)
 2. Run ```sudo apt install ./bbl_1.1_amd64.deb
  -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
-1. Download [bbl-1.1.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.1/bbl-1.1.msi), choose where to install, and click Install button,.
+1. Download [bbl-1.2.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.2/bbl-1.2.msi), choose where to install, and click Install button,.
 2. Add folder where you put ```bbl.exe``` to your ```%PATH%``` by editing environmental variable setting, then```bbl``` command should be available.
 
 ## Powered by
