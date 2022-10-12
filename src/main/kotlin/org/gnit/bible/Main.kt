@@ -131,7 +131,7 @@ data class BookChapterFilter(
     val term: String
 )
 
-class Search(val config: Config) : CliktCommand() {
+class Search(val env: Environment, val config: Config) : CliktCommand() {
 
     val numberOfSearchResultVersesOverride by option("-r", "--result", help = "number of search result verses")
     val searchInputs: List<String> by argument().multiple()
@@ -155,7 +155,7 @@ class Search(val config: Config) : CliktCommand() {
 
     override fun run() {
 
-        val searchInput = if (isWindows()) {
+        val searchInput = if (env == Environment.PRODUCTION && isWindows()) {
             WindowsCommandLine().getCommandLineArguments(this.commandName, searchInputs)
         } else {
             searchInputs
@@ -202,6 +202,6 @@ fun main(args: Array<String>) {
 
     Bbl(config).subcommands(
         In(),
-        Search(config)
+        Search(env = Environment.PRODUCTION, config)
     ).main(args)
 }
