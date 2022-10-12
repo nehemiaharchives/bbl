@@ -4,7 +4,6 @@ buildscript {
         lucene_version = '9.4.0'
         tinlylog_version = '2.5.0'
         junit_version = '5.9.0'
-        testcontainers_version = '1.17.5'
     }
 }
 
@@ -43,8 +42,6 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:$junit_version"
-    testImplementation "org.testcontainers:testcontainers:$testcontainers_version"
-    testImplementation "org.testcontainers:junit-jupiter:$testcontainers_version"
 }
 
 test {
