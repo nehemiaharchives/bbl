@@ -27,6 +27,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation "org.tinylog:slf4j-tinylog:$tinlylog_version"
     implementation "org.tinylog:tinylog-impl:$tinlylog_version"
+    implementation "net.java.dev.jna:jna:latest.release"
 
     //search
     implementation 'com.google.jimfs:jimfs:1.2'

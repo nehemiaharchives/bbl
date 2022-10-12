@@ -154,7 +154,12 @@ class Search(val config: Config) : CliktCommand() {
     lateinit var result: List<String>
 
     override fun run() {
-        val searchInput = searchInputs.joinToString(separator = " ")
+
+        val searchInput = if (isWindows()) {
+            WindowsCommandLine().getCommandLineArguments(this.commandName, searchInputs)
+        } else {
+            searchInputs
+        }.joinToString(separator = " ")
 
         // bbl search God in kjv -> "in kjv" will be detected
         val overrideTranslation = getTranslationFrom(searchInput)

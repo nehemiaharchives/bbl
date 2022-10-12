@@ -16,5 +16,6 @@ module org.gnit.bible {
     requires jimfs;
     requires kotlin.stdlib.jdk7;
     requires jdk.management;
+    requires com.sun.jna;
     exports org.gnit.bible;
 }
