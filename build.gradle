@@ -1,8 +1,10 @@
 buildscript {
     ext {
         kotlin_version = '1.7.10'
-        lucene_version = '9.3.0'
+        lucene_version = '9.4.0'
         tinlylog_version = '2.5.0'
+        junit_version = '5.9.0'
+        testcontainers_version = '1.17.5'
     }
 }
 
@@ -24,10 +26,10 @@ repositories {
 dependencies {
     implementation "com.github.ajalt.clikt:clikt:3.5.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api:2.0.3'
     implementation "org.tinylog:slf4j-tinylog:$tinlylog_version"
     implementation "org.tinylog:tinylog-impl:$tinlylog_version"
-    implementation "net.java.dev.jna:jna:latest.release"
+    implementation 'net.java.dev.jna:jna:5.12.1'
 
     //search
     implementation 'com.google.jimfs:jimfs:1.2'
@@ -39,8 +41,10 @@ dependencies {
 
     //test
     implementation 'org.jetbrains.kotlin:kotlin-test'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:$junit_version"
+    testImplementation "org.testcontainers:testcontainers:$testcontainers_version"
+    testImplementation "org.testcontainers:junit-jupiter:$testcontainers_version"
 }
 
 test {

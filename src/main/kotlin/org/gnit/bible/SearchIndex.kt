@@ -43,7 +43,7 @@ fun createIndex(translation: Translation) {
 
             logger.debug("reading book $book ${bookName(book)} $chapter in $path")
 
-            val aChapter = File("src/main/resources$path").readText()
+            val aChapter = File("src/main/resources/$path").readText()
 
             val split = splitChapterToVerses(aChapter)
 

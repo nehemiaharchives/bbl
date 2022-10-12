@@ -3,8 +3,21 @@ package org.gnit.bible.test
 import org.apache.lucene.document.IntPoint
 import org.gnit.bible.*
 import org.junit.jupiter.api.Test
+import java.io.File
 import kotlin.io.path.Path
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+
+class SearchIndexTest {
+
+    @Test
+    fun getTextPathTest(){
+        val versePointer = VersePointer(Translation.webus, book = 1, chapter = 3)
+        val textPathString = chapterTextPath(versePointer)
+        val aChapter = File("src/main/resources/$textPathString").readText()
+        assertEquals(webusGen3, aChapter)
+    }
+}
 
 class SearchCoreTest {
 
