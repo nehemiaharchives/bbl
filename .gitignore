@@ -101,3 +101,6 @@ hs_err_pid*
 
 #MacOS
 .DS_Store
+
+bbl_install/.kitchen/
+bbl_install/.kitchen.local.yml

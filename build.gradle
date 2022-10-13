@@ -49,11 +49,11 @@ test {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = '18'
+    kotlinOptions.jvmTarget = '17'
 }
 
 compileTestKotlin {
-    kotlinOptions.jvmTarget = '18'
+    kotlinOptions.jvmTarget = '17'
 }
 
 sourceSets {
@@ -97,6 +97,7 @@ jlink {
         name = 'bbl'
     }
 
+    //https://badass-jlink-plugin.beryx.org/releases/latest/#_jpackage
     jpackage {
         installerName = 'bbl'
 
@@ -124,6 +125,7 @@ jlink {
                 //jdkHome = "C:\\Program Files\\OpenJDK\\jdk-16"
                 jdkHome = "$System.env.JAVA_HOME"
             }
+            outputDir = "jpackage/windows"
         }
 
         //https://docs.oracle.com/javase/jp/14/docs/specs/man/jpackage.html
@@ -135,24 +137,50 @@ jlink {
             installerOptions += [/*'--mac-sign', //TODO input after enrolling developer program
                                  '--mac-signing-key-user-name', 'x',*/
                                  '--resource-dir', (resourceDir + "/macos")]
+            outputDir = "jpackage/macos"
         }
 
         //https://docs.oracle.com/en/java/javase/16/jpackage/override-jpackage-resources.html#GUID-405708DC-0243-49FC-84D9-B2A7F0A011A9
         //https://docs.oracle.com/javase/jp/14/jpackage/override-jpackage-resources.html#GUID-1B718F8B-B68D-4D46-B1DB-003D7729AAB6
         //https://www.debian.org/doc/manuals/debian-faq/pkg-basics.ja.html#maintscripts
+        //https://www.ep.sci.hokudai.ac.jp/~epnetfan/zagaku/2000/1006/deb-make.html
+        //https://github.com/ewxrjk/greed/tree/master/debian
+        //https://www.debian.org/doc/debian-policy/ch-controlfields.html
         //https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
         if (org.gradle.internal.os.OperatingSystem.current().linux) {
             icon = "$resourceDir/bbl.png"
             installerOptions += ['--install-dir', '/usr/local/lib',
                                  '--resource-dir', (resourceDir + "/linux"),
-                                 '--linux-deb-maintainer', 'nehemiaharchive@gmail.com']
+                                 '--linux-deb-maintainer', 'nehemiaharchive@gmail.com'
+            ]
 
             installerType = 'deb'
 
             targetPlatform("linux-x64") {
-                jdkHome = "/usr/lib/jvm/java-18-openjdk-amd64"
-            }
-        }
+                //in wsl2 
+                //jdkHome = "/usr/lib/jvm/java-17-openjdk-amd64"
 
+                //in gradle:7.5.1-jdk17-focal docker image
+                jdkHome = "/opt/java/openjdk"
+            }
+            outputDir = "jpackage/linux"
+        }
+    }
+
+    tasks.register('cookbook') {
+        doLast {
+            println "deleting deb package file in cookbook dir."
+            delete fileTree('bbl_install/files') {
+                include '*.deb'
+            }
+
+            println "copying new deb to cookbook dir"
+            copy {
+                from layout.buildDirectory.dir("jpackage/linux")
+                include "*.deb"
+                into "bbl_install/files"
+            }
+            println "integration test ready for linux. move to cookbook dir and run: bundle exec kitchen test"
+        }
     }
 }

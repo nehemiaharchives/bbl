@@ -1,0 +1,37 @@
+---
+driver:
+  name: dokken
+
+transport:
+  name: dokken
+
+provisioner:
+  name: dokken
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-20.04
+    driver:
+      image: dokken/ubuntu-20.04
+      privileged: true
+      pid_one_command: /bin/systemd
+  - name: ubuntu-21.04
+    driver:
+      image: dokken/ubuntu-21.04
+      privileged: true
+      pid_one_command: /bin/systemd
+  - name: ubuntu-22.04
+    driver:
+      image: dokken/ubuntu-22.04
+      privileged: true
+      pid_one_command: /bin/systemd
+
+suites:
+  - name: default
+    run_list:
+      - recipe[bbl_install::default]
+    attributes:
+      bbl_install:
+        version: '1.2-1'

@@ -1,0 +1,1 @@
+default['bbl_install']['version'] = '1.2'
