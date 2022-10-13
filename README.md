@@ -5,7 +5,7 @@ A command line tool to read Holy Bible
 
 ## Usage
 
-bbl, with no argument/option will defaults to output Genesis chapter 1 in World English Bible.
+bbl, with no argument/option defaults to output Genesis chapter 1 in World English Bible.
 
 ```
 joel@JOEL-LAPTOP:~$ bbl
@@ -49,31 +49,8 @@ joel@JOEL-LAPTOP:~$ bbl genesis 1 in kjv
 31 And God saw every thing that he had made, and, behold, [it was] very good. And the evening and the morning were the sixth day.
 ```
 
-## Translations embedded in bbl
-Following abbreviations are supported to switch bible translations: 
-
-* ```webus``` World English Bible
-* ```kjv``` King James Version
-* ```cunp``` Chinese Union Version with New Punctuation
-* ```krv``` Korean Revised Version
-* ```jc``` Japanese Colloquial
-
-## Configure custom default behavior
-bbl, assuming that the username of the computer is "joel", tries to look for ```config.json``` at 
-* ```C:\Users\joel\.bbl\config.json``` in Windows
-* ```/Users/joel/.bbl/config.json``` in MacOS
-* ```/home/joel/.bbl/config.json``` in Linux
-
-for now, translation and number of search result verses can be configured by ```config.json``` as following: 
-```json
-    { 
-        "translation": "kjv",
-        "searchResult": 10
-    }
-``` 
-
 ## Bible book names
-bbl acceptes following abbreviation as command argument to specify book:
+bbl accepts following abbreviation as command argument to specify book:
 ```
     genesis, gen, ge, gn
     exodus, ex, exod, exo
@@ -144,7 +121,7 @@ bbl acceptes following abbreviation as command argument to specify book:
 ```
 
 ## Search
-```bbl search {keywords and phrases}``` coomand finds related verses and sorts in order they appear in the Bible.
+```bbl search {keywords and phrases}``` finds related verses and sorts in order they appear in the Bible.
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ
 matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
@@ -200,6 +177,80 @@ romans 7:25 I thank God through Jesus Christ our Lord. So then with the mind I m
 
 romans 8:1 [There is] therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.
 ```
+
+number of search result can be adjusted by command option ```-r 3``` or setting ```"searchResult": 3``` in ```config.json```
+```
+joel@JOEL-DESKTOP:~$ bbl search Jesus -r 3
+matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
+matthew 1:16 Jacob became the father of Joseph, the husband of Mary, from whom was born Jesus, who is called Christ.
+matthew 1:18 Now the birth of Jesus Christ was like this: After his mother, Mary, was engaged to Joseph, before they came together, she was found pregnant by the Holy Spirit.
+```
+
+## Random Verses
+```bbl rand {options}``` randomly shows a verse or a chapter from entire bible, Old Testament, New Testament, or Gospels
+
+default behavior without option first chooses a random book, then from the book chooses a chapter, then a verse from the chapter
+```
+joel@JOEL-DESKTOP:~$ bbl rand
+1 Corinthians 4:17
+Because of this I have sent Timothy to you, who is my beloved and faithful child in the Lord, who will remind you of my ways which are in Christ, even as I teach everywhere in every assembly.
+```
+
+random verse from OT
+```
+joel@JOEL-DESKTOP:~$ bbl rand ot
+Ezra 4:5
+They hired counselors against them to frustrate their purpose all the days of Cyrus king of Persia, even until the reign of Darius king of Persia.
+```
+
+random verse from NT
+```
+joel@JOEL-DESKTOP:~$ bbl rand nt
+Romans 12:19
+Don’t seek revenge yourselves, beloved, but give place to God’s wrath. For it is written, “Vengeance belongs to me; I will repay, says the Lord.”
+```
+
+random verse from Gospels (Matthew, Mark, Luke or John)
+```
+joel@JOEL-DESKTOP:~$ bbl rand g
+John 14:11
+Believe me that I am in the Father, and the Father in me; or else believe me for the very works’ sake.
+```
+
+show random chapter, without specifying chapter, you can always show a whole random chapter by setting ```"randomlyShow": "chapter"``` in ```config.json``` 
+```
+joel@JOEL-DESKTOP:~$ bbl rand chapter
+Romans 12
+1 Therefore I urge you, brothers, by the mercies of God, to present your bodies a living sacrifice, holy, acceptable to God, which is your spiritual service.
+2 Don’t be conformed to this world, but be transformed by the renewing of your mind, so that you may prove what is the good, well-pleasing, and perfect will of God.
+3 For I say through the grace that was given me, to everyone who is among you, not to think of yourself more highly than you ought to think; but to think reasonably, as God has apportioned to each person a measure of faith.
+...
+21 Don’t be overcome by evil, but overcome evil with good.
+```
+
+## Configure custom default behavior
+bbl, assuming that the username of the computer is "joel", tries to look for ```config.json``` at
+* ```C:\Users\joel\.bbl\config.json``` in Windows
+* ```/Users/joel/.bbl/config.json``` in MacOS
+* ```/home/joel/.bbl/config.json``` in Linux
+
+for now, translation and number of search result verses can be configured by ```config.json``` as following:
+```json
+    { 
+        "translation": "kjv",
+        "searchResult": 10,
+        "randomlyShow": "chapter"
+    }
+```
+
+## Translations embedded in bbl
+Following abbreviations are supported to switch bible translations:
+
+* ```webus``` World English Bible
+* ```kjv``` King James Version
+* ```cunp``` Chinese Union Version with New Punctuation
+* ```krv``` Korean Revised Version
+* ```jc``` Japanese Colloquial
 
 ## Installation
 MacOS Installation
