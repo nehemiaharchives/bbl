@@ -104,3 +104,4 @@ hs_err_pid*
 
 bbl_install/.kitchen/
 bbl_install/.kitchen.local.yml
+bbl_install/files/*.deb
