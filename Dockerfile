@@ -1,6 +1,6 @@
 FROM gradle:7.5.1-jdk17-focal as cache
 COPY build.gradle gradle.properties settings.gradle ./
-RUN gradle --no-daemon build --stacktrace
+RUN gradle --no-daemon resolveDependencies --stacktrace
 
 FROM gradle:7.5.1-jdk17-focal AS builder
 RUN apt-get update && apt-get install fakeroot -y

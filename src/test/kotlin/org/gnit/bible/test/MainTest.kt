@@ -19,6 +19,11 @@ class MainTest {
     }
 
     @Test
+    fun version() {
+        bbl.parse(arrayOf("-v"))
+    }
+
+    @Test
     fun `genesis 1`() {
         bbl.parse(arrayOf("genesis", "1"))
         assertEquals(listOf("genesis"), bbl.book)

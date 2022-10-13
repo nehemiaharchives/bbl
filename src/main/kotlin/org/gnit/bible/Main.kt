@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.slf4j.LoggerFactory
 
@@ -83,28 +84,34 @@ fun selectVerses(versePointer: VersePointer, aChapter: String): String {
 
 class Bbl(val config: Config) : CliktCommand(invokeWithoutSubcommand = true) {
 
+    val resourceReader = getResourceReader()
     val book: List<String> by argument().multiple(default = listOf("gen"))
     val chapterVerse: String by argument().default("1")
+    val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
 
     lateinit var versePointer: VersePointer
     lateinit var chapterText: String
     lateinit var selectedVerses: String
 
     override fun run() {
+        if (versionFlag){
+            logger.debug("version option selected")
+            echo(resourceReader.readText("version.txt"))
+        }else{
+            versePointer = parse(config.translation, book, chapterVerse)
 
-        versePointer = parse(config.translation, book, chapterVerse)
+            val subcommand = currentContext.invokedSubcommand
+            if (subcommand == null) {
 
-        val subcommand = currentContext.invokedSubcommand
-        if (subcommand == null) {
+                val path = chapterTextPath(versePointer)
+                chapterText = resourceReader.readText(path)
+                selectedVerses = selectVerses(versePointer, chapterText)
+                echo(selectedVerses)
 
-            val path = chapterTextPath(versePointer)
-            chapterText = getResourceReader().readText(path)
-            selectedVerses = selectVerses(versePointer, chapterText)
-            echo(selectedVerses)
-
-        } else {
-            //going to move on subcommand
-            currentContext.findOrSetObject { versePointer }
+            } else {
+                //going to move on subcommand
+                currentContext.findOrSetObject { versePointer }
+            }
         }
     }
 }

@@ -16,7 +16,17 @@ plugins {
 }
 
 group = 'org.gnit.bible'
-version = '1.2'
+version = '1.3'
+
+task versionTxt() {
+    doLast {
+        new File(projectDir, "src/main/resources/version.txt").text = """
+            bbl version $version
+            While you are in front of your console, you are not alone. God is with you.
+            Always go back to the Word of God especially in difficulty.
+""".stripIndent()
+    }
+}
 
 repositories {
     mavenCentral()
@@ -44,6 +54,22 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine:$junit_version"
 }
 
+//https://stackoverflow.com/questions/25873971/docker-cache-gradle-dependencies
+task resolveDependencies {
+    doLast {
+        project.rootProject.allprojects.each { subProject ->
+            subProject.buildscript.configurations.each { configuration ->
+                configuration.resolve()
+            }
+            subProject.configurations.each { configuration ->
+                if(configuration.canBeResolved == true){
+                    configuration.resolve()
+                }
+            }
+        }
+    }
+}
+
 test {
     useJUnitPlatform()
 }
@@ -67,6 +93,8 @@ sourceSets {
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+processResources.finalizedBy(versionTxt)
 
 compileKotlin.destinationDirectory = compileJava.destinationDirectory
 
