@@ -19,6 +19,7 @@ class Rand(val config: Config) : CliktCommand() {
         val randomBook = when (narrowDown) {
             "ot", "ot verse", "ot chapter" -> Random.nextInt(1..39)
             "nt", "nt verse", "nt chapter" -> Random.nextInt(40..66)
+            "g", "g verse", "g chapter" -> Random.nextInt(40 .. 43)
             else -> Random.nextInt(1..66)
         }
         logger.debug("randomBook: $randomBook")
@@ -36,11 +37,11 @@ class Rand(val config: Config) : CliktCommand() {
         val randomBookName = bookNameCapital(randomBook)
 
         val narrowDownIsNull = narrowDown == null
-        val narrowDownToNTorOT = arrayOf("nt", "ot").contains(narrowDown)
+        val doesNotSpecifyChapterOrVerse = arrayOf("ot", "nt", "g").contains(narrowDown)
 
         if (
             (narrowDown != null && narrowDown!!.contains("verse")) ||
-            ((narrowDownIsNull || narrowDownToNTorOT) && config.randomlyShow == RandomlyShow.verse)
+            ((narrowDownIsNull || doesNotSpecifyChapterOrVerse) && config.randomlyShow == RandomlyShow.verse)
         ) {
             val splitVerses = splitChapterToVerses(aChapter)
             val randomVerse = Random.nextInt(1, splitVerses.size)
@@ -52,7 +53,7 @@ class Rand(val config: Config) : CliktCommand() {
 
         if (
             (narrowDown != null && narrowDown!!.contains("chapter")) ||
-            ((narrowDownIsNull || narrowDownToNTorOT) && config.randomlyShow == RandomlyShow.chapter)
+            ((narrowDownIsNull || doesNotSpecifyChapterOrVerse) && config.randomlyShow == RandomlyShow.chapter)
         ) {
             logger.debug("showing random chapter")
             selectedVerses = aChapter

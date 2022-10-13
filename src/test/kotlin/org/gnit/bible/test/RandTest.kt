@@ -36,6 +36,14 @@ class RandChapterTest {
     }
 
     @Test
+    fun `config randomlyShow=chapter narrowDown=g`() {
+        randCli.parse(arrayOf("g"))
+        val vp = randCli.versePointer
+        assertTrue(vp.book in 40..43)
+        assertTrue(splitChapterToVerses(randCli.selectedVerses).size >= 2)
+    }
+
+    @Test
     fun `config randomlyShow=chapter narrowDown=ot verse`() {
         randCli.parse(arrayOf("ot verse"))
         val vp = randCli.versePointer
@@ -48,6 +56,14 @@ class RandChapterTest {
         randCli.parse(arrayOf("nt verse"))
         val vp = randCli.versePointer
         assertTrue(vp.book in 40..66)
+        assertTrue(splitChapterToVerses(randCli.selectedVerses).size == 1)
+    }
+
+    @Test
+    fun `config randomlyShow=chapter narrowDown=g verse`() {
+        randCli.parse(arrayOf("g verse"))
+        val vp = randCli.versePointer
+        assertTrue(vp.book in 40..43)
         assertTrue(splitChapterToVerses(randCli.selectedVerses).size == 1)
     }
 
@@ -90,6 +106,14 @@ class RandVerseTest {
     }
 
     @Test
+    fun `config randomlyShow=verse narrowDown=g`() {
+        randCli.parse(arrayOf("g"))
+        val vp = randCli.versePointer
+        assertTrue(vp.book in 40..43)
+        assertTrue(splitChapterToVerses(randCli.selectedVerses).size == 1)
+    }
+
+    @Test
     fun `config randomlyShow=verse narrowDown=ot chapter`() {
         randCli.parse(arrayOf("ot chapter"))
         val vp = randCli.versePointer
@@ -102,6 +126,14 @@ class RandVerseTest {
         randCli.parse(arrayOf("nt chapter"))
         val vp = randCli.versePointer
         assertTrue(vp.book in 40..66)
+        assertTrue(splitChapterToVerses(randCli.selectedVerses).size >= 2)
+    }
+
+    @Test
+    fun `config randomlyShow=verse narrowDown=g chapter`() {
+        randCli.parse(arrayOf("g chapter"))
+        val vp = randCli.versePointer
+        assertTrue(vp.book in 40..43)
         assertTrue(splitChapterToVerses(randCli.selectedVerses).size >= 2)
     }
 
