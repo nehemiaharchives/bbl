@@ -1,5 +1,14 @@
 package org.gnit.bible
 
+import java.lang.RuntimeException
+
+data class BookChapterFilter(
+    val book: Int? = null,
+    val startChapter: Int? = null,
+    val endChapter: Int? = null,
+    val term: String
+)
+
 fun filterByBookChapter(term: String): BookChapterFilter {
 
     bookNameNumberArray.forEachIndexed { bookNumber, bookNames ->
@@ -28,7 +37,10 @@ fun filterByBookChapter(term: String): BookChapterFilter {
             if (term.matches(".+ in $bookName ([1-9]|[1-9][0-9]|1[0-5][0-9])-([1-9]|[1-9][0-9]|1[0-5][0-9])$".toRegex())) {
                 val detectedChapters = term.split("in $bookName ")[1].split("-")
 
-                val trimmed = term.replace(" in $bookName ([1-9]|[1-9][0-9]|1[0-5][0-9])-([1-9]|[1-9][0-9]|1[0-5][0-9])\$".toRegex(), "").trim()
+                val trimmed = term.replace(
+                    " in $bookName ([1-9]|[1-9][0-9]|1[0-5][0-9])-([1-9]|[1-9][0-9]|1[0-5][0-9])\$".toRegex(),
+                    ""
+                ).trim()
 
                 return BookChapterFilter(
                     book = bookNumber,
@@ -358,3 +370,14 @@ private val numberToName = mapOf(
 )
 
 fun bookName(bookNumber: Int) = numberToName[bookNumber]
+
+fun bookNameCapital(bookNumber: Int): String {
+    val lowerCase = bookName(bookNumber)!!
+    val split = lowerCase.split(" ")
+    return when (split.size) {
+        1 -> lowerCase.replaceFirstChar { it.uppercase() }
+        2 -> "${split[0]} ${split[1].replaceFirstChar { it.uppercase() }}"
+        3 -> "Song of Solomon"
+        else -> throw RuntimeException("book name must be less than 3 words")
+    }
+}

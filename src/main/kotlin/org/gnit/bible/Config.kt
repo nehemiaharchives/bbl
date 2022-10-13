@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory
 @Serializable
 data class Config(
     val translation: Translation = DEFAULT_TRANSLATION,
-    val searchResult: Int = 100
+    val searchResult: Int = 100,
+    val randomlyShow: RandomlyShow = RandomlyShow.verse
 )
 
 const val dataDirName = ".bbl"

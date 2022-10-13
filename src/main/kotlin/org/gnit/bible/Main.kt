@@ -94,10 +94,10 @@ class Bbl(val config: Config) : CliktCommand(invokeWithoutSubcommand = true) {
     lateinit var selectedVerses: String
 
     override fun run() {
-        if (versionFlag){
+        if (versionFlag) {
             logger.debug("version option selected")
             echo(resourceReader.readText("version.txt"))
-        }else{
+        } else {
             versePointer = parse(config.translation, book, chapterVerse)
 
             val subcommand = currentContext.invokedSubcommand
@@ -130,13 +130,6 @@ class In : CliktCommand() {
         echo(selectedVerses)
     }
 }
-
-data class BookChapterFilter(
-    val book: Int? = null,
-    val startChapter: Int? = null,
-    val endChapter: Int? = null,
-    val term: String
-)
 
 class Search(val env: Environment, val config: Config) : CliktCommand() {
 
@@ -209,6 +202,7 @@ fun main(args: Array<String>) {
 
     Bbl(config).subcommands(
         In(),
-        Search(env = Environment.PRODUCTION, config)
+        Search(env = Environment.PRODUCTION, config),
+        Rand(config)
     ).main(args)
 }

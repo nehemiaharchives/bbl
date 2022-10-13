@@ -1,9 +1,6 @@
 package org.gnit.bible.test
 
-import org.gnit.bible.BookChapterFilter
-import org.gnit.bible.bookName
-import org.gnit.bible.bookNumberNew
-import org.gnit.bible.filterByBookChapter
+import org.gnit.bible.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -15,6 +12,13 @@ class BookTest {
         (1..66).forEach { bookNumber ->
             assertEquals(bookNumber, bookNumberNew(bookName(bookNumber)!!))
         }
+    }
+
+    @Test
+    fun bookNameCapitalTest(){
+        assertEquals("Genesis", bookNameCapital(1))
+        assertEquals("1 John", bookNameCapital(62))
+        assertEquals("Song of Solomon", bookNameCapital(22))
     }
 
     @Test
