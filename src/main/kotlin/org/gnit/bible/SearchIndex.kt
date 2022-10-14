@@ -14,7 +14,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
-fun indexPath(translation: Translation): Path = Paths.get("src/main/resources/index/$translation")
+fun indexPath(translation: Translation): Path = Paths.get("src/main/resources/texts/$translation/index")
 
 fun createIndex(translation: Translation) {
 

@@ -14,6 +14,8 @@ fun chapterQuery(startChapter: Int, endChapter: Int?): Query {
     return IntPoint.newRangeQuery("chapter", startChapter, endChapter ?: startChapter)
 }
 
+val indexFiles = arrayOf("_0.cfe", "_0.cfs", "_0.si", "segments_1", "write.lock")
+
 fun search(
     term: String,
     bookNumber: Int?,
@@ -29,9 +31,9 @@ fun search(
     val indexDir = root.resolve("index")
     Files.createDirectory(indexDir)
 
-    arrayOf("_0.cfe", "_0.cfs", "_0.si", "segments_1", "write.lock").forEach { fileName ->
-        val webusCfe = indexDir.resolve(fileName)
-        Files.write(webusCfe, getResourceReader().readBytes("index/$translation/$fileName"))
+    indexFiles.forEach { fileName ->
+        val indexFile = indexDir.resolve(fileName)
+        Files.write(indexFile, getResourceReader().readBytes("texts/$translation/index/$fileName"))
     }
 
     val iReader: DirectoryReader = StandardDirectoryReader.open(NIOFSDirectory(indexDir, FSLockFactory.getDefault()))

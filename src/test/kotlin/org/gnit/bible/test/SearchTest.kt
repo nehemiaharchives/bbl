@@ -7,6 +7,7 @@ import java.io.File
 import kotlin.io.path.Path
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SearchIndexTest {
 
@@ -17,13 +18,25 @@ class SearchIndexTest {
         val aChapter = File("src/main/resources/$textPathString").readText()
         assertEquals(webusGen3, aChapter)
     }
+
+    @Test
+    fun indexDirTest() {
+        Translation.values().forEach { translation ->
+            val indexDir = "src/main/resources/texts/$translation/index"
+            assertTrue(File(indexDir).exists())
+
+            indexFiles.forEach { indexFile ->
+                assertTrue(File("$indexDir/$indexFile").exists())
+            }
+        }
+    }
 }
 
 class SearchCoreTest {
 
     @Test
     fun indexPathTest() {
-        assertEquals(Path("src/main/resources/index/webus"), indexPath(Translation.webus))
+        assertEquals(Path("src/main/resources/texts/webus/index"), indexPath(Translation.webus))
     }
 
     @Test
