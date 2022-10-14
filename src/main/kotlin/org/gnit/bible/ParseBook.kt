@@ -55,17 +55,6 @@ fun filterByBookChapter(term: String): BookChapterFilter {
     return BookChapterFilter(term = term)
 }
 
-fun bookNumberNew(name: String): Int? {
-
-    var matched: Int? = null
-
-    bookNameNumberArray.forEachIndexed { bookNumber, bookNames ->
-        if (bookNames.contains(name)) matched = bookNumber
-    }
-
-    return matched
-}
-
 val bookNameNumberArray = arrayOf(
     emptyArray(), //no book name for book number 0
     arrayOf("genesis", "gen", "ge", "gn"), // index 1 as book 1

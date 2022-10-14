@@ -51,7 +51,7 @@ fun search(
 
     val query = queryBuilder.add(termQuery, BooleanClause.Occur.MUST).build()
 
-    logger.debug("searching $term ${if (bookNumber!=null) "in ${bookName(bookNumber)} " else " "}in $translation")
+    logger.debug("searching $term ${if (bookNumber!=null) "in ${bookNameCapital(bookNumber)} " else " "}in $translation")
 
     val hits = iSearcher.search(query, verses, Sort(SortField.FIELD_DOC)).scoreDocs
     return hits.map { hit ->
@@ -61,7 +61,7 @@ fun search(
         val verse = hitDoc.getField("verse").numericValue().toInt()
         val text = hitDoc.get("text")
 
-        "${bookName(book)} $chapter:$verse $text"
+        "${bookNameCapital(book)} $chapter:$verse $text"
     }
 }
 

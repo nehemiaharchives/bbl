@@ -6,13 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class BookTest {
-    @Test
-    fun bookNameTest() {
-        assertEquals(1, bookNumberNew("gen"))
-        (1..66).forEach { bookNumber ->
-            assertEquals(bookNumber, bookNumberNew(bookName(bookNumber)!!))
-        }
-    }
 
     @Test
     fun bookNameCapitalTest(){
