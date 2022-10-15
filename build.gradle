@@ -16,7 +16,7 @@ plugins {
 }
 
 group = 'org.gnit.bible'
-version = '1.3'
+version = '1.4'
 
 task versionTxt() {
     doLast {
@@ -47,6 +47,7 @@ dependencies {
     implementation "org.apache.lucene:lucene-analysis-smartcn:$lucene_version"
     implementation "org.apache.lucene:lucene-analysis-kuromoji:$lucene_version"
     implementation "org.apache.lucene:lucene-analysis-nori:$lucene_version"
+    implementation "org.apache.lucene:lucene-analysis-morfologik:$lucene_version"
 
     //test
     implementation 'org.jetbrains.kotlin:kotlin-test'
@@ -94,7 +95,7 @@ processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-processResources.finalizedBy(versionTxt)
+processResources.dependsOn(versionTxt)
 
 compileKotlin.destinationDirectory = compileJava.destinationDirectory
 

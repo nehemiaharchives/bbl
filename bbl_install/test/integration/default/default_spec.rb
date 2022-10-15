@@ -1,11 +1,11 @@
 describe package 'bbl' do
     it { should be_installed }
-    its('version') { should eq '1.3-1' }
+    its('version') { should eq '1.4-1' }
 end
 
 describe command 'bbl -v' do
     its('exit_status') { should eq 0 }
-    its('stdout') { should match /bbl version 1.3/ }
+    its('stdout') { should match /bbl version 1.4/ }
 end
 
 describe command 'bbl' do

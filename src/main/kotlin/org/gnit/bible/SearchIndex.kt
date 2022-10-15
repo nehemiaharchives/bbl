@@ -12,15 +12,23 @@ import org.apache.lucene.store.FSDirectory
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.createDirectory
+import kotlin.io.path.notExists
 import kotlin.system.exitProcess
 
 fun indexPath(translation: Translation): Path = Paths.get("src/main/resources/texts/$translation/index")
 
 fun createIndex(translation: Translation) {
 
-    indexPath(translation).toFile().listFiles()?.forEach { it.delete() }
+    val indexPath = indexPath(translation)
 
-    if (indexPath(translation).toFile().listFiles()?.size == 0) {
+    if (indexPath.notExists()) {
+        indexPath.createDirectory()
+    }
+
+    indexPath.toFile().listFiles()?.forEach { it.delete() }
+
+    if (indexPath.toFile().listFiles()?.size == 0) {
         logger.debug("index files of $translation deleted")
     } else {
         logger.error("index files of $translation exists, terminating indexing process")
@@ -29,9 +37,9 @@ fun createIndex(translation: Translation) {
 
     logger.debug("creating index files of $translation")
 
-    val analyzer: Analyzer = getAnalyzer(translation)
+    val analyzer: Analyzer = translation.getAnalyzer()
     val config = IndexWriterConfig(analyzer)
-    val iWriter = IndexWriter(FSDirectory.open(indexPath(translation)), config)
+    val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
 
     (1..66).forEach { book ->
         val maxChapter = Chapters.maxChapter(book)
@@ -77,13 +85,14 @@ fun createIndex(translation: Translation) {
 }
 
 fun main() {
-    listOf(
+    /*listOf(
         Translation.webus,
         Translation.kjv,
         Translation.cunp,
         Translation.krv,
         Translation.jc,
-    ).forEach { translation ->
+    )*/
+    Translation.values().forEach { translation ->
         createIndex(translation)
     }
 }

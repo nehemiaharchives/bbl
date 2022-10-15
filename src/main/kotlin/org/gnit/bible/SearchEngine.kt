@@ -38,10 +38,14 @@ fun search(
 
     val iReader: DirectoryReader = StandardDirectoryReader.open(NIOFSDirectory(indexDir, FSLockFactory.getDefault()))
     val iSearcher = IndexSearcher(iReader)
-    val parser = QueryParser("text", getAnalyzer(translation))
+    val parser = QueryParser("text", translation.getAnalyzer())
     val termQuery = parser.parse(term)
 
     val queryBuilder = BooleanQuery.Builder()
+
+    if (includesNewTestamentOnlyPhrase(term)) {
+        queryBuilder.add(IntPoint.newRangeQuery("book", 40, 66), BooleanClause.Occur.MUST)
+    }
 
     if (bookNumber != null) {
         queryBuilder.add(IntPoint.newExactQuery("book", bookNumber), BooleanClause.Occur.MUST)
@@ -53,7 +57,7 @@ fun search(
 
     val query = queryBuilder.add(termQuery, BooleanClause.Occur.MUST).build()
 
-    logger.debug("searching $term ${if (bookNumber!=null) "in ${bookNameCapital(bookNumber)} " else " "}in $translation")
+    logger.debug("searching $term ${if (bookNumber != null) "in ${bookNameCapital(bookNumber)} " else " "}in $translation")
 
     val hits = iSearcher.search(query, verses, Sort(SortField.FIELD_DOC)).scoreDocs
     return hits.map { hit ->
@@ -65,6 +69,13 @@ fun search(
 
         "${bookNameCapital(book)} $chapter:$verse $text"
     }
+}
+
+fun includesNewTestamentOnlyPhrase(term: String): Boolean {
+    arrayOf("Jesus Cristo", "Иисуса Христа", "Ісуса Христа", "Jesu Kristi", "예수 그리스도").forEach { jesusChrist ->
+        if (term.contains(jesusChrist)) return true
+    }
+    return false
 }
 
 fun main() {

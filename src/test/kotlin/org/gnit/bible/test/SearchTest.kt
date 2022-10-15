@@ -5,7 +5,6 @@ import org.gnit.bible.*
 import org.junit.jupiter.api.Test
 import java.io.File
 import kotlin.io.path.Path
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -104,7 +103,7 @@ class SearchCoreTest {
         val result = search("예수 그리스도", null, null, null, 100, Translation.krv)
         assertEquals(
             "Matthew 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라",
-            result[8].trim()
+            result.first().trim()
         )
     }
 
@@ -212,6 +211,96 @@ class SearchTest {
     }
 
     @Test
+    fun `bbl search Jesus Christ in rvr09`() {
+        searchCli.parse(arrayOf("Jesucristo in rvr09"))
+        assertEquals(
+            "Matthew 1:1 LIBRO de la generación de Jesucristo, hijo de David, hijo de Abraham.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in tb`() {
+        searchCli.parse(arrayOf("Jesus Cristo in tb"))
+        assertEquals(
+            "Matthew 1:1 Livro da geração de Jesus Cristo, filho de Davi, filho de Abraão.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in delut`() {
+        searchCli.parse(arrayOf("Jesu Christi in delut"))
+        assertEquals(
+            "Matthew 1:1 Dies ist das Buch von der Geburt Jesu Christi, der da ist ein Sohn Davids, des Sohnes Abrahams.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in lsg`() {
+        searchCli.parse(arrayOf("Jésus-Christ in lsg"))
+        assertEquals(
+            "Matthew 1:1 Généalogie de Jésus-Christ, fils de David, fils d’Abraham.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in sinod`() {
+        searchCli.parse(arrayOf("Иисуса Христа in sinod"))
+        assertEquals(
+            "Matthew 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in svrj`() {
+        searchCli.parse(arrayOf("JEZUS CHRISTUS in svrj"))
+        assertEquals(
+            "Matthew 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in rdv24`() {
+        searchCli.parse(arrayOf("Gesù Cristo in rdv24"))
+        assertEquals(
+            "Matthew 1:1 Genealogia di Gesù Cristo figliuolo di Davide, figliuolo d'Abramo.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in ubg`() {
+        searchCli.parse(arrayOf("Jezusa Chrystusa in ubg"))
+        assertEquals(
+            "Matthew 1:1 Księga rodu Jezusa Chrystusa, syna Dawida, syna Abrahama.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in ubio`() {
+        searchCli.parse(arrayOf("Ісуса Христа in ubio"))
+        assertEquals(
+            "Matthew 1:1 Книга родоводу Ісуса Христа, Сина Давидового, Сина Авраамового:",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in sven`() {
+        searchCli.parse(arrayOf("Jesu Kristi in sven"))
+        assertEquals(
+            "Matthew 1:1 Detta är Jesu Kristi, Davids sons, Abrahams sons, släkttavla.",
+            searchCli.result.first().trim()
+        )
+    }
+
+    @Test
     fun `cli search Jesus Christ in cunp`() {
         searchCli.parse(arrayOf("耶稣基督 in cunp"))
         assertEquals(
@@ -225,7 +314,7 @@ class SearchTest {
         searchCli.parse(arrayOf("예수 그리스도 in krv"))
         assertEquals(
             "Matthew 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라",
-            searchCli.result[8].trim()
+            searchCli.result.first().trim()
         )
     }
 

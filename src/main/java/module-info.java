@@ -17,5 +17,7 @@ module org.gnit.bible {
     requires kotlin.stdlib.jdk7;
     requires jdk.management;
     requires com.sun.jna;
+    requires org.apache.lucene.analysis.common;
+    requires org.apache.lucene.analysis.morfologik;
     exports org.gnit.bible;
 }

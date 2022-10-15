@@ -10,8 +10,6 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.slf4j.LoggerFactory
 
-enum class Translation { webus, kjv, cunp, krv, jc }
-
 val DEFAULT_TRANSLATION = Translation.webus
 
 val logger = LoggerFactory.getLogger("bbl.cli")!!
@@ -203,6 +201,7 @@ fun main(args: Array<String>) {
     Bbl(config).subcommands(
         In(),
         Search(env = Environment.PRODUCTION, config),
-        Rand(config)
+        Rand(config),
+        ListCli()
     ).main(args)
 }
