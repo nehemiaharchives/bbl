@@ -6,7 +6,7 @@ import kotlin.test.assertTrue
 
 class RandChapterTest {
 
-    private val randCli = Rand(Config(randomlyShow = RandomlyShow.chapter))
+    private val randCli = RandCli(Config(randomlyShow = RandomlyShow.chapter))
 
     @Test
     fun `config randomlyShow=chapter narrowDown=null`() {
@@ -78,7 +78,7 @@ class RandChapterTest {
 
 class RandVerseTest {
 
-    private val randCli = Rand(Config(randomlyShow = RandomlyShow.verse))
+    private val randCli = RandCli(Config(randomlyShow = RandomlyShow.verse))
 
     @Test
     fun `config randomlyShow=verse narrowDown=null`() {

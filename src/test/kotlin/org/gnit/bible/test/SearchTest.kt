@@ -119,7 +119,7 @@ class SearchCoreTest {
 
 class SearchTest {
 
-    private val searchCli = Search(env = Environment.TEST, Config())
+    private val searchCli = SearchCli(env = Environment.TEST, Config())
 
     @Test
     fun `bbl search Jesus Christ in webus`() {

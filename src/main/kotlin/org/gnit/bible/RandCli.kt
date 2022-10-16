@@ -8,7 +8,7 @@ import kotlin.random.nextInt
 
 enum class RandomlyShow { verse, chapter }
 
-class Rand(val config: Config) : CliktCommand() {
+class RandCli(val config: Config) : CliktCommand(name = "rand") {
 
     val narrowDown: String? by argument().optional()
 

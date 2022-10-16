@@ -1,6 +1,5 @@
 package org.gnit.bible
 
-import com.github.ajalt.clikt.core.CliktCommand
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer
 import org.apache.lucene.analysis.de.GermanAnalyzer
@@ -98,14 +97,6 @@ enum class Translation(val language: Language, val year: Int) {
 
 fun getTranslationDescriptions(): kotlin.collections.List<String> {
     return Translation.values().map { it.getDescription() }
-}
-
-class ListCli : CliktCommand(name = "list") {
-    lateinit var translationDescriptions: kotlin.collections.List<String>
-    override fun run() {
-        translationDescriptions = getTranslationDescriptions()
-        translationDescriptions.forEach { echo(it) }
-    }
 }
 
 fun main() {

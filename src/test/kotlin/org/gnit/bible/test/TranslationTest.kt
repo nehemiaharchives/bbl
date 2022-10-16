@@ -27,7 +27,7 @@ class TranslationTest {
     val listCli = ListCli()
 
     @Test
-    fun listBooksTest(){
+    fun listTranslationsTest(){
         listCli.parse(emptyArray())
         assertEquals(bibleList.lines(), listCli.translationDescriptions)
     }
