@@ -5,7 +5,7 @@ import org.gnit.bible.Translation
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class TranslationTest {
+class ListTest {
     private val bibleList = """
         WEBUS, World English Bible, (World English Bible), English, 2000
         KJV, King James Version, (King James Version), English, 1611

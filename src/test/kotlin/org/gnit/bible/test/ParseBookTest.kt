@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class BookTest {
+class ParseBookTest {
 
     @Test
     fun bookNameCapitalTest(){
