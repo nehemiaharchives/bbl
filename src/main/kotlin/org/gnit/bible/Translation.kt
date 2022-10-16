@@ -15,6 +15,7 @@ import org.apache.lucene.analysis.pt.PortugueseAnalyzer
 import org.apache.lucene.analysis.ru.RussianAnalyzer
 import org.apache.lucene.analysis.sv.SwedishAnalyzer
 import org.apache.lucene.analysis.uk.UkrainianMorfologikAnalyzer
+import java.nio.charset.Charset
 import java.util.*
 
 enum class Language {
@@ -39,9 +40,14 @@ enum class Language {
             ja -> JapaneseAnalyzer()
         }
     }
+
+    fun isCJK() = when (this) {
+        zh, ja, ko -> true
+        else -> false
+    }
 }
 
-private const val BIBLE_TRANSLATION_NAMES = "bibleTranslationNames"
+private const val BIBLES = "bibleTranslationNames"
 
 /**
 Priority is based on population of software developers by country.
@@ -85,18 +91,37 @@ enum class Translation(val language: Language, val year: Int) {
         return super.toString().lowercase()
     }
 
-    fun getDescription(): String {
+    /**
+     * CJK characters break string format length. So they have to be detected and adjusted.
+     * [ref](https://qiita.com/gsy0911/items/00876d8c61ce36bd5fba)
+     */
+    fun getDescription(format: Boolean = false): String {
         val abbrev = this.toString().uppercase()
-        val englishName = ResourceBundle.getBundle(BIBLE_TRANSLATION_NAMES, Locale("en")).getString(this.toString())
+        val englishName = ResourceBundle.getBundle(BIBLES, Locale("en")).getString(this.toString())
         val nativeLocale = Locale(this.language.toString())
-        val nativeName = ResourceBundle.getBundle(BIBLE_TRANSLATION_NAMES, nativeLocale)
-            .getString(this.toString())
-        return "$abbrev, $englishName, ($nativeName), ${nativeLocale.displayLanguage}, $year"
+        val nativeName = ResourceBundle.getBundle(BIBLES, nativeLocale).getString(this.toString())
+
+        return if (format) {
+            val byteDiff = if (this.language.isCJK()) (getByteLength(nativeName) - nativeName.length) / 2 else 0
+            "%-6s| %-43s| %-${33 - byteDiff}s| %-11s| %-5d".format(
+                abbrev,
+                englishName,
+                nativeName,
+                nativeLocale.displayLanguage,
+                year
+            )
+        } else {
+            "$abbrev, $englishName ($nativeName), ${nativeLocale.displayLanguage}, $year"
+        }
     }
 }
 
-fun getTranslationDescriptions(): kotlin.collections.List<String> {
-    return Translation.values().map { it.getDescription() }
+private fun getByteLength(string: String): Int {
+    return string.toByteArray(Charset.forName("UTF-8")).size
+}
+
+fun getTranslationDescriptions(): List<String> {
+    return Translation.values().map { it.getDescription(format = true) }
 }
 
 fun main() {
