@@ -9,7 +9,11 @@
 
 name: Java CI
 
-on: [push]
+on:
+  push:
+    tags:        
+      - v2
+      - v1.*
 
 jobs:
   build:
