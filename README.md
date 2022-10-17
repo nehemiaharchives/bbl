@@ -254,16 +254,16 @@ Following abbreviations are supported to switch bible translations:
 
 ## Installation
 MacOS Installation
-1. Download [bbl-1.3.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.3/bbl-1.3.pkg)
+1. Download [bbl-1.4.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl-1.4.pkg)
 2. Click install button, then ```bbl``` command should be available from within ```/usr/local/bin/bbl```
 
 Linux Installation (Debian based only for now): 
-1. Download [bbl_1.3-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.3/bbl_1.3-1_amd64.deb)
+1. Download [bbl_1.4-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl_1.4-1_amd64.deb)
 2. Run ```sudo apt install ./bbl_1.3-1_amd64.deb
  -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
-1. Download [bbl-1.3.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.3/bbl-1.3.msi), choose where to install, and click Install button,.
+1. Download [bbl-1.4.msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl-1.4.msi), choose where to install, and click Install button,.
 2. Add folder where you put ```bbl.exe``` to your ```%PATH%``` by editing environmental variable setting, then```bbl``` command should be available.
 
 ## Powered by
