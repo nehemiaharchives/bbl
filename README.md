@@ -34,7 +34,7 @@ some example for BOOK: ```gen, ex, lev, num, josh, jg, ru, 1sm, 2sm, 1k 2k, 1ch,
 
 For full list of available BOOK, run ```bbl list books```
 
-available TRANSLATION: ```webus, kjv, rvr09, rb, delut, lsg, sinod, svrj, rdv24, ubg, ubio, sven, cunp, krv, jc```
+available TRANSLATION: ```webus, kjv, rvr09, tb, delut, lsg, sinod, svrj, rdv24, ubg, ubio, sven, cunp, krv, jc```
 
 For full descriptions of those Bible translations, run ```bbl list```
 
