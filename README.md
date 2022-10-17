@@ -45,10 +45,10 @@ bbl, with no argument/option defaults to output Genesis chapter 1 in World Engli
 ```
 joel@JOEL-LAPTOP:~$ bbl
 1 In the beginning, God created the heavens and the earth.
-2 The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.
+2 The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the su...
 3 God said, “Let there be light,” and there was light.
 ...
-31 God saw everything that he had made, and, behold, it was very good. There was evening and there was morning, a sixth day.
+31 God saw everything that he had made, and, behold, it was very good. There was evening and there was morning, a six...
 ```
 
 bbl expects to specify a book and a chapter for reading Bible:
@@ -58,30 +58,30 @@ joel@JOEL-LAPTOP:~$ bbl ex 1
 2 Reuben, Simeon, Levi, and Judah,
 3 Issachar, Zebulun, and Benjamin,
 ...
-22 Pharaoh commanded all his people, saying, “You shall cast every son who is born into the river, and every daughter you shall save alive.”
+22 Pharaoh commanded all his people, saying, “You shall cast every son who is born into the river, and every daughter...
 ```
 bbl allows to specify a verse:
 ```
 joel@JOEL-LAPTOP:~$ bbl john 3:16
-16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life.
+16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but h...
 ```
 
 or a range of verses
 ```
 joel@JOEL-LAPTOP:~$ bbl matt 28:18-20
 18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
-19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
-20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
+19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spi...
+20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age...
 ```
 
 bbl also let you specify other translation of Bibles such as King James Version by supplying "in {translation}" subcommand.
 ```
 joel@JOEL-LAPTOP:~$ bbl genesis 1 in kjv
 1 In the beginning God created the heaven and the earth.
-2 And the earth was without form, and void; and darkness [was] upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+2 And the earth was without form, and void; and darkness [was] upon the face of the deep. And the Spirit of God moved...
 3 And God said, Let there be light: and there was light.
 ...
-31 And God saw every thing that he had made, and, behold, [it was] very good. And the evening and the morning were the sixth day.
+31 And God saw every thing that he had made, and, behold, [it was] very good. And the evening and the morning were th...
 ```
 
 ## Bible book names
@@ -181,29 +181,29 @@ JC    | Japanese Colloquial Bible                  | 口語訳                  
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ
 matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
 matthew 1:16 Jacob became the father of Joseph, the husband of Mary, from whom was born Jesus, who is called Christ.
-matthew 1:17 So all the generations from Abraham to David are fourteen generations; from David to the exile to Babylon fourteen generations; and from the carrying away to Babylon to the Christ, fourteen generations.
+matthew 1:17 So all the generations from Abraham to David are fourteen generations; from David to the exile to Babylo...
 ```
 
 bbl search can specify a book
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans
 romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,
-romans 1:4 who was declared to be the Son of God with power according to the Spirit of holiness, by the resurrection from the dead, Jesus Christ our Lord,
+romans 1:4 who was declared to be the Son of God with power according to the Spirit of holiness, by the resurrection ...
 romans 1:6 among whom you are also called to belong to Jesus Christ;
 ```
 
 a chapter
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 3
-romans 3:22 even the righteousness of God through faith in Jesus Christ to all and on all those who believe. For there is no distinction,
+romans 3:22 even the righteousness of God through faith in Jesus Christ to all and on all those who believe. For ther...
 romans 3:24 being justified freely by his grace through the redemption that is in Christ Jesus,
-romans 3:26 to demonstrate his righteousness at this present time, that he might himself be just and the justifier of him who has faith in Jesus.
+romans 3:26 to demonstrate his righteousness at this present time, that he might himself be just and the justifier of...
 ```
 
 or a range of chapters
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 4-6
-romans 4:24 but for our sake also, to whom it will be accounted, who believe in him who raised Jesus our Lord from the dead,
+romans 4:24 but for our sake also, to whom it will be accounted, who believe in him who raised Jesus our Lord from th...
 romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;
 romans 5:6 For while we were yet weak, at the right time Christ died for the ungodly.
 ```
@@ -213,13 +213,13 @@ translation can be specified too
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in kjv
 matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.
 matthew 1:16 And Jacob begat Joseph the husband of Mary, of whom was born Jesus, who is called Christ.
-matthew 1:17 So all the generations from Abraham to David [are] fourteen generations; and from David until the carrying away into Babylon [are] fourteen generations; and from the carrying away into Babylon unto Christ [are] fourteen generations.
+matthew 1:17 So all the generations from Abraham to David [are] fourteen generations; and from David until the carryi...
 ```
 
 book and chapter(s) can be specified together with a translation
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in romans 4-6 in kjv
-romans 4:24 But for us also, to whom it shall be imputed, if we believe on him that raised up Jesus our Lord from the dead;
+romans 4:24 But for us also, to whom it shall be imputed, if we believe on him that raised up Jesus our Lord from the...
 romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:
 romans 5:6 For when we were yet without strength, in due time Christ died for the ungodly.
 ```
@@ -227,10 +227,10 @@ romans 5:6 For when we were yet without strength, in due time Christ died for th
 translation can be specified first before book (and chapter(s))
 ```
 joel@JOEL-LAPTOP:~$ bbl search Jesus Christ in kjv in romans 7-9
-romans 7:4 Wherefore, my brethren, ye also are become dead to the law by the body of Christ; that ye should be married to another, [even] to him who is raised from the dead, that we should bring forth fruit unto God.
-romans 7:25 I thank God through Jesus Christ our Lord. So then with the mind I myself serve the law of God; but with the flesh the law of sin.
+romans 7:4 Wherefore, my brethren, ye also are become dead to the law by the body of Christ; that ye should be marrie...
+romans 7:25 I thank God through Jesus Christ our Lord. So then with the mind I myself serve the law of God; but with ...
 
-romans 8:1 [There is] therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.
+romans 8:1 [There is] therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, ...
 ```
 
 number of search result can be adjusted by command option ```-r 3``` or setting ```"searchResult": 3``` in ```config.json```
@@ -238,7 +238,7 @@ number of search result can be adjusted by command option ```-r 3``` or setting 
 joel@JOEL-DESKTOP:~$ bbl search Jesus -r 3
 matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
 matthew 1:16 Jacob became the father of Joseph, the husband of Mary, from whom was born Jesus, who is called Christ.
-matthew 1:18 Now the birth of Jesus Christ was like this: After his mother, Mary, was engaged to Joseph, before they came together, she was found pregnant by the Holy Spirit.
+matthew 1:18 Now the birth of Jesus Christ was like this: After his mother, Mary, was engaged to Joseph, before they ...
 ```
 
 ## Random Verses
@@ -248,21 +248,21 @@ default behavior without option first chooses a random book, then from the book 
 ```
 joel@JOEL-DESKTOP:~$ bbl rand
 1 Corinthians 4:17
-Because of this I have sent Timothy to you, who is my beloved and faithful child in the Lord, who will remind you of my ways which are in Christ, even as I teach everywhere in every assembly.
+Because of this I have sent Timothy to you, who is my beloved and faithful child in the Lord, who will remind you of ...
 ```
 
 random verse from OT
 ```
 joel@JOEL-DESKTOP:~$ bbl rand ot
 Ezra 4:5
-They hired counselors against them to frustrate their purpose all the days of Cyrus king of Persia, even until the reign of Darius king of Persia.
+They hired counselors against them to frustrate their purpose all the days of Cyrus king of Persia, even until the re...
 ```
 
 random verse from NT
 ```
 joel@JOEL-DESKTOP:~$ bbl rand nt
 Romans 12:19
-Don’t seek revenge yourselves, beloved, but give place to God’s wrath. For it is written, “Vengeance belongs to me; I will repay, says the Lord.”
+Don’t seek revenge yourselves, beloved, but give place to God’s wrath. For it is written, “Vengeance belongs to me; I...
 ```
 
 random verse from Gospels (Matthew, Mark, Luke or John)
@@ -276,9 +276,9 @@ show random chapter, without specifying chapter, you can always show a whole ran
 ```
 joel@JOEL-DESKTOP:~$ bbl rand chapter
 Romans 12
-1 Therefore I urge you, brothers, by the mercies of God, to present your bodies a living sacrifice, holy, acceptable to God, which is your spiritual service.
-2 Don’t be conformed to this world, but be transformed by the renewing of your mind, so that you may prove what is the good, well-pleasing, and perfect will of God.
-3 For I say through the grace that was given me, to everyone who is among you, not to think of yourself more highly than you ought to think; but to think reasonably, as God has apportioned to each person a measure of faith.
+1 Therefore I urge you, brothers, by the mercies of God, to present your bodies a living sacrifice, holy, acceptable ...
+2 Don’t be conformed to this world, but be transformed by the renewing of your mind, so that you may prove what is th...
+3 For I say through the grace that was given me, to everyone who is among you, not to think of yourself more highly t...
 ...
 21 Don’t be overcome by evil, but overcome evil with good.
 ```
