@@ -31,3 +31,8 @@ jobs:
 
       - name: Create installer
         run: ./gradlew jpackage
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: build/jpackage/macos/bbl-*.pkg
