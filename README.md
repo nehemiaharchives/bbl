@@ -298,15 +298,6 @@ for now, translation and number of search result verses can be configured by ```
     }
 ```
 
-## Translations embedded in bbl
-Following abbreviations are supported to switch bible translations:
-
-* ```webus``` World English Bible
-* ```kjv``` King James Version
-* ```cunp``` Chinese Union Version with New Punctuation
-* ```krv``` Korean Revised Version
-* ```jc``` Japanese Colloquial
-
 ## Installation
 MacOS Installation
 1. Download [bbl-1.4.pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl-1.4.pkg)
