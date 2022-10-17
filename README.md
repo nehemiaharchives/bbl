@@ -38,6 +38,8 @@ available TRANSLATION: ```webus, kjv, rvr09, tb, delut, lsg, sinod, svrj, rdv24,
 
 For full descriptions of those Bible translations, run ```bbl list```
 
+Insall with [pkg](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl-1.4.pkg) on Mac, [deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl_1.4-1_amd64.deb) on Linux, or [msi](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl-1.4.msi) on Windows
+
 ## Usage
 
 bbl, with no argument/option defaults to output Genesis chapter 1 in World English Bible.
