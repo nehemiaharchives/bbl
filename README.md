@@ -5,8 +5,6 @@ A command line tool to read Holy Bible
 
 ## Usage (TL;DR)
 
-
-
 ```
 bbl
 bbl gen 1
@@ -28,6 +26,9 @@ bbl list bibles
 Syntax
 ```
 bbl [BOOK] [CHAPTERVERSE] in [TRANSLATION]
+bbl search [KEY WORDS] in [BOOK] [CHAPTERVERSE] in [TRANSLATION]
+bbl rand [GOSPEL, OT, NT]
+bbl list [BOOKS, BIBLES]
 ```
 some example for BOOK: ```gen, ex, lev, num, josh, jg, ru, 1sm, 2sm, 1k 2k, 1ch, 2ch, ez, ne, job, ps, pr, ec, so, is, je, la, ezk, da, ho, jl, am, ob, jnh, mic, na, hb, zp, hg, zc, mal, matt, mk, lk, jn, act, rom, 1co, 2co, gal, eph, phil, col, 1th, 2th, 1tim, 2tim, tit, phm, heb, jm, 1pt, 2pt, 1jn, 2jn, 3jn, jd, rev```
 
