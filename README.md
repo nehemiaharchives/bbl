@@ -3,6 +3,40 @@ A command line tool to read Holy Bible
 
 ![screenshot](bbl700px-screenshot.png)
 
+## Usage (TL;DR)
+
+
+
+```
+bbl
+bbl gen 1
+bbl john 3:16
+bbl john 3:16 in kjv
+bbl search Jesus Christ
+bbl search Jesus Christ in kjv
+bbl search Jesus Christ in romans
+bbl search Jesus Christ in romans 5-12
+bbl search Jesus Christ in romans 5-12 in kjv
+bbl rand
+bbl rand g
+bbl rand nt
+bbl rand ot
+bbl list books
+bbl list bibles
+```
+
+Syntax
+```
+bbl [BOOK] [CHAPTERVERSE] in [TRANSLATION]
+```
+some example for BOOK: ```gen, ex, lev, num, josh, jg, ru, 1sm, 2sm, 1k 2k, 1ch, 2ch, ez, ne, job, ps, pr, ec, so, is, je, la, ezk, da, ho, jl, am, ob, jnh, mic, na, hb, zp, hg, zc, mal, matt, mk, lk, jn, act, rom, 1co, 2co, gal, eph, phil, col, 1th, 2th, 1tim, 2tim, tit, phm, heb, jm, 1pt, 2pt, 1jn, 2jn, 3jn, jd, rev```
+
+For full list of available BOOK, run ```bbl list books```
+
+available TRANSLATION: ```webus, kjv, rvr09, rb, delut, lsg, sinod, svrj, rdv24, ubg, ubio, sven, cunp, krv, jc```
+
+For full descriptions of those Bible translations, run ```bbl list```
+
 ## Usage
 
 bbl, with no argument/option defaults to output Genesis chapter 1 in World English Bible.
@@ -50,7 +84,7 @@ joel@JOEL-LAPTOP:~$ bbl genesis 1 in kjv
 ```
 
 ## Bible book names
-bbl accepts following abbreviation as command argument to specify book:
+bbl accepts following abbreviation as command argument to specify book as ```bbl list books``` shows:
 ```
     genesis, gen, ge, gn
     exodus, ex, exod, exo
@@ -118,6 +152,26 @@ bbl accepts following abbreviation as command argument to specify book:
     3 john, 3john, 3 jhn, 3jhn, 3 jn, 3jn, 3j, 3rd  john, third john
     jude, jud, jd
     revelation, rev, re, the revelation
+```
+
+## Bibles translations
+available bibles are following as ```bbl list``` shows:
+```
+WEBUS | World English Bible                        | World English Bible              | English    | 2000
+KJV   | King James Version                         | King James Version               | English    | 1611
+RVR09 | Reina-Valera                               | Reina-Valera                     | Spanish    | 1909
+TB    | Brazilian Translation                      | Tradução Brasileira              | Portuguese | 1917
+DELUT | Luther Bible                               | Lutherbibel                      | German     | 1912
+LSG   | Louis Segond                               | Bible Segond                     | French     | 1910
+SINOD | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876
+SVRJ  | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888
+RDV24 | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924
+UBG   | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017
+UBIO  | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962
+SVEN  | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917
+CUNP  | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919
+KRV   | Korean Revised Version                     | 개역한글                         | Korean     | 1961
+JC    | Japanese Colloquial Bible                  | 口語訳                           | Japanese   | 1955
 ```
 
 ## Search
