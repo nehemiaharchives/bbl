@@ -323,7 +323,7 @@ bbl was made available thanks to following:
 
 ## Why Kotlin?
 
-1. I was long time Java developper and suffered from JAVA but loved Java, and I met kotlin and it solved all the suffering. So I love Kotlin more than Java now.
+1. I was long time Java developper and suffered from JAVA but loved Java, and I met kotlin and it solved all the suffering. So I love Kotlin more than Java now. I have no C, C++, Rust, Go skill. If I had, I haven written bbl in them to prduce single binary. But installation size is smaller than pre-Java 9 application because bbl only includes reqired java modules, not entire JVM. I know Rust is the best. Sorry for inconvenience making installation directory dirty with many binary files.
 
 2. I think Apache Lucene is the best search library. Lucene is a Java library and it can be easily used from Kotlin. I did not want to use DBMS in command line app.
 
