@@ -320,3 +320,11 @@ bbl was made available thanks to following:
 * Command functionality is powered by [Clikt](https://github.com/ajalt/clikt). It validates the input of the number of chapters of a book, emits error when you request more chapter than the book has.
 * Search is powered by [Apache Lucene](https://github.com/apache/lucene)
 * The code is written in [Kotlin](https://kotlinlang.org/) Programming Language
+
+## Why Kotlin?
+
+1. I was long time Java developper and suffered from JAVA but loved Java, and I met kotlin and it solved all the suffering. So I love Kotlin more than Java now.
+
+2. I think Apache Lucene is the best search library. Lucene is a Java library and it can be easily used from Kotlin. I did not want to use DBMS in command line app.
+
+3. Planing to do crossplatform bible based on what I developed in bbl as core. Reuse the core logic code in Mac/Linux/Windows desktop kotlin bible application later, then reuse it in Kotlin Multiplatform Mobile app for android and iOS.
