@@ -307,7 +307,7 @@ MacOS Installation
 
 Linux Installation (Debian based only for now): 
 1. Download [bbl_1.4-1_amd64.deb](https://github.com/nehemiaharchives/bbl/releases/download/v1.4/bbl_1.4-1_amd64.deb)
-2. Run ```sudo apt install ./bbl_1.3-1_amd64.deb
+2. Run ```sudo apt install ./bbl_1.4-1_amd64.deb
  -y``` then ```bbl``` command should be available from within ```/usr/sbin/bbl``` (usually in ```$PATH```)
 
 Windows Installation:
