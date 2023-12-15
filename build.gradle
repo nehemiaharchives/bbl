@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin_version = '1.7.20'
+        kotlin_version = '1.9.21'
         lucene_version = '9.4.0'
         tinlylog_version = '2.5.0'
         junit_version = '5.9.1'
@@ -11,7 +11,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
     id 'application'
-    id "org.beryx.jlink" version "2.25.0"
+    id "org.beryx.jlink" version "3.0.1"
     id "org.javamodularity.moduleplugin" version "1.8.12"
 }
 
@@ -77,11 +77,11 @@ test {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = '17'
+    kotlinOptions.jvmTarget = '21'
 }
 
 compileTestKotlin {
-    kotlinOptions.jvmTarget = '17'
+    kotlinOptions.jvmTarget = '21'
 }
 
 sourceSets {
