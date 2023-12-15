@@ -97,8 +97,8 @@ enum class Translation(val language: Language, val year: Int) {
      */
     fun getDescription(format: Boolean = false): String {
         val abbrev = this.toString().uppercase()
-        val englishName = ResourceBundle.getBundle(BIBLES, Locale("en")).getString(this.toString())
-        val nativeLocale = Locale(this.language.toString())
+        val englishName = ResourceBundle.getBundle(BIBLES, Locale.of("en")).getString(this.toString())
+        val nativeLocale = Locale.of(this.language.toString())
         val nativeName = ResourceBundle.getBundle(BIBLES, nativeLocale).getString(this.toString())
 
         return if (format) {
