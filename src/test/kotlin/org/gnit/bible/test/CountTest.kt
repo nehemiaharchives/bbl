@@ -13,9 +13,20 @@ class CountTest {
         println(gen1)
         assertEquals(1412, gen1)
     }
+
+    @Test
+    fun countCharactersInGenesis1(){
+        val book = 1
+        val chapter = 1
+        val distinctCharSet = distinctChars(book, chapter)
+        println("total number of chars of book: $book chapter: $chapter is ${distinctCharSet.size}")
+        distinctCharSet.forEach {
+            print(it)
+        }
+    }
 }
 
-fun main() {
+fun countTotalBibleLength() {
 
     var totalBibleLength = 0
 
@@ -42,4 +53,30 @@ fun countChapterLength(book: Int, chapter: Int): Int {
     }
 
     return count
+}
+
+fun distinctChars(book: Int, chapter: Int): Set<Char> {
+    val translation = Translation.krv
+    val versePointer = VersePointer(translation = translation, book = book, chapter = chapter)
+    val path = chapterTextPath(versePointer)
+    val aChapter = File("src/main/resources/$path").readText()
+
+    //convert String into Set of Characters
+    return aChapter.toCharArray().distinct().toSet()
+}
+
+fun main(){
+
+    val totalBibleCharSet = mutableSetOf<Char>()
+
+    (1..66).forEach { book ->
+        val maxChapter = Chapters.maxChapter(book)
+        (1..maxChapter).forEach { chapter ->
+            val distinctChars = distinctChars(book, chapter)
+            totalBibleCharSet.addAll(distinctChars)
+        }
+    }
+
+    val content = totalBibleCharSet.toList().sorted().map { it.toString() }.joinToString(separator = "")
+    println(content)
 }
