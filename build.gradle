@@ -15,7 +15,7 @@ plugins {
     id "org.javamodularity.moduleplugin" version "1.8.12"
 }
 
-group = 'org.gnit.bible'
+group = 'org.gnit.bible.cli'
 version = '1.4'
 
 task versionTxt() {
@@ -30,9 +30,11 @@ task versionTxt() {
 
 repositories {
     mavenCentral()
+    maven { url "file:../bbl-core/.m2/repository" }
 }
 
 dependencies {
+    implementation "org.gnit.bible:bbl-core:1.0-SNAPSHOT@jar"
     implementation "com.github.ajalt.clikt:clikt:3.5.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
     implementation 'org.slf4j:slf4j-api:2.0.3'
@@ -101,8 +103,8 @@ processResources.dependsOn(versionTxt)
 compileKotlin.destinationDirectory = compileJava.destinationDirectory
 
 application {
-    mainClassName = 'org.gnit.bible.MainKt'
-    mainModule = 'org.gnit.bible'
+    mainClassName = 'org.gnit.bible.cli.MainKt'
+    mainModule = 'org.gnit.bible.cli'
 }
 
 jar {

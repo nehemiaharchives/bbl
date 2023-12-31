@@ -1,4 +1,4 @@
-module org.gnit.bible {
+module org.gnit.bible.cli {
     requires com.github.ajalt.clikt;
     requires kotlin.stdlib;
     requires kotlin.test;
@@ -19,5 +19,6 @@ module org.gnit.bible {
     requires com.sun.jna;
     requires org.apache.lucene.analysis.common;
     requires org.apache.lucene.analysis.morfologik;
-    exports org.gnit.bible;
+    requires bbl.core;
+    exports org.gnit.bible.cli;
 }
