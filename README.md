@@ -14,6 +14,8 @@ bbl-kmp is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM),
 * [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
 
+* [/cli](./cli/src/commonMain/kotlin) is for bbl command line Bible. 
+
 * [/server](./server/src/main/kotlin) is for the Ktor server application.
 
 * [/shared](./shared/src) is for the code that will be shared between all targets in the project.
