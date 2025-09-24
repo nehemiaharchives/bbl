@@ -307,30 +307,10 @@ tasks.register("embedBblpacks") {
 }
 
 plugins.withId("org.jetbrains.kotlin.multiplatform") {
-    val cinteropClass = runCatching { Class.forName("org.jetbrains.kotlin.gradle.tasks.CInteropProcess") }.getOrNull()
-    val compilerOptsMethod = cinteropClass?.methods?.firstOrNull {
-        it.name == "compilerOpts" && it.parameterCount == 1 && it.parameterTypes[0] == Array<String>::class.java
-    }
-
     tasks.matching { it.name.startsWith("cinteropBibles") }.configureEach {
         dependsOn(tasks.named("embedBblpacks"))
-
-        if (cinteropClass?.isInstance(this) == true && compilerOptsMethod != null) {
-            val cacheDir = temporaryDir.resolve("clang-modules")
-            // Forward fresh module-cache path to Kotlin/Native Clang to avoid stale PCH reuse.
-            compilerOptsMethod.invoke(this, arrayOf("-fmodules-cache-path=${cacheDir.absolutePath}"))
-
-            doFirst {
-                if (cacheDir.exists()) {
-                    cacheDir.deleteRecursively()
-                }
-                cacheDir.mkdirs()
-                logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
-            }
-        } else {
-            doFirst {
-                logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
-            }
+        doFirst {
+            logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
         }
     }
 }

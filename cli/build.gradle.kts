@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -90,14 +91,29 @@ listOf(
 }
 
 tasks.withType<CInteropProcess>().configureEach {
-    if(name.contains("Bibles")){
+    if (name.contains("Bibles")) {
+        val cacheDirPath = temporaryDir.resolve("clang-modules").absolutePath
+        val sharedKonanCache = System.getenv("TMPDIR")?.let { File(it, "konan-module-cache") }
+
+        settings.compilerOpts.removeAll { it.startsWith("-fmodules-cache-path=") }
+        settings.compilerOpts.add("-fmodules-cache-path=$cacheDirPath")
+
         dependsOn("embedBblpacks")
         doFirst {
+            sharedKonanCache?.takeIf { it.exists() }?.deleteRecursively()
+
+            val cacheDir = File(cacheDirPath)
+            if (cacheDir.exists()) {
+                cacheDir.deleteRecursively()
+            }
+            cacheDir.mkdirs()
+
             val lib = layout.buildDirectory.file("embedded/libbibles.a").get().asFile
             println("DEBUG cinterop task: $name")
             println("DEBUG lib exists: ${lib.exists()} size=${lib.length()} path=${lib.absolutePath}")
             println("DEBUG embedded dir files:" + layout.buildDirectory.dir("embedded").get().asFile.listFiles()?.map { it.name })
             println("DEBUG expecting libraryPaths entry pointing to:" + layout.buildDirectory.dir("embedded").get().asFile.absolutePath)
+            println("DEBUG compilerOpts module cache path: $cacheDirPath")
         }
     }
 }
