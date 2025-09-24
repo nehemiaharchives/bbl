@@ -235,6 +235,7 @@ val compileCToObjects = tasks.register("compileCToObjects") {
         val cDir = cOutDir.get().asFile
         val objDir = oOutDir.get().asFile.also { it.mkdirs() }
         val clang = clangPath.get()
+        logger.lifecycle("Compiling c files to .o files with: $clang")
 
         val sources = cDir.listFiles { f -> f.isFile && f.extension == "c" }?.sortedBy { it.name }.orEmpty()
         sources.forEach { c ->
@@ -257,7 +258,7 @@ val buildEmbeddedArchive = tasks.register("buildEmbeddedArchive") {
         val lib = libOutFile.get().asFile
         if (objs.isEmpty()) logger.warn("No object files to archive in $objDir")
         providers.exec { commandLine(ar, "rcs", lib.absolutePath, *objs.toTypedArray()) }.result.get().assertNormalExitValue()
-        logger.lifecycle("Built ${lib.absolutePath}")
+        logger.lifecycle("from .o files, built Archive file: ${lib.absolutePath}")
     }
 }
 
