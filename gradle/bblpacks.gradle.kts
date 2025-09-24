@@ -36,22 +36,8 @@ fun toolMajorVersion(exePath: String): Int? {
     } catch (_: Exception) { null }
 }
 
-fun findMacClang(): String {
-    val viaXcrun = runCatching {
-        val proc = ProcessBuilder("xcrun", "--find", "clang").redirectErrorStream(true).start()
-        val output = proc.inputStream.bufferedReader().use { it.readText() }.trim()
-        proc.waitFor()
-        output.takeIf { it.isNotBlank() && File(it).canExecute() }
-    }.getOrNull()
-
-    val path = viaXcrun
-        ?: File("/usr/bin/clang").takeIf { it.canExecute() }?.absolutePath
-        ?: throw GradleException("Cannot locate Xcode clang. Ensure Xcode Command Line Tools are installed.")
-
-    toolMajorVersion(path)
-    logger.lifecycle("$path (Xcode clang) will be used")
-    return path
-}
+// Removed findMacClang(): we must avoid mixing Apple clang (Xcode) with LLVM/clang used by Kotlin/Native.
+// Enforce a single clang/llvm toolchain with the required major version (llvmVersion).
 
 fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
     System.getenv(toolName.uppercase())?.let { p ->
@@ -115,9 +101,8 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
     throw GradleException("Cannot find $toolName. $reason Set env $toolName or $brewTip.")
 }
 
-val clangPath = providers.provider {
-    if (OperatingSystem.current().isMacOsX) findMacClang() else findTool("clang", llvmVersion)
-}
+// Always use version-gated clang/llvm on all platforms to avoid PCH/ABI mismatches
+val clangPath = providers.provider { findTool("clang", llvmVersion) }
 val llvmArPath = providers.provider { findTool("llvm-ar", llvmVersion) }
 
 // 1) TAR bblpacks preserving path "bblpacks/<t>/..."
