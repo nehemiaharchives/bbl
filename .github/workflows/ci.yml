@@ -112,37 +112,8 @@ jobs:
         with:
           version: "19.1.7"
 
-      - name: temprally purge old konan cache
-        run: rm -rf ~/.konan/
-
-      - name: remove system wide global clang compiler cache
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex || true
-
-      - name: Enable Kotlin/Native compiler logs
-        run: echo 'kotlin.native.enableCompilerLogs=true' >> gradle.properties
-
-      - name: Enable Konan tool logging
-        run: echo "KONAN_DEBUG=1" >> "$GITHUB_ENV"
-
-      - name: Debug K/N toolchain
-        run: |
-          set -eux
-          echo "KONAN clang: ${KONAN_CLANG:-<not set>}"
-          /Users/runner/.konan/dependencies/llvm-19-aarch64-macos-essentials-79/bin/clang --version || true
-          xcrun --find clang && xcrun clang --version
-
-      - name: Force Xcode clang
-        run: |
-          set -eux
-          export KONAN_CLANG=$(xcrun --find clang)
-          export KONAN_LLC=$(dirname "$KONAN_CLANG")/llc
-          export KONAN_OPT=$(dirname "$KONAN_CLANG")/opt
-          echo "KONAN_CLANG=$KONAN_CLANG" >> "$GITHUB_ENV"
-          echo "KONAN_LLC=$KONAN_LLC" >> "$GITHUB_ENV"
-          echo "KONAN_OPT=$KONAN_OPT" >> "$GITHUB_ENV"
-
       - name: Run Tests
-        run: KONAN_DEBUG=1 ./gradlew clean :cli:macosArm64Test --debug --stacktrace
+        run: ./gradlew clean :cli:macosArm64Test
 
   cli-unittest-jvm:
     name: CLI Test JVM
@@ -294,14 +265,5 @@ jobs:
         with:
           version: "19.1.7"
       
-      - name: temprally purge old konan cache
-        run: rm -rf ~/.konan/
-
-      - name: Enable Kotlin/Native compiler logs
-        run: echo 'kotlin.native.enableCompilerLogs=true' >> gradle.properties
-
-      - name: Enable Konan tool logging
-        run: echo "KONAN_DEBUG=1" >> "$GITHUB_ENV"
-
       - name: Build MacOSX64 Native Binary
         run: ./gradlew clean :cli:linkReleaseExecutableMacosArm64
