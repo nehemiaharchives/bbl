@@ -1,7 +1,5 @@
 package = org.gnit.bible.cli.ci
 headers = generated_bibles.h
-# Direct clang to a fresh module cache each run to avoid stale PCH conflicts on macOS runners
-compilerOpts = -fmodules-cache-path=$TMPDIR/konan-module-cache
+# Module cache path is injected from Gradle to ensure fresh PCH per build
 # staticLibraries = bibles removed so that it links at the final native binary stage via binaries {} block
 # includeDirs are provided from Gradle: $buildDir/embedded/include
-compilerOpts = -v
