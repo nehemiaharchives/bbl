@@ -47,6 +47,25 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
     val exeName = if (os.isWindows) "$toolName.exe" else toolName
 
     val needsVersioned = requiredMajorVersion != null
+
+    // Prefer Kotlin/Native bundled toolchains (downloaded by konanDependencies) to stay in sync with cinterop
+    run {
+        val home = System.getProperty("user.home")
+        val konanDepsDir = File(home, ".konan/dependencies")
+        val candidates = konanDepsDir.listFiles { f -> f.isDirectory && f.name.startsWith("llvm-") }
+            ?.sortedByDescending { it.name }
+            ?: emptyList()
+        for (dir in candidates) {
+            val candidate = File(dir, "bin/$exeName")
+            if (candidate.canExecute()) {
+                if (!needsVersioned || toolMajorVersion(candidate.absolutePath) == requiredMajorVersion) {
+                    logger.lifecycle("${candidate.absolutePath} found in .konan will be used")
+                    return candidate.absolutePath
+                }
+            }
+        }
+    }
+
     // From PATH: only accept tool when major version matches requiredMajorVersion (if provided)
     System.getenv("PATH")?.split(File.pathSeparatorChar)?.forEach { dir ->
         val f = File(dir, exeName)
@@ -74,23 +93,6 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
             val f = File(p)
             if (f.canExecute()) {
                 logger.lifecycle("${f.absolutePath} installed via Homebrew will be used")
-                return f.absolutePath
-            }
-        }
-    }
-
-    // Kotlin/Native Konan toolchains: enforce llvmVersion for clang/llvm-ar
-    val home = System.getProperty("user.home")
-    val konanDeps = File(home, ".konan/dependencies")
-    val candidates = konanDeps.listFiles { f -> f.isDirectory && f.name.startsWith("llvm-") }?.sortedByDescending { it.name } ?: emptyList()
-    for (dir in candidates) {
-        val f = File(dir, "bin/$exeName")
-        if (f.canExecute()) {
-            if (needsVersioned) {
-                val v = toolMajorVersion(f.absolutePath)
-                if (v == requiredMajorVersion) return f.absolutePath else continue
-            } else {
-                logger.lifecycle("${f.absolutePath} found in .konan will be used")
                 return f.absolutePath
             }
         }
@@ -244,6 +246,14 @@ val buildEmbeddedArchive = tasks.register("buildEmbeddedArchive") {
         if (objs.isEmpty()) logger.warn("No object files to archive in $objDir")
         providers.exec { commandLine(ar, "rcs", lib.absolutePath, *objs.toTypedArray()) }.result.get().assertNormalExitValue()
         logger.lifecycle("from .o files, built Archive file: ${lib.absolutePath}")
+    }
+}
+
+// Ensure Kotlin/Native dependencies are downloaded before we try to use the bundled clang/llvm
+runCatching { rootProject.tasks.named("konanDependencies") }.getOrNull()?.let { konanDepsTask ->
+    listOf(tarBblpacks, generateCFromTar, compileCToObjects, buildEmbeddedArchive).forEach { taskProvider ->
+        taskProvider.configure { dependsOn(konanDepsTask) }
+        logger.lifecycle("Configured task ${taskProvider.name} to depend on konanDependencies")
     }
 }
 
