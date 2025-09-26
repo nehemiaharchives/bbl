@@ -207,6 +207,22 @@ private fun File.ensureExecutable() {
     }
 }
 
+private fun ensureDependencyMarkedExtracted(dependenciesDir: File, dependencyName: String, logger: org.gradle.api.logging.Logger) {
+    val marker = dependenciesDir.resolve(".extracted")
+    val existing = if (marker.exists()) {
+        marker.readLines().mapNotNull { it.trim().takeIf(String::isNotEmpty) }.toMutableSet()
+    } else {
+        mutableSetOf()
+    }
+
+    if (existing.add(dependencyName)) {
+        marker.parentFile?.mkdirs()
+        val sorted = existing.toMutableList().sorted()
+        marker.writeText(sorted.joinToString(separator = "\n", postfix = "\n"))
+        logger.lifecycle("Marked Kotlin/Native dependency '$dependencyName' as extracted in ${marker.absolutePath}")
+    }
+}
+
 fun toolMajorVersion(exePath: String): Int? {
     return try {
         val pb = ProcessBuilder(exePath, "--version").redirectErrorStream(true)
@@ -441,6 +457,8 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
         } else {
             logger.lifecycle("Reusing existing Kotlin/Native LLVM bundle at ${targetDir.absolutePath}")
         }
+
+        ensureDependencyMarkedExtracted(dependenciesDir, bundle.dependencyName, logger)
 
         val finalClang = clangCandidates.firstOrNull { it.exists() }
             ?: throw GradleException("clang binary not found in ${targetDir.absolutePath}")
