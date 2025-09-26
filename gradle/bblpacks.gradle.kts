@@ -1,7 +1,9 @@
 import org.gradle.internal.os.OperatingSystem
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.util.Properties
 
 // This script plugin is applied to the 'cli' project.
 // It generates:
@@ -22,8 +24,188 @@ val libOutFile = embedBuild.map { it.file("libbibles.a") }
 val includeOutDir = embedBuild.map { it.dir("include") }
 val generatedKtDir = layout.buildDirectory.dir("generated/cli")
 
-// Central LLVM major version selector used for tool discovery and gating
-val llvmVersion: Int = 19
+private val kotlinVersionProvider = providers.provider {
+    val versionsFile = rootProject.layout.projectDirectory.file("gradle/libs.versions.toml").asFile
+    val text = versionsFile.readText()
+    val regex = Regex("""^\s*kotlin\s*=\s*"(.*?)"\s*$""", RegexOption.MULTILINE)
+    val match = regex.find(text) ?: throw GradleException("Could not find kotlin version in ${versionsFile.absolutePath}")
+    match.groupValues[1]
+}
+
+private fun hostKonanKey(): String {
+    val os = OperatingSystem.current()
+    val arch = System.getProperty("os.arch").lowercase()
+    return when {
+        os.isMacOsX && (arch.contains("aarch") || arch.contains("arm")) -> "macos_arm64"
+        os.isMacOsX -> "macos_x64"
+        os.isLinux -> "linux_x64"
+        os.isWindows -> "mingw_x64"
+        else -> throw GradleException("Unsupported host '$os' for Kotlin/Native LLVM resolution.")
+    }
+}
+
+private fun konanDataDir(): File =
+    System.getenv("KONAN_DATA_DIR")?.let(::File) ?: File(System.getProperty("user.home"), ".konan")
+
+private data class KotlinNativeRemote(val repo: String, val remotePath: String)
+
+private data class KotlinNativeLlvmBundle(
+    val dependencyName: String,
+    val archiveUrl: String,
+    val archiveExt: String,
+    val llvmMajorVersion: Int
+)
+
+private fun loadKotlinNativeGradleProperties(kotlinVersion: String): Properties {
+    val cacheDir = layout.buildDirectory.dir("kotlinNative/$kotlinVersion").get().asFile.also { it.mkdirs() }
+    val gradlePropsFile = cacheDir.resolve("gradle.properties")
+
+    if (!gradlePropsFile.exists()) {
+        if (gradle.startParameter.isOffline) {
+            throw GradleException("Offline and missing Kotlin/Native gradle.properties for Kotlin $kotlinVersion")
+        }
+        val remoteUrl = "https://raw.githubusercontent.com/JetBrains/kotlin/refs/tags/v${kotlinVersion}/kotlin-native/gradle.properties"
+        logger.lifecycle("Fetching Kotlin/Native gradle.properties from $remoteUrl")
+        curlDownload(remoteUrl, gradlePropsFile, retries = 3)
+        if (!gradlePropsFile.exists()) {
+            throw GradleException("Failed to download Kotlin/Native gradle.properties for Kotlin $kotlinVersion")
+        }
+    }
+
+    return Properties().apply {
+        gradlePropsFile.inputStream().use { load(it) }
+    }
+}
+
+private fun parseRemote(spec: String): KotlinNativeRemote? {
+    val trimmed = spec.trim()
+    if (!trimmed.startsWith("remote:")) return null
+    val parts = trimmed.split(':', limit = 3)
+    if (parts.size != 3) return null
+    val repo = parts[1]
+    val path = parts[2]
+    if (repo.isBlank() || path.isBlank()) return null
+    return KotlinNativeRemote(repo, path)
+}
+
+private fun kotlinNativeLlvmBundleFor(kotlinVersion: String): KotlinNativeLlvmBundle {
+    val props = loadKotlinNativeGradleProperties(kotlinVersion)
+    val hostKey = hostKonanKey()
+    val profile = props.getProperty("kotlin.native.llvm")?.trim()?.takeIf { it.isNotEmpty() } ?: "default"
+
+    val versionKey = "kotlin.native.llvm.$profile.$hostKey.version"
+    val versionString = props.getProperty(versionKey)?.trim()
+        ?: throw GradleException("Missing '$versionKey' in Kotlin/Native gradle.properties for Kotlin $kotlinVersion")
+    val llvmMajor = versionString.toIntOrNull()
+        ?: throw GradleException("Invalid LLVM version '$versionString' at $versionKey")
+
+    val essentialsKey = "kotlin.native.llvm.$profile.$hostKey.essentials"
+    val essentialSpec = props.getProperty(essentialsKey)?.trim()?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("Missing '$essentialsKey' in Kotlin/Native gradle.properties for Kotlin $kotlinVersion")
+
+    val remote = parseRemote(essentialSpec)
+        ?: throw GradleException("Unsupported LLVM dependency spec '$essentialSpec' at $essentialsKey")
+
+    val archiveExt = when {
+        hostKey.startsWith("mingw") -> "zip"
+        else -> "tar.gz"
+    }
+
+    val dependencyName = remote.remotePath.substringAfterLast('/')
+        .takeIf { it.isNotEmpty() }
+        ?: throw GradleException("Cannot extract dependency name from '${remote.remotePath}'")
+
+    val baseUrl = when (remote.repo) {
+        "public" -> "https://download.jetbrains.com/kotlin/native"
+        else -> throw GradleException("Unsupported Kotlin/Native repository '${remote.repo}' in $essentialSpec")
+    }
+
+    val archiveUrl = "$baseUrl/${remote.remotePath}.${archiveExt}"
+
+    return KotlinNativeLlvmBundle(
+        dependencyName = dependencyName,
+        archiveUrl = archiveUrl,
+        archiveExt = archiveExt,
+        llvmMajorVersion = llvmMajor
+    )
+}
+
+private val kotlinNativeLlvmBundleProvider = providers.provider {
+    kotlinNativeLlvmBundleFor(kotlinVersionProvider.get())
+}
+
+private fun llvmToolCandidates(root: File, toolName: String): List<File> {
+    val exeSuffix = if (OperatingSystem.current().isWindows) ".exe" else ""
+    return listOf(
+        root.resolve("bin/$toolName$exeSuffix"),
+        root.resolve("llvm/bin/$toolName$exeSuffix")
+    )
+}
+
+private fun logToolCandidate(toolName: String, file: File) {
+    val status = if (file.exists()) "exists" else "missing"
+    logger.lifecycle("$toolName candidate $status: ${file.absolutePath}")
+}
+
+private fun logToolVersionOutput(toolFile: File) {
+    try {
+        val process = ProcessBuilder(toolFile.absolutePath, "--version")
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().use { it.readText() }
+        val exit = process.waitFor()
+        if (exit != 0) {
+            throw GradleException("${toolFile.name} --version failed with exit $exit")
+        }
+        logger.lifecycle("${toolFile.name} --version:\n${output.trim()}")
+    } catch (ex: IOException) {
+        throw GradleException("Failed to execute ${toolFile.absolutePath} --version", ex)
+    } catch (ex: InterruptedException) {
+        Thread.currentThread().interrupt()
+        throw GradleException("Interrupted while running ${toolFile.absolutePath} --version", ex)
+    }
+}
+
+private fun curlDownload(url: String, destination: File, retries: Int = 3) {
+    val curlExe = System.getenv("CURL") ?: "curl"
+    destination.parentFile?.mkdirs()
+    var lastExit = -1
+    var lastErr: String? = null
+    repeat(retries) { attempt ->
+        if (destination.exists()) destination.delete()
+        val pb = ProcessBuilder(
+            curlExe,
+            "-L",            // follow redirects
+            "-f",            // fail on HTTP errors
+            "-sS",           // silent + show errors
+            "--connect-timeout", "10",
+            "--retry", "2",
+            "-o", destination.absolutePath,
+            url
+        )
+        val proc = try { pb.start() } catch (e: IOException) {
+            throw GradleException("Failed to start curl ($curlExe): ${e.message}", e)
+        }
+        val stderr = proc.errorStream.bufferedReader().use { it.readText() }
+        val exit = proc.waitFor()
+        if (exit == 0 && destination.isFile && destination.length() > 0) {
+            if (attempt > 0) logger.lifecycle("curl succeeded for $url after ${attempt + 1} attempts")
+            return
+        }
+        lastExit = exit
+        lastErr = stderr.ifBlank { "exit=$exit" }
+        logger.warn("curl attempt ${attempt + 1}/$retries failed for $url: $lastErr")
+        Thread.sleep(1200L)
+    }
+    destination.delete()
+    throw GradleException("curl failed to download $url (exit=$lastExit): $lastErr")
+}
+
+private fun File.ensureExecutable() {
+    if (exists() && !canExecute()) {
+        setExecutable(true)
+    }
+}
 
 fun toolMajorVersion(exePath: String): Int? {
     return try {
@@ -48,7 +230,7 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
 
     val needsVersioned = requiredMajorVersion != null
 
-    // Prefer Kotlin/Native bundled toolchains (downloaded by konanDependencies) to stay in sync with cinterop
+    // Prefer Kotlin/Native bundled toolchains (downloaded via Kotlin/Native Gradle tasks) to stay in sync with cinterop
     run {
         val home = System.getProperty("user.home")
         val konanDepsDir = File(home, ".konan/dependencies")
@@ -56,8 +238,10 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
             ?.sortedByDescending { it.name }
             ?: emptyList()
         for (dir in candidates) {
-            val candidate = File(dir, "bin/$exeName")
-            if (candidate.canExecute()) {
+            listOf(
+                File(dir, "bin/$exeName"),
+                File(dir, "llvm/bin/$exeName")
+            ).firstOrNull { it.canExecute() }?.let { candidate ->
                 if (!needsVersioned || toolMajorVersion(candidate.absolutePath) == requiredMajorVersion) {
                     logger.lifecycle("${candidate.absolutePath} found in .konan will be used")
                     return candidate.absolutePath
@@ -66,46 +250,14 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
         }
     }
 
-    // From PATH: only accept tool when major version matches requiredMajorVersion (if provided)
-    System.getenv("PATH")?.split(File.pathSeparatorChar)?.forEach { dir ->
-        val f = File(dir, exeName)
-        if (f.canExecute()) {
-            if (needsVersioned) {
-                val v = toolMajorVersion(f.absolutePath)
-                if (v == requiredMajorVersion) {
-                    logger.lifecycle("${f.absolutePath} found in PATH will be used")
-                    return f.absolutePath
-                }
-            } else {
-                return f.absolutePath
-            }
-        }
-    }
-
-    // Homebrew llvm@<version> explicit paths (Intel and Apple Silicon)
-    if (needsVersioned) {
-        val brewSuffix = "llvm@${requiredMajorVersion}"
-        val brewFallbacks = listOf(
-            "/usr/local/opt/${brewSuffix}/bin/$toolName",
-            "/opt/homebrew/opt/${brewSuffix}/bin/$toolName"
-        )
-        for (p in brewFallbacks) {
-            val f = File(p)
-            if (f.canExecute()) {
-                logger.lifecycle("${f.absolutePath} installed via Homebrew will be used")
-                return f.absolutePath
-            }
-        }
-    }
-
     val reason = requiredMajorVersion?.let { "Require major version $it for $toolName." } ?: ""
-    val brewTip = requiredMajorVersion?.let { "run 'brew install llvm@${it}'" } ?: "ensure it is on PATH"
-    throw GradleException("Cannot find $toolName. $reason Set env $toolName or $brewTip.")
+    val hint = "Ensure the Kotlin/Native toolchain is downloaded (run ':cli:downloadKonanLlvm') or set env ${toolName.uppercase()}"
+    throw GradleException("Cannot find $toolName in Kotlin/Native dependencies. $reason $hint.")
 }
 
 // Always use version-gated clang/llvm on all platforms to avoid PCH/ABI mismatches
-val clangPath = providers.provider { findTool("clang", llvmVersion) }
-val llvmArPath = providers.provider { findTool("llvm-ar", llvmVersion) }
+val clangPath = providers.provider { findTool("clang", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
+val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
 
 // 1) TAR bblpacks preserving path "bblpacks/<t>/..."
 val tarBblpacks = tasks.register("tarBblpacks") {
@@ -212,8 +364,101 @@ val generateCFromTar = tasks.register("generateCFromTar") {
     }
 }
 
+// Ensure Kotlin/Native downloads its toolchain (llvm/clang, etc.) before we try to build C artifacts.
+val ensureKonanToolchain = tasks.register("ensureKonanToolchain") {
+    group = "build setup"
+    description = "Ensures the Kotlin/Native toolchain (LLVM/Clang) is downloaded before embedding resources."
+}
+
+// Download the Kotlin/Native LLVM bundle into KONAN_DATA_DIR when absent.
+val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
+    group = "build setup"
+    description = "Downloads the Kotlin/Native LLVM toolchain archive that ships with the configured Kotlin version."
+
+    doLast {
+        val kotlinVersion = kotlinVersionProvider.get()
+        val bundle = kotlinNativeLlvmBundleProvider.get()
+        val konanDataDir = konanDataDir()
+        val dependenciesDir = konanDataDir.resolve("dependencies")
+        val targetDir = dependenciesDir.resolve(bundle.dependencyName)
+
+        if (targetDir.exists()) {
+            logger.lifecycle("LLVM bundle directory exists: ${targetDir.absolutePath}")
+        } else {
+            logger.lifecycle("LLVM bundle directory missing: ${targetDir.absolutePath}")
+        }
+
+        val clangCandidates = llvmToolCandidates(targetDir, "clang")
+        val llvmArCandidates = llvmToolCandidates(targetDir, "llvm-ar")
+
+        clangCandidates.forEach { logToolCandidate("clang", it) }
+        llvmArCandidates.forEach { logToolCandidate("llvm-ar", it) }
+
+        val resolvedClang = clangCandidates.firstOrNull { it.canExecute() }
+        val resolvedAr = llvmArCandidates.firstOrNull { it.canExecute() }
+
+        val needsDownload = resolvedClang == null || resolvedAr == null
+
+        if (needsDownload) {
+            if (gradle.startParameter.isOffline) {
+                throw GradleException("Offline mode cannot download Kotlin/Native LLVM bundle ${bundle.dependencyName}")
+            }
+
+            dependenciesDir.mkdirs()
+
+            val tmpDir = layout.buildDirectory.dir("tmp/${bundle.dependencyName}").get().asFile.also { it.mkdirs() }
+            val archiveFile = tmpDir.resolve("${bundle.dependencyName}.${bundle.archiveExt}")
+
+            logger.lifecycle("Downloading Kotlin/Native LLVM bundle ${bundle.dependencyName} (Kotlin $kotlinVersion) from ${bundle.archiveUrl}")
+            curlDownload(bundle.archiveUrl, archiveFile, retries = 3)
+            if (!archiveFile.exists() || archiveFile.length() == 0L) {
+                throw GradleException("Download produced an empty archive for ${bundle.archiveUrl}")
+            }
+
+            if (targetDir.exists()) {
+                targetDir.deleteRecursively()
+            }
+
+            when (bundle.archiveExt) {
+                "zip" -> project.copy { from(zipTree(archiveFile)); into(dependenciesDir) }
+                "tar.gz" -> {
+                    val tarExe = System.getenv("TAR") ?: "tar"
+                    val result = providers.exec {
+                        commandLine(tarExe, "-xzf", archiveFile.absolutePath, "-C", dependenciesDir.absolutePath)
+                        isIgnoreExitValue = true
+                    }.result.get()
+                    if (result.exitValue != 0) {
+                        throw GradleException("tar extraction failed for ${bundle.dependencyName} with exit ${result.exitValue}")
+                    }
+                }
+                else -> throw GradleException("Unsupported archive extension '${bundle.archiveExt}' for ${bundle.dependencyName}")
+            }
+
+            archiveFile.delete()
+            tmpDir.deleteRecursively()
+
+            logger.lifecycle("Installed Kotlin/Native LLVM bundle to ${targetDir.absolutePath}")
+        } else {
+            logger.lifecycle("Reusing existing Kotlin/Native LLVM bundle at ${targetDir.absolutePath}")
+        }
+
+        val finalClang = clangCandidates.firstOrNull { it.exists() }
+            ?: throw GradleException("clang binary not found in ${targetDir.absolutePath}")
+        val finalAr = llvmArCandidates.firstOrNull { it.exists() }
+            ?: throw GradleException("llvm-ar binary not found in ${targetDir.absolutePath}")
+
+        finalClang.ensureExecutable()
+        finalAr.ensureExecutable()
+
+        logToolVersionOutput(finalClang)
+        logToolVersionOutput(finalAr)
+    }
+}
+
 // 3) Compile C → .o
 val compileCToObjects = tasks.register("compileCToObjects") {
+    dependsOn(ensureKonanToolchain)
+    dependsOn(downloadKonanLlvm)
     dependsOn(generateCFromTar)
     inputs.dir(cOutDir)
     outputs.dir(oOutDir)
@@ -246,14 +491,6 @@ val buildEmbeddedArchive = tasks.register("buildEmbeddedArchive") {
         if (objs.isEmpty()) logger.warn("No object files to archive in $objDir")
         providers.exec { commandLine(ar, "rcs", lib.absolutePath, *objs.toTypedArray()) }.result.get().assertNormalExitValue()
         logger.lifecycle("from .o files, built Archive file: ${lib.absolutePath}")
-    }
-}
-
-// Ensure Kotlin/Native dependencies are downloaded before we try to use the bundled clang/llvm
-runCatching { rootProject.tasks.named("konanDependencies") }.getOrNull()?.let { konanDepsTask ->
-    listOf(tarBblpacks, generateCFromTar, compileCToObjects, buildEmbeddedArchive).forEach { taskProvider ->
-        taskProvider.configure { dependsOn(konanDepsTask) }
-        logger.lifecycle("Configured task ${taskProvider.name} to depend on konanDependencies")
     }
 }
 
