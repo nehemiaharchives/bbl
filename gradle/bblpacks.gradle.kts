@@ -301,7 +301,8 @@ val tarBblpacks = tasks.register("tarBblpacks") {
             }
         } catch (_: Exception) { false }
 
-        translations.forEach { t ->
+        translations.parallelStream().forEach { t ->
+            logger.lifecycle("Archiving bblpack for $t")
             val outTar = File(tarDir, "$t.tar")
             if (tarAvailable) {
                 providers.exec {
@@ -349,7 +350,8 @@ val generateCFromTar = tasks.register("generateCFromTar") {
             appendLine()
         }
 
-        tars.forEach { tar ->
+        tars.parallelStream().forEach { tar ->
+            logger.lifecycle("Generating C array from ${tar.name}")
             val name = tar.nameWithoutExtension // translation
             val symbol = "${name}_tar"
             val bytes = Files.readAllBytes(tar.toPath())
@@ -488,7 +490,8 @@ val compileCToObjects = tasks.register("compileCToObjects") {
         logger.lifecycle("Compiling c files to .o files with: $clang")
 
         val sources = cDir.listFiles { f -> f.isFile && f.extension == "c" }?.sortedBy { it.name }.orEmpty()
-        sources.forEach { c ->
+        sources.parallelStream().forEach { c ->
+            logger.lifecycle("Compiling ${c.name} to ${c.nameWithoutExtension}.o")
             val out = File(objDir, c.nameWithoutExtension + ".o")
             providers.exec { commandLine(clang, "-c", "-O2", c.absolutePath, "-o", out.absolutePath) }.result.get().assertNormalExitValue()
         }
