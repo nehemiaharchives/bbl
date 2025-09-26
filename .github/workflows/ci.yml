@@ -111,7 +111,7 @@ jobs:
           xcode-version: '16.4'
 
       - name: Run Tests
-        run: ./gradlew clean :cli:macosArm64Test
+        run: ./gradlew :cli:macosArm64Test
 
   cli-unittest-jvm:
     name: CLI Test JVM
@@ -252,4 +252,4 @@ jobs:
             ${{ runner.os }}-konan-       
 
       - name: Build MacOSX64 Native Binary
-        run: ./gradlew clean :cli:linkReleaseExecutableMacosArm64
+        run: ./gradlew :cli:linkReleaseExecutableMacosArm64
