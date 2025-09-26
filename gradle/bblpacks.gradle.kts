@@ -1,9 +1,25 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ExecOperations
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Properties
+import javax.inject.Inject
 
 // This script plugin is applied to the 'cli' project.
 // It generates:
@@ -15,7 +31,7 @@ import java.util.Properties
 // - build/generated/cli/org/gnit/bible/cli/GeneratedTarBindings.kt
 
 val resourcesRoot = rootProject.layout.projectDirectory.dir("composeApp/src/commonMain/composeResources/files")
-val bblpacksDir = resourcesRoot.dir("bblpacks")
+val bblpacksDirProvider = resourcesRoot.dir("bblpacks")
 val embedBuild = layout.buildDirectory.dir("embedded")
 val cOutDir = embedBuild.map { it.dir("c") }
 val oOutDir = embedBuild.map { it.dir("obj") }
@@ -271,54 +287,72 @@ fun findTool(toolName: String, requiredMajorVersion: Int? = null): String {
     throw GradleException("Cannot find $toolName in Kotlin/Native dependencies. $reason $hint.")
 }
 
-// Always use version-gated clang/llvm on all platforms to avoid PCH/ABI mismatches
-val clangPath = providers.provider { findTool("clang", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
-val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
+@CacheableTask
+abstract class TarBblpacksTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
 
-// 1) TAR bblpacks preserving path "bblpacks/<t>/..."
-val tarBblpacks = tasks.register("tarBblpacks") {
-    inputs.dir(bblpacksDir)
-    outputs.dir(tarOutDir)
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val bblpacksDir: DirectoryProperty
 
-    doLast {
-        val srcRoot = resourcesRoot.asFile
-        val tarDir = tarOutDir.get().asFile
+    @get:Internal
+    abstract val resourcesRootDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val tarExecutable: Property<String>
+
+    @TaskAction
+    fun generate() {
+        val srcRoot = resourcesRootDir.get().asFile
+        val tarDir = outputDirectory.get().asFile
         tarDir.mkdirs()
 
-        val translations = bblpacksDir.asFile.listFiles()?.filter { it.isDirectory }?.map { it.name }?.sorted().orEmpty()
-        if (translations.isEmpty()) logger.warn("No translations found in $bblpacksDir")
+        val translations = bblpacksDir.get().asFile.listFiles()
+            ?.filter { it.isDirectory }
+            ?.map { it.name }
+            ?.sorted()
+            .orEmpty()
 
-        val tarExe = System.getenv("TAR") ?: "tar"
+        if (translations.isEmpty()) {
+            logger.warn("No translations found in ${bblpacksDir.get().asFile}")
+            return
+        }
+
+        val tarExe = tarExecutable.get()
         val tarAvailable = try {
-            val result = providers.exec {
+            val result = execOperations.exec {
                 commandLine(tarExe, "--version")
                 isIgnoreExitValue = true
-            }.result.get()
-            if(result.exitValue != 0){
-                throw GradleException("TAR not available or version check failed: ${result.exitValue}")
-            }else{
-                true
             }
-        } catch (_: Exception) { false }
+            result.exitValue == 0
+        } catch (ex: Exception) {
+            logger.debug("tar --version failed; falling back", ex)
+            false
+        }
 
         translations.parallelStream().forEach { t ->
             logger.lifecycle("Archiving bblpack for $t")
             val outTar = File(tarDir, "$t.tar")
             if (tarAvailable) {
-                providers.exec {
+                val execResult = execOperations.exec {
                     workingDir = srcRoot
                     commandLine(tarExe, "-cf", outTar.absolutePath, "bblpacks/$t")
-                }.result.get().assertNormalExitValue()
+                }
+                execResult.assertNormalExitValue()
             } else {
-                // Minimal non-POSIX fallback to keep builds unblocked (prefer installing tar).
-                logger.warn("System 'tar' not found; writing a minimal fallback archive for $t (not POSIX TAR). Prefer installing tar.")
                 val base = File(srcRoot, "bblpacks/$t")
                 outTar.outputStream().use { out ->
                     base.walkTopDown().filter { it.isFile }.forEach { f ->
                         val rel = "bblpacks/$t/" + f.relativeTo(base).invariantSeparatorsPath
                         val bytes = f.readBytes()
                         val header = "FILE:$rel:${bytes.size}\n".toByteArray()
-                        out.write(header); out.write(bytes); out.write("\nEND\n".toByteArray())
+                        out.write(header)
+                        out.write(bytes)
+                        out.write("\nEND\n".toByteArray())
                     }
                 }
             }
@@ -326,20 +360,32 @@ val tarBblpacks = tasks.register("tarBblpacks") {
     }
 }
 
-// 2) Generate C arrays and combined header
-val generateCFromTar = tasks.register("generateCFromTar") {
-    dependsOn(tarBblpacks)
-    inputs.dir(tarOutDir)
-    outputs.dir(cOutDir)
-    outputs.dir(includeOutDir)
+@CacheableTask
+abstract class GenerateCFromTarTask : DefaultTask() {
 
-    doLast {
-        val tarDir = tarOutDir.get().asFile
-        val cDir = cOutDir.get().asFile.also { it.mkdirs() }
-        val incDir = includeOutDir.get().asFile.also { it.mkdirs() }
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val tarInputDir: DirectoryProperty
 
-        val tars = tarDir.listFiles { f -> f.isFile && f.name.endsWith(".tar") }?.sortedBy { it.name }.orEmpty()
-        if (tars.isEmpty()) logger.warn("No .tar files in $tarDir")
+    @get:OutputDirectory
+    abstract val cOutputDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val includeOutputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val tarDir = tarInputDir.get().asFile
+        val cDir = cOutputDir.get().asFile.also { it.mkdirs() }
+        val incDir = includeOutputDir.get().asFile.also { it.mkdirs() }
+
+        val tars = tarDir.listFiles { f -> f.isFile && f.name.endsWith(".tar") }
+            ?.sortedBy { it.name }
+            .orEmpty()
+
+        if (tars.isEmpty()) {
+            logger.warn("No .tar files in $tarDir")
+        }
 
         val header = File(incDir, "generated_bibles.h")
         val externs = StringBuilder().apply {
@@ -352,7 +398,7 @@ val generateCFromTar = tasks.register("generateCFromTar") {
 
         tars.parallelStream().forEach { tar ->
             logger.lifecycle("Generating C array from ${tar.name}")
-            val name = tar.nameWithoutExtension // translation
+            val name = tar.nameWithoutExtension
             val symbol = "${name}_tar"
             val bytes = Files.readAllBytes(tar.toPath())
             val cFile = File(cDir, "$symbol.c")
@@ -380,6 +426,157 @@ val generateCFromTar = tasks.register("generateCFromTar") {
         header.writeText(externs.toString())
         logger.lifecycle("Wrote ${header.absolutePath} and ${cDir.listFiles()?.size ?: 0} C files")
     }
+}
+
+@CacheableTask
+abstract class CompileCToObjectsTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val cInputDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val objectOutputDir: DirectoryProperty
+
+    @get:Input
+    abstract val clangExecutable: Property<String>
+
+    @TaskAction
+    fun compile() {
+        val cDir = cInputDir.get().asFile
+        val objDir = objectOutputDir.get().asFile.also { it.mkdirs() }
+        val clang = clangExecutable.get()
+
+        val sources = cDir.listFiles { f -> f.isFile && f.extension == "c" }
+            ?.sortedBy { it.name }
+            .orEmpty()
+
+        if (sources.isEmpty()) {
+            logger.warn("No C sources to compile in $cDir")
+            return
+        }
+
+        logger.lifecycle("Compiling c files to .o files with: $clang")
+        sources.parallelStream().forEach { c ->
+            logger.lifecycle("Compiling ${c.name} to ${c.nameWithoutExtension}.o")
+            val out = File(objDir, c.nameWithoutExtension + ".o")
+            val execResult = execOperations.exec {
+                commandLine(clang, "-c", "-O2", c.absolutePath, "-o", out.absolutePath)
+            }
+            execResult.assertNormalExitValue()
+        }
+    }
+}
+
+@CacheableTask
+abstract class BuildEmbeddedArchiveTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val objectInputDir: DirectoryProperty
+
+    @get:OutputFile
+    abstract val archiveOutputFile: RegularFileProperty
+
+    @get:Input
+    abstract val arExecutable: Property<String>
+
+    @TaskAction
+    fun archive() {
+        val objDir = objectInputDir.get().asFile
+        val ar = arExecutable.get()
+        val lib = archiveOutputFile.get().asFile
+        lib.parentFile?.mkdirs()
+
+        val objs = objDir.listFiles { f -> f.isFile && f.extension == "o" }
+            ?.sortedBy { it.name }
+            ?.map { it.absolutePath }
+            .orEmpty()
+
+        if (objs.isEmpty()) {
+            logger.warn("No object files to archive in $objDir")
+        }
+
+        val execResult = execOperations.exec {
+            commandLine(ar, "rcs", lib.absolutePath, *objs.toTypedArray())
+        }
+        execResult.assertNormalExitValue()
+        logger.lifecycle("from .o files, built Archive file: ${lib.absolutePath}")
+    }
+}
+
+@CacheableTask
+abstract class GenerateTarBindingsTask : DefaultTask() {
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val headerFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val header = headerFile.get().asFile
+        val baseOutput = outputDirectory.get().asFile
+        val ktDir = File(baseOutput, "org/gnit/bible/cli").also { it.mkdirs() }
+        val ktFile = File(ktDir, "GeneratedTarBindings.kt")
+
+        val names = header.readLines()
+            .mapNotNull { Regex("""extern const unsigned char ([a-zA-Z0-9_]+)\[\];""").find(it)?.groupValues?.getOrNull(1) }
+            .filter { it.endsWith("_tar") }
+            .sorted()
+
+        val body = buildString {
+            appendLine("/* Auto-generated. Do not edit. */")
+            appendLine("package org.gnit.bible.cli")
+            appendLine()
+            appendLine("import kotlinx.cinterop.CPointer")
+            appendLine("import kotlinx.cinterop.UByteVar")
+            appendLine("import org.gnit.bible.cli.ci.*")
+            appendLine()
+            appendLine("internal fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
+            names.forEach { sym ->
+                val t = sym.removeSuffix("_tar")
+                appendLine("    \"$t\" -> TarPtrReader(${sym}, ${sym}_len.toInt())")
+            }
+            appendLine("    else -> null")
+            appendLine("}")
+        }
+
+        Files.writeString(
+            ktFile.toPath(),
+            body,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.WRITE
+        )
+        logger.lifecycle("Wrote ${ktFile.absolutePath}")
+    }
+}
+
+// Always use version-gated clang/llvm on all platforms to avoid PCH/ABI mismatches
+val clangPath = providers.provider { findTool("clang", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
+val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
+
+// 1) TAR bblpacks preserving path "bblpacks/<t>/..."
+val tarBblpacks = tasks.register<TarBblpacksTask>("tarBblpacks") {
+    bblpacksDir.set(bblpacksDirProvider)
+    resourcesRootDir.set(resourcesRoot)
+    outputDirectory.set(tarOutDir)
+    tarExecutable.set(providers.environmentVariable("TAR").orElse("tar"))
+}
+
+// 2) Generate C arrays and combined header
+val generateCFromTar = tasks.register<GenerateCFromTarTask>("generateCFromTar") {
+    dependsOn(tarBblpacks)
+    tarInputDir.set(tarOutDir)
+    cOutputDir.set(cOutDir)
+    includeOutputDir.set(includeOutDir)
 }
 
 // Ensure Kotlin/Native downloads its toolchain (llvm/clang, etc.) before we try to build C artifacts.
@@ -476,83 +673,28 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
 }
 
 // 3) Compile C → .o
-val compileCToObjects = tasks.register("compileCToObjects") {
+val compileCToObjects = tasks.register<CompileCToObjectsTask>("compileCToObjects") {
     dependsOn(ensureKonanToolchain)
     dependsOn(downloadKonanLlvm)
     dependsOn(generateCFromTar)
-    inputs.dir(cOutDir)
-    outputs.dir(oOutDir)
-
-    doLast {
-        val cDir = cOutDir.get().asFile
-        val objDir = oOutDir.get().asFile.also { it.mkdirs() }
-        val clang = clangPath.get()
-        logger.lifecycle("Compiling c files to .o files with: $clang")
-
-        val sources = cDir.listFiles { f -> f.isFile && f.extension == "c" }?.sortedBy { it.name }.orEmpty()
-        sources.parallelStream().forEach { c ->
-            logger.lifecycle("Compiling ${c.name} to ${c.nameWithoutExtension}.o")
-            val out = File(objDir, c.nameWithoutExtension + ".o")
-            providers.exec { commandLine(clang, "-c", "-O2", c.absolutePath, "-o", out.absolutePath) }.result.get().assertNormalExitValue()
-        }
-    }
+    cInputDir.set(cOutDir)
+    objectOutputDir.set(oOutDir)
+    clangExecutable.set(clangPath)
 }
 
 // 4) Archive .o → libbibles.a
-val buildEmbeddedArchive = tasks.register("buildEmbeddedArchive") {
+val buildEmbeddedArchive = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive") {
     dependsOn(compileCToObjects)
-    inputs.dir(oOutDir)
-    outputs.file(libOutFile)
-
-    doLast {
-        val objDir = oOutDir.get().asFile
-        val objs = objDir.listFiles { f -> f.isFile && f.extension == "o" }?.map { it.absolutePath }.orEmpty()
-        val ar = llvmArPath.get()
-        val lib = libOutFile.get().asFile
-        if (objs.isEmpty()) logger.warn("No object files to archive in $objDir")
-        providers.exec { commandLine(ar, "rcs", lib.absolutePath, *objs.toTypedArray()) }.result.get().assertNormalExitValue()
-        logger.lifecycle("from .o files, built Archive file: ${lib.absolutePath}")
-    }
+    objectInputDir.set(oOutDir)
+    archiveOutputFile.set(libOutFile)
+    arExecutable.set(llvmArPath)
 }
 
 // 5) Generate Kotlin binding from generated header
-val generateTarBindingsKt = tasks.register("generateTarBindingsKt") {
+val generateTarBindingsKt = tasks.register<GenerateTarBindingsTask>("generateTarBindingsKt") {
     dependsOn(generateCFromTar)
-    val headerFile = includeOutDir.map { it.file("generated_bibles.h") }
-    inputs.file(headerFile)
-    outputs.dir(generatedKtDir)
-
-    doLast {
-        val incDir = includeOutDir.get().asFile
-        val header = File(incDir, "generated_bibles.h")
-        val ktDir = generatedKtDir.get().asFile.resolve("org/gnit/bible/cli").also { it.mkdirs() }
-        val ktFile = ktDir.resolve("GeneratedTarBindings.kt")
-
-        val names = header.readLines()
-            .mapNotNull { Regex("""extern const unsigned char ([a-zA-Z0-9_]+)\[\];""").find(it)?.groupValues?.getOrNull(1) }
-            .filter { it.endsWith("_tar") }
-            .sorted()
-
-        val body = buildString {
-            appendLine("/* Auto-generated. Do not edit. */")
-            appendLine("package org.gnit.bible.cli")
-            appendLine()
-            appendLine("import kotlinx.cinterop.CPointer")
-            appendLine("import kotlinx.cinterop.UByteVar")
-            appendLine("import org.gnit.bible.cli.ci.*")
-            appendLine()
-            appendLine("internal fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
-            names.forEach { sym ->
-                val t = sym.removeSuffix("_tar")
-                appendLine("    \"$t\" -> TarPtrReader(${sym}, ${sym}_len.toInt())")
-            }
-            appendLine("    else -> null")
-            appendLine("}")
-        }
-
-        Files.writeString(ktFile.toPath(), body, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)
-        logger.lifecycle("Wrote ${ktFile.absolutePath}")
-    }
+    headerFile.set(includeOutDir.map { it.file("generated_bibles.h") })
+    outputDirectory.set(generatedKtDir)
 }
 
 // 6) Aggregate task
