@@ -24,7 +24,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    mingwX64()
+    //mingwX64()
 
     // desktop app (and windows jvm cli if windows native development has too much problem)
     jvm()
@@ -48,10 +48,9 @@ kotlin {
         val iosX64Main by getting { dependsOn(nativeMain) }
         val macosX64Main by getting { dependsOn(nativeMain) }
         val macosArm64Main by getting { dependsOn(nativeMain) }
-        // introduce linuxMain aggregate so :cli:linuxMain can resolve :shared:linuxMain metadata
         val linuxMain by creating { dependsOn(nativeMain) }
-        val linuxX64Main by getting { dependsOn(linuxMain) }
-        val mingwX64Main by getting { dependsOn(nativeMain) }
+        val linuxX64Main by getting { dependsOn(nativeMain) }
+        //val mingwX64Main by getting { dependsOn(nativeMain) }
 
         // (Tests) hook them to nativeTest if/when created
         val iosArm64Test by getting { dependsOn(nativeTest) }
@@ -60,10 +59,11 @@ kotlin {
         val macosX64Test by getting { dependsOn(nativeTest) }
         val macosArm64Test by getting { dependsOn(nativeTest) }
         val linuxX64Test by getting { dependsOn(nativeTest) }
-        val mingwX64Test by getting { dependsOn(nativeTest) }
+        //val mingwX64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
             // put your Multiplatform dependencies here
+            implementation(libs.lucene.kmp.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

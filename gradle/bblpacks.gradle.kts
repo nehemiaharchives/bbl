@@ -12,6 +12,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import java.io.File
@@ -34,9 +35,7 @@ val resourcesRoot = rootProject.layout.projectDirectory.dir("composeApp/src/comm
 val bblpacksDirProvider = resourcesRoot.dir("bblpacks")
 val embedBuild = layout.buildDirectory.dir("embedded")
 val cOutDir = embedBuild.map { it.dir("c") }
-val oOutDir = embedBuild.map { it.dir("obj") }
 val tarOutDir = embedBuild.map { it.dir("tar") }
-val libOutFile = embedBuild.map { it.file("libbibles.a") }
 val includeOutDir = embedBuild.map { it.dir("include") }
 val generatedKtDir = layout.buildDirectory.dir("generated/cli")
 
@@ -443,6 +442,9 @@ abstract class CompileCToObjectsTask @Inject constructor(
     @get:Input
     abstract val clangExecutable: Property<String>
 
+    @get:Input
+    abstract val targetTriple: Property<String>
+
     @TaskAction
     fun compile() {
         val cDir = cInputDir.get().asFile
@@ -459,11 +461,13 @@ abstract class CompileCToObjectsTask @Inject constructor(
         }
 
         logger.lifecycle("Compiling c files to .o files with: $clang")
+        val target = targetTriple.get()
+
         sources.parallelStream().forEach { c ->
             logger.lifecycle("Compiling ${c.name} to ${c.nameWithoutExtension}.o")
             val out = File(objDir, c.nameWithoutExtension + ".o")
             val execResult = execOperations.exec {
-                commandLine(clang, "-c", "-O2", c.absolutePath, "-o", out.absolutePath)
+                commandLine(clang, "-c", "-O2", "-target", target, c.absolutePath, "-o", out.absolutePath)
             }
             execResult.assertNormalExitValue()
         }
@@ -539,7 +543,7 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
             appendLine("import kotlinx.cinterop.UByteVar")
             appendLine("import org.gnit.bible.cli.ci.*")
             appendLine()
-            appendLine("internal fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
+            appendLine("internal actual fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
             names.forEach { sym ->
                 val t = sym.removeSuffix("_tar")
                 appendLine("    \"$t\" -> TarPtrReader(${sym}, ${sym}_len.toInt())")
@@ -673,21 +677,38 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
 }
 
 // 3) Compile C → .o
-val compileCToObjects = tasks.register<CompileCToObjectsTask>("compileCToObjects") {
-    dependsOn(ensureKonanToolchain)
-    dependsOn(downloadKonanLlvm)
-    dependsOn(generateCFromTar)
-    cInputDir.set(cOutDir)
-    objectOutputDir.set(oOutDir)
-    clangExecutable.set(clangPath)
-}
+data class NativeVariant(val id: String, val targetTriple: String)
 
-// 4) Archive .o → libbibles.a
-val buildEmbeddedArchive = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive") {
-    dependsOn(compileCToObjects)
-    objectInputDir.set(oOutDir)
-    archiveOutputFile.set(libOutFile)
-    arExecutable.set(llvmArPath)
+private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+
+val nativeVariants = listOf(
+    NativeVariant("macosArm64", "arm64-apple-macos11"),
+    NativeVariant("macosX64", "x86_64-apple-macos10.15"),
+    NativeVariant("linuxX64", "x86_64-unknown-linux-gnu")
+)
+
+val archiveTasksByVariant = nativeVariants.associate { variant ->
+    val objDir = embedBuild.map { it.dir("obj/${variant.id}") }
+    val libFile = embedBuild.map { it.file("${variant.id}/libbibles.a") }
+
+    val compileTask = tasks.register<CompileCToObjectsTask>("compileCToObjects${variant.id.capitalized()}") {
+        dependsOn(ensureKonanToolchain)
+        dependsOn(downloadKonanLlvm)
+        dependsOn(generateCFromTar)
+        cInputDir.set(cOutDir)
+        objectOutputDir.set(objDir)
+        clangExecutable.set(clangPath)
+        targetTriple.set(variant.targetTriple)
+    }
+
+    val archiveTask = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive${variant.id.capitalized()}") {
+        dependsOn(compileTask)
+        objectInputDir.set(objDir)
+        archiveOutputFile.set(libFile)
+        arExecutable.set(llvmArPath)
+    }
+
+    variant.id to archiveTask
 }
 
 // 5) Generate Kotlin binding from generated header
@@ -697,9 +718,27 @@ val generateTarBindingsKt = tasks.register<GenerateTarBindingsTask>("generateTar
     outputDirectory.set(generatedKtDir)
 }
 
+// Make per-target copies of generated Kotlin into unique directories to satisfy IDE/module constraints
+val syncGeneratedTarBindingsLinuxX64 = tasks.register<Sync>("syncGeneratedTarBindingsLinuxX64") {
+    dependsOn(generateTarBindingsKt)
+    from(generatedKtDir)
+    into(layout.buildDirectory.dir("generated/cli-linuxX64Main"))
+}
+val syncGeneratedTarBindingsMacosX64 = tasks.register<Sync>("syncGeneratedTarBindingsMacosX64") {
+    dependsOn(generateTarBindingsKt)
+    from(generatedKtDir)
+    into(layout.buildDirectory.dir("generated/cli-macosX64Main"))
+}
+val syncGeneratedTarBindingsMacosArm64 = tasks.register<Sync>("syncGeneratedTarBindingsMacosArm64") {
+    dependsOn(generateTarBindingsKt)
+    from(generatedKtDir)
+    into(layout.buildDirectory.dir("generated/cli-macosArm64Main"))
+}
+
 // 6) Aggregate task
 tasks.register("embedBblpacks") {
-    dependsOn(buildEmbeddedArchive, generateTarBindingsKt)
+    dependsOn(generateTarBindingsKt)
+    dependsOn(archiveTasksByVariant.values)
 }
 
 plugins.withId("org.jetbrains.kotlin.multiplatform") {
@@ -707,33 +746,6 @@ plugins.withId("org.jetbrains.kotlin.multiplatform") {
         dependsOn(tasks.named("embedBblpacks"))
         doFirst {
             logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
-        }
-    }
-}
-
-// 7) Make generated Kotlin visible to `nativeMain` (reflection-safe)
-plugins.withId("org.jetbrains.kotlin.multiplatform") {
-    val kmpExt = extensions.findByName("kotlin") ?: return@withId
-    // reflect: val sourceSets = kmpExt.sourceSets
-    val sourceSets = kmpExt.javaClass.methods
-        .firstOrNull { it.name == "getSourceSets" && it.parameterCount == 0 }
-        ?.invoke(kmpExt) as? Iterable<*> ?: return@withId
-
-    val genDirFile = generatedKtDir.get().asFile
-
-    sourceSets.forEach { ss ->
-        val name = ss?.javaClass?.methods
-            ?.firstOrNull { it.name == "getName" && it.parameterCount == 0 }
-            ?.invoke(ss) as? String ?: return@forEach
-        if (name == "nativeMain") {
-            val kotlinSet = ss.javaClass.methods
-                .firstOrNull { it.name == "getKotlin" && it.parameterCount == 0 }
-                ?.invoke(ss) ?: return@forEach
-            val srcDirMethod = kotlinSet.javaClass.methods
-                .firstOrNull { it.name == "srcDir" && it.parameterCount == 1 }
-                ?: return@forEach
-            srcDirMethod.invoke(kotlinSet, genDirFile)
-            logger.lifecycle("Added generated dir ${genDirFile.absolutePath} to nativeMain")
         }
     }
 }

@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
 
 plugins {
@@ -41,15 +42,33 @@ kotlin {
 
         val linuxX64Main by getting { dependsOn(nativeMain) }
         val linuxX64Test by getting { dependsOn(nativeTest) }
+
+        // Wire unique generated sources per target to avoid a single folder being
+        // attached to multiple IDE modules (which causes IntelliJ to
+        // attribute the file to linuxX64Main only).
+        listOf(
+            "linuxX64Main" to layout.buildDirectory.dir("generated/cli-linuxX64Main"),
+            "macosX64Main" to layout.buildDirectory.dir("generated/cli-macosX64Main"),
+            "macosArm64Main" to layout.buildDirectory.dir("generated/cli-macosArm64Main")
+        ).forEach { (ss, dirProvider) ->
+            kotlin.sourceSets.named(ss) {
+                kotlin.srcDir(dirProvider)
+            }
+        }
     }
 
     targets.withType<KotlinNativeTarget>().all {
+        val variantId = when (konanTarget) {
+            KonanTarget.MACOS_ARM64 -> "macosArm64"
+            KonanTarget.MACOS_X64 -> "macosX64"
+            KonanTarget.LINUX_X64 -> "linuxX64"
+            else -> return@all
+        }
 
         compilations.getByName("main") {
             cinterops {
                 val bibles by creating {
                     defFile(project.file("src/nativeMain/cinterop/bibles.def"))
-                    val embedDir = project.layout.buildDirectory.dir("embedded").get().asFile
                     val inc = project.layout.buildDirectory.dir("embedded/include").get().asFile
                     includeDirs(inc)
                     compilerOpts("-I${inc.absolutePath}")
@@ -61,9 +80,9 @@ kotlin {
 
         binaries {
             all {
-                val embedDir = project.layout.buildDirectory.dir("embedded").get().asFile
+                val embedDir = project.layout.buildDirectory.dir("embedded/$variantId").get().asFile
                 linkerOpts("-L${embedDir.absolutePath}", "-lbibles")
-                linkTaskProvider.get().dependsOn("embedBblpacks")
+                linkTaskProvider.configure { dependsOn("embedBblpacks") }
             }
             executable {
                 entryPoint = "org.gnit.bible.cli.main"
@@ -74,19 +93,24 @@ kotlin {
 
 tasks.matching { it.name.startsWith("link") && it.name.contains("LinuxX64", ignoreCase = true) }.configureEach { dependsOn("embedBblpacks") }
 
-// Ensure generated code directory is on the nativeMain source set
-kotlin.sourceSets.getByName("nativeMain") {
-    kotlin.srcDir(layout.buildDirectory.dir("generated/cli"))
-}
-
 // Ensure Kotlin compilation sees the file (independent of cinterop timing)
 listOf(
-    "compileKotlinLinuxX64",
-    "compileKotlinMacosX64",
-    "compileKotlinMacosArm64"
-).forEach { tn ->
+    "compileKotlinLinuxX64" to ":cli:syncGeneratedTarBindingsLinuxX64",
+    "compileKotlinMacosX64" to ":cli:syncGeneratedTarBindingsMacosX64",
+    "compileKotlinMacosArm64" to ":cli:syncGeneratedTarBindingsMacosArm64"
+).forEach { (tn, dep) ->
     tasks.matching { it.name == tn }.configureEach {
-        dependsOn(":cli:generateTarBindingsKt")
+        dependsOn(dep)
+    }
+}
+
+// Remove the previous shared dir wiring; we now wire per-target dirs above.
+
+afterEvaluate {
+    if (tasks.findByName("compileNativeMainKotlinMetadata") != null) {
+        tasks.named("compileNativeMainKotlinMetadata") {
+            dependsOn(tasks.named("generateTarBindingsKt"))
+        }
     }
 }
 
@@ -108,7 +132,12 @@ tasks.withType<CInteropProcess>().configureEach {
             }
             cacheDir.mkdirs()
 
-            val lib = layout.buildDirectory.file("embedded/libbibles.a").get().asFile
+            val variantId = when {
+                name.contains("LinuxX64", ignoreCase = true) -> "linuxX64"
+                name.contains("MacosArm64", ignoreCase = true) -> "macosArm64"
+                else -> "macosX64"
+            }
+            val lib = layout.buildDirectory.file("embedded/$variantId/libbibles.a").get().asFile
             println("DEBUG cinterop task: $name")
             println("DEBUG lib exists: ${lib.exists()} size=${lib.length()} path=${lib.absolutePath}")
             println("DEBUG embedded dir files:" + layout.buildDirectory.dir("embedded").get().asFile.listFiles()?.map { it.name })
