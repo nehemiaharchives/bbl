@@ -1,7 +1,6 @@
 package org.gnit.bible.cli
 
 import org.gnit.bible.Chapters
-import org.gnit.bible.getChapterText
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

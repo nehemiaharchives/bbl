@@ -5,23 +5,21 @@ import kotlinx.cinterop.UByteVar
 import org.gnit.bible.BibleTextReader
 import kotlinx.cinterop.*
 
-class CliBibleTextReader : BibleTextReader {
+actual class CliBibleTextReader : BibleTextReader {
 
-    override fun chapterFile(translation: String, book: Int, chapter: Int): String =
+    actual override fun chapterFile(translation: String, book: Int, chapter: Int): String =
         "$base/$translation/$translation.$book.$chapter.txt"
 
-    override fun readByPath(path: String): String {
-        val bytes = readBytes(path)
-        return bytes.decodeToString()
-    }
-
-    private fun readBytes(path: String): ByteArray {
+    actual override fun readByPath(path: String): String {
         // Expected: "$base/<translation>/.<book>.<chapter>.txt"
         val parts = path.split('/', limit = 3)
         val translation = parts[1]
         val reader = generatedReaderFor(translation)
-        return reader!!.read(path)
+
+        val bytes = reader!!.read(path)
+        return bytes.decodeToString()
     }
+
 }
 
 internal class TarPtrReader(private val tar: CPointer<UByteVar>?, private val size: Int) {
@@ -39,10 +37,10 @@ internal class TarPtrReader(private val tar: CPointer<UByteVar>?, private val si
             if(isZeroBlock(base, p)) break
             val name = readCString(base, p + 0, 100)
             val fileSize = parseOctal(base, p + 124, 12)
-            val typeflag = u8(base, p + 156)
+            val typeFlag = u8(base, p + 156)
             val dataOff = p + 512
 
-            if(name == path && (typeflag == 0 || typeflag == '0'.code)){
+            if(name == path && (typeFlag == 0 || typeFlag == '0'.code)){
                 val e = Entry(dataOff, fileSize)
                 cache[path] = e
                 return slice(base, e.dataOff, e.dataLen)

@@ -1,12 +1,12 @@
 package org.gnit.bible.cli
 
-import org.gnit.bible.Bible
-import com.github.ajalt.clikt.core.CoreCliktCommand
+import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
+import org.gnit.bible.Bible
 
-class Bbl: CoreCliktCommand() {
+class Bbl: CliktCommand() {
 
-    val bible = Bible()
+    val bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
 
     override fun run() {
         echo(bible.verses())

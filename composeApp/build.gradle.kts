@@ -43,7 +43,7 @@ kotlin {
         androidUnitTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.androidx.test.core)
-            implementation(libs.roboelectric)
+            implementation(libs.robolectric)
         }
 
         commonMain.dependencies {

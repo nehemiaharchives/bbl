@@ -9,9 +9,8 @@ interface BibleTextReader {
 
     fun readByPath(path: String): String
 
-}
-
-fun BibleTextReader.getChapterText(translation: String, book: Int, chapter: Int): String {
-    val path = chapterFile(translation, book, chapter)
-    return readByPath(path)
+    fun getChapterText(translation: String, book: Int, chapter: Int): String {
+        val path = chapterFile(translation, book, chapter)
+        return readByPath(path)
+    }
 }

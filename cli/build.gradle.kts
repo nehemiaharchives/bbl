@@ -29,19 +29,23 @@ kotlin {
                 implementation(libs.kotlinx.coroutines)
             }
         }
-        val commonTest by getting
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
+        }
 
         val nativeMain by creating { dependsOn(commonMain) }
         val nativeTest by creating { dependsOn(commonTest) }
 
-        val macosX64Main by getting { dependsOn(nativeMain) }
-        val macosX64Test by getting { dependsOn(nativeTest) }
+        macosX64Main.get().dependsOn(nativeMain)
+        macosX64Test.get().dependsOn(nativeTest)
 
-        val macosArm64Main by getting { dependsOn(nativeMain) }
-        val macosArm64Test by getting { dependsOn(nativeTest) }
+        macosArm64Main.get().dependsOn(nativeMain)
+        macosArm64Test.get().dependsOn(nativeTest)
 
-        val linuxX64Main by getting { dependsOn(nativeMain) }
-        val linuxX64Test by getting { dependsOn(nativeTest) }
+        linuxX64Main.get().dependsOn(nativeMain)
+        linuxX64Test.get().dependsOn(nativeTest)
 
         // Wire unique generated sources per target to avoid a single folder being
         // attached to multiple IDE modules (which causes IntelliJ to
@@ -158,4 +162,16 @@ tasks.register("buildNativeRelease") {
         "linkReleaseExecutableLinuxX64",
         "linkReleaseExecutableMingwX64"
     )
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    compilerOptions{
+        optIn.addAll(
+            "kotlin.ExperimentalStdlibApi",
+        )
+        //suppressWarnings = true
+        freeCompilerArgs.addAll(
+            "-Xexpect-actual-classes",
+        )
+    }
 }
