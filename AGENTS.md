@@ -35,3 +35,11 @@ Use **English** to communicate with me.
 ## Fast Mode Option
 
 If I say **"fast mode"**, skip all research unless absolutely required. Focus on rapid code editing, running, and debugging.
+
+## Code, Run, Debug Cycle
+
+### Priority 1, IntelliJ IDEA MCP Server
+When you have access to IntelliJ IDEA MCP server, you should use the IDEA's internal test runner.
+
+### Priority 2, Gradle command line
+When you don't have access to IntelliJ IDEA MCP server, you should use the command line Gradle test runner.
