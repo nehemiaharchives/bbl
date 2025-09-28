@@ -1,12 +1,15 @@
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -38,13 +41,20 @@ val cOutDir = embedBuild.map { it.dir("c") }
 val tarOutDir = embedBuild.map { it.dir("tar") }
 val includeOutDir = embedBuild.map { it.dir("include") }
 val generatedKtDir = layout.buildDirectory.dir("generated/cli")
+val cinteropConfigDirProvider = layout.projectDirectory.dir("src/nativeMain/cinterop")
+val cinteropDefFileProvider = layout.projectDirectory.file("src/nativeMain/cinterop/bibles.def")
+
+val cinteropCompilerOptionsProvider = includeOutDir.map { includeDir ->
+    listOf("-I" + includeDir.asFile.absolutePath)
+}
+
+extensions.extraProperties.set("bblpacksCompilerOpts", cinteropCompilerOptionsProvider)
+
+private val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 private val kotlinVersionProvider = providers.provider {
-    val versionsFile = rootProject.layout.projectDirectory.file("gradle/libs.versions.toml").asFile
-    val text = versionsFile.readText()
-    val regex = Regex("""^\s*kotlin\s*=\s*"(.*?)"\s*$""", RegexOption.MULTILINE)
-    val match = regex.find(text) ?: throw GradleException("Could not find kotlin version in ${versionsFile.absolutePath}")
-    match.groupValues[1]
+    libsCatalog.findVersion("kotlin").orElse(null)?.requiredVersion
+        ?: throw GradleException("Could not resolve Kotlin version from libs catalog 'libs'.")
 }
 
 private fun hostKonanKey(): String {
@@ -298,11 +308,27 @@ abstract class TarBblpacksTask @Inject constructor(
     @get:Internal
     abstract val resourcesRootDir: DirectoryProperty
 
+    @get:Optional
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val cinteropConfigDir: DirectoryProperty
+
+    @get:Optional
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val cinteropDefFile: RegularFileProperty
+
+    @get:Input
+    abstract val cinteropCompilerOptions: ListProperty<String>
+
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
     @get:Input
     abstract val tarExecutable: Property<String>
+
+    @get:Input
+    abstract val kotlinVersion: Property<String>
 
     @TaskAction
     fun generate() {
@@ -571,8 +597,14 @@ val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundle
 val tarBblpacks = tasks.register<TarBblpacksTask>("tarBblpacks") {
     bblpacksDir.set(bblpacksDirProvider)
     resourcesRootDir.set(resourcesRoot)
+    cinteropConfigDir.set(cinteropConfigDirProvider)
+    if (cinteropDefFileProvider.asFile.exists()) {
+        cinteropDefFile.set(cinteropDefFileProvider)
+    }
+    cinteropCompilerOptions.set(cinteropCompilerOptionsProvider)
     outputDirectory.set(tarOutDir)
     tarExecutable.set(providers.environmentVariable("TAR").orElse("tar"))
+    kotlinVersion.set(kotlinVersionProvider)
 }
 
 // 2) Generate C arrays and combined header
