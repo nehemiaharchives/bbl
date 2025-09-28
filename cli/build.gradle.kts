@@ -1,3 +1,4 @@
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -8,6 +9,9 @@ plugins {
 }
 
 apply(from = rootProject.file("gradle/bblpacks.gradle.kts"))
+
+@Suppress("UNCHECKED_CAST")
+val bblpacksCompilerOptsProvider = project.extensions.extraProperties.get("bblpacksCompilerOpts") as Provider<List<String>>
 
 kotlin {
     macosX64() // intel mac
@@ -27,6 +31,7 @@ kotlin {
                 implementation(projects.shared)
                 implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlin.logging)
             }
         }
         val commonTest by getting {
@@ -59,6 +64,16 @@ kotlin {
                 kotlin.srcDir(dirProvider)
             }
         }
+
+        jvmMain.get().resources.srcDir(
+            rootProject.layout.projectDirectory
+                .dir("composeApp/src/commonMain/composeResources").asFile
+        )
+
+        jvmTest.get().resources.srcDir(
+            rootProject.layout.projectDirectory
+                .dir("composeApp/src/commonTest/composeResources").asFile
+        )
     }
 
     targets.withType<KotlinNativeTarget>().all {
@@ -75,7 +90,7 @@ kotlin {
                     defFile(project.file("src/nativeMain/cinterop/bibles.def"))
                     val inc = project.layout.buildDirectory.dir("embedded/include").get().asFile
                     includeDirs(inc)
-                    compilerOpts("-I${inc.absolutePath}")
+                    compilerOpts(*bblpacksCompilerOptsProvider.get().toTypedArray())
                     //linkerOps is not supported by Kotlin/Native
                     //linkerOpts("-L${embedDir.absolutePath}", "-lbibles")
                 }

@@ -5,6 +5,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.gnit.bible.cli.CliBibleTextReader
 
 fun main() {
     embeddedServer(Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module)
@@ -12,9 +13,12 @@ fun main() {
 }
 
 fun Application.module() {
+
+    val bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
+
     routing {
         get("/") {
-            call.respondText("Ktor: ${Bible().verses()}")
+            call.respondText("Genesis 1: ${bible.verses()}")
         }
     }
 }

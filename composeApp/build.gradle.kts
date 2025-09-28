@@ -80,6 +80,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Exclude duplicate META-INF index files pulled in by logging jars (e.g., logback)
+            excludes += "META-INF/INDEX.LIST"
         }
     }
     buildTypes {

@@ -15,9 +15,23 @@ application {
 
 dependencies {
     implementation(projects.shared)
-    implementation(libs.logback)
+    implementation(projects.cli)
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
+}
+
+kotlin {
+    sourceSets {
+        main.get().resources.srcDir(
+            rootProject.layout.projectDirectory
+                .dir("composeApp/src/commonMain/composeResources").asFile
+        )
+
+        test.get().resources.srcDir(
+            rootProject.layout.projectDirectory
+                .dir("composeApp/src/commonTest/composeResources").asFile
+        )
+    }
 }
