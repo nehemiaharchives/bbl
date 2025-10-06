@@ -64,6 +64,8 @@ kotlin {
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             implementation(libs.lucene.kmp.core)
+            implementation(libs.ktor.clientCore)
+            implementation(libs.ktor.clientCio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
