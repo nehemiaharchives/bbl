@@ -66,10 +66,11 @@ kotlin {
             implementation(libs.lucene.kmp.core)
             implementation(libs.ktor.clientCore)
             implementation(libs.ktor.clientCio)
+            implementation(libs.okio)
+            implementation(libs.kmpio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.resources)
         }
     }
 

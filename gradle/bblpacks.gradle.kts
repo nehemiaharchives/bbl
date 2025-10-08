@@ -327,8 +327,7 @@ abstract class TarBblpacksTask @Inject constructor(
     @get:Input
     abstract val tarExecutable: Property<String>
 
-    @get:Input
-    abstract val kotlinVersion: Property<String>
+    // Note: Kotlin version does not influence tar outputs; avoid making this task sensitive to version catalog changes.
 
     @TaskAction
     fun generate() {
@@ -471,6 +470,10 @@ abstract class CompileCToObjectsTask @Inject constructor(
     @get:Input
     abstract val targetTriple: Property<String>
 
+    // Ensure recompilation only when Kotlin version changes (or sources change)
+    @get:Input
+    abstract val kotlinVersion: Property<String>
+
     @TaskAction
     fun compile() {
         val cDir = cInputDir.get().asFile
@@ -604,7 +607,7 @@ val tarBblpacks = tasks.register<TarBblpacksTask>("tarBblpacks") {
     cinteropCompilerOptions.set(cinteropCompilerOptionsProvider)
     outputDirectory.set(tarOutDir)
     tarExecutable.set(providers.environmentVariable("TAR").orElse("tar"))
-    kotlinVersion.set(kotlinVersionProvider)
+    // intentionally NOT setting kotlinVersion to avoid unnecessary invalidation on unrelated catalog changes
 }
 
 // 2) Generate C arrays and combined header
@@ -731,6 +734,8 @@ val archiveTasksByVariant = nativeVariants.associate { variant ->
         objectOutputDir.set(objDir)
         clangExecutable.set(clangPath)
         targetTriple.set(variant.targetTriple)
+        // Make the task sensitive only to Kotlin version changes from the version catalog
+        kotlinVersion.set(kotlinVersionProvider)
     }
 
     val archiveTask = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive${variant.id.capitalized()}") {
