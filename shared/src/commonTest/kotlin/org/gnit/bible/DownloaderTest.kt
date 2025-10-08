@@ -14,9 +14,19 @@ import kotlin.test.Test
 class DownloaderTest {
 
     @Test
-    fun testDownload(){
+    fun testDownload() {
         val fileName = "kttv.zip"
-        val url = "https://github.com/nehemiaharchives/bbl-kmp/raw/refs/heads/master/shared/src/commonTest/resources/data/$fileName"
+        val baseUrl =
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
+
+        download(baseUrl, fileName)
+    }
+
+    private fun download(
+        baseUrl: String,
+        fileName: String
+    ) {
+        val url = "$baseUrl$fileName"
         val httpClient = createPlatformHttpClient()
         val platform = getPlatform()
         val fileSystem = FileSystem.SYSTEM

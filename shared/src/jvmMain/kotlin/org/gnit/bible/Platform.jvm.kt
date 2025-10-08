@@ -1,7 +1,7 @@
 package org.gnit.bible
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import java.nio.file.FileSystems
 
 class JVMPlatform : Platform() {
@@ -16,4 +16,4 @@ class JVMPlatform : Platform() {
 
 actual fun getPlatform(platformContext: Any?): Platform = JVMPlatform()
 
-actual fun createPlatformHttpClient(): HttpClient = HttpClient(CIO)
+actual fun createPlatformHttpClient(): HttpClient = HttpClient(OkHttp)

@@ -87,6 +87,18 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.clientOkhttp)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.ktor.clientOkhttp)
+            }
+        }
     }
 
 
