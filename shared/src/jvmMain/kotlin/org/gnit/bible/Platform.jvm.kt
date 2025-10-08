@@ -1,8 +1,10 @@
 package org.gnit.bible
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import java.nio.file.FileSystems
 
-class JVMPlatform: Platform() {
+class JVMPlatform : Platform() {
     override val name: String = "Java ${System.getProperty("java.version")}"
 
     override val packDir: String by lazy {
@@ -13,3 +15,5 @@ class JVMPlatform: Platform() {
 }
 
 actual fun getPlatform(platformContext: Any?): Platform = JVMPlatform()
+
+actual fun createPlatformHttpClient(): HttpClient = HttpClient(CIO)

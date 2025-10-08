@@ -1,10 +1,12 @@
 package org.gnit.bible
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.curl.Curl
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import platform.posix.getenv
 
-class NativePlatform: Platform() {
+class NativePlatform : Platform() {
     override val name: String = "Native"
 
     @OptIn(ExperimentalForeignApi::class)
@@ -12,7 +14,8 @@ class NativePlatform: Platform() {
         val home = getenv("HOME")?.toKString() ?: error("HOME environment variable not defined")
         "$home/$bblDir/$packBaseDir"
     }
-
 }
 
 actual fun getPlatform(platformContext: Any?): Platform = NativePlatform()
+
+actual fun createPlatformHttpClient(): HttpClient = HttpClient(Curl)

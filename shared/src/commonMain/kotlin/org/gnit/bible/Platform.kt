@@ -1,5 +1,7 @@
 package org.gnit.bible
 
+import io.ktor.client.HttpClient
+
 abstract class Platform {
     abstract val name: String
 
@@ -13,3 +15,5 @@ abstract class Platform {
 }
 
 expect fun getPlatform(platformContext: Any? = null): Platform
+
+expect fun createPlatformHttpClient(): HttpClient

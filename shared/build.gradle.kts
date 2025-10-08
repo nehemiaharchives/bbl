@@ -43,12 +43,22 @@ kotlin {
         }
 
         // Make every native target's main source set depend on nativeMain
-        val iosMain by creating { dependsOn(nativeMain) }
+        val iosMain by creating {
+            dependsOn(nativeMain)
+            dependencies {
+                implementation(libs.ktor.clientDarwin)
+            }
+        }
         val iosArm64Main by getting { dependsOn(iosMain) }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
         val iosX64Main by getting { dependsOn(iosMain) }
 
-        val posixMain by creating { dependsOn(nativeMain) }
+        val posixMain by creating {
+            dependsOn(nativeMain)
+            dependencies {
+                implementation(libs.ktor.clientCurl)
+            }
+        }
         val macosX64Main by getting { dependsOn(posixMain) }
         val macosArm64Main by getting { dependsOn(posixMain) }
         val linuxX64Main by getting { dependsOn(posixMain) }
