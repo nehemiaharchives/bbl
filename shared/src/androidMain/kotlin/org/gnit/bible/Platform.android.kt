@@ -1,9 +1,19 @@
 package org.gnit.bible
 
+import android.content.Context
 import android.os.Build
+import java.io.File
 
-class AndroidPlatform : Platform {
+class AndroidPlatform(platformContext: Context) : Platform() {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
+    override val packDir: String by lazy {
+        File(platformContext.filesDir, "$bblDir/$packBaseDir").absolutePath
+    }
 }
 
-actual fun getPlatform(): Platform = AndroidPlatform()
+actual fun getPlatform(platformContext: Any?): Platform{
+    require(platformContext is Context){
+        "platformContext must be a android.content.Context"
+    }
+    return AndroidPlatform(platformContext)
+}

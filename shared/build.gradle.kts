@@ -43,22 +43,27 @@ kotlin {
         }
 
         // Make every native target's main source set depend on nativeMain
-        val iosArm64Main by getting { dependsOn(nativeMain) }
-        val iosSimulatorArm64Main by getting { dependsOn(nativeMain) }
-        val iosX64Main by getting { dependsOn(nativeMain) }
-        val macosX64Main by getting { dependsOn(nativeMain) }
-        val macosArm64Main by getting { dependsOn(nativeMain) }
-        val linuxMain by creating { dependsOn(nativeMain) }
-        val linuxX64Main by getting { dependsOn(nativeMain) }
+        val iosMain by creating { dependsOn(nativeMain) }
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+        val iosX64Main by getting { dependsOn(iosMain) }
+
+        val posixMain by creating { dependsOn(nativeMain) }
+        val macosX64Main by getting { dependsOn(posixMain) }
+        val macosArm64Main by getting { dependsOn(posixMain) }
+        val linuxX64Main by getting { dependsOn(posixMain) }
         //val mingwX64Main by getting { dependsOn(nativeMain) }
 
         // (Tests) hook them to nativeTest if/when created
-        val iosArm64Test by getting { dependsOn(nativeTest) }
-        val iosSimulatorArm64Test by getting { dependsOn(nativeTest) }
-        val iosX64Test by getting { dependsOn(nativeTest) }
-        val macosX64Test by getting { dependsOn(nativeTest) }
-        val macosArm64Test by getting { dependsOn(nativeTest) }
-        val linuxX64Test by getting { dependsOn(nativeTest) }
+        val iosTest by creating { dependsOn(nativeTest) }
+        val iosArm64Test by getting { dependsOn(iosTest) }
+        val iosSimulatorArm64Test by getting { dependsOn(iosTest) }
+        val iosX64Test by getting { dependsOn(iosTest) }
+
+        val posixTest by creating { dependsOn(nativeTest) }
+        val macosX64Test by getting { dependsOn(posixTest) }
+        val macosArm64Test by getting { dependsOn(posixTest) }
+        val linuxX64Test by getting { dependsOn(posixTest) }
         //val mingwX64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
