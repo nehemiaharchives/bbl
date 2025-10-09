@@ -99,9 +99,20 @@ kotlin {
                 implementation(libs.ktor.clientOkhttp)
             }
         }
+
+        val androidMain by getting {
+            dependsOn(commonMain)
+        }
+
+        val androidUnitTest by getting {
+            dependsOn(androidMain)
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.androidx.testExt.junit)
+            }
+        }
     }
-
-
 }
 
 android {
@@ -113,5 +124,10 @@ android {
     }
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
