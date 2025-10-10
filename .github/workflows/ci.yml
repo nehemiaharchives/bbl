@@ -13,25 +13,6 @@ on:
       - '**.sh'
 
 jobs:
-  shared-test:
-    name: Shared Test Linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run Tests
-        run: ./gradlew :shared:allTests
-
   shared-test-android:
     name: Shared Test Android
     runs-on: ubuntu-latest
@@ -53,6 +34,63 @@ jobs:
 
       - name: Run Android Tests
         run: ./gradlew :shared:testReleaseUnitTest
+
+  shared-test-ios-simulator:
+    name: Shared Test iOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run iOS Simulator Tests
+        run: ./gradlew :shared:iosSimulatorArm64Test
+
+  shared-test-jvm:
+    name: Shared Test JVM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run JVM Tests
+        run: ./gradlew :shared:jvmTest
+
+  shared-test-linux:
+    name: Shared Test Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Tests
+        run: ./gradlew :shared:linuxX64Test
 
   cli-unittest-linux:
     name: CLI Test Linux

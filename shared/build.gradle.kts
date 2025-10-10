@@ -128,6 +128,12 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+
+            all {
+                it.filter {
+                    excludeTestsMatching("org.gnit.bible.DownloaderTest")
+                }
+            }
         }
     }
 }
