@@ -9,7 +9,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
-class DownloaderAndroidUnitTest {
+class AssetManagerAndroidUnitTest {
 
     @Test
     fun test(){

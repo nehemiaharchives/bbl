@@ -43,4 +43,10 @@ class AssetManager(val httpClient: HttpClient, val platform: Platform, val fileS
         val packDir = platform.packDir.toPath()
         return fileSystem.list(packDir)
     }
+
+    /*fun downloadedTranslations(): List<String> {
+        val packDir = platform.packDir.toPath()
+        if (!fileSystem.exists(packDir)) return emptyList()
+        return fileSystem.list(packDir).map { it. }
+    }*/
 }

@@ -21,10 +21,11 @@ abstract class Platform {
 
     val packDir: String
         get() = overridePlatformPackDir ?: platformPackDir
+
+    fun isIos() = name.startsWith("iOS")
+    fun isAndroid() = name.startsWith("Android")
 }
 
 expect fun getPlatform(platformContext: Any? = null): Platform
-
-fun isIos() = getPlatform().name.startsWith("iOS")
 
 expect fun createPlatformHttpClient(): HttpClient

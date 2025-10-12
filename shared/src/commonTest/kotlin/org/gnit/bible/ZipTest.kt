@@ -13,7 +13,8 @@ class ZipTest {
     @Test
     fun testTxtExistInResources(){
 
-        if (isIos()) return
+        val platform = getPlatform()
+        if(platform.isIos()) return // iOS resources are not accessible via path
 
         val path = "src/commonTest/resources/data/test.txt"
         val file = File(path)
@@ -27,10 +28,10 @@ class ZipTest {
     @Test
     fun testZipExistInResources(){
 
-        if(isIos()) return
+        val platform = getPlatform()
+        if(platform.isIos()) return // iOS resources are not accessible via path
 
         val overridePath = "src/commonTest/resources/data"
-        val platform = getPlatform()
         platform.overridePlatformPackDir = overridePath
 
         val zipBibleTextReader = ZipBibleTextReader(platform)
