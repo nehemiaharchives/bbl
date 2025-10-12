@@ -6,16 +6,16 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import platform.posix.getenv
 
-class NativePlatform : Platform() {
-    override val name: String = "Native"
+class PosixPlatform : Platform() {
+    override val name: String = "Posix"
 
     @OptIn(ExperimentalForeignApi::class)
-    override val packDir: String by lazy {
+    override val platformPackDir: String by lazy {
         val home = getenv("HOME")?.toKString() ?: error("HOME environment variable not defined")
         "$home/$bblDir/$packBaseDir"
     }
 }
 
-actual fun getPlatform(platformContext: Any?): Platform = NativePlatform()
+actual fun getPlatform(platformContext: Any?): Platform = PosixPlatform()
 
 actual fun createPlatformHttpClient(): HttpClient = HttpClient(Curl)

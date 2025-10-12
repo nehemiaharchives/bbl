@@ -2,13 +2,11 @@ package org.gnit.bible
 
 import com.oldguy.common.io.File
 import com.oldguy.common.io.TextFile
-import com.oldguy.common.io.ZipFile
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class ZipTest {
 
@@ -27,24 +25,19 @@ class ZipTest {
     }
 
     @Test
-    fun testZipExistInResources() = runBlocking {
+    fun testZipExistInResources(){
 
-        if(isIos()) return@runBlocking
+        if(isIos()) return
 
-        val path = "src/commonTest/resources/data/kttv.zip"
-        val file = File(path)
-        assertTrue(file.exists, "Zip file not found at $path")
+        val overridePath = "src/commonTest/resources/data"
+        val platform = getPlatform()
+        platform.overridePlatformPackDir = overridePath
 
-        val zipFile = ZipFile(file)
+        val zipBibleTextReader = ZipBibleTextReader(platform)
 
-        zipFile.use { zip ->
-            val targetName = zip.entries.firstOrNull { it.name.endsWith("kttv.1.1.txt") }?.name
-                ?: error("No entry ending with kttv.1.1.txt found")
+        val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
 
-            val sb = StringBuilder()
-            zip.readTextEntry(targetName) { text, _ -> sb.append(text) }
-            assertContains(sb.toString(), "1 Ban đầu Đức Chúa Trời dựng nên trời đất.")
-
-        }
+        assertContains(kttvGenesisChapterOne, TestConstants.KTTV_GENESIS_1_1)
     }
 }
+

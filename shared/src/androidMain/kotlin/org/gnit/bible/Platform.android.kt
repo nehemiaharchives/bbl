@@ -9,7 +9,7 @@ import java.io.File
 class AndroidPlatform(val platformContext: Any?) : Platform() {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
 
-    override val packDir: String by lazy {
+    override val platformPackDir: String by lazy {
         requireNotNull(platformContext){
             "platformContext is required to get packDir"
         }

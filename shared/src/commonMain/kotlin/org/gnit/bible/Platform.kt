@@ -11,7 +11,16 @@ abstract class Platform {
     protected val packBaseDir: String
         get() = "packs"
 
-    abstract val packDir: String
+    /**
+     * resolves to $HOME/.bbl/packs on posix (linux/macos)
+     * platform specific data dir for iOS and Android
+     */
+    abstract val platformPackDir: String
+
+    var overridePlatformPackDir: String? = null
+
+    val packDir: String
+        get() = overridePlatformPackDir ?: platformPackDir
 }
 
 expect fun getPlatform(platformContext: Any? = null): Platform

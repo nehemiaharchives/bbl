@@ -6,6 +6,7 @@ import org.robolectric.RobolectricTestRunner
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class DownloaderAndroidUnitTest {
@@ -21,5 +22,9 @@ class DownloaderAndroidUnitTest {
         val baseUrl =
             "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
         am.download(baseUrl, fileName)
+
+        val zipBibleTextReader = ZipBibleTextReader(platform)
+        val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
+        assertTrue(kttvGenesisChapterOne.startsWith(TestConstants.KTTV_GENESIS_1_1))
     }
 }

@@ -14,12 +14,6 @@ import okio.SYSTEM
 
 class AssetManager(val httpClient: HttpClient, val platform: Platform, val fileSystem: FileSystem = FileSystem.SYSTEM) {
 
-    /**
-     * cache of downloaded packs
-     */
-    val downloadedPacks: List<Path>
-        get() = fileSystem.list(platform.packDir.toPath())
-
     fun download(
         baseUrl: String,
         fileName: String
