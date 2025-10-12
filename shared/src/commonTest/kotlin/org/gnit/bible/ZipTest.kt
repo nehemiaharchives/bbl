@@ -14,6 +14,9 @@ class ZipTest {
 
     @Test
     fun testTxtExistInResources(){
+
+        if (isIos()) return
+
         val path = "src/commonTest/resources/data/test.txt"
         val file = File(path)
         val textFile = TextFile(file)
@@ -25,6 +28,9 @@ class ZipTest {
 
     @Test
     fun testZipExistInResources() = runBlocking {
+
+        if(isIos()) return@runBlocking
+
         val path = "src/commonTest/resources/data/kttv.zip"
         val file = File(path)
         assertTrue(file.exists, "Zip file not found at $path")

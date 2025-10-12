@@ -16,4 +16,6 @@ abstract class Platform {
 
 expect fun getPlatform(platformContext: Any? = null): Platform
 
+fun isIos() = getPlatform().name.startsWith("iOS")
+
 expect fun createPlatformHttpClient(): HttpClient
