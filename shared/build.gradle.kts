@@ -95,12 +95,6 @@ kotlin {
             }
         }
 
-        val jvmTest by getting {
-            dependencies {
-                implementation(libs.ktor.clientOkhttp)
-            }
-        }
-
         val androidMain by getting {
             dependsOn(commonMain)
         }
