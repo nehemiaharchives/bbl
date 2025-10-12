@@ -48,12 +48,20 @@ class DownloaderTest {
             "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
         am.download(baseUrl, fileName)
         assertNotNull(am.listDownloadedPacks().map { it.name }.find { it.endsWith("kttv.zip") })
+
+        val zipBibleTextReader = ZipBibleTextReader(platform)
+        val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
+        assertTrue(kttvGenesisChapterOne.startsWith(TestConstants.KTTV_GENESIS_1_1))
     }
 
     private fun buildMinimalZip(entries: List<Pair<String, String>>): ByteArray {
         val out = Buffer()
         val central = mutableListOf<CentralRecord>()
         var offset = 0
+
+        // Set a valid MS-DOS date (2020-01-01) and time (00:00:00)
+        val msDosTime = 0 // 00:00:00
+        val msDosDate = (2020 - 1980 shl 9) or (1 shl 5) or 1 // year=2020, month=1, day=1
 
         for ((name, content) in entries) {
             val data = content.encodeToByteArray()
@@ -64,8 +72,8 @@ class DownloaderTest {
             localHeader.leShort(20)       // version needed
             localHeader.leShort(0)        // flags
             localHeader.leShort(0)        // method=store
-            localHeader.leShort(0)        // time
-            localHeader.leShort(0)        // date
+            localHeader.leShort(msDosTime) // time
+            localHeader.leShort(msDosDate) // date
             localHeader.leInt(crc)
             localHeader.leInt(data.size)  // comp size
             localHeader.leInt(data.size)  // uncomp size
@@ -93,8 +101,8 @@ class DownloaderTest {
             ce.leShort(20)       // version needed
             ce.leShort(0)        // flags
             ce.leShort(0)        // method=store
-            ce.leShort(0)        // time
-            ce.leShort(0)        // date
+            ce.leShort(msDosTime) // time
+            ce.leShort(msDosDate) // date
             ce.leInt(c.crc)
             ce.leInt(c.size)
             ce.leInt(c.size)
