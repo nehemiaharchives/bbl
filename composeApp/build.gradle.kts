@@ -58,6 +58,7 @@ kotlin {
             implementation(projects.shared)
         }
         commonTest.dependencies {
+            implementation(projects.testFramework)
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {

@@ -5,6 +5,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import io.ktor.client.HttpClient
+import kotlin.test.assertContains
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -13,18 +15,21 @@ class AssetManagerAndroidUnitTest {
 
     @Test
     fun test(){
-        val httpClient = createPlatformHttpClient()
         val ctx: Context = ApplicationProvider.getApplicationContext()
-        val platform = getPlatform(ctx)
-        assertNotNull(platform)
-        val am = AssetManager(httpClient, platform)
+        val androidPlatform = getPlatform(ctx)
+        assertNotNull(androidPlatform)
+
+        val mockHttpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine)
+        val am = AssetManagerImpl(httpClient = mockHttpClient, platform = androidPlatform)
         val fileName = "kttv.zip"
         val baseUrl =
             "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
         am.download(baseUrl, fileName)
 
-        val zipBibleTextReader = ZipBibleTextReader(platform)
+        assertContains(am.downloadedTranslations(), "kttv")
+
+        val zipBibleTextReader = ZipBibleTextReader(androidPlatform)
         val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
-        assertTrue(kttvGenesisChapterOne.startsWith(TestConstants.KTTV_GENESIS_1_1))
+        assertTrue(kttvGenesisChapterOne.startsWith(TestFixtures.KTTV_GENESIS_1_1))
     }
 }

@@ -95,12 +95,7 @@ kotlin {
             }
         }
 
-        val androidMain by getting {
-            dependsOn(commonMain)
-        }
-
         val androidUnitTest by getting {
-            dependsOn(androidMain)
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.robolectric)

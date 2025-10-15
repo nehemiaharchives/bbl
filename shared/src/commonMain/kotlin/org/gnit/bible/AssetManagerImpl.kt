@@ -8,13 +8,20 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.readByteArray
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
-class AssetManager(val httpClient: HttpClient, val platform: Platform, val fileSystem: FileSystem = FileSystem.SYSTEM) {
+interface AssetManager {
+    fun download(baseUrl: String, fileName: String)
+    fun downloadedTranslations(): List<String>
+}
 
-    fun download(
+class AssetManagerImpl(
+    val httpClient: HttpClient = createPlatformHttpClient(),
+    val platform: Platform = getPlatform(),
+    val fileSystem: FileSystem = FileSystem.SYSTEM) : AssetManager {
+
+    override fun download(
         baseUrl: String,
         fileName: String
     ) {
@@ -39,14 +46,9 @@ class AssetManager(val httpClient: HttpClient, val platform: Platform, val fileS
         }
     }
 
-    fun listDownloadedPacks(): List<Path>{
-        val packDir = platform.packDir.toPath()
-        return fileSystem.list(packDir)
-    }
-
-    /*fun downloadedTranslations(): List<String> {
+    override fun downloadedTranslations(): List<String> {
         val packDir = platform.packDir.toPath()
         if (!fileSystem.exists(packDir)) return emptyList()
-        return fileSystem.list(packDir).map { it. }
-    }*/
+        return fileSystem.list(packDir).map { it.name.removeSuffix(".zip")  }
+    }
 }

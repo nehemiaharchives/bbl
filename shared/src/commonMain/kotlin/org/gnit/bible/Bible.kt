@@ -1,8 +1,9 @@
 package org.gnit.bible
 
-class Bible() {
+class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
-    val embeddedTranslations = arrayOf("cunp",
+    val embeddedTranslations = arrayOf(
+        "cunp",
         "delut",
         "jc",
         "kjv",
@@ -16,13 +17,16 @@ class Bible() {
         "tb",
         "ubg",
         "ubio",
-        "webu",)
+        "webus",
+    )
 
-    private val platform = getPlatform()
+    /*fun availableTranslations(): List<String> {
+
+    }*/
 
     lateinit var bibleTextReader: BibleTextReader
 
     fun verses(book: Int = 1, chapter: Int = 1): String {
         return bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
-   }
+    }
 }

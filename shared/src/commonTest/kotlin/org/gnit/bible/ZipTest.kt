@@ -38,7 +38,7 @@ class ZipTest {
 
         val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
 
-        assertContains(kttvGenesisChapterOne, TestConstants.KTTV_GENESIS_1_1)
+        assertContains(kttvGenesisChapterOne, TestFixtures.KTTV_GENESIS_1_1)
     }
 }
 
