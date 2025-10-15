@@ -6,19 +6,19 @@ import org.robolectric.RobolectricTestRunner
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.ktor.client.HttpClient
+import org.gnit.bible.test.ResourcesTestBase
+import org.gnit.bible.test.TestFixtures
 import kotlin.test.assertContains
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
-class AssetManagerAndroidUnitTest {
+class AssetManagerAndroidUnitTest : ResourcesTestBase() {
 
     @Test
     fun test(){
-        val ctx: Context = ApplicationProvider.getApplicationContext()
-        val androidPlatform = getPlatform(ctx)
-        assertNotNull(androidPlatform)
 
+        val androidPlatform = createTestPlatform()
         val mockHttpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine)
         val am = AssetManagerImpl(httpClient = mockHttpClient, platform = androidPlatform)
         val fileName = "kttv.zip"

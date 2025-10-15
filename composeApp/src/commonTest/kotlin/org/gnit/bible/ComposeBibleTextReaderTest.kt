@@ -1,5 +1,6 @@
 package org.gnit.bible
 
+import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

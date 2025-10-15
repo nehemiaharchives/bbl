@@ -1,4 +1,4 @@
-package org.gnit.bible
+package org.gnit.bible.test
 
 object ZipUtil {
 

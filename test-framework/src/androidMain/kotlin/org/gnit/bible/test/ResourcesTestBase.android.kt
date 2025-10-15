@@ -1,6 +1,10 @@
-package org.gnit.bible
+package org.gnit.bible.test
 
 import android.content.ContentProvider
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import org.gnit.bible.Platform
+import org.gnit.bible.getPlatform
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -10,6 +14,12 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [/* e.g., Build.VERSION_CODES.P */], manifest = Config.DEFAULT_MANIFEST_NAME)
 actual abstract class ResourcesTestBase {
+
+    actual fun createTestPlatform(): Platform {
+        val ctx: Context = ApplicationProvider.getApplicationContext()
+        return getPlatform(ctx)
+    }
+
     @Before
     fun setup() {
         setupAndroidContextProvider()
@@ -35,4 +45,6 @@ actual abstract class ResourcesTestBase {
             throw e
         }
     }
+
+
 }

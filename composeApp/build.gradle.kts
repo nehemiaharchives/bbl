@@ -60,6 +60,7 @@ kotlin {
         commonTest.dependencies {
             implementation(projects.testFramework)
             implementation(libs.kotlin.test)
+            implementation(libs.ktor.clientMock)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

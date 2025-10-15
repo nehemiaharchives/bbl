@@ -1,6 +1,7 @@
 package org.gnit.bible
 
 import io.ktor.client.HttpClient
+import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertTrue

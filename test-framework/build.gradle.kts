@@ -30,10 +30,43 @@ kotlin {
     jvm()
 
     sourceSets {
+
+        val commonMain by getting
+        val nativeMain by creating { dependsOn(commonMain) }
+
+        val iosMain by creating { dependsOn(nativeMain) }
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+        val iosX64Main by getting { dependsOn(iosMain) }
+
+        val posixMain by creating { dependsOn(nativeMain) }
+        val macosX64Main by getting { dependsOn(posixMain) }
+        val macosArm64Main by getting { dependsOn(posixMain) }
+        val linuxX64Main by getting { dependsOn(posixMain) }
+
         commonMain.dependencies {
             implementation(projects.shared)
             implementation(libs.kotlin.test)
+            implementation(libs.ktor.clientMock)
         }
+
+        androidMain.dependencies {
+            implementation(libs.junit)
+            implementation(libs.robolectric)
+            implementation(libs.androidx.testExt.junit)
+        }
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    compilerOptions{
+        optIn.addAll(
+            "kotlin.ExperimentalStdlibApi",
+        )
+        //suppressWarnings = true
+        freeCompilerArgs.addAll(
+            "-Xexpect-actual-classes",
+        )
     }
 }
 

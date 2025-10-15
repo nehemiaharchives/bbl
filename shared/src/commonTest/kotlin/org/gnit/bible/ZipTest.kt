@@ -3,6 +3,7 @@ package org.gnit.bible
 import com.oldguy.common.io.File
 import com.oldguy.common.io.TextFile
 import kotlinx.coroutines.runBlocking
+import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -41,4 +42,3 @@ class ZipTest {
         assertContains(kttvGenesisChapterOne, TestFixtures.KTTV_GENESIS_1_1)
     }
 }
-

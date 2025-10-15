@@ -12,13 +12,15 @@ import okio.Path.Companion.toPath
 import okio.SYSTEM
 
 interface AssetManager {
+
+    val platform: Platform
     fun download(baseUrl: String, fileName: String)
     fun downloadedTranslations(): List<String>
 }
 
 class AssetManagerImpl(
     val httpClient: HttpClient = createPlatformHttpClient(),
-    val platform: Platform = getPlatform(),
+    override val platform: Platform = getPlatform(),
     val fileSystem: FileSystem = FileSystem.SYSTEM) : AssetManager {
 
     override fun download(

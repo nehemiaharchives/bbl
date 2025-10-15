@@ -38,6 +38,7 @@ kotlin {
             dependencies {
                 implementation(projects.testFramework)
                 implementation(libs.kotlin.test)
+                implementation(libs.ktor.clientMock)
             }
         }
 

@@ -1,4 +1,4 @@
-package org.gnit.bible
+package org.gnit.bible.test
 
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -44,7 +44,12 @@ object TestFixtures {
 
     val kttvDownloadingMockEngine = MockEngine { request ->
         val bytes = ZipUtil.buildMinimalZip(listOf("kttv.1.1.txt" to genesisOneKttv))
-        respond(content = bytes, headers = headersOf("Content-Type" to listOf("application/zip"), "Content-Length" to listOf(bytes.size.toString())))
+        respond(
+            content = bytes, headers = headersOf(
+                "Content-Type" to listOf("application/zip"),
+                "Content-Length" to listOf(bytes.size.toString())
+            )
+        )
     }
 
 }

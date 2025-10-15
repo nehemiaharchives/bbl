@@ -20,13 +20,27 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         "webus",
     )
 
-    /*fun availableTranslations(): List<String> {
-
-    }*/
+    fun availableTranslations(): Array<String> {
+        return embeddedTranslations.plus(assetManager.downloadedTranslations())
+    }
 
     lateinit var bibleTextReader: BibleTextReader
+        set
 
-    fun verses(book: Int = 1, chapter: Int = 1): String {
-        return bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
+    var zipBibleTextReader: ZipBibleTextReader? = null
+
+    fun obtainZipBibleTextReader(): ZipBibleTextReader {
+        if (zipBibleTextReader == null) {
+            zipBibleTextReader = ZipBibleTextReader(assetManager.platform)
+        }
+        return zipBibleTextReader!!
+    }
+
+    fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
+        return when{
+            embeddedTranslations.contains(translation) -> bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
+            assetManager.downloadedTranslations().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
+            else -> error("Translation '$translation' not found. Available translations: ${availableTranslations().joinToString(", ")}")
+        }
     }
 }
