@@ -2,23 +2,25 @@ package org.gnit.bible
 
 class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
-    val embeddedTranslations = arrayOf(
-        "cunp",
-        "delut",
-        "jc",
-        "kjv",
-        "krv",
-        "lsg",
-        "rdv24",
-        "rvr09",
-        "sinod",
-        "sven",
-        "svrj",
-        "tb",
-        "ubg",
-        "ubio",
-        "webus",
-    )
+    companion object{
+        val embeddedTranslations = arrayOf(
+            "cunp",
+            "delut",
+            "jc",
+            "kjv",
+            "krv",
+            "lsg",
+            "rdv24",
+            "rvr09",
+            "sinod",
+            "sven",
+            "svrj",
+            "tb",
+            "ubg",
+            "ubio",
+            "webus",
+        )
+    }
 
     fun availableTranslations(): Array<String> {
         return embeddedTranslations.plus(assetManager.downloadedTranslations())
