@@ -1,5 +1,8 @@
 package org.gnit.bible
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Language(
 
     /**
@@ -237,4 +240,13 @@ data class Language(
 
         val downloadableLanguages = arrayOf(hi, bn, mr, te, ta, gu, ur, vi, tl, ne, id, th, zht)
     }
+}
+
+fun String.toLanguage(): Language {
+    for (language in Language.embeddedLanguages + Language.downloadableLanguages) {
+        if (this == language.code) {
+            return language
+        }
+    }
+    throw IllegalArgumentException("Language code not found: $this")
 }

@@ -1,5 +1,8 @@
 package org.gnit.bible
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Translation(
 
     /**
@@ -11,9 +14,9 @@ data class Translation(
     val code: String,
 
     /**
-     * Language of the translation
+     * Language.code of the translation
      */
-    val language: Language,
+    val languageCode: String,
 
     /**
      * English name of the translation eg. "King James Version", "Luther Bible", "Chinese Union Version with New Punctuation"
@@ -49,7 +52,7 @@ data class Translation(
 ){
     fun bookNames(): Array<String> {
         return if(customBookNamesConcat == null) {
-            language.bookNames()
+            languageCode.toLanguage().bookNames()
         }else{
             customBookNamesConcat.split(",").toTypedArray()
         }
@@ -59,7 +62,7 @@ data class Translation(
 
         val webus = Translation(
             code = "webus",
-            language = Language.en,
+            languageCode = Language.en.code,
             englishName = "World English Bible",
             nativeName = "World English Bible",
             year = 2000,
@@ -68,7 +71,7 @@ data class Translation(
 
         val kjv = Translation(
             code = "kjv",
-            language = Language.en,
+            languageCode = Language.en.code,
             englishName = "King James Version",
             nativeName = "King James Version",
             year = 1611,
@@ -77,7 +80,7 @@ data class Translation(
 
         val rvr09 = Translation(
             code = "rvr09",
-            language = Language.es,
+            languageCode = Language.es.code,
             englishName = "Reina-Valera",
             nativeName = "Reina-Valera",
             year = 1909,
@@ -86,7 +89,7 @@ data class Translation(
 
         val tb = Translation(
             code = "tb",
-            language = Language.pt,
+            languageCode = Language.pt.code,
             englishName = "Brazilian Translation",
             nativeName = "Tradução Brasileira",
             year = 1917,
@@ -95,7 +98,7 @@ data class Translation(
 
         val delut = Translation(
             code = "delut",
-            language = Language.de,
+            languageCode = Language.de.code,
             englishName = "Luther Bible",
             nativeName = "Lutherbibel",
             year = 1912,
@@ -104,7 +107,7 @@ data class Translation(
 
         val lsg = Translation(
             code = "lsg",
-            language = Language.fr,
+            languageCode = Language.fr.code,
             englishName = "Louis Segond",
             nativeName = "Bible Segond",
             year = 1910,
@@ -113,7 +116,7 @@ data class Translation(
 
         val sinod = Translation(
             code = "sinod",
-            language = Language.ru,
+            languageCode = Language.ru.code,
             englishName = "Russian Synodal Bible",
             nativeName = "Синодальный перевод",
             year = 1876,
@@ -122,7 +125,7 @@ data class Translation(
 
         val svrj = Translation(
             code = "svrj",
-            language = Language.nl,
+            languageCode = Language.nl.code,
             englishName = "Statenvertaling Jongbloed edition",
             nativeName = "Statenvertaling Jongbloed-editie",
             year = 1888,
@@ -131,7 +134,7 @@ data class Translation(
 
         val rdv24 = Translation(
             code = "rdv24",
-            language = Language.it,
+            languageCode = Language.it.code,
             englishName = "Revised Diodati Version",
             nativeName = "Versione Diodati Riveduta",
             year = 1924,
@@ -140,7 +143,7 @@ data class Translation(
 
         val ubg = Translation(
             code = "ubg",
-            language = Language.pl,
+            languageCode = Language.pl.code,
             englishName = "Updated Gdansk Bible",
             nativeName = "Uwspółcześniona Biblia gdańska",
             year = 2017,
@@ -149,7 +152,7 @@ data class Translation(
 
         val ubio = Translation(
             code = "ubio",
-            language = Language.uk,
+            languageCode = Language.uk.code,
             englishName = "Ukrainian Bible, Ivan Ogienko",
             nativeName = "Біблія в пер. Івана Огієнка",
             year = 1962,
@@ -158,7 +161,7 @@ data class Translation(
 
         val sven = Translation(
             code = "sven",
-            language = Language.sv,
+            languageCode = Language.sv.code,
             englishName = "Svenska 1917",
             nativeName = "1917 års kyrkobibel",
             year = 1917,
@@ -167,7 +170,7 @@ data class Translation(
 
         val cunp = Translation(
             code = "cunp",
-            language = Language.zh,
+            languageCode = Language.zh.code,
             englishName = "Chinese Union Version with New Punctuation",
             nativeName = "新標點和合本",
             year = 1919,
@@ -176,7 +179,7 @@ data class Translation(
 
         val krv = Translation(
             code = "krv",
-            language = Language.ko,
+            languageCode = Language.ko.code,
             englishName = "Korean Revised Version",
             nativeName = "개역한글",
             year = 1961,
@@ -185,7 +188,7 @@ data class Translation(
 
         val jc = Translation(
             code = "jc",
-            language = Language.ja,
+            languageCode = Language.ja.code,
             englishName = "Japanese Colloquial Bible",
             nativeName = "口語訳",
             year = 1955,
