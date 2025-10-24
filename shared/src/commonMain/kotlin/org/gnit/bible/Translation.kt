@@ -1,6 +1,7 @@
 package org.gnit.bible
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 @Serializable
 data class Translation(
@@ -59,6 +60,10 @@ data class Translation(
     }
 
     companion object {
+
+        fun fromJson(json: String): Translation {
+            return Json.decodeFromString(json)
+        }
 
         val webus = Translation(
             code = "webus",

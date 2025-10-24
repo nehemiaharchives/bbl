@@ -28,7 +28,7 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun decodeTranslationFromJsonTest(){
-        val actual = Json.decodeFromString<Translation>(webusJsonString)
+        val actual = Translation.fromJson(webusJsonString)
         assertEquals(Translation.webus, actual)
     }
 }

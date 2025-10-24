@@ -20,5 +20,15 @@ fun Application.module() {
         get("/") {
             call.respondText("Genesis 1: ${bible.verses()}")
         }
+
+        get("/list") {
+            val translationCode = "abtag"
+            val manifestJson = getResourceAsText("/files/bbltexts/$translationCode/$translationCode.0.manifest.json")!!
+            val manifest = Translation.fromJson(manifestJson)
+            call.respondText(manifest.toString())
+        }
     }
 }
+
+fun getResourceAsText(path: String): String? =
+    object {}.javaClass.getResource(path)?.readText()
