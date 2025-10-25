@@ -85,6 +85,7 @@ kotlin {
             implementation(libs.ktor.clientCio)
             implementation(libs.okio)
             implementation(libs.kmpio)
+            implementation(libs.multiplatform.settings)
         }
         commonTest.dependencies {
             implementation(projects.testFramework)

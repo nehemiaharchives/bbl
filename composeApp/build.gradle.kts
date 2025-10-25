@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.kotlinParcelize)
 }
 
 kotlin {
@@ -38,6 +39,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.slf4j.simple)
         }
 
         androidUnitTest.dependencies {
@@ -55,6 +57,10 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlin.logging)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.locale)
             implementation(projects.shared)
         }
         commonTest.dependencies {
@@ -113,6 +119,11 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+
+compose.resources {
+    packageOfResClass = "org.gnit.bible.cmp"
+    generateResClass = auto
 }
 
 compose.desktop {

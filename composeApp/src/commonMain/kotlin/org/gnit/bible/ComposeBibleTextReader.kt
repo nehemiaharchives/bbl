@@ -1,6 +1,6 @@
 package org.gnit.bible
 
-import bible.composeapp.generated.resources.Res
+import org.gnit.bible.cmp.Res
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking

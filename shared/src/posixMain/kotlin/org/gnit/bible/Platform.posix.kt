@@ -1,5 +1,6 @@
 package org.gnit.bible
 
+import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.curl.Curl
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -14,6 +15,8 @@ class PosixPlatform : Platform() {
         val home = getenv("HOME")?.toKString() ?: error("HOME environment variable not defined")
         "$home/$bblDir/$packBaseDir"
     }
+    override val settings: Settings
+        get() = TODO("Not yet implemented")
 }
 
 actual fun getPlatform(platformContext: Any?): Platform = PosixPlatform()

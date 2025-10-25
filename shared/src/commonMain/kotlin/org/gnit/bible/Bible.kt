@@ -3,7 +3,7 @@ package org.gnit.bible
 class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
     companion object{
-        val embeddedTranslations = arrayOf(
+        val embeddedTranslationCodes = arrayOf(
             "cunp",
             "delut",
             "jc",
@@ -22,12 +22,19 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         )
     }
 
-    fun availableTranslations(): Array<String> {
-        return embeddedTranslations.plus(assetManager.downloadedTranslations())
+    fun availableTranslationCodes(): Array<String> {
+        return embeddedTranslationCodes.plus(assetManager.downloadedTranslationCodes())
+    }
+
+    fun availableTranslations(): List<Translation> {
+        val embeddedTranslations = Translation.embeddedTranslations
+        val downloadedTranslations = assetManager.downloadedTranslationCodes().map { code ->
+            obtainZipBibleTextReader().getTranslationFromManifest(code)
+        }
+        return embeddedTranslations.plus(downloadedTranslations)
     }
 
     lateinit var bibleTextReader: BibleTextReader
-        set
 
     var zipBibleTextReader: ZipBibleTextReader? = null
 
@@ -40,9 +47,9 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
     fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
         return when{
-            embeddedTranslations.contains(translation) -> bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
-            assetManager.downloadedTranslations().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
-            else -> error("Translation '$translation' not found. Available translations: ${availableTranslations().joinToString(", ")}")
+            embeddedTranslationCodes.contains(translation) -> bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
+            assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
+            else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
     }
 }

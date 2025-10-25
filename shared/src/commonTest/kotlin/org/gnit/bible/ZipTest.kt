@@ -41,4 +41,20 @@ class ZipTest {
 
         assertContains(kttvGenesisChapterOne, TestFixtures.KTTV_GENESIS_1_1)
     }
+
+    @Test
+    fun testGetTranslationFromManifest(){
+
+        val platform = getPlatform()
+        if(platform.isIos()) return // iOS resources are not accessible via path
+
+        val overridePath = "src/commonTest/resources/data"
+        platform.overridePlatformPackDir = overridePath
+
+        val zipBibleTextReader = ZipBibleTextReader(platform)
+
+        val translation = zipBibleTextReader.getTranslationFromManifest("kttv")
+
+        assertEquals("kttv", translation.code)
+    }
 }

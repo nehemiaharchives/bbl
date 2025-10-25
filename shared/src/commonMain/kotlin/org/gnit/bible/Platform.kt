@@ -1,5 +1,6 @@
 package org.gnit.bible
 
+import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 
 abstract class Platform {
@@ -21,6 +22,8 @@ abstract class Platform {
 
     val packDir: String
         get() = overridePlatformPackDir ?: platformPackDir
+
+    abstract val settings: Settings
 
     fun isIos() = name.startsWith("iOS")
     fun isAndroid() = name.startsWith("Android")

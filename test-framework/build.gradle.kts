@@ -48,6 +48,7 @@ kotlin {
             implementation(projects.shared)
             implementation(libs.kotlin.test)
             implementation(libs.ktor.clientMock)
+            implementation(libs.multiplatform.settings)
         }
 
         androidMain.dependencies {

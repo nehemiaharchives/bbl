@@ -2,6 +2,8 @@ package org.gnit.bible
 
 import android.content.Context
 import android.os.Build
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.SharedPreferencesSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import java.io.File
@@ -17,6 +19,16 @@ class AndroidPlatform(val platformContext: Any?) : Platform() {
             "platformContext must be a android.content.Context"
         }
         File(platformContext.filesDir, "$bblDir/$packBaseDir").absolutePath
+    }
+
+    override val settings: Settings by lazy {
+        requireNotNull(platformContext){
+            "platformContext is required to get Settings"
+        }
+        require(platformContext is Context){
+            "platformContext must be a android.content.Context"
+        }
+        SharedPreferencesSettings(platformContext.getSharedPreferences("bbl_settings", Context.MODE_PRIVATE))
     }
 }
 

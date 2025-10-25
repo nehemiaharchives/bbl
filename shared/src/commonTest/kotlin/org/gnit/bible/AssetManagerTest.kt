@@ -19,7 +19,7 @@ class AssetManagerTest : ResourcesTestBase() {
         val baseUrl =
             "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
         am.download(baseUrl, fileName)
-        val translations = am.downloadedTranslations()
+        val translations = am.downloadedTranslationCodes()
         assertContains(translations, "kttv")
 
         val zipBibleTextReader = ZipBibleTextReader(platform)

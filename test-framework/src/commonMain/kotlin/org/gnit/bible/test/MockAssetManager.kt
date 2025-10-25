@@ -1,5 +1,6 @@
 package org.gnit.bible.test
 
+import com.russhwolf.settings.Settings
 import org.gnit.bible.AssetManager
 import org.gnit.bible.Platform
 
@@ -10,13 +11,15 @@ class MockAssetManager() : AssetManager {
             get() = "Mock Platform"
         override val platformPackDir: String
             get() = TODO("Not yet implemented")
+        override val settings: Settings
+            get() = TODO("Not yet implemented")
     }
 
     override fun download(baseUrl: String, fileName: String) {
         TODO("Not yet implemented")
     }
 
-    override fun downloadedTranslations(): List<String> {
+    override fun downloadedTranslationCodes(): List<String> {
         return listOf("kttv")
     }
 }

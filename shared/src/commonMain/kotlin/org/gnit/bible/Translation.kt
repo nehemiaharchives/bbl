@@ -10,7 +10,7 @@ data class Translation(
      * Short code for the translation eg. "kjv", "webus", "rvr09", used in following context:
      * 1. argument `translation` of [org.gnit.bible.Bible.verses] function
      * 2. argument `fileName` of [org.gnit.bible.AssetManager.download] is in the format of `"${Translation.code}.zip"`
-     * 3. return value of [org.gnit.bible.AssetManager.downloadedTranslations] function is a list of `Translation.code`
+     * 3. return value of [org.gnit.bible.AssetManager.downloadedTranslationCodes] function is a list of `Translation.code`
      */
     val code: String,
 
@@ -51,6 +51,18 @@ data class Translation(
      */
     val customBookNamesConcat: String? = null,
 ){
+
+    fun shortName() = code.uppercase()
+
+    fun books(): HashMap<Int, String> {
+        val names = bookNames()
+        val map = HashMap<Int, String>()
+        for(i in 1..66){
+            map[i] = names[i-1]
+        }
+        return map
+    }
+
     fun bookNames(): Array<String> {
         return if(customBookNamesConcat == null) {
             languageCode.toLanguage().bookNames()

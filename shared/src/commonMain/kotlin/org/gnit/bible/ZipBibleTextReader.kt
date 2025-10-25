@@ -32,4 +32,23 @@ class ZipBibleTextReader(val platform: Platform): BibleTextReader {
         }
         return sb.toString()
     }
+
+    fun getTranslationFromManifest(translationCode: String): Translation {
+        val path = "${platform.packDir}/$translationCode.zip"
+
+        val file = File(path)
+        val zipFile = ZipFile(file)
+
+        val manifestJson = StringBuilder()
+
+        runBlocking{
+            zipFile.use { zip ->
+                val manifest = "$translationCode$MANIFEST_JSON_POSTFIX"
+                val targetName = zip.entries.firstOrNull { it.name.endsWith(manifest) }?.name
+                    ?: error("$manifest not found in $zip")
+                zip.readTextEntry(targetName) { text, _ -> manifestJson.append(text) }
+            }
+        }
+        return Translation.fromJson(manifestJson.toString())
+    }
 }

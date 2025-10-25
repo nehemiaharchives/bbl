@@ -15,7 +15,7 @@ interface AssetManager {
 
     val platform: Platform
     fun download(baseUrl: String, fileName: String)
-    fun downloadedTranslations(): List<String>
+    fun downloadedTranslationCodes(): List<String>
 }
 
 class AssetManagerImpl(
@@ -48,9 +48,9 @@ class AssetManagerImpl(
         }
     }
 
-    override fun downloadedTranslations(): List<String> {
+    override fun downloadedTranslationCodes(): List<String> {
         val packDir = platform.packDir.toPath()
         if (!fileSystem.exists(packDir)) return emptyList()
-        return fileSystem.list(packDir).map { it.name.removeSuffix(".zip")  }
+        return fileSystem.list(packDir).map { it.name.removeSuffix(".zip") }
     }
 }

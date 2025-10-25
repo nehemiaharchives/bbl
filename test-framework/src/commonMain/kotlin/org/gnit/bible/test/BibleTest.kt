@@ -14,7 +14,7 @@ interface BibleTest {
 
     fun testDownloadedVerses(){
         bible.assetManager.download("https://gnit.org/bblpacks/kttv.zip", "kttv.zip")
-        assertContains(bible.availableTranslations(), "kttv")
+        assertContains(bible.availableTranslationCodes(), "kttv")
         val verses = bible.verses(translation = "kttv", book = 1, chapter = 1)
         assertTrue(verses.startsWith("1 Ban đầu Đức Chúa Trời dựng nên trời đất."))
     }
