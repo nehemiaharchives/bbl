@@ -15,6 +15,7 @@ fun main() {
 fun Application.module() {
 
     val bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
+    val downloadableTranslations = arrayOf("abtag", "ayt", "irvben", "irvguj", "irvhin", "irvmar", "irvtam", "irvtel", "irvurd", "kttv", "th1971")
 
     routing {
         get("/") {
@@ -22,10 +23,16 @@ fun Application.module() {
         }
 
         get("/list") {
-            val translationCode = "abtag"
-            val manifestJson = getResourceAsText("/files/bbltexts/$translationCode/$translationCode.0.manifest.json")!!
-            val manifest = Translation.fromJson(manifestJson)
-            call.respondText(manifest.toString())
+            val list = mutableListOf<Translation>()
+            downloadableTranslations.forEach{ translationCode ->
+                val manifestJson =
+                    getResourceAsText("/files/bbltexts/$translationCode/$translationCode.0.manifest.json")!!
+                val manifest = Translation.fromJson(manifestJson)
+                list.add(manifest)
+            }
+
+            val json = list.toJson()
+            call.respondText(json)
         }
     }
 }

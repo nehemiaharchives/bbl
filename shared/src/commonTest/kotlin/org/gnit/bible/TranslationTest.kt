@@ -22,7 +22,7 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun encodeTranslationToJsonTest(){
-        val actual = Json.encodeToString(Translation.webus)
+        val actual = Translation.webus.toJson()
         assertEquals(webusJsonString, actual)
     }
 
@@ -30,5 +30,17 @@ class TranslationTest : ResourcesTestBase() {
     fun decodeTranslationFromJsonTest(){
         val actual = Translation.fromJson(webusJsonString)
         assertEquals(Translation.webus, actual)
+    }
+
+    @Test
+    fun encodeTranslationListToJsonTest(){
+        val translationList = listOf(Translation.webus, Translation.kjv, Translation.rvr09)
+        val actual = translationList.toJson()
+        val expected = """
+            [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain"},
+            {"code":"kjv","languageCode":"en","englishName":"King James Version","nativeName":"King James Version","year":1611,"copyright":"Public Domain"},
+            {"code":"rvr09","languageCode":"es","englishName":"Reina-Valera","nativeName":"Reina-Valera","year":1909,"copyright":"Public Domain"}]
+        """.trimIndent().replace("\n", "").replace(" ", "")
+        assertEquals(expected, actual.replace("\n", "").replace(" ", ""))
     }
 }

@@ -59,6 +59,10 @@ data class Translation(
         }
     }
 
+    fun toJson(): String {
+        return Json.encodeToString( this)
+    }
+
     companion object {
 
         fun fromJson(json: String): Translation {
@@ -202,4 +206,8 @@ data class Translation(
 
         val embeddedTranslations = listOf(webus, kjv, rvr09, tb, delut, lsg, sinod, svrj, rdv24, ubg, ubio, sven, cunp, krv, jc)
     }
+}
+
+fun List<Translation>.toJson(): String {
+    return Json.encodeToString(this)
 }
