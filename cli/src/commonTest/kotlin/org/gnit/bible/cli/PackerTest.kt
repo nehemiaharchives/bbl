@@ -5,6 +5,7 @@ import org.gnit.bible.ZipBibleTextReader
 import org.gnit.bible.downloadableTranslations
 import org.gnit.bible.getPlatform
 import kotlin.test.Test
+import kotlin.test.assertContains
 
 class PackerTest {
 
@@ -17,6 +18,9 @@ class PackerTest {
         val zipBibleTextReader = ZipBibleTextReader(platform)
         downloadableTranslations.forEach { translationCode ->
             val genesisChapterOne = zipBibleTextReader.getChapterText(translationCode, 1, 1)
+            (1..16).forEach { verseNumber ->
+                assertContains(genesisChapterOne, "$verseNumber ")
+            }
             logger.info { "translationCode: $translationCode\ngenesisChapterOne:\n$genesisChapterOne" }
         }
     }
