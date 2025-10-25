@@ -30,6 +30,8 @@ kotlin {
             dependencies {
                 implementation(projects.shared)
                 implementation(libs.clikt)
+                implementation(libs.okio)
+                implementation(libs.kmpio)
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.kotlin.logging)
             }
