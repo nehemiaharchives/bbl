@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +58,11 @@ data class BibleState(
 }
 
 fun String.toBibleState() = BibleState.json.decodeFromString<BibleState>(this)
+
+val BibleStateSaver = Saver<BibleState, String>(
+    save = { it.toJson() },
+    restore = { it.toBibleState() }
+)
 
 const val BUTTON_PADDING = 5
 const val BUTTON_SIZE = 35
@@ -140,7 +146,7 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
     val bible = bible(platform)
 
     val initialBibleState = rememberBibleState(platform)
-    var bibleState by rememberSaveable { mutableStateOf(initialBibleState) }
+    var bibleState by rememberSaveable(stateSaver = BibleStateSaver) { mutableStateOf(initialBibleState) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
 
@@ -157,5 +163,5 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
     }
 
     // TODO Main UI
-    Text(text = "Bible App")
+    Text(text = bible.verses())
 }
