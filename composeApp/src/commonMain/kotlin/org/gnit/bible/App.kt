@@ -13,8 +13,10 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.russhwolf.settings.Settings
 import com.vanniktech.locale.Languages
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -102,7 +104,7 @@ fun rememberBibleState(platform: Platform): BibleState {
 
     lateinit var initialBibleState: BibleState
     val settings = platform.settings
-    val bibleStateJson = settings.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
+    val bibleStateJson = settings?.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
     if (bibleStateJson != null){
         initialBibleState = bibleStateJson.toBibleState()
         logger.debug { "Bible Lifecycle sharedPreferences had initialBibleState: $initialBibleState" }
@@ -145,7 +147,7 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
     logger.debug { "BibleApp called with platformContext:$platformContext" }
 
     val platform = getPlatform(platformContext)
-    val bible = bible(platform)
+    val bible: Bible = bible(platform)
 
     val initialBibleState = rememberBibleState(platform)
     var bibleState by rememberSaveable(stateSaver = BibleStateSaver) { mutableStateOf(initialBibleState) }
@@ -164,6 +166,5 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
         }
     }
 
-    // TODO Main UI
-    Text(text = bible.verses())
+    Text(bible.verses())
 }
