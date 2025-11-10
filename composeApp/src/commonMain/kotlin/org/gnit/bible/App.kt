@@ -1,10 +1,17 @@
 package org.gnit.bible
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -14,14 +21,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.russhwolf.settings.Settings
 import com.vanniktech.locale.Languages
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.gnit.bible.ui.theme.BibleTheme
+import org.gnit.bible.ui.widgets.sansFontFamily
+import org.gnit.bible.ui.widgets.serifFontFamily
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 enum class ReadingMode { SINGLE, BILINGUAL_SIDE, BILINGUAL_UNDER }
@@ -82,7 +97,7 @@ val logger = KotlinLogging.logger {}
 
 var am: AssetManagerImpl? = null
 
-fun assetManager(platform: Platform): AssetManager {
+fun assetManager(): AssetManager {
     if (am == null){
         am = AssetManagerImpl(platform = platform)
     }
@@ -91,20 +106,22 @@ fun assetManager(platform: Platform): AssetManager {
 
 var bible: Bible? = null
 
-fun bible(platform: Platform): Bible {
+fun bible(): Bible {
     if (bible == null){
-        bible = Bible(assetManager(platform = platform))
+        bible = Bible(assetManager())
         bible!!.bibleTextReader = ComposeBibleTextReader()
     }
     return bible!!
 }
 
+lateinit var platform: Platform
+
 @Composable
-fun rememberBibleState(platform: Platform): BibleState {
+fun rememberBibleState(): BibleState {
 
     lateinit var initialBibleState: BibleState
-    val settings = platform.settings
-    val bibleStateJson = settings?.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
+
+    val bibleStateJson = platform.settings.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
     if (bibleStateJson != null){
         initialBibleState = bibleStateJson.toBibleState()
         logger.debug { "Bible Lifecycle sharedPreferences had initialBibleState: $initialBibleState" }
@@ -115,7 +132,7 @@ fun rememberBibleState(platform: Platform): BibleState {
         val initialMainTranslation = if(defaultLanguage == "en"){
             Translation.webus
         }else{
-            bible(platform).availableTranslations().find { translation ->
+            bible().availableTranslations().find { translation ->
                 translation.languageCode == defaultLanguage
             } ?: Translation.webus
         }
@@ -146,10 +163,10 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
 
     logger.debug { "BibleApp called with platformContext:$platformContext" }
 
-    val platform = getPlatform(platformContext)
-    val bible: Bible = bible(platform)
+    platform = getPlatform(platformContext)
+    val bible: Bible = bible()
 
-    val initialBibleState = rememberBibleState(platform)
+    val initialBibleState = rememberBibleState()
     var bibleState by rememberSaveable(stateSaver = BibleStateSaver) { mutableStateOf(initialBibleState) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
@@ -157,14 +174,243 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
     var bibleTitle by rememberSaveable { mutableStateOf(bibleState.describeBookChapter()) }
     var zoom by remember { mutableFloatStateOf(bibleState.fontSize.toFloat()) }
 
-    val settings = platform.settings
+
     val lifecycleOwner = LocalLifecycleOwner.current
     LifecycleResumeEffect(key1 = lifecycleOwner){
         onPauseOrDispose {
             logger.debug { "Bible Lifecycle onPauseOrDispose called, saving bibleState:$bibleState" }
-            settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, bibleState.toJson())
+            platform.settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, bibleState.toJson())
         }
     }
 
+    // TODO Scaffold, top bar, bottom bar, content
     Text(bible.verses())
+}
+
+
+const val VERSES_COLUMN_FILL_MAX_HEIGHT = 0.999f
+
+fun Int.isEven() = this % 2 == 0
+
+@Composable
+fun SingleBible(bibleState: BibleState){
+
+    logger.debug { "SingleBible bibleState: $bibleState" }
+
+    val translation = bibleState.mainTranslation
+    val book = bibleState.book
+    val chapter = bibleState.chapter
+    val chapterText = bible().verses(translation = translation.code, book = book, chapter = chapter)
+    val verses = splitChapterToVerses(chapterText)
+    val scrollState = rememberScrollState()
+
+    ScrollableColumn(bibleState, scrollState) {
+        verses.forEachIndexed{ verse, text ->
+
+            val background = if(bibleState.isZebraBackground && verse.isEven()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background
+
+            Text(
+                text = "${verse+1} $text",
+                style = TextStyle(fontSize = bibleState.fontSize.sp, fontFamily = if (bibleState.isFontFamilySerif) translation.language.serifFontFamily() else translation.language.sansFontFamily()),
+                modifier = Modifier
+                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                    .background(background)
+                    .fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SingleBiblePreview(){
+    BibleTheme {
+        SingleBible(bibleState = BibleState())
+    }
+}
+
+fun splitChapterToVerses(aChapter: String): Array<String> {
+    return aChapter.substring(2).split("\\n\\d{1,3} ".toRegex()).toTypedArray()
+}
+
+fun addEmptyEntryToMakeSameSize(listA: List<String>, listB: List<String>): Pair<List<String>, List<String>> {
+    // Find the longer list
+    val longerList = if (listA.size > listB.size) listA else listB
+    val shorterList = if (listA.size < listB.size) listA else listB
+
+    // Add empty strings to the shorter list to match the length of the longer list
+    val paddedShorterList = shorterList.toMutableList()
+    repeat(longerList.size - shorterList.size) {
+        paddedShorterList.add("")
+    }
+
+    // Preserve original order of listA and listB
+    val newListA = if (listA == longerList) longerList else paddedShorterList
+    val newListB = if (listA == longerList) paddedShorterList else longerList
+
+    return newListA to newListB
+}
+
+@Composable
+private fun getVersePairs(bibleState: BibleState): List<Pair<String, String>> {
+    val mainTranslation = bibleState.mainTranslation
+    val subTranslation = bibleState.subTranslation?: throw IllegalArgumentException("subTranslation is required but null")
+
+    val book = bibleState.book
+    val chapter = bibleState.chapter
+
+    val mainChapterText = bible().verses(translation = mainTranslation.code, book = book, chapter = chapter)
+    val subChapterText = bible().verses(translation = subTranslation.code, book = book, chapter = chapter)
+
+    val mainVerses = splitChapterToVerses(mainChapterText)
+    val subVerses = splitChapterToVerses(subChapterText)
+
+    val verses = if (mainVerses.size == subVerses.size) {
+        mainVerses.zip(subVerses).toList()
+    } else {
+        val newPair = addEmptyEntryToMakeSameSize(mainVerses.toList(), subVerses.toList())
+        val newMainVerse = newPair.first
+        val newSubVerse = newPair.second
+        newMainVerse.zip(newSubVerse)
+    }
+    return verses
+}
+
+@Composable
+fun BilingualSideBible(bibleState: BibleState) {
+    val readingMode = bibleState.readingMode
+    if (readingMode != ReadingMode.BILINGUAL_SIDE) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode")
+    if (bibleState.subTranslation == null) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} so subTranslation is needed but null")
+
+    val versePairs = getVersePairs(bibleState)
+    val scrollState = rememberScrollState()
+
+    ScrollableColumn(bibleState, scrollState) {
+        versePairs.forEachIndexed { verse, pair ->
+
+            val background = if(bibleState.isZebraBackground && verse.isEven()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background
+
+            Row(
+                modifier = Modifier
+                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                    .background(background)
+            ) {
+                Text(
+                    text = "${verse+1} ${pair.first}",
+                    style = TextStyle(fontSize = bibleState.fontSize.sp, fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily()),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${verse+1} ${pair.second}",
+                    style = TextStyle(fontSize = bibleState.fontSize.sp, fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily()),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+val sideView = BibleState(Translation.jc, Translation.webus, ReadingMode.BILINGUAL_SIDE)
+
+@Preview(showBackground = true)
+@Composable
+fun BilingualSideBiblePreview(){
+    BibleTheme {
+        BilingualSideBible(bibleState = sideView)
+    }
+}
+
+@Composable
+fun BilingualUnderBible(bibleState: BibleState) {
+    val readingMode = bibleState.readingMode
+    if (readingMode != ReadingMode.BILINGUAL_UNDER) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode")
+    if (bibleState.subTranslation == null) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} so subTranslation is needed but null")
+
+    val versePairs = getVersePairs(bibleState)
+    val scrollState = rememberScrollState()
+
+    ScrollableColumn(bibleState, scrollState) {
+        versePairs.forEachIndexed { verse, pair ->
+
+            val background = if(bibleState.isZebraBackground && verse.isEven()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background
+
+            Column(modifier = Modifier.background(background)) {
+                Text(
+                    text = "${verse+1} ${pair.first}",
+                    style = TextStyle(fontSize = bibleState.fontSize.sp, fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily()),
+                )
+                Text(
+                    text = "${verse+1} ${pair.second}",
+                    style = TextStyle(fontSize = bibleState.fontSize.sp, fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily()),
+                    modifier = Modifier.absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                )
+            }
+        }
+    }
+}
+
+val downView = BibleState(Translation.jc, Translation.webus, ReadingMode.BILINGUAL_UNDER)
+
+@Preview(showBackground = true)
+@Composable
+fun BilingualUnderBiblePreview(){
+    BibleTheme {
+        BilingualUnderBible(bibleState = downView)
+    }
+}
+
+@Composable
+fun ScrollableColumn(
+    bibleState: BibleState,
+    scrollState: ScrollState,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.absolutePadding(
+            top = (BUTTON_SIZE + BUTTON_PADDING * 2).dp,
+            bottom = (BUTTON_SIZE + BUTTON_PADDING).dp
+        )
+            .offset(y = (-BUTTON_PADDING).dp)
+            .fillMaxHeight(VERSES_COLUMN_FILL_MAX_HEIGHT)
+            .verticalScroll(scrollState)
+    ){
+        content()
+    }
+    LaunchedEffect(bibleState.book) {
+        scrollState.scrollTo(0)
+    }
+    LaunchedEffect(bibleState.chapter) {
+        scrollState.scrollTo(0)
+    }
+
+    LaunchedEffect(bibleState.readingMode){
+        val scrollValue = (scrollState.maxValue * bibleState.scrollPercent).toInt()
+        scrollState.scrollTo(scrollValue)
+    }
+
+    val sharedPreferences = platform.settings
+    LaunchedEffect(scrollState){
+        val lastScrollValue = scrollState.value
+        var pendingSaveJob: Job? = null
+
+        snapshotFlow { scrollState.value }
+            .collect{ newValue ->
+                if(newValue != lastScrollValue) {
+                    pendingSaveJob?.cancel()
+                    pendingSaveJob = launch {
+                        delay(200)
+                        if (!scrollState.isScrollInProgress){
+                            val scrollPercent = computeScrollPercent(newValue, scrollState)
+                            sharedPreferences.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, bibleState.copy(scrollPercent = scrollPercent).toJson())
+                            logger.debug { "ScrollableColumn Saved scroll scrollPercent: $scrollPercent" }
+                        }
+                    }
+                }
+            }
+    }
+}
+
+private fun computeScrollPercent(scrollValue: Int, scrollState: ScrollState): Float {
+    val totalScrollableHeight = scrollState.maxValue
+    return scrollValue.toFloat() / totalScrollableHeight
 }

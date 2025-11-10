@@ -52,6 +52,9 @@ data class Translation(
     val customBookNamesConcat: String? = null,
 ){
 
+    val language: Language
+        get() = languageCode.toLanguage()
+
     fun shortName() = code.uppercase()
 
     fun books(): HashMap<Int, String> {
