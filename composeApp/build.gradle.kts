@@ -40,7 +40,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.slf4j.simple)
+            implementation(libs.slf4j.android)
         }
 
         androidUnitTest.dependencies {

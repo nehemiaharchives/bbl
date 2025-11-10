@@ -142,6 +142,8 @@ fun App(platformContext: Any? = null) {
 @Composable
 fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
 
+    logger.debug { "BibleApp called with platformContext:$platformContext" }
+
     val platform = getPlatform(platformContext)
     val bible = bible(platform)
 
