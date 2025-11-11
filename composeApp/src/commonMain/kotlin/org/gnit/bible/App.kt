@@ -554,9 +554,8 @@ private fun BibleReadingArea(
     }
 
     // 3) Container that applies Scaffold padding and offsets for chrome
-    val chromeOffset = (BUTTON_SIZE + BUTTON_PADDING).dp
-    val topChromePadding = if (chromeVisible) chromeOffset else 0.dp
-    val bottomChromePadding = if (chromeVisible) chromeOffset else 0.dp
+    val topChromePadding = 0.dp
+    val bottomChromePadding = 0.dp
 
     Box(
         modifier = Modifier
