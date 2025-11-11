@@ -202,7 +202,24 @@ fun App(platformContext: Any? = null) {
 }
 
 @Composable
-fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
+@Preview
+fun AppInAutoHideMode(){
+    BibleTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ){
+            BibleApp(platformContext = null, initialChromeVisible = false)
+        }
+    }
+}
+
+@Composable
+fun BibleApp(
+    platformContext: Any? = null,
+    modifier: Modifier = Modifier,
+    initialChromeVisible: Boolean = true
+) {
 
     logger.debug { "BibleApp called with platformContext:$platformContext" }
 
@@ -230,7 +247,7 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
         }
     }
 
-    val chrome = rememberChromeAutoHide()
+    val chrome = rememberChromeAutoHide(initialChromeVisible)
 
     // Scaffold, top bar, bottom bar, content
     Scaffold(
@@ -528,8 +545,8 @@ private fun BibleReadingArea(
 
     // 3) Container that applies Scaffold padding and offsets for chrome
     val chromeOffset = (BUTTON_SIZE + BUTTON_PADDING).dp
-    val topChromePadding = if (chromeVisible) 0.dp else chromeOffset
-    val bottomChromePadding = if (chromeVisible) 0.dp else chromeOffset
+    val topChromePadding = if (chromeVisible) chromeOffset else 0.dp
+    val bottomChromePadding = if (chromeVisible) chromeOffset else 0.dp
 
     Box(
         modifier = Modifier
@@ -550,8 +567,8 @@ private const val AUTO_HIDE_MS: Long = 60_000
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun rememberChromeAutoHide(): ChromeAutoHide {
-    var visible by remember { mutableStateOf(true) }
+private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAutoHide {
+    var visible by remember { mutableStateOf(initiallyVisible) }
     var lastInteraction by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
     val scope = rememberCoroutineScope()
 
