@@ -14,16 +14,24 @@ import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -48,9 +56,11 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.gnit.bible.ui.theme.BibleTheme
+import org.gnit.bible.ui.widgets.BibleButton
 import org.gnit.bible.ui.widgets.sansFontFamily
 import org.gnit.bible.ui.widgets.serifFontFamily
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -110,7 +120,7 @@ val BibleStateSaver = Saver<BibleState, String>(
 )
 
 const val BUTTON_PADDING = 5
-const val BUTTON_SIZE = 35
+const val BUTTON_SIZE = 32
 const val BUTTON_ROUND = 5
 const val BUTTON_TEXT_FONT_SIZE = 15
 const val BUTTON_CONTENT_PADDING = 0
@@ -225,11 +235,20 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                TopBarContent(
-                    title = bibleState.describeBookChapter(),
-                    // TODO put menu/book picker/actions here exactly as before
-                    onAnyUserAction = { chrome.onUserInteraction() }
-                )
+                Column {
+                    TopBarContent(
+                        title = bibleState.describeBookChapter(),
+                        state = bibleState,
+                        onStateChange = { bibleState = it },
+                        onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
+                        onAnyUserAction = { chrome.onUserInteraction() }
+                    )
+                    BookControlsBar(
+                        bibleState = bibleState,
+                        onStateChange = { bibleState = it },
+                        onAnyUserAction = { chrome.onUserInteraction() }
+                    )
+                }
             }
         },
         bottomBar = {
@@ -238,11 +257,13 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                BottomBarContent(
-                    state = bibleState,
-                    onStateChange = { bibleState = it },
-                    onAnyUserAction = { chrome.onUserInteraction() }
-                )
+                BottomAppBar {
+                    ChapterControlsBar(
+                        bibleState = bibleState,
+                        onStateChange = { bibleState = it },
+                        onAnyUserAction = { chrome.onUserInteraction() }
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -260,8 +281,15 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
 @Composable
 fun TopBarContent(
     title: String,
-    onAnyUserAction: () -> Unit = {}
+    state: BibleState,
+    onStateChange: (BibleState) -> Unit,
+    onOpenSettings: () -> Unit,
+    onAnyUserAction: () -> Unit
 ) {
+
+    var showBookSheet by remember { mutableStateOf(false) }
+    var showTranslationMenu by remember { mutableStateOf(false) }
+
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -274,19 +302,133 @@ fun TopBarContent(
         actions = {
             // TODO put existing menu / book picker here.
             // call onAnyUserAction() in their onClick handlers
+            // Book picker
+            IconButton(onClick = {
+                onAnyUserAction()
+                showBookSheet = true
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Menu"
+                )
+            }
         }
     )
 }
 
 @Composable
-fun BottomBarContent(
-    state: BibleState,
+private fun BookControlsBar(
+    bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
     onAnyUserAction: () -> Unit
 ) {
-    BottomAppBar {
-        // - slider + for chapter here
-        // call onAnyUserAction() in their onClick handlers
+    var bookSliderPosition by remember { mutableFloatStateOf(bibleState.book.toFloat()) }
+    var chapterSliderPosition by remember { mutableFloatStateOf(bibleState.chapter.toFloat()) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BibleButton(
+            buttonText = "-",
+            onClick = {
+                if (bibleState.book != 1) {
+                    bookSliderPosition--
+                    chapterSliderPosition = 1f
+                    onStateChange(bibleState.prevBook())
+                    onAnyUserAction()
+                    logger.debug { "BibleButton book changed ${bibleState.prevBook()}" }
+                }
+            }
+        )
+
+        Slider(
+            value = bookSliderPosition,
+            onValueChange = {
+                bookSliderPosition = it
+                chapterSliderPosition = 1f
+                onStateChange(bibleState.changeBook(it.roundToInt()))
+                onAnyUserAction()
+                logger.debug { "Slider book changed ${bibleState.changeBook(it.roundToInt())}" }
+            },
+            steps = 64,
+            valueRange = 1f..66f,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
+                .height(BUTTON_SIZE.dp)
+        )
+
+        BibleButton(
+            buttonText = "+",
+            onClick = {
+                if (bibleState.book != 66) {
+                    bookSliderPosition++
+                    chapterSliderPosition = 1f
+                    onStateChange(bibleState.nextBook())
+                    onAnyUserAction()
+                    logger.debug { "BibleButton book changed ${bibleState.nextBook()}" }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ChapterControlsBar(
+    bibleState: BibleState,
+    onStateChange: (BibleState) -> Unit,
+    onAnyUserAction: () -> Unit
+) {
+    var chapterSliderPosition by remember { mutableFloatStateOf(bibleState.chapter.toFloat()) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BibleButton(
+            buttonText = "-",
+            onClick = {
+                if (bibleState.chapter != 1) {
+                    chapterSliderPosition--
+                    onStateChange(bibleState.prevChapter())
+                    onAnyUserAction()
+                    logger.debug { "BibleButton chapter changed ${bibleState.prevChapter()}" }
+                }
+            }
+        )
+
+        Slider(
+            value = chapterSliderPosition,
+            onValueChange = {
+                chapterSliderPosition = it
+                onStateChange(bibleState.copy(chapter = it.roundToInt()))
+                onAnyUserAction()
+                logger.debug { "Slider chapter slider value changed to ${it.roundToInt()}" }
+            },
+            steps = (bibleState.lastChapter() - 2).coerceAtLeast(0),
+            valueRange = 1f..bibleState.lastChapter().toFloat(),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
+                .height(BUTTON_SIZE.dp)
+        )
+
+        BibleButton(
+            buttonText = "+",
+            onClick = {
+                if (!bibleState.isLastChapter()) {
+                    chapterSliderPosition++
+                    onStateChange(bibleState.nextChapter())
+                    onAnyUserAction()
+                    logger.debug { "BibleButton chapter changed ${bibleState.nextChapter()}" }
+                }
+            }
+        )
     }
 }
 
@@ -406,7 +548,11 @@ fun SingleBible(bibleState: BibleState, scrollState: ScrollState, contentPadding
 fun SingleBiblePreview() {
     BibleTheme {
         val scrollState = rememberScrollState()
-        SingleBible(bibleState = BibleState(), scrollState = scrollState, contentPadding = PaddingValues(0.dp))
+        SingleBible(
+            bibleState = BibleState(),
+            scrollState = scrollState,
+            contentPadding = PaddingValues(0.dp)
+        )
     }
 }
 
@@ -464,7 +610,11 @@ private fun getVersePairs(bibleState: BibleState): List<Pair<String, String>> {
 }
 
 @Composable
-fun BilingualSideBible(bibleState: BibleState, scrollState: ScrollState, contentPadding: PaddingValues) {
+fun BilingualSideBible(
+    bibleState: BibleState,
+    scrollState: ScrollState,
+    contentPadding: PaddingValues
+) {
     val readingMode = bibleState.readingMode
     if (readingMode != ReadingMode.BILINGUAL_SIDE) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode")
     if (bibleState.subTranslation == null) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} so subTranslation is needed but null")
@@ -510,12 +660,20 @@ val sideView = BibleState(Translation.jc, Translation.webus, ReadingMode.BILINGU
 fun BilingualSideBiblePreview() {
     BibleTheme {
         val scrollState = rememberScrollState()
-        BilingualSideBible(bibleState = sideView, scrollState = scrollState, contentPadding = PaddingValues(0.dp))
+        BilingualSideBible(
+            bibleState = sideView,
+            scrollState = scrollState,
+            contentPadding = PaddingValues(0.dp)
+        )
     }
 }
 
 @Composable
-fun BilingualUnderBible(bibleState: BibleState, scrollState: ScrollState, contentPadding: PaddingValues) {
+fun BilingualUnderBible(
+    bibleState: BibleState,
+    scrollState: ScrollState,
+    contentPadding: PaddingValues
+) {
     val readingMode = bibleState.readingMode
     if (readingMode != ReadingMode.BILINGUAL_UNDER) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode")
     if (bibleState.subTranslation == null) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} so subTranslation is needed but null")
@@ -556,7 +714,11 @@ val downView = BibleState(Translation.jc, Translation.webus, ReadingMode.BILINGU
 fun BilingualUnderBiblePreview() {
     BibleTheme {
         val scrollState = rememberScrollState()
-        BilingualUnderBible(bibleState = downView, scrollState = scrollState, contentPadding = PaddingValues(0.dp))
+        BilingualUnderBible(
+            bibleState = downView,
+            scrollState = scrollState,
+            contentPadding = PaddingValues(0.dp)
+        )
     }
 }
 
