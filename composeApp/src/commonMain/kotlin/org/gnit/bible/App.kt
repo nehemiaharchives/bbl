@@ -538,7 +538,13 @@ private fun BibleReadingArea(
     // 2) Double-tap anywhere in the reading area to show bars
     val doubleTapModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(
-            onDoubleTap = { chrome.forceShow() },
+            onDoubleTap = {
+                if (chrome.isVisible()) {
+                    chrome.forceHide()
+                } else {
+                    chrome.forceShow()
+                }
+            },
             //onTap = { chrome.onUserInteraction } // single taps also count if needed
         )
     }
@@ -585,11 +591,16 @@ private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAuto
         if (!visible) visible = true
     }
 
+    fun hide() {
+        visible = false
+    }
+
     return remember {
         ChromeAutoHide(
             isVisible = { visible },
             onUserInteraction = { bump() },
-            forceShow = { visible = true; bump() }
+            forceShow = { visible = true; bump() },
+            forceHide = { hide() }
         )
     }
 }
@@ -597,7 +608,8 @@ private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAuto
 private class ChromeAutoHide(
     val isVisible: () -> Boolean,
     val onUserInteraction: () -> Unit,
-    val forceShow: () -> Unit
+    val forceShow: () -> Unit,
+    val forceHide: () -> Unit
 )
 
 const val VERSES_COLUMN_FILL_MAX_HEIGHT = 0.999f
