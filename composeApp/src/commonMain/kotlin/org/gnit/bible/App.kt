@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -233,12 +234,6 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
 
     // Scaffold, top bar, bottom bar, content
     Scaffold(
-        contentWindowInsets = WindowInsets(
-            left = 0.dp,
-            top = 0.dp,
-            right = 0.dp,
-            bottom = 0.dp
-        ),
         topBar = {
             AnimatedVisibility(
                 visible = chrome.isVisible(),
@@ -280,12 +275,14 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 }
             }
         }
-    ) { _ ->
+    ) { innerPadding ->
         // Reading area. We'll hook scroll + double-tap into it.
         BibleReadingArea(
             state = bibleState,
             onStateChange = { bibleState = it },
-            chrome = chrome
+            chrome = chrome,
+            chromeVisible = chrome.isVisible(),
+            innerPadding = innerPadding
         )
     }
 }
@@ -509,7 +506,9 @@ private fun ChapterControlsBar(
 private fun BibleReadingArea(
     state: BibleState,
     onStateChange: (BibleState) -> Unit,
-    chrome: ChromeAutoHide
+    chrome: ChromeAutoHide,
+    chromeVisible: Boolean,
+    innerPadding: PaddingValues
 ) {
     // provide a shared scrollState to observe.
     val scrollState = rememberScrollState()
@@ -527,10 +526,16 @@ private fun BibleReadingArea(
         )
     }
 
-    // 3) Container that applies Scaffold padding
+    // 3) Container that applies Scaffold padding and offsets for chrome
+    val chromeOffset = (BUTTON_SIZE + BUTTON_PADDING).dp
+    val topChromePadding = if (chromeVisible) 0.dp else chromeOffset
+    val bottomChromePadding = if (chromeVisible) 0.dp else chromeOffset
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
+            .padding(top = topChromePadding, bottom = bottomChromePadding)
             .then(doubleTapModifier)
     ) {
         when (state.readingMode) {
