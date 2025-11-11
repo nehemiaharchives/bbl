@@ -6,7 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,7 +37,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -62,6 +63,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.gnit.bible.ui.theme.BibleTheme
 import org.gnit.bible.ui.widgets.BibleButton
+import org.gnit.bible.ui.widgets.BibleSlider
 import org.gnit.bible.ui.widgets.sansFontFamily
 import org.gnit.bible.ui.widgets.serifFontFamily
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -370,19 +372,13 @@ fun TopBarContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookControlsBar(
     bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
     onAnyUserAction: () -> Unit
 ) {
-    val sliderColors = SliderDefaults.colors(
-        thumbColor = MaterialTheme.colorScheme.primary,
-        activeTrackColor = Color.Transparent,
-        inactiveTrackColor = Color.Transparent,
-        activeTickColor = MaterialTheme.colorScheme.primary,
-        inactiveTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    )
 
     var bookSliderPosition by remember { mutableFloatStateOf(bibleState.book.toFloat()) }
 
@@ -412,21 +408,19 @@ private fun BookControlsBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Slider(
+        BibleSlider(
             value = bookSliderPosition,
-            onValueChange = {
-                bookSliderPosition = it
-                onStateChange(bibleState.changeBook(it.roundToInt()))
+            onValueChange = { newValue ->
+                bookSliderPosition = newValue
+                onStateChange(bibleState.changeBook(newValue.roundToInt()))
                 onAnyUserAction()
-                logger.debug { "Slider book changed ${bibleState.changeBook(it.roundToInt())}" }
+                logger.debug { "Slider book changed ${bibleState.changeBook(newValue.roundToInt())}" }
             },
             steps = 64,
             valueRange = 1f..66f,
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 4.dp)
-                .height(BUTTON_SIZE.dp),
-            colors = sliderColors
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -445,19 +439,13 @@ private fun BookControlsBar(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChapterControlsBar(
     bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
     onAnyUserAction: () -> Unit
 ) {
-    val sliderColors = SliderDefaults.colors(
-        thumbColor = MaterialTheme.colorScheme.primary,
-        activeTrackColor = Color.Transparent,
-        inactiveTrackColor = Color.Transparent,
-        activeTickColor = MaterialTheme.colorScheme.primary,
-        inactiveTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    )
 
     var chapterSliderPosition by remember { mutableFloatStateOf(bibleState.chapter.toFloat()) }
 
@@ -486,21 +474,19 @@ private fun ChapterControlsBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Slider(
+        BibleSlider(
             value = chapterSliderPosition,
-            onValueChange = {
-                chapterSliderPosition = it
-                onStateChange(bibleState.copy(chapter = it.roundToInt()))
+            onValueChange = { newValue ->
+                chapterSliderPosition = newValue
+                onStateChange(bibleState.copy(chapter = newValue.roundToInt()))
                 onAnyUserAction()
-                logger.debug { "Slider chapter slider value changed to ${it.roundToInt()}" }
+                logger.debug { "Slider chapter slider value changed to ${newValue.roundToInt()}" }
             },
             steps = (bibleState.lastChapter() - 2).coerceAtLeast(0),
             valueRange = 1f..bibleState.lastChapter().toFloat(),
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 4.dp)
-                .height(BUTTON_SIZE.dp),
-            colors = sliderColors
         )
 
         Spacer(modifier = Modifier.width(8.dp))
