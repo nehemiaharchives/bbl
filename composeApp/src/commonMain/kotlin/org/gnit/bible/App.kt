@@ -6,32 +6,35 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -39,6 +42,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
@@ -257,7 +261,7 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                BottomAppBar {
+                Surface(tonalElevation = 0.dp, shadowElevation = 0.dp) {
                     ChapterControlsBar(
                         bibleState = bibleState,
                         onStateChange = { bibleState = it },
@@ -290,19 +294,42 @@ fun TopBarContent(
     var showBookSheet by remember { mutableStateOf(false) }
     var showTranslationMenu by remember { mutableStateOf(false) }
 
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = title,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        actions = {
-            // TODO put existing menu / book picker here.
-            // call onAnyUserAction() in their onClick handlers
-            // Book picker
+    val topBarHeight = (BUTTON_SIZE + BUTTON_PADDING * 2).dp
+
+    Surface(tonalElevation = 0.dp, shadowElevation = 0.dp) {
+        val titleFontFamily = if (state.isFontFamilySerif) {
+            state.mainTranslation.language.serifFontFamily()
+        } else {
+            state.mainTranslation.language.sansFontFamily()
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = topBarHeight)
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(modifier = Modifier.size(40.dp))
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(
+                        fontFamily = titleFontFamily,
+                        fontSize = state.fontSize.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+
             IconButton(onClick = {
                 onAnyUserAction()
                 showBookSheet = true
@@ -313,7 +340,7 @@ fun TopBarContent(
                 )
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -322,21 +349,33 @@ private fun BookControlsBar(
     onStateChange: (BibleState) -> Unit,
     onAnyUserAction: () -> Unit
 ) {
+    val sliderColors = SliderDefaults.colors(
+        thumbColor = MaterialTheme.colorScheme.primary,
+        activeTrackColor = Color.Transparent,
+        inactiveTrackColor = Color.Transparent,
+        activeTickColor = MaterialTheme.colorScheme.primary,
+        inactiveTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    )
+
     var bookSliderPosition by remember { mutableFloatStateOf(bibleState.book.toFloat()) }
-    var chapterSliderPosition by remember { mutableFloatStateOf(bibleState.chapter.toFloat()) }
+
+    LaunchedEffect(bibleState.book) {
+        bookSliderPosition = bibleState.book.toFloat()
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = 4.dp)
+            .heightIn(min = BUTTON_SIZE.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         BibleButton(
             buttonText = "-",
             onClick = {
                 if (bibleState.book != 1) {
                     bookSliderPosition--
-                    chapterSliderPosition = 1f
                     onStateChange(bibleState.prevBook())
                     onAnyUserAction()
                     logger.debug { "BibleButton book changed ${bibleState.prevBook()}" }
@@ -344,11 +383,12 @@ private fun BookControlsBar(
             }
         )
 
+        Spacer(modifier = Modifier.width(8.dp))
+
         Slider(
             value = bookSliderPosition,
             onValueChange = {
                 bookSliderPosition = it
-                chapterSliderPosition = 1f
                 onStateChange(bibleState.changeBook(it.roundToInt()))
                 onAnyUserAction()
                 logger.debug { "Slider book changed ${bibleState.changeBook(it.roundToInt())}" }
@@ -357,16 +397,18 @@ private fun BookControlsBar(
             valueRange = 1f..66f,
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 8.dp)
-                .height(BUTTON_SIZE.dp)
+                .padding(horizontal = 4.dp)
+                .height(BUTTON_SIZE.dp),
+            colors = sliderColors
         )
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         BibleButton(
             buttonText = "+",
             onClick = {
                 if (bibleState.book != 66) {
                     bookSliderPosition++
-                    chapterSliderPosition = 1f
                     onStateChange(bibleState.nextBook())
                     onAnyUserAction()
                     logger.debug { "BibleButton book changed ${bibleState.nextBook()}" }
@@ -382,12 +424,25 @@ private fun ChapterControlsBar(
     onStateChange: (BibleState) -> Unit,
     onAnyUserAction: () -> Unit
 ) {
+    val sliderColors = SliderDefaults.colors(
+        thumbColor = MaterialTheme.colorScheme.primary,
+        activeTrackColor = Color.Transparent,
+        inactiveTrackColor = Color.Transparent,
+        activeTickColor = MaterialTheme.colorScheme.primary,
+        inactiveTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    )
+
     var chapterSliderPosition by remember { mutableFloatStateOf(bibleState.chapter.toFloat()) }
+
+    LaunchedEffect(bibleState.book, bibleState.chapter) {
+        chapterSliderPosition = bibleState.chapter.toFloat()
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = 4.dp)
+            .heightIn(min = BUTTON_SIZE.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         BibleButton(
@@ -402,6 +457,8 @@ private fun ChapterControlsBar(
             }
         )
 
+        Spacer(modifier = Modifier.width(8.dp))
+
         Slider(
             value = chapterSliderPosition,
             onValueChange = {
@@ -414,9 +471,12 @@ private fun ChapterControlsBar(
             valueRange = 1f..bibleState.lastChapter().toFloat(),
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 8.dp)
-                .height(BUTTON_SIZE.dp)
+                .padding(horizontal = 4.dp)
+                .height(BUTTON_SIZE.dp),
+            colors = sliderColors
         )
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         BibleButton(
             buttonText = "+",
@@ -459,7 +519,6 @@ private fun BibleReadingArea(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(contentPadding)
             .then(doubleTapModifier)
     ) {
         when (state.readingMode) {
@@ -470,7 +529,7 @@ private fun BibleReadingArea(
     }
 }
 
-private const val AUTO_HIDE_MS: Long = 10_000
+private const val AUTO_HIDE_MS: Long = 60_000
 
 @OptIn(ExperimentalTime::class)
 @Composable
