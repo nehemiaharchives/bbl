@@ -532,7 +532,11 @@ private fun BibleReadingArea(
 
     // 1)  Reset inactivity timer while user scrolls
     LaunchedEffect(scrollState) {
-        snapshotFlow { scrollState.isScrollInProgress }.collect { inProgress -> if (inProgress) chrome.onUserInteraction() }
+        snapshotFlow { scrollState.isScrollInProgress }.collect { inProgress ->
+            if (inProgress && chrome.isVisible()) {
+                chrome.onUserInteraction()
+            }
+        }
     }
 
     // 2) Double-tap anywhere in the reading area to show bars
