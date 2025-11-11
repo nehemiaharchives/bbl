@@ -9,7 +9,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,10 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -233,6 +233,12 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
 
     // Scaffold, top bar, bottom bar, content
     Scaffold(
+        contentWindowInsets = WindowInsets(
+            left = 0.dp,
+            top = 0.dp,
+            right = 0.dp,
+            bottom = 0.dp
+        ),
         topBar = {
             AnimatedVisibility(
                 visible = chrome.isVisible(),
@@ -261,7 +267,11 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                Surface(tonalElevation = 0.dp, shadowElevation = 0.dp) {
+                Surface(
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
+                    modifier = Modifier.navigationBarsPadding()
+                ) {
                     ChapterControlsBar(
                         bibleState = bibleState,
                         onStateChange = { bibleState = it },
@@ -270,12 +280,11 @@ fun BibleApp(platformContext: Any? = null, modifier: Modifier = Modifier) {
                 }
             }
         }
-    ) { innerPadding ->
+    ) { _ ->
         // Reading area. We'll hook scroll + double-tap into it.
         BibleReadingArea(
             state = bibleState,
             onStateChange = { bibleState = it },
-            contentPadding = innerPadding,
             chrome = chrome
         )
     }
@@ -296,7 +305,11 @@ fun TopBarContent(
 
     val topBarHeight = (BUTTON_SIZE + BUTTON_PADDING * 2).dp
 
-    Surface(tonalElevation = 0.dp, shadowElevation = 0.dp) {
+    Surface(
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        modifier = Modifier.statusBarsPadding()
+    ) {
         val titleFontFamily = if (state.isFontFamilySerif) {
             state.mainTranslation.language.serifFontFamily()
         } else {
@@ -496,7 +509,6 @@ private fun ChapterControlsBar(
 private fun BibleReadingArea(
     state: BibleState,
     onStateChange: (BibleState) -> Unit,
-    contentPadding: PaddingValues,
     chrome: ChromeAutoHide
 ) {
     // provide a shared scrollState to observe.
@@ -522,9 +534,9 @@ private fun BibleReadingArea(
             .then(doubleTapModifier)
     ) {
         when (state.readingMode) {
-            ReadingMode.SINGLE -> SingleBible(state, scrollState, contentPadding)
-            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(state, scrollState, contentPadding)
-            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(state, scrollState, contentPadding)
+            ReadingMode.SINGLE -> SingleBible(state, scrollState)
+            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(state, scrollState)
+            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(state, scrollState)
         }
     }
 }
@@ -571,7 +583,7 @@ const val VERSES_COLUMN_FILL_MAX_HEIGHT = 0.999f
 fun Int.isEven() = this % 2 == 0
 
 @Composable
-fun SingleBible(bibleState: BibleState, scrollState: ScrollState, contentPadding: PaddingValues) {
+fun SingleBible(bibleState: BibleState, scrollState: ScrollState) {
 
     logger.debug { "SingleBible bibleState: $bibleState" }
 
@@ -581,7 +593,7 @@ fun SingleBible(bibleState: BibleState, scrollState: ScrollState, contentPadding
     val chapterText = bible().verses(translation = translation.code, book = book, chapter = chapter)
     val verses = splitChapterToVerses(chapterText)
 
-    ScrollableColumn(bibleState, scrollState, contentPadding) {
+    ScrollableColumn(bibleState, scrollState) {
         verses.forEachIndexed { verse, text ->
 
             val background =
@@ -609,8 +621,7 @@ fun SingleBiblePreview() {
         val scrollState = rememberScrollState()
         SingleBible(
             bibleState = BibleState(),
-            scrollState = scrollState,
-            contentPadding = PaddingValues(0.dp)
+            scrollState = scrollState
         )
     }
 }
@@ -671,8 +682,7 @@ private fun getVersePairs(bibleState: BibleState): List<Pair<String, String>> {
 @Composable
 fun BilingualSideBible(
     bibleState: BibleState,
-    scrollState: ScrollState,
-    contentPadding: PaddingValues
+    scrollState: ScrollState
 ) {
     val readingMode = bibleState.readingMode
     if (readingMode != ReadingMode.BILINGUAL_SIDE) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode")
@@ -680,7 +690,7 @@ fun BilingualSideBible(
 
     val versePairs = getVersePairs(bibleState)
 
-    ScrollableColumn(bibleState, scrollState, contentPadding) {
+    ScrollableColumn(bibleState, scrollState) {
         versePairs.forEachIndexed { verse, pair ->
 
             val background =
@@ -721,8 +731,7 @@ fun BilingualSideBiblePreview() {
         val scrollState = rememberScrollState()
         BilingualSideBible(
             bibleState = sideView,
-            scrollState = scrollState,
-            contentPadding = PaddingValues(0.dp)
+            scrollState = scrollState
         )
     }
 }
@@ -730,8 +739,7 @@ fun BilingualSideBiblePreview() {
 @Composable
 fun BilingualUnderBible(
     bibleState: BibleState,
-    scrollState: ScrollState,
-    contentPadding: PaddingValues
+    scrollState: ScrollState
 ) {
     val readingMode = bibleState.readingMode
     if (readingMode != ReadingMode.BILINGUAL_UNDER) throw IllegalArgumentException("ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode")
@@ -739,7 +747,7 @@ fun BilingualUnderBible(
 
     val versePairs = getVersePairs(bibleState)
 
-    ScrollableColumn(bibleState, scrollState, contentPadding) {
+    ScrollableColumn(bibleState, scrollState) {
         versePairs.forEachIndexed { verse, pair ->
 
             val background =
@@ -775,8 +783,7 @@ fun BilingualUnderBiblePreview() {
         val scrollState = rememberScrollState()
         BilingualUnderBible(
             bibleState = downView,
-            scrollState = scrollState,
-            contentPadding = PaddingValues(0.dp)
+            scrollState = scrollState
         )
     }
 }
@@ -785,13 +792,11 @@ fun BilingualUnderBiblePreview() {
 fun ScrollableColumn(
     bibleState: BibleState,
     scrollState: ScrollState,
-    contentPadding: PaddingValues,
     content: @Composable () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(contentPadding)
             .verticalScroll(scrollState)
     ) {
         content()
