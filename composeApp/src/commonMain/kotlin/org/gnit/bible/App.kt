@@ -5,24 +5,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absolutePadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -31,29 +27,28 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.russhwolf.settings.Settings
 import com.vanniktech.locale.Languages
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
@@ -61,11 +56,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.gnit.bible.cmp.Res
+import org.gnit.bible.cmp.arrows_collapse
+import org.gnit.bible.cmp.arrows_expand
+import org.gnit.bible.cmp.font_switch
+import org.gnit.bible.cmp.rows_white
+import org.gnit.bible.cmp.rows_zebra
+import org.gnit.bible.cmp.settings
 import org.gnit.bible.ui.theme.BibleTheme
+import org.gnit.bible.ui.widgets.BIBLE_VIEW_ICON
+import org.gnit.bible.ui.widgets.BIBLE_VIEW_ICON_SPACER
 import org.gnit.bible.ui.widgets.BibleButton
 import org.gnit.bible.ui.widgets.BibleSlider
+import org.gnit.bible.ui.widgets.DROPDOWN_MENU_HEIGHT
+import org.gnit.bible.ui.widgets.DROPDOWN_MENU_ITEM_LEFT_PADDING
+import org.gnit.bible.ui.widgets.DROPDOWN_MENU_ITEM_RIGHT_PADDING
+import org.gnit.bible.ui.widgets.DROPDOWN_MENU_WIDTH
+import org.gnit.bible.ui.widgets.TranslationDropDownMenuItem
 import org.gnit.bible.ui.widgets.sansFontFamily
 import org.gnit.bible.ui.widgets.serifFontFamily
+import org.jetbrains.compose.resources.vectorResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 import kotlin.time.Clock
@@ -261,8 +271,7 @@ fun BibleApp(
             ) {
                 Column {
                     TopBarContent(
-                        title = bibleState.describeBookChapter(),
-                        state = bibleState,
+                        bibleState = bibleState,
                         onStateChange = { bibleState = it },
                         onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
                         onAnyUserAction = { chrome.onUserInteraction() }
@@ -309,16 +318,14 @@ fun BibleApp(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarContent(
-    title: String,
-    state: BibleState,
+    bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
     onOpenSettings: () -> Unit,
     onAnyUserAction: () -> Unit
 ) {
-
-    var showBookSheet by remember { mutableStateOf(false) }
-    var showTranslationMenu by remember { mutableStateOf(false) }
-
+    val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
+        mutableStateOf(bibleState.describeBookChapter())
+    }
     val topBarHeight = (BUTTON_SIZE + BUTTON_PADDING * 2).dp
 
     Surface(
@@ -326,10 +333,10 @@ fun TopBarContent(
         shadowElevation = 0.dp,
         modifier = Modifier.statusBarsPadding()
     ) {
-        val titleFontFamily = if (state.isFontFamilySerif) {
-            state.mainTranslation.language.serifFontFamily()
+        val titleFontFamily = if (bibleState.isFontFamilySerif) {
+            bibleState.mainTranslation.language.serifFontFamily()
         } else {
-            state.mainTranslation.language.sansFontFamily()
+            bibleState.mainTranslation.language.sansFontFamily()
         }
 
         Row(
@@ -347,26 +354,175 @@ fun TopBarContent(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = title,
+                    text = bibleTitle,
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         fontFamily = titleFontFamily,
-                        fontSize = state.fontSize.sp,
+                        fontSize = bibleState.fontSize.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
+            var menuExpanded by remember { mutableStateOf(false) }
+
             IconButton(onClick = {
                 onAnyUserAction()
-                showBookSheet = true
+                menuExpanded = !menuExpanded
             }) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,
                     contentDescription = "Menu"
                 )
+            }
+
+            var settingExpanded by remember { mutableStateOf(false) }
+
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                bible().availableTranslations().forEach {translationItem ->
+                    TranslationDropDownMenuItem(
+                        settingExpanded,
+                        bibleState,
+                        translationItem,
+                        onClickSingleIcon = {
+                            if(bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem){
+                                logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
+                                val changedState = bibleState.copy(mainTranslation = translationItem)
+                                onStateChange(changedState)
+                                menuExpanded = false
+                                logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
+                            }else if(bibleState.readingMode != ReadingMode.SINGLE){
+                                logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
+                                val changedState = bibleState.copy(
+                                    mainTranslation = translationItem,
+                                    subTranslation = null,
+                                    readingMode = ReadingMode.SINGLE
+                                )
+                                onStateChange(changedState)
+                                menuExpanded = false
+                            }
+                        },
+                        onClickSideIcon = {
+                            if(bibleState.isSingleMain(translationItem)){
+                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking side icon" }
+                            }else{
+                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to SIDE" }
+                                val changedState = bibleState.copy(
+                                    subTranslation = translationItem,
+                                    readingMode = ReadingMode.BILINGUAL_SIDE
+                                )
+                                onStateChange(changedState)
+                                menuExpanded = false
+                            }
+                        },
+                        onClickUnderIcon = {
+                            if(bibleState.isSingleMain(translationItem)){
+                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
+                            }else{
+                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
+                                val changedState = bibleState.copy(
+                                    subTranslation = translationItem,
+                                    readingMode = ReadingMode.BILINGUAL_UNDER
+                                )
+                                onStateChange(changedState)
+                                menuExpanded = false
+                            }
+                        }
+                    )
+                }
+
+                Box(modifier = Modifier
+                    .height(DROPDOWN_MENU_HEIGHT.dp)
+                    .width(DROPDOWN_MENU_WIDTH.dp)
+                    .absolutePadding(
+                        left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp,
+                        right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
+                    )
+                ) {
+                    Row(Modifier.align(Alignment.CenterEnd)) {
+                        if (settingExpanded){
+
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.font_switch),
+                                contentDescription = "Switch FontFamily between Serif and SansSerif",
+                                modifier = Modifier
+                                    .size(BIBLE_VIEW_ICON.dp)
+                                    .clickable {
+                                        onStateChange(bibleState.copy(isFontFamilySerif = !bibleState.isFontFamilySerif))
+                                    },
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+
+                            Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.arrows_collapse),
+                                contentDescription = "Narrower space between verses",
+                                modifier = Modifier
+                                    .size(BIBLE_VIEW_ICON.dp)
+                                    .clickable {
+                                        if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MIN) onStateChange(
+                                            bibleState.narrowerSpaceBetweenVerses())
+                                    },
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+
+                            Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.arrows_expand),
+                                contentDescription = "Wider space between verses",
+                                modifier = Modifier
+                                    .size(BIBLE_VIEW_ICON.dp)
+                                    .clickable {
+                                        if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MAX) onStateChange(
+                                            bibleState.widerSpaceBetweenVerses())
+                                    },
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+
+                            Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.rows_white),
+                                contentDescription = "Rows with plain background",
+                                modifier = Modifier
+                                    .size(BIBLE_VIEW_ICON.dp)
+                                    .clickable {
+                                        onStateChange(bibleState.copy(isZebraBackground = false))
+                                    },
+                                tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.rows_zebra),
+                                contentDescription = "Rows with zebra background",
+                                modifier = Modifier
+                                    .size(BIBLE_VIEW_ICON.dp)
+                                    .clickable {
+                                        onStateChange(bibleState.copy(isZebraBackground = true))
+                                    },
+                                tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                            )
+
+                            Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                        }
+
+                        Icon(
+                            imageVector = vectorResource(Res.drawable.settings),
+                            contentDescription = "Settings",
+                            modifier = Modifier
+                                .size(BIBLE_VIEW_ICON.dp)
+                                .clickable { settingExpanded = !settingExpanded },
+                            tint = if (settingExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
             }
         }
     }

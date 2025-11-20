@@ -118,7 +118,7 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         return when{
             translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
             translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
-            embeddedTranslationCodes.contains(translation) -> bibleTextReader.getChapterText(translation = "webus", book = book, chapter = chapter)
+            embeddedTranslationCodes.contains(translation) -> bibleTextReader.getChapterText(translation = translation, book = book, chapter = chapter)
             assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
             else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
