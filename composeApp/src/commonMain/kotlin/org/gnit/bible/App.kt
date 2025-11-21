@@ -393,58 +393,65 @@ fun TopBarContent(
                     modifier = Modifier
                         .width(DROPDOWN_MENU_WIDTH.dp)
                         .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
-                        .verticalScroll(dropdownScrollState)
                 ) {
-                    bible().availableTranslations().forEach { translationItem ->
-                        TranslationDropDownMenuItem(
-                            settingExpanded = settingExpanded,
-                            bibleState = bibleState,
-                            translationItem = translationItem,
-                            onClickSingleIcon = {
-                                if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
-                                    logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
-                                    val changedState = bibleState.copy(mainTranslation = translationItem)
-                                    onStateChange(changedState)
-                                    menuExpanded = false
-                                    logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
-                                } else if (bibleState.readingMode != ReadingMode.SINGLE) {
-                                    logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
-                                    val changedState = bibleState.copy(
-                                        mainTranslation = translationItem,
-                                        subTranslation = null,
-                                        readingMode = ReadingMode.SINGLE
-                                    )
-                                    onStateChange(changedState)
-                                    menuExpanded = false
-                                }
-                            },
-                            onClickSideIcon = {
-                                if (bibleState.isSingleMain(translationItem)) {
-                                    logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking side icon" }
-                                } else {
-                                    logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to SIDE" }
-                                    val changedState = bibleState.copy(
-                                        subTranslation = translationItem,
-                                        readingMode = ReadingMode.BILINGUAL_SIDE
-                                    )
-                                    onStateChange(changedState)
-                                    menuExpanded = false
-                                }
-                            },
-                            onClickUnderIcon = {
-                                if (bibleState.isSingleMain(translationItem)) {
-                                    logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
-                                } else {
-                                    logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
-                                    val changedState = bibleState.copy(
-                                        subTranslation = translationItem,
-                                        readingMode = ReadingMode.BILINGUAL_UNDER
-                                    )
-                                    onStateChange(changedState)
-                                    menuExpanded = false
-                                }
+                    Box(
+                        modifier = Modifier
+                            .heightIn(max = (DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
+                            .verticalScroll(dropdownScrollState)
+                    ) {
+                        Column {
+                            bible().availableTranslations().forEach { translationItem ->
+                                TranslationDropDownMenuItem(
+                                    settingExpanded = settingExpanded,
+                                    bibleState = bibleState,
+                                    translationItem = translationItem,
+                                    onClickSingleIcon = {
+                                        if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
+                                            logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
+                                            val changedState = bibleState.copy(mainTranslation = translationItem)
+                                            onStateChange(changedState)
+                                            menuExpanded = false
+                                            logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
+                                        } else if (bibleState.readingMode != ReadingMode.SINGLE) {
+                                            logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
+                                            val changedState = bibleState.copy(
+                                                mainTranslation = translationItem,
+                                                subTranslation = null,
+                                                readingMode = ReadingMode.SINGLE
+                                            )
+                                            onStateChange(changedState)
+                                            menuExpanded = false
+                                        }
+                                    },
+                                    onClickSideIcon = {
+                                        if (bibleState.isSingleMain(translationItem)) {
+                                            logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking side icon" }
+                                        } else {
+                                            logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to SIDE" }
+                                            val changedState = bibleState.copy(
+                                                subTranslation = translationItem,
+                                                readingMode = ReadingMode.BILINGUAL_SIDE
+                                            )
+                                            onStateChange(changedState)
+                                            menuExpanded = false
+                                        }
+                                    },
+                                    onClickUnderIcon = {
+                                        if (bibleState.isSingleMain(translationItem)) {
+                                            logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
+                                        } else {
+                                            logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
+                                            val changedState = bibleState.copy(
+                                                subTranslation = translationItem,
+                                                readingMode = ReadingMode.BILINGUAL_UNDER
+                                            )
+                                            onStateChange(changedState)
+                                            menuExpanded = false
+                                        }
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
 
                     Box(
@@ -539,10 +546,10 @@ fun TopBarContent(
                         }
                     }
                 }
-                }
             }
         }
     }
+}
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
