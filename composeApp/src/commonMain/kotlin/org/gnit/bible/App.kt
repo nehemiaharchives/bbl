@@ -801,17 +801,21 @@ fun SingleBible(bibleState: BibleState, scrollState: ScrollState) {
             val background =
                 if (bibleState.isZebraBackground && verse.isEven()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background
 
-            Text(
-                text = "${verse + 1} $text",
-                style = TextStyle(
-                    fontSize = bibleState.fontSize.sp,
-                    fontFamily = if (bibleState.isFontFamilySerif) translation.language.serifFontFamily() else translation.language.sansFontFamily()
-                ),
+            Row(
                 modifier = Modifier
-                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
-                    .background(background)
                     .fillMaxWidth()
-            )
+                    .background(background)
+                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+            ) {
+                Text(
+                    text = "${verse + 1} $text",
+                    style = TextStyle(
+                        fontSize = bibleState.fontSize.sp,
+                        fontFamily = if (bibleState.isFontFamilySerif) translation.language.serifFontFamily() else translation.language.sansFontFamily()
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -900,8 +904,9 @@ fun BilingualSideBible(
 
             Row(
                 modifier = Modifier
-                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                    .fillMaxWidth()
                     .background(background)
+                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
             ) {
                 Text(
                     text = "${verse + 1} ${pair.first}",
@@ -955,7 +960,11 @@ fun BilingualUnderBible(
             val background =
                 if (bibleState.isZebraBackground && verse.isEven()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background
 
-            Column(modifier = Modifier.background(background)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(background)
+            ) {
                 Text(
                     text = "${verse + 1} ${pair.first}",
                     style = TextStyle(
@@ -969,7 +978,9 @@ fun BilingualUnderBible(
                         fontSize = bibleState.fontSize.sp,
                         fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily()
                     ),
-                    modifier = Modifier.absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
                 )
             }
         }
