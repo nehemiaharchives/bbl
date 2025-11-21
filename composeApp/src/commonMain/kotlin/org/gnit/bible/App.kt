@@ -5,9 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -406,10 +407,18 @@ fun TopBarContent(
                     Box(
                         modifier = Modifier
                             .heightIn(max = (DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
-                            .verticalScroll(dropdownScrollState)
                     ) {
-                        Column {
-                            bible().availableTranslations().forEach { translationItem ->
+                        Column(
+                            modifier = Modifier.verticalScroll(dropdownScrollState)
+                        ) {
+                            val translations = bible().availableTranslations()
+                            translations.forEachIndexed { index, translationItem ->
+                                if (index != 0) {
+                                    HorizontalDivider(
+                                        thickness = 1.dp,
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                    )
+                                }
                                 TranslationDropDownMenuItem(
                                     settingExpanded = settingExpanded,
                                     bibleState = bibleState,
@@ -467,7 +476,7 @@ fun TopBarContent(
                         }
                     }
 
-                    Box(
+                    Column(
                         modifier = Modifier
                             .height(DROPDOWN_MENU_HEIGHT.dp)
                             .width(DROPDOWN_MENU_WIDTH.dp)
@@ -476,7 +485,17 @@ fun TopBarContent(
                                 right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
                             )
                     ) {
-                        Row(Modifier.align(Alignment.CenterEnd)) {
+                        HorizontalDivider(
+                            thickness = 1.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
                             if (settingExpanded) {
                                 Icon(
                                     imageVector = vectorResource(Res.drawable.font_switch),
@@ -544,9 +563,9 @@ fun TopBarContent(
                                         },
                                     tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                                 )
-
-                                Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
                             }
+
+                            Spacer(modifier = Modifier.weight(1f))
 
                             Icon(
                                 imageVector = vectorResource(Res.drawable.settings),

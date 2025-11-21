@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -36,6 +36,7 @@ const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
 const val DROPDOWN_MENU_HEIGHT = 55
+const val DROPDOWN_MENU_HEIGHT_EXPANDED = 82
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
 
 @Composable
@@ -52,13 +53,18 @@ fun TranslationDropDownMenuItem(
     val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
 
     Box(modifier = modifier
-        .height(DROPDOWN_MENU_HEIGHT.dp)
+        .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
         .width(DROPDOWN_MENU_WIDTH.dp)
         .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
     ){
         Text(
             text = text,
-            modifier = modifier.align(Alignment.CenterStart).fillMaxWidth().clickable { onClickSingleIcon() }
+            maxLines = 2,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = modifier
+                .align(Alignment.CenterStart)
+                .fillMaxWidth()
+                .clickable { onClickSingleIcon() }
         )
 
         if (settingExpanded){
