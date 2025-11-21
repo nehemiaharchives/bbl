@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -368,27 +369,26 @@ fun TopBarContent(
             }
 
             var menuExpanded by remember { mutableStateOf(false) }
-
-            IconButton(onClick = {
-                onAnyUserAction()
-                menuExpanded = !menuExpanded
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "Menu"
-                )
-            }
-
-
             var settingExpanded by remember { mutableStateOf(false) }
 
             val dropdownScrollState = rememberScrollState()
 
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
-            ) {
+            Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+                IconButton(onClick = {
+                    onAnyUserAction()
+                    menuExpanded = !menuExpanded
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "Menu"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                    modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+                ) {
                 Column(
                     modifier = Modifier
                         .width(DROPDOWN_MENU_WIDTH.dp)
@@ -538,6 +538,7 @@ fun TopBarContent(
                             )
                         }
                     }
+                }
                 }
             }
         }
