@@ -36,6 +36,7 @@ const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
 const val DROPDOWN_MENU_HEIGHT = 55
+const val DROPDOWN_MENU_MAX_HEIGHT = 360
 
 @Composable
 fun TranslationDropDownMenuItem(
