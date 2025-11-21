@@ -276,7 +276,11 @@ fun BibleApp(
                         bibleState = bibleState,
                         onStateChange = { bibleState = it },
                         onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
-                        onAnyUserAction = { chrome.onUserInteraction() }
+                        onAnyUserAction = { chrome.onUserInteraction() },
+                        onDropdownVisibilityChange = { isOpen ->
+                            chrome.setPause(isOpen)
+                            if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
+                        }
                     )
                     BookControlsBar(
                         bibleState = bibleState,
@@ -323,7 +327,8 @@ fun TopBarContent(
     bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
     onOpenSettings: () -> Unit,
-    onAnyUserAction: () -> Unit
+    onAnyUserAction: () -> Unit,
+    onDropdownVisibilityChange: (Boolean) -> Unit
 ) {
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
@@ -377,6 +382,7 @@ fun TopBarContent(
                 IconButton(onClick = {
                     onAnyUserAction()
                     menuExpanded = !menuExpanded
+                    onDropdownVisibilityChange(menuExpanded)
                 }) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
@@ -386,7 +392,10 @@ fun TopBarContent(
 
                 DropdownMenu(
                     expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
+                    onDismissRequest = {
+                        menuExpanded = false
+                        onDropdownVisibilityChange(false)
+                    },
                     modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
                 ) {
                 Column(
@@ -411,6 +420,7 @@ fun TopBarContent(
                                             val changedState = bibleState.copy(mainTranslation = translationItem)
                                             onStateChange(changedState)
                                             menuExpanded = false
+                                            onDropdownVisibilityChange(false)
                                             logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
                                         } else if (bibleState.readingMode != ReadingMode.SINGLE) {
                                             logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
@@ -421,6 +431,7 @@ fun TopBarContent(
                                             )
                                             onStateChange(changedState)
                                             menuExpanded = false
+                                            onDropdownVisibilityChange(false)
                                         }
                                     },
                                     onClickSideIcon = {
@@ -434,6 +445,7 @@ fun TopBarContent(
                                             )
                                             onStateChange(changedState)
                                             menuExpanded = false
+                                            onDropdownVisibilityChange(false)
                                         }
                                     },
                                     onClickUnderIcon = {
@@ -447,6 +459,7 @@ fun TopBarContent(
                                             )
                                             onStateChange(changedState)
                                             menuExpanded = false
+                                            onDropdownVisibilityChange(false)
                                         }
                                     }
                                 )
@@ -744,14 +757,16 @@ private const val AUTO_HIDE_MS: Long = 60_000
 private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAutoHide {
     var visible by remember { mutableStateOf(initiallyVisible) }
     var lastInteraction by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
+    var pauseHide by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     // background job: hide after inactivity
-    LaunchedEffect(lastInteraction) {
+    LaunchedEffect(lastInteraction, pauseHide) {
+        if (pauseHide) return@LaunchedEffect
         val started = lastInteraction
         delay(AUTO_HIDE_MS)
         // only hide if nothing bumped the timestamp since we started
-        if (lastInteraction == started) visible = false
+        if (!pauseHide && lastInteraction == started) visible = false
     }
 
     fun bump() {
@@ -768,7 +783,11 @@ private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAuto
             isVisible = { visible },
             onUserInteraction = { bump() },
             forceShow = { visible = true; bump() },
-            forceHide = { hide() }
+            forceHide = { hide() },
+            setPause = { pause ->
+                pauseHide = pause
+                if (pause) visible = true
+            }
         )
     }
 }
@@ -777,7 +796,8 @@ private class ChromeAutoHide(
     val isVisible: () -> Boolean,
     val onUserInteraction: () -> Unit,
     val forceShow: () -> Unit,
-    val forceHide: () -> Unit
+    val forceHide: () -> Unit,
+    val setPause: (Boolean) -> Unit
 )
 
 const val VERSES_COLUMN_FILL_MAX_HEIGHT = 0.999f
