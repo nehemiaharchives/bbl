@@ -140,7 +140,7 @@ val BibleStateSaver = Saver<BibleState, String>(
 )
 
 const val BUTTON_PADDING = 5
-const val BUTTON_SIZE = 32
+const val BUTTON_SIZE = 28
 const val BUTTON_ROUND = 5
 const val BUTTON_TEXT_FONT_SIZE = 15
 const val BUTTON_CONTENT_PADDING = 0
@@ -351,11 +351,11 @@ fun TopBarContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = topBarHeight)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 12.dp, vertical = 0.dp),
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(modifier = Modifier.size(40.dp))
+            Box(modifier = Modifier.size(BUTTON_SIZE.dp))
 
             Box(
                 modifier = Modifier.weight(1f),
@@ -379,7 +379,9 @@ fun TopBarContent(
 
             val dropdownScrollState = rememberScrollState()
 
-            Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+            Box(modifier = Modifier
+                .size(BUTTON_SIZE.dp)
+                .wrapContentSize(Alignment.TopEnd)) {
                 IconButton(onClick = {
                     onAnyUserAction()
                     menuExpanded = !menuExpanded
@@ -600,7 +602,7 @@ private fun BookControlsBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp)
+            .padding(horizontal = 4.dp, vertical = 0.dp)
             .heightIn(min = BUTTON_SIZE.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
