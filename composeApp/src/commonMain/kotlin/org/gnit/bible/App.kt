@@ -7,6 +7,9 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -251,7 +254,6 @@ fun BibleApp(
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
 
     var bibleTitle by rememberSaveable { mutableStateOf(bibleState.describeBookChapter()) }
-    var zoom by remember { mutableFloatStateOf(bibleState.fontSize.toFloat()) }
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -726,6 +728,13 @@ private fun BibleReadingArea(
     chromeVisible: Boolean,
     innerPadding: PaddingValues
 ) {
+    var zoom by remember { mutableFloatStateOf(state.fontSize.toFloat()) }
+    val currentState by rememberUpdatedState(state)
+
+    LaunchedEffect(state.fontSize) {
+        zoom = state.fontSize.toFloat()
+    }
+
     // provide a shared scrollState to observe.
     val scrollState = rememberScrollState()
 
@@ -751,6 +760,33 @@ private fun BibleReadingArea(
         )
     }
 
+    val pinchZoomModifier = Modifier.pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown()
+            do {
+                val event = awaitPointerEvent()
+                val oldZoom = zoom
+
+                if (zoom in 5f..400f) {
+                    zoom *= event.calculateZoom()
+
+                    if (oldZoom != zoom) {
+                        val intZoomValue = zoom.roundToInt().coerceIn(5, 400)
+                        if (currentState.fontSize != intZoomValue) {
+                            onStateChange(currentState.copy(fontSize = intZoomValue))
+                            chrome.onUserInteraction()
+                        }
+                        zoom = intZoomValue.toFloat()
+                    }
+                } else if (zoom > 400f) {
+                    zoom = 399.9f
+                } else if (zoom < 5f) {
+                    zoom = 5.1f
+                }
+            } while (event.changes.any { it.pressed })
+        }
+    }
+
     // 3) Container that applies Scaffold padding and offsets for chrome
     val topChromePadding = 0.dp
     val bottomChromePadding = 0.dp
@@ -761,6 +797,7 @@ private fun BibleReadingArea(
             .padding(innerPadding)
             .padding(top = topChromePadding, bottom = bottomChromePadding)
             .then(tapModifier)
+            .then(pinchZoomModifier)
     ) {
         when (state.readingMode) {
             ReadingMode.SINGLE -> SingleBible(state, scrollState)
