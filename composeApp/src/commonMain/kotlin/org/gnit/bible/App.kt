@@ -738,17 +738,16 @@ private fun BibleReadingArea(
         }
     }
 
-    // 2) Double-tap anywhere in the reading area to show bars
-    val doubleTapModifier = Modifier.pointerInput(Unit) {
+    // 2) Single-tap anywhere in the reading area to show/hide bars
+    val tapModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(
-            onDoubleTap = {
+            onTap = {
                 if (chrome.isVisible()) {
                     chrome.forceHide()
                 } else {
                     chrome.forceShow()
                 }
-            },
-            //onTap = { chrome.onUserInteraction } // single taps also count if needed
+            }
         )
     }
 
@@ -761,7 +760,7 @@ private fun BibleReadingArea(
             .fillMaxSize()
             .padding(innerPadding)
             .padding(top = topChromePadding, bottom = bottomChromePadding)
-            .then(doubleTapModifier)
+            .then(tapModifier)
     ) {
         when (state.readingMode) {
             ReadingMode.SINGLE -> SingleBible(state, scrollState)
