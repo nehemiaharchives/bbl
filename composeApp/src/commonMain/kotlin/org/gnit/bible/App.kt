@@ -785,7 +785,11 @@ private fun BibleReadingArea(
                         val intZoomValue = zoom.roundToInt().coerceIn(5, 400)
                         if (currentState.fontSize != intZoomValue) {
                             onStateChange(currentState.copy(fontSize = intZoomValue))
-                            chrome.onUserInteraction()
+                            // Only keep the chrome awake if it's already visible; avoid
+                            // resurrecting the UI while the user pinches in auto-hide mode.
+                            if (chrome.isVisible()) {
+                                chrome.onUserInteraction()
+                            }
                         }
                         zoom = intZoomValue.toFloat()
                     }
