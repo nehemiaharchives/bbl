@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,7 +47,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,6 +83,8 @@ import org.gnit.bible.ui.widgets.sansFontFamily
 import org.gnit.bible.ui.widgets.serifFontFamily
 import org.jetbrains.compose.resources.vectorResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -142,7 +144,6 @@ val BibleStateSaver = Saver<BibleState, String>(
     restore = { it.toBibleState() }
 )
 
-const val BUTTON_PADDING = 5
 const val BUTTON_SIZE = 30
 const val SPACE_BETWEEN_BUTTON_WITH_SLIDER = 1
 const val BUTTON_ROUND = 5
@@ -275,7 +276,10 @@ fun BibleApp(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                Column {
+                Column(modifier = Modifier.padding(vertical = 0.dp)
+                    //.height(70.dp)
+                    //.fillMaxHeight()
+                ) {
                     TopBarContent(
                         bibleState = bibleState,
                         onStateChange = { bibleState = it },
@@ -337,7 +341,6 @@ fun TopBarContent(
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
     }
-    val topBarHeight = (BUTTON_SIZE + BUTTON_PADDING * 2).dp
 
     Surface(
         tonalElevation = 0.dp,
@@ -353,7 +356,6 @@ fun TopBarContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = topBarHeight)
                 .padding(horizontal = 12.dp, vertical = 0.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -361,7 +363,9 @@ fun TopBarContent(
             Box(modifier = Modifier.size(BUTTON_SIZE.dp))
 
             Box(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .padding(top = max(min(bibleState.fontSize, 10), 5).dp)
+                    .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -371,7 +375,7 @@ fun TopBarContent(
                     overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         fontFamily = titleFontFamily,
-                        fontSize = bibleState.fontSize.sp,
+                        fontSize = (max(min(bibleState.fontSize * 1.4F, 40.0F), 16F)).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 )
@@ -610,9 +614,9 @@ private fun BookControlsBar(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 0.dp)
-            .heightIn(min = BUTTON_SIZE.dp),
+            .height(BUTTON_SIZE.dp)
+            .padding(horizontal = 4.dp),
+
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -863,8 +867,6 @@ private class ChromeAutoHide(
     val forceHide: () -> Unit,
     val setPause: (Boolean) -> Unit
 )
-
-const val VERSES_COLUMN_FILL_MAX_HEIGHT = 0.999f
 
 fun Int.isEven() = this % 2 == 0
 
