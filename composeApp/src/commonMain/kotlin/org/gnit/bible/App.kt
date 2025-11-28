@@ -143,7 +143,8 @@ val BibleStateSaver = Saver<BibleState, String>(
 )
 
 const val BUTTON_PADDING = 5
-const val BUTTON_SIZE = 28
+const val BUTTON_SIZE = 30
+const val SPACE_BETWEEN_BUTTON_WITH_SLIDER = 1
 const val BUTTON_ROUND = 5
 const val BUTTON_TEXT_FONT_SIZE = 15
 const val BUTTON_CONTENT_PADDING = 0
@@ -627,7 +628,7 @@ private fun BookControlsBar(
             }
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(SPACE_BETWEEN_BUTTON_WITH_SLIDER.dp))
 
         BibleSlider(
             value = bookSliderPosition,
@@ -644,7 +645,7 @@ private fun BookControlsBar(
                 .padding(horizontal = 4.dp)
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(SPACE_BETWEEN_BUTTON_WITH_SLIDER.dp))
 
         BibleButton(
             buttonText = "+",
@@ -693,7 +694,7 @@ private fun ChapterControlsBar(
             }
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(SPACE_BETWEEN_BUTTON_WITH_SLIDER.dp))
 
         BibleSlider(
             value = chapterSliderPosition,
@@ -710,7 +711,7 @@ private fun ChapterControlsBar(
                 .padding(horizontal = 4.dp)
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(SPACE_BETWEEN_BUTTON_WITH_SLIDER.dp))
 
         BibleButton(
             buttonText = "+",
