@@ -623,7 +623,7 @@ private fun BookControlsBar(
         modifier = Modifier
             .windowInsetsPadding(
                 WindowInsets.safeDrawing.only(
-                    WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+                    WindowInsetsSides.Horizontal
                 )
             )
             .height(BUTTON_SIZE.dp)
