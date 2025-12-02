@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -345,6 +346,7 @@ fun TopBarContent(
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
     }
+    val translations = remember { availableTranslationsSafe() }
 
     Surface(
         tonalElevation = 0.dp,
@@ -409,201 +411,310 @@ fun TopBarContent(
                     )
                 }
 
-                DropdownMenu(
+                TranslationDropdownMenu(
                     expanded = menuExpanded,
-                    onDismissRequest = {
-                        menuExpanded = false
-                        onDropdownVisibilityChange(false)
+                    settingExpanded = settingExpanded,
+                    bibleState = bibleState,
+                    translations = translations,
+                    dropdownScrollState = dropdownScrollState,
+                    onExpandedChange = { isExpanded ->
+                        menuExpanded = isExpanded
+                        onDropdownVisibilityChange(isExpanded)
                     },
-                    modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(DROPDOWN_MENU_WIDTH.dp)
-                            .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .heightIn(max = (DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.verticalScroll(dropdownScrollState)
-                            ) {
-                                val translations = bible().availableTranslations()
-                                translations.forEachIndexed { index, translationItem ->
-                                    if (index != 0) {
-                                        HorizontalDivider(
-                                            thickness = 1.dp,
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                                alpha = 0.4f
-                                            )
-                                        )
-                                    }
-                                    TranslationDropDownMenuItem(
-                                        settingExpanded = settingExpanded,
-                                        bibleState = bibleState,
-                                        translationItem = translationItem,
-                                        onClickSingleIcon = {
-                                            if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
-                                                logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
-                                                val changedState =
-                                                    bibleState.copy(mainTranslation = translationItem)
-                                                onStateChange(changedState)
-                                                menuExpanded = false
-                                                onDropdownVisibilityChange(false)
-                                                logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
-                                            } else if (bibleState.readingMode != ReadingMode.SINGLE) {
-                                                logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
-                                                val changedState = bibleState.copy(
-                                                    mainTranslation = translationItem,
-                                                    subTranslation = null,
-                                                    readingMode = ReadingMode.SINGLE
-                                                )
-                                                onStateChange(changedState)
-                                                menuExpanded = false
-                                                onDropdownVisibilityChange(false)
-                                            }
-                                        },
-                                        onClickSideIcon = {
-                                            if (bibleState.isSingleMain(translationItem)) {
-                                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking side icon" }
-                                            } else {
-                                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to SIDE" }
-                                                val changedState = bibleState.copy(
-                                                    subTranslation = translationItem,
-                                                    readingMode = ReadingMode.BILINGUAL_SIDE
-                                                )
-                                                onStateChange(changedState)
-                                                menuExpanded = false
-                                                onDropdownVisibilityChange(false)
-                                            }
-                                        },
-                                        onClickUnderIcon = {
-                                            if (bibleState.isSingleMain(translationItem)) {
-                                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
-                                            } else {
-                                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
-                                                val changedState = bibleState.copy(
-                                                    subTranslation = translationItem,
-                                                    readingMode = ReadingMode.BILINGUAL_UNDER
-                                                )
-                                                onStateChange(changedState)
-                                                menuExpanded = false
-                                                onDropdownVisibilityChange(false)
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .height(DROPDOWN_MENU_HEIGHT.dp)
-                                .width(DROPDOWN_MENU_WIDTH.dp)
-                                .absolutePadding(
-                                    left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp,
-                                    right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
-                                )
-                        ) {
-                            HorizontalDivider(
-                                thickness = 1.5.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                if (settingExpanded) {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.font_switch),
-                                        contentDescription = "Switch FontFamily between Serif and SansSerif",
-                                        modifier = Modifier
-                                            .size(BIBLE_VIEW_ICON.dp)
-                                            .clickable {
-                                                onStateChange(bibleState.copy(isFontFamilySerif = !bibleState.isFontFamilySerif))
-                                            },
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-
-                                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
-
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.arrows_collapse),
-                                        contentDescription = "Narrower space between verses",
-                                        modifier = Modifier
-                                            .size(BIBLE_VIEW_ICON.dp)
-                                            .clickable {
-                                                if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MIN) onStateChange(
-                                                    bibleState.narrowerSpaceBetweenVerses()
-                                                )
-                                            },
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-
-                                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
-
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.arrows_expand),
-                                        contentDescription = "Wider space between verses",
-                                        modifier = Modifier
-                                            .size(BIBLE_VIEW_ICON.dp)
-                                            .clickable {
-                                                if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MAX) onStateChange(
-                                                    bibleState.widerSpaceBetweenVerses()
-                                                )
-                                            },
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-
-                                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
-
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.rows_white),
-                                        contentDescription = "Rows with plain background",
-                                        modifier = Modifier
-                                            .size(BIBLE_VIEW_ICON.dp)
-                                            .clickable {
-                                                onStateChange(bibleState.copy(isZebraBackground = false))
-                                            },
-                                        tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                                    )
-
-                                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
-
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.rows_zebra),
-                                        contentDescription = "Rows with zebra background",
-                                        modifier = Modifier
-                                            .size(BIBLE_VIEW_ICON.dp)
-                                            .clickable {
-                                                onStateChange(bibleState.copy(isZebraBackground = true))
-                                            },
-                                        tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.settings),
-                                    contentDescription = "Settings",
-                                    modifier = Modifier
-                                        .size(BIBLE_VIEW_ICON.dp)
-                                        .clickable { settingExpanded = !settingExpanded },
-                                    tint = if (settingExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                    }
-                }
+                    onSettingExpandedChange = { settingExpanded = it },
+                    onStateChange = onStateChange
+                )
             }
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TranslationDropdownMenu(
+    expanded: Boolean,
+    settingExpanded: Boolean,
+    bibleState: BibleState,
+    translations: List<Translation>,
+    dropdownScrollState: ScrollState,
+    onExpandedChange: (Boolean) -> Unit,
+    onSettingExpandedChange: (Boolean) -> Unit,
+    onStateChange: (BibleState) -> Unit
+) {
+    val inspectionMode = LocalInspectionMode.current
+    if (inspectionMode) {
+        Surface(
+            tonalElevation = 4.dp,
+            shadowElevation = 4.dp,
+            modifier = Modifier
+                .width(DROPDOWN_MENU_WIDTH.dp)
+                .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+        ) {
+            DropdownMenuContent(
+                settingExpanded = settingExpanded,
+                bibleState = bibleState,
+                translations = translations,
+                dropdownScrollState = dropdownScrollState,
+                onExpandedChange = onExpandedChange,
+                onSettingExpandedChange = onSettingExpandedChange,
+                onStateChange = onStateChange
+            )
+        }
+    } else {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+            modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+        ) {
+            DropdownMenuContent(
+                settingExpanded = settingExpanded,
+                bibleState = bibleState,
+                translations = translations,
+                dropdownScrollState = dropdownScrollState,
+                onExpandedChange = onExpandedChange,
+                onSettingExpandedChange = onSettingExpandedChange,
+                onStateChange = onStateChange
+            )
+        }
+    }
+}
+
+@Composable
+private fun DropdownMenuContent(
+    settingExpanded: Boolean,
+    bibleState: BibleState,
+    translations: List<Translation>,
+    dropdownScrollState: ScrollState,
+    onExpandedChange: (Boolean) -> Unit,
+    onSettingExpandedChange: (Boolean) -> Unit,
+    onStateChange: (BibleState) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(DROPDOWN_MENU_WIDTH.dp)
+            .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .heightIn(max = (DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
+        ) {
+            Column(
+                modifier = Modifier.verticalScroll(dropdownScrollState)
+            ) {
+                translations.forEachIndexed { index, translationItem ->
+                    if (index != 0) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = 0.4f
+                            )
+                        )
+                    }
+                    TranslationDropDownMenuItem(
+                        settingExpanded = settingExpanded,
+                        bibleState = bibleState,
+                        translationItem = translationItem,
+                        onClickSingleIcon = {
+                            if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
+                                logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
+                                val changedState =
+                                    bibleState.copy(mainTranslation = translationItem)
+                                onStateChange(changedState)
+                                onExpandedChange(false)
+                                logger.debug { "DropdownMenuItem mainTranslation changed $bibleState" }
+                            } else if (bibleState.readingMode != ReadingMode.SINGLE) {
+                                logger.debug { "DropDownMenu Reading Mode will be changed from Bilingual(Side|Under) to Single. mainTranslation will be changed. subTranslation will be null" }
+                                val changedState = bibleState.copy(
+                                    mainTranslation = translationItem,
+                                    subTranslation = null,
+                                    readingMode = ReadingMode.SINGLE
+                                )
+                                onStateChange(changedState)
+                                onExpandedChange(false)
+                            }
+                        },
+                        onClickSideIcon = {
+                            if (bibleState.isSingleMain(translationItem)) {
+                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking side icon" }
+                            } else {
+                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to SIDE" }
+                                val changedState = bibleState.copy(
+                                    subTranslation = translationItem,
+                                    readingMode = ReadingMode.BILINGUAL_SIDE
+                                )
+                                onStateChange(changedState)
+                                onExpandedChange(false)
+                            }
+                        },
+                        onClickUnderIcon = {
+                            if (bibleState.isSingleMain(translationItem)) {
+                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
+                            } else {
+                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
+                                val changedState = bibleState.copy(
+                                    subTranslation = translationItem,
+                                    readingMode = ReadingMode.BILINGUAL_UNDER
+                                )
+                                onStateChange(changedState)
+                                onExpandedChange(false)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .height(DROPDOWN_MENU_HEIGHT.dp)
+                .width(DROPDOWN_MENU_WIDTH.dp)
+                .absolutePadding(
+                    left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp,
+                    right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
+                )
+        ) {
+            HorizontalDivider(
+                thickness = 1.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                if (settingExpanded) {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.font_switch),
+                        contentDescription = "Switch FontFamily between Serif and SansSerif",
+                        modifier = Modifier
+                            .size(BIBLE_VIEW_ICON.dp)
+                            .clickable {
+                                onStateChange(bibleState.copy(isFontFamilySerif = !bibleState.isFontFamilySerif))
+                            },
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.arrows_collapse),
+                        contentDescription = "Narrower space between verses",
+                        modifier = Modifier
+                            .size(BIBLE_VIEW_ICON.dp)
+                            .clickable {
+                                if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MIN) onStateChange(
+                                    bibleState.narrowerSpaceBetweenVerses()
+                                )
+                            },
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.arrows_expand),
+                        contentDescription = "Wider space between verses",
+                        modifier = Modifier
+                            .size(BIBLE_VIEW_ICON.dp)
+                            .clickable {
+                                if (bibleState.spaceBetweenVerses != SPACE_BETWEEN_VERSES_MAX) onStateChange(
+                                    bibleState.widerSpaceBetweenVerses()
+                                )
+                            },
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.rows_white),
+                        contentDescription = "Rows with plain background",
+                        modifier = Modifier
+                            .size(BIBLE_VIEW_ICON.dp)
+                            .clickable {
+                                onStateChange(bibleState.copy(isZebraBackground = false))
+                            },
+                        tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.rows_zebra),
+                        contentDescription = "Rows with zebra background",
+                        modifier = Modifier
+                            .size(BIBLE_VIEW_ICON.dp)
+                            .clickable {
+                                onStateChange(bibleState.copy(isZebraBackground = true))
+                            },
+                        tint = if (bibleState.isZebraBackground) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Icon(
+                    imageVector = vectorResource(Res.drawable.settings),
+                    contentDescription = "Settings",
+                    modifier = Modifier
+                        .size(BIBLE_VIEW_ICON.dp)
+                        .clickable { onSettingExpandedChange(!settingExpanded) },
+                    tint = if (settingExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
+}
+
+private fun availableTranslationsSafe(): List<Translation> =
+    runCatching { bible().availableTranslations() }.getOrElse { Translation.embeddedTranslations }
+
+@Preview
+@Composable
+private fun TranslationDropdownMenuPreview() {
+    BibleTheme {
+        TranslationDropdownMenu(
+            expanded = true,
+            settingExpanded = true,
+            bibleState = BibleState(),
+            translations = previewTranslationList,
+            dropdownScrollState = rememberScrollState(),
+            onExpandedChange = {},
+            onSettingExpandedChange = {},
+            onStateChange = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun TranslationDropdownMenuPreview_SettingsCollapsed() {
+    BibleTheme {
+        TranslationDropdownMenu(
+            expanded = true,
+            settingExpanded = false,
+            bibleState = BibleState(),
+            translations = previewTranslationList,
+            dropdownScrollState = rememberScrollState(),
+            onExpandedChange = {},
+            onSettingExpandedChange = {},
+            onStateChange = {}
+        )
+    }
+}
+
+private val previewTranslationList = listOf(
+    Translation.webus,
+    Translation.kjv,
+    Translation.rvr09,
+    Translation.tb,
+    Translation.delut,
+    Translation.lsg,
+    Translation.sinod,
+    Translation.ubio
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
