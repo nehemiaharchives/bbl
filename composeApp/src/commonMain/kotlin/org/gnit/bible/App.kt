@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,10 +33,17 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -64,8 +72,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.cmp.Res
 import org.gnit.bible.cmp.arrows_collapse
 import org.gnit.bible.cmp.arrows_expand
@@ -73,6 +85,10 @@ import org.gnit.bible.cmp.font_switch
 import org.gnit.bible.cmp.rows_white
 import org.gnit.bible.cmp.rows_zebra
 import org.gnit.bible.cmp.settings
+import org.gnit.bible.cmp.translation_delete
+import org.gnit.bible.cmp.translation_download
+import org.gnit.bible.cmp.translation_hide
+import org.gnit.bible.cmp.translation_show
 import org.gnit.bible.ui.theme.BibleTheme
 import org.gnit.bible.ui.widgets.BIBLE_VIEW_ICON
 import org.gnit.bible.ui.widgets.BIBLE_VIEW_ICON_SPACER
@@ -107,7 +123,11 @@ data class BibleState(
     val scrollPercent: Float = 0f,
     val isZebraBackground: Boolean = false,
     val spaceBetweenVerses: Int = SPACE_BETWEEN_VERSES_MIN,
-    val isFontFamilySerif: Boolean = true
+    val isFontFamilySerif: Boolean = true,
+    val translationVisibility: Map<String, Boolean> = mapOf(
+        Translation.webus.code to true,
+        Translation.kjv.code to true
+    )
 ) {
     fun prevBook() = copy(book = book - 1, chapter = 1)
     fun nextBook() = copy(book = book + 1, chapter = 1)
@@ -148,6 +168,15 @@ val BibleStateSaver = Saver<BibleState, String>(
     save = { it.toJson() },
     restore = { it.toBibleState() }
 )
+
+private fun BibleState.isTranslationShown(code: String): Boolean =
+    translationVisibility[code] ?: true
+
+private fun BibleState.withTranslationVisibility(code: String, shown: Boolean): BibleState {
+    val updated = translationVisibility.toMutableMap()
+    updated[code] = shown
+    return copy(translationVisibility = updated)
+}
 
 const val BUTTON_SIZE = 30
 const val SPACE_BETWEEN_BUTTON_WITH_SLIDER = 1
@@ -257,6 +286,8 @@ fun BibleApp(
             initialBibleState
         )
     }
+    var showTranslationManager by rememberSaveable { mutableStateOf(false) }
+    var reopenDropdownAfterManager by rememberSaveable { mutableStateOf(false) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
 
@@ -273,64 +304,81 @@ fun BibleApp(
 
     val chrome = rememberChromeAutoHide(initialChromeVisible)
 
-    // Scaffold, top bar, bottom bar, content
-    Scaffold(
-        topBar = {
-            AnimatedVisibility(
-                visible = chrome.isVisible(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Column(modifier = Modifier.padding(vertical = 0.dp)
-                    //.height(70.dp)
-                    //.fillMaxHeight()
+    Box {
+        // Scaffold, top bar, bottom bar, content
+        Scaffold(
+            topBar = {
+                AnimatedVisibility(
+                    visible = chrome.isVisible(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    TopBarContent(
-                        bibleState = bibleState,
-                        onStateChange = { bibleState = it },
-                        onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
+                    Column(modifier = Modifier.padding(vertical = 0.dp)
+                        //.height(70.dp)
+                        //.fillMaxHeight()
+                    ) {
+                        TopBarContent(
+                            bibleState = bibleState,
+                            onStateChange = { bibleState = it },
+                            onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
                         onAnyUserAction = { chrome.onUserInteraction() },
                         onDropdownVisibilityChange = { isOpen ->
                             chrome.setPause(isOpen)
                             if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
-                        }
+                        },
+                        onOpenTranslationManager = { showTranslationManager = true },
+                        hideDropdown = showTranslationManager,
+                        reopenDropdown = reopenDropdownAfterManager,
+                        onDropdownReopened = { reopenDropdownAfterManager = false }
                     )
-                    BookControlsBar(
-                        bibleState = bibleState,
-                        onStateChange = { bibleState = it },
-                        onAnyUserAction = { chrome.onUserInteraction() }
-                    )
+                        BookControlsBar(
+                            bibleState = bibleState,
+                            onStateChange = { bibleState = it },
+                            onAnyUserAction = { chrome.onUserInteraction() }
+                        )
+                    }
                 }
-            }
-        },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = chrome.isVisible(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Surface(
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    modifier = Modifier.navigationBarsPadding()
+            },
+            bottomBar = {
+                AnimatedVisibility(
+                    visible = chrome.isVisible(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    ChapterControlsBar(
-                        bibleState = bibleState,
-                        onStateChange = { bibleState = it },
-                        onAnyUserAction = { chrome.onUserInteraction() }
-                    )
+                    Surface(
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        modifier = Modifier.navigationBarsPadding()
+                    ) {
+                        ChapterControlsBar(
+                            bibleState = bibleState,
+                            onStateChange = { bibleState = it },
+                            onAnyUserAction = { chrome.onUserInteraction() }
+                        )
+                    }
                 }
             }
+        ) { innerPadding ->
+            // Reading area. We'll hook scroll + double-tap into it.
+            BibleReadingArea(
+                state = bibleState,
+                onStateChange = { bibleState = it },
+                chrome = chrome,
+                chromeVisible = chrome.isVisible(),
+                innerPadding = innerPadding
+            )
         }
-    ) { innerPadding ->
-        // Reading area. We'll hook scroll + double-tap into it.
-        BibleReadingArea(
-            state = bibleState,
-            onStateChange = { bibleState = it },
-            chrome = chrome,
-            chromeVisible = chrome.isVisible(),
-            innerPadding = innerPadding
-        )
+
+        if (showTranslationManager) {
+            TranslationManagerScreen(
+                bibleState = bibleState,
+                onStateChange = { bibleState = it },
+                onClose = {
+                    showTranslationManager = false
+                    reopenDropdownAfterManager = true
+                }
+            )
+        }
     }
 }
 
@@ -341,12 +389,36 @@ fun TopBarContent(
     onStateChange: (BibleState) -> Unit,
     onOpenSettings: () -> Unit,
     onAnyUserAction: () -> Unit,
-    onDropdownVisibilityChange: (Boolean) -> Unit
+    onDropdownVisibilityChange: (Boolean) -> Unit,
+    onOpenTranslationManager: () -> Unit,
+    hideDropdown: Boolean = false,
+    reopenDropdown: Boolean = false,
+    onDropdownReopened: () -> Unit = {}
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    var settingExpanded by remember { mutableStateOf(false) }
+
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
     }
-    val translations = remember { availableTranslationsSafe() }
+    val translations = remember(bibleState.translationVisibility) {
+        availableTranslationsSafe(bibleState.translationVisibility)
+    }
+
+    LaunchedEffect(hideDropdown) {
+        if (hideDropdown && menuExpanded) {
+            menuExpanded = false
+            onDropdownVisibilityChange(false)
+        }
+    }
+
+    LaunchedEffect(reopenDropdown) {
+        if (reopenDropdown) {
+            menuExpanded = true
+            onDropdownVisibilityChange(true)
+            onDropdownReopened()
+        }
+    }
 
     Surface(
         tonalElevation = 0.dp,
@@ -390,9 +462,6 @@ fun TopBarContent(
                 )
             }
 
-            var menuExpanded by remember { mutableStateOf(false) }
-            var settingExpanded by remember { mutableStateOf(false) }
-
             val dropdownScrollState = rememberScrollState()
 
             Box(
@@ -400,30 +469,37 @@ fun TopBarContent(
                     .size(BUTTON_SIZE.dp)
                     .wrapContentSize(Alignment.TopEnd)
             ) {
-                IconButton(onClick = {
-                    onAnyUserAction()
-                    menuExpanded = !menuExpanded
-                    onDropdownVisibilityChange(menuExpanded)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "Menu"
+                if (!hideDropdown) {
+                    IconButton(onClick = {
+                        onAnyUserAction()
+                        menuExpanded = !menuExpanded
+                        onDropdownVisibilityChange(menuExpanded)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = "Menu"
+                        )
+                    }
+
+                    TranslationDropdownMenu(
+                        expanded = menuExpanded,
+                        settingExpanded = settingExpanded,
+                        bibleState = bibleState,
+                        translations = translations,
+                        dropdownScrollState = dropdownScrollState,
+                        onExpandedChange = { isExpanded ->
+                            menuExpanded = isExpanded
+                            onDropdownVisibilityChange(isExpanded)
+                        },
+                        onSettingExpandedChange = { settingExpanded = it },
+                        onStateChange = onStateChange,
+                        onTranslationLongPress = {
+                            menuExpanded = false
+                            onDropdownVisibilityChange(false)
+                            onOpenTranslationManager()
+                        }
                     )
                 }
-
-                TranslationDropdownMenu(
-                    expanded = menuExpanded,
-                    settingExpanded = settingExpanded,
-                    bibleState = bibleState,
-                    translations = translations,
-                    dropdownScrollState = dropdownScrollState,
-                    onExpandedChange = { isExpanded ->
-                        menuExpanded = isExpanded
-                        onDropdownVisibilityChange(isExpanded)
-                    },
-                    onSettingExpandedChange = { settingExpanded = it },
-                    onStateChange = onStateChange
-                )
             }
         }
     }
@@ -439,7 +515,8 @@ private fun TranslationDropdownMenu(
     dropdownScrollState: ScrollState,
     onExpandedChange: (Boolean) -> Unit,
     onSettingExpandedChange: (Boolean) -> Unit,
-    onStateChange: (BibleState) -> Unit
+    onStateChange: (BibleState) -> Unit,
+    onTranslationLongPress: (Translation) -> Unit
 ) {
     val inspectionMode = LocalInspectionMode.current
     if (inspectionMode) {
@@ -457,7 +534,8 @@ private fun TranslationDropdownMenu(
                 dropdownScrollState = dropdownScrollState,
                 onExpandedChange = onExpandedChange,
                 onSettingExpandedChange = onSettingExpandedChange,
-                onStateChange = onStateChange
+                onStateChange = onStateChange,
+                onTranslationLongPress = onTranslationLongPress
             )
         }
     } else {
@@ -473,7 +551,8 @@ private fun TranslationDropdownMenu(
                 dropdownScrollState = dropdownScrollState,
                 onExpandedChange = onExpandedChange,
                 onSettingExpandedChange = onSettingExpandedChange,
-                onStateChange = onStateChange
+                onStateChange = onStateChange,
+                onTranslationLongPress = onTranslationLongPress
             )
         }
     }
@@ -487,7 +566,8 @@ private fun DropdownMenuContent(
     dropdownScrollState: ScrollState,
     onExpandedChange: (Boolean) -> Unit,
     onSettingExpandedChange: (Boolean) -> Unit,
-    onStateChange: (BibleState) -> Unit
+    onStateChange: (BibleState) -> Unit,
+    onTranslationLongPress: (Translation) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -510,11 +590,11 @@ private fun DropdownMenuContent(
                             )
                         )
                     }
-                    TranslationDropDownMenuItem(
-                        settingExpanded = settingExpanded,
-                        bibleState = bibleState,
-                        translationItem = translationItem,
-                        onClickSingleIcon = {
+                        TranslationDropDownMenuItem(
+                            settingExpanded = settingExpanded,
+                            bibleState = bibleState,
+                            translationItem = translationItem,
+                            onClickSingleIcon = {
                             if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
                                 logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
                                 val changedState =
@@ -543,26 +623,27 @@ private fun DropdownMenuContent(
                                     readingMode = ReadingMode.BILINGUAL_SIDE
                                 )
                                 onStateChange(changedState)
-                                onExpandedChange(false)
+                                    onExpandedChange(false)
+                                }
+                            },
+                            onClickUnderIcon = {
+                                if (bibleState.isSingleMain(translationItem)) {
+                                    logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
+                                } else {
+                                    logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
+                                    val changedState = bibleState.copy(
+                                        subTranslation = translationItem,
+                                        readingMode = ReadingMode.BILINGUAL_UNDER
+                                    )
+                                    onStateChange(changedState)
+                                    onExpandedChange(false)
                             }
                         },
-                        onClickUnderIcon = {
-                            if (bibleState.isSingleMain(translationItem)) {
-                                logger.debug { "DropDownMenu in SingleView, no action should be taken when clicking under icon" }
-                            } else {
-                                logger.debug { "DropDownMenu $translationItem will be added to subTranslation, and ReadingMode will be changed to UNDER" }
-                                val changedState = bibleState.copy(
-                                    subTranslation = translationItem,
-                                    readingMode = ReadingMode.BILINGUAL_UNDER
-                                )
-                                onStateChange(changedState)
-                                onExpandedChange(false)
-                            }
-                        }
-                    )
+                            onLongPress = { onTranslationLongPress(translationItem) }
+                        )
+                    }
                 }
             }
-        }
 
         Column(
             modifier = Modifier
@@ -668,8 +749,9 @@ private fun DropdownMenuContent(
     }
 }
 
-private fun availableTranslationsSafe(): List<Translation> =
+private fun availableTranslationsSafe(visibility: Map<String, Boolean> = emptyMap()): List<Translation> =
     runCatching { bible().availableTranslations() }.getOrElse { Translation.embeddedTranslations }
+        .filter { visibility[it.code] ?: true }
 
 @Preview
 @Composable
@@ -683,7 +765,8 @@ private fun TranslationDropdownMenuPreview() {
             dropdownScrollState = rememberScrollState(),
             onExpandedChange = {},
             onSettingExpandedChange = {},
-            onStateChange = {}
+            onStateChange = {},
+            onTranslationLongPress = {}
         )
     }
 }
@@ -700,7 +783,8 @@ private fun TranslationDropdownMenuPreview_SettingsCollapsed() {
             dropdownScrollState = rememberScrollState(),
             onExpandedChange = {},
             onSettingExpandedChange = {},
-            onStateChange = {}
+            onStateChange = {},
+            onTranslationLongPress = {}
         )
     }
 }
@@ -715,6 +799,357 @@ private val previewTranslationList = listOf(
     Translation.sinod,
     Translation.ubio
 )
+
+private enum class TranslationSource { EMBEDDED, DOWNLOADED, DOWNLOADABLE }
+
+private data class TranslationEntry(
+    val translation: Translation,
+    val source: TranslationSource
+)
+
+@Composable
+private fun TranslationManagerScreen(
+    bibleState: BibleState,
+    onStateChange: (BibleState) -> Unit,
+    onClose: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    var downloadedCodes by remember { mutableStateOf(downloadedTranslationCodesSafe()) }
+    var downloadingCodes by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    // Seed visibility defaults if missing
+    LaunchedEffect(Unit) {
+        if (bibleState.translationVisibility.isEmpty()) {
+            val allCodes = (Translation.embeddedTranslations.map { it.code } + downloadedCodes).distinct()
+            val seeded = allCodes.associateWith { true }
+            onStateChange(bibleState.copy(translationVisibility = seeded))
+        }
+    }
+
+    val entries = remember(downloadedCodes, downloadingCodes) {
+        buildTranslationEntries(downloadedCodes)
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.95f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 0.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.size(24.dp).padding(start = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Translations",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+            ) {
+                items(entries, key = { it.translation.code }) { entry ->
+                    TranslationManagerRow(
+                        entry = entry,
+                        isShown = bibleState.isTranslationShown(entry.translation.code),
+                        isActive = bibleState.mainTranslation == entry.translation || bibleState.subTranslation == entry.translation,
+                        isDownloading = downloadingCodes.contains(entry.translation.code),
+                        onToggleVisibility = {
+                            onStateChange(
+                                bibleState.withTranslationVisibility(
+                                    entry.translation.code,
+                                    !bibleState.isTranslationShown(entry.translation.code)
+                                )
+                            )
+                        },
+                        onDownload = {
+                            downloadingCodes = downloadingCodes + entry.translation.code
+                            scope.launch(Dispatchers.IO) {
+                                runCatching {
+                                    val url = ensureTrailingSlash(DOWNLOADABLE_BIBLE_BASE_URL)
+                                    val fileName = "${entry.translation.code}.zip"
+                                    logger.debug { "download button tapped, start download ${entry.translation.code} url=${url}$fileName" }
+                                    assetManager().download(url, fileName)
+                                    logger.debug { "download success ${entry.translation.code} url=${url}$fileName" }
+                                    withContext(Dispatchers.Main) {
+                                        downloadedCodes = (downloadedCodes + entry.translation.code).distinct()
+                                        onStateChange(
+                                            bibleState.withTranslationVisibility(entry.translation.code, true)
+                                        )
+                                    }
+                                }.onFailure { logger.debug { "download failed ${entry.translation.code}: ${it.message}" } }
+                                withContext(Dispatchers.Main) {
+                                    downloadedCodes = downloadedTranslationCodesSafe()
+                                    downloadingCodes = downloadingCodes - entry.translation.code
+                                }
+                            }
+                        },
+                        onDelete = {
+                            scope.launch {
+                                runCatching { assetManager().delete(entry.translation.code) }
+                                downloadedCodes = downloadedTranslationCodesSafe()
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TranslationManagerScreenPreview() {
+    BibleTheme {
+        TranslationManagerScreen(
+            bibleState = BibleState(
+                translationVisibility = mapOf(
+                    Translation.webus.code to true,
+                    Translation.kjv.code to true,
+                    Translation.rvr09.code to false
+                )
+            ),
+            onStateChange = {},
+            onClose = {}
+        )
+    }
+}
+
+@Composable
+private fun TranslationManagerRow(
+    entry: TranslationEntry,
+    isShown: Boolean,
+    isActive: Boolean,
+    isDownloading: Boolean,
+    onToggleVisibility: () -> Unit,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val translation = entry.translation
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 72.dp)
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = translation.code.uppercase(), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${translation.englishName} / ${translation.nativeName}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "${translation.language.englishName} · ${translation.year} · ${translation.copyright}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            ActionBar(
+                source = entry.source,
+                isShown = isShown,
+                isDownloading = isDownloading,
+                onToggleVisibility = onToggleVisibility,
+                onDownload = onDownload,
+                onDelete = onDelete
+            )
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 8.dp),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+    }
+}
+
+@Composable
+private fun ShowHideIcon(
+    isShown: Boolean,
+    enabled: Boolean,
+    onToggle: () -> Unit
+) {
+    val icon = if (isShown) Res.drawable.translation_show else Res.drawable.translation_hide
+    val description = if (isShown) "Shown" else "Hidden"
+    val tint = when {
+        !enabled -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+        isShown -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.secondary
+    }
+    Icon(
+        imageVector = vectorResource(icon),
+        contentDescription = description,
+        modifier = Modifier
+            .size(ACTION_ICON_SIZE.dp)
+            .clickable(enabled = enabled) { onToggle() },
+        tint = tint
+    )
+}
+
+@Composable
+private fun DownloadIcon(
+    isDownloading: Boolean,
+    onDownload: () -> Unit
+) {
+    if (isDownloading) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(ACTION_ICON_SIZE.dp),
+            strokeWidth = 2.5.dp
+        )
+    } else {
+        Icon(
+            imageVector = vectorResource(Res.drawable.translation_download),
+            contentDescription = "Download",
+            modifier = Modifier
+                .size((ACTION_ICON_SIZE - 4).dp)
+                .clickable { onDownload() },
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+private fun DeleteIcon(
+    onDelete: () -> Unit
+) {
+    Icon(
+        imageVector = vectorResource(Res.drawable.translation_delete),
+        contentDescription = "Delete",
+        modifier = Modifier
+            .size((ACTION_ICON_SIZE - 4 ).dp)
+            .clickable { onDelete() },
+        tint = MaterialTheme.colorScheme.error
+    )
+}
+
+@Composable
+private fun ActionBar(
+    source: TranslationSource,
+    isShown: Boolean,
+    isDownloading: Boolean,
+    onToggleVisibility: () -> Unit,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .width(ACTION_BAR_WIDTH.dp)
+            .wrapContentWidth(Alignment.End),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        when (source) {
+            TranslationSource.EMBEDDED -> {
+                ShowHideIcon(
+                    isShown = isShown,
+                    enabled = true,
+                    onToggle = onToggleVisibility
+                )
+            }
+
+            TranslationSource.DOWNLOADABLE -> {
+                DownloadIcon(
+                    isDownloading = isDownloading,
+                    onDownload = onDownload
+                )
+            }
+
+            TranslationSource.DOWNLOADED -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    DeleteIcon(onDelete = onDelete)
+                    Spacer(modifier = Modifier.width(ACTION_ICON_SPACER.dp))
+                    ShowHideIcon(
+                        isShown = isShown,
+                        enabled = true,
+                        onToggle = onToggleVisibility
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun buildTranslationEntries(downloadedCodes: List<String>): List<TranslationEntry> {
+    val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, TranslationSource.EMBEDDED) }
+
+    val downloadedTranslations = downloadedCodes.mapNotNull { code ->
+        runCatching { bible().obtainZipBibleTextReader().getTranslationFromManifest(code) }.getOrNull()
+    }.map { TranslationEntry(it, TranslationSource.DOWNLOADED) }
+
+    val notDownloaded = knownDownloadableTranslations.filterNot { downloadable ->
+        downloadedCodes.contains(downloadable.code) || Translation.embeddedTranslations.any { it.code == downloadable.code }
+    }.map { TranslationEntry(it, TranslationSource.DOWNLOADABLE) }
+
+    return embedded + downloadedTranslations + notDownloaded
+}
+
+private fun downloadedTranslationCodesSafe(): List<String> =
+    runCatching { assetManager().downloadedTranslationCodes() }.getOrElse { emptyList() }
+
+private fun ensureTrailingSlash(base: String): String = if (base.endsWith("/")) base else "$base/"
+
+private val knownDownloadableTranslations = listOf(
+    Translation("abtag", "tl", "Ang Biblia", "Ang Biblia", 1905, "Public Domain"),
+    Translation("ayt", "id", "The Opened Bible", "Alkitab Yang Terbuka", 2024, "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT"),
+    Translation("irvben", "bn", "Indian Revised Version - Bengali", "ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvguj", "gu", "Indian Revised Version - Gujarati", "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvhin", "hi", "Indian Revised Version - Hindi", "इंडियन रिवाइज्ड वर्जन (IRV) हिंदी", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvmar", "mr", "Indian Revised Version - Marathi", "इंडियन रीवाइज्ड वर्जन (IRV) मराठी", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvtam", "ta", "Indian Revised Version - Tamil", "இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvtel", "te", "Indian Revised Version - Telugu", "ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("irvurd", "ur", "Indian Revised Version - Urdu", "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
+    Translation("kttv", "vi", "Vietnamese Bible 1925", "Kinh Thánh Tiếng Việt", 1925, "Public Domain"),
+    Translation("th1971", "th", "Thai Bible 1925", "พระคริสตธรรมคัมภีร์ ฉบับ1971", 1971, "Public Domain")
+)
+
+private const val ACTION_BAR_WIDTH = 72
+private const val ACTION_ICON_SIZE = 24
+private const val ACTION_ICON_SPACER = 12
+
+/*
+TODO Add feature set to customize the list of Translations with following requirements:
+First requirement is, long tap the any of the translation menu item will trigger the translation customization mode.
+Second requirement is, the mode will be full screen list of translation information including languageCode, englishName, nativeName, year, copyright.
+Third requirement is, there are 4 features and each of them has icons, show/hide/download/delete, icons can be found in composeApp/src/commonMain/composeResources/drawable dir.
+4th requirement is, there are 2 types of translations, one is embedded one, the other is downloadable one.
+    4.1. for embedded ones, only show/hide icon with feature should be added in the right end of the translation detail item menu.
+    4.2. For the downloadable ones which is not yet downloaded, only download icon with downloading feature should be added.
+    4.3. For downloadable ones which is already found in the system via AssetManager, show/hide/delete icon should be shown with each features.
+5th requirement is, the show/hide state should be remembered in the BibleState, so BibleState needs to add some kind of properties. maybe string like val menuItems: String = "webus:s,kjv:h,rvr09:s,tb:h" where s means show, h means hide.
+
+So after implementing these features, translations only translation menus marked as "show" should be shown in the TranslationDropdownMenu.
+*/
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

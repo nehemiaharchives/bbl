@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.BibleState
@@ -29,6 +30,7 @@ import org.gnit.bible.cmp.square_half_right_black
 import org.gnit.bible.cmp.square_half_top_black
 import org.gnit.bible.ui.theme.BibleTheme
 import org.jetbrains.compose.resources.vectorResource
+import androidx.compose.foundation.combinedClickable
 
 const val BIBLE_VIEW_ICON_SPACER = 10
 const val BIBLE_VIEW_ICON = 20
@@ -47,6 +49,7 @@ fun TranslationDropDownMenuItem(
     onClickSingleIcon: () -> Unit,
     onClickSideIcon: () -> Unit,
     onClickUnderIcon: () -> Unit,
+    onLongPress: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ){
 
@@ -56,6 +59,10 @@ fun TranslationDropDownMenuItem(
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
         .width(DROPDOWN_MENU_WIDTH.dp)
         .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
+        .combinedClickable(
+            onClick = { onClickSingleIcon() },
+            onLongClick = { onLongPress?.invoke() }
+        )
     ){
         Text(
             text = text,
@@ -64,7 +71,6 @@ fun TranslationDropDownMenuItem(
             modifier = modifier
                 .align(Alignment.CenterStart)
                 .fillMaxWidth()
-                .clickable { onClickSingleIcon() }
         )
 
         if (settingExpanded){
