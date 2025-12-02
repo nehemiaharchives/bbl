@@ -22,4 +22,8 @@ class MockAssetManager() : AssetManager {
     override fun downloadedTranslationCodes(): List<String> {
         return listOf("kttv")
     }
+
+    override fun delete(translationCode: String) {
+        // no-op for tests
+    }
 }
