@@ -949,6 +949,11 @@ private fun TranslationManagerRow(
     onDelete: () -> Unit
 ) {
     val translation = entry.translation
+    val displayName = if (translation.languageCode == Language.en.code) {
+        translation.nativeName
+    } else {
+        "${translation.englishName} / ${translation.nativeName}"
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -963,7 +968,7 @@ private fun TranslationManagerRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = translation.code.uppercase(), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = "${translation.englishName} / ${translation.nativeName}",
+                    text = displayName,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
