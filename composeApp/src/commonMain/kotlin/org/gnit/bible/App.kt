@@ -366,6 +366,11 @@ fun BibleApp(
         }
 
         if (showTranslationManager) {
+            PlatformBackHandler(enabled = showTranslationManager) {
+                showTranslationManager = false
+                reopenDropdownAfterManager = true
+            }
+
             TranslationManagerScreen(
                 bibleState = bibleState,
                 onStateChange = { bibleState = it },
