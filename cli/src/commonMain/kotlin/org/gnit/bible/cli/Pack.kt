@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import okio.SYSTEM
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslations
+import org.gnit.bible.downloadableTranslationCodeList
 
 class Packer {
 
@@ -135,7 +135,7 @@ fun packTranslation(translationCode: String){
 }
 
 fun main() {
-    downloadableTranslations.forEach { translationCode ->
+    downloadableTranslationCodeList.forEach { translationCode ->
         packTranslation(translationCode)
     }
 }

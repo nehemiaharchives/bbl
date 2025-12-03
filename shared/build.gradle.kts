@@ -86,6 +86,7 @@ kotlin {
             implementation(libs.okio)
             implementation(libs.kmpio)
             implementation(libs.multiplatform.settings)
+            implementation(libs.kotlin.logging)
         }
         commonTest.dependencies {
             implementation(projects.testFramework)

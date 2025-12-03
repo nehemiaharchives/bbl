@@ -3,6 +3,7 @@ package org.gnit.bible.test
 import com.russhwolf.settings.Settings
 import org.gnit.bible.AssetManager
 import org.gnit.bible.Platform
+import org.gnit.bible.Translation
 
 class MockAssetManager() : AssetManager {
 
@@ -13,6 +14,10 @@ class MockAssetManager() : AssetManager {
             get() = TODO("Not yet implemented")
         override val settings: Settings
             get() = TODO("Not yet implemented")
+    }
+
+    override fun downloadableTranslationList(listUrl: String): List<Translation> {
+        TODO("Not yet implemented")
     }
 
     override fun download(baseUrl: String, fileName: String) {

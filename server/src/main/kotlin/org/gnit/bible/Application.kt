@@ -23,7 +23,7 @@ fun Application.module() {
 
         get("/list") {
             val list = mutableListOf<Translation>()
-            downloadableTranslations.forEach{ translationCode ->
+            downloadableTranslationCodeList.forEach{ translationCode ->
                 val manifestJson =
                     getResourceAsText("/files/bbltexts/$translationCode/$translationCode$MANIFEST_JSON_POSTFIX")!!
                 val manifest = Translation.fromJson(manifestJson)

@@ -5,6 +5,7 @@ import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class AssetManagerTest : ResourcesTestBase() {
@@ -25,5 +26,20 @@ class AssetManagerTest : ResourcesTestBase() {
         val zipBibleTextReader = ZipBibleTextReader(platform)
         val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
         assertTrue(kttvGenesisChapterOne.startsWith(TestFixtures.KTTV_GENESIS_1_1))
+    }
+
+    @Test
+    fun testDownloadableTranslationList() {
+        val platform = createTestPlatform()
+
+        val httpClient = HttpClient(TestFixtures.downloadableTranslationsListMockEngine)
+        val am = AssetManagerImpl(httpClient, platform)
+        val listUrl = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json"
+        val result = am.downloadableTranslationList(listUrl)
+        val abtag = result.first()
+        assertEquals("abtag", abtag.code)
+        assertEquals("tl", abtag.languageCode)
+        assertEquals("Ang Biblia", abtag.englishName)
+        assertEquals("Public Domain", abtag.copyright)
     }
 }

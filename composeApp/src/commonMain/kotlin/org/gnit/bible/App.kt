@@ -11,7 +11,6 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,9 +39,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,7 +74,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.cmp.Res
 import org.gnit.bible.cmp.arrows_collapse
 import org.gnit.bible.cmp.arrows_expand
@@ -826,6 +822,9 @@ private fun TranslationManagerScreen(
         }
     }
 
+    logger.debug { "TranslationManagerScreen called, fetching downloadable translations list" }
+    latestDownloadableTranslations = assetManager().downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
+
     val entries = remember(downloadedCodes, downloadingCodes) {
         buildTranslationEntries(downloadedCodes)
     }
@@ -1111,7 +1110,9 @@ private fun buildTranslationEntries(downloadedCodes: List<String>): List<Transla
         runCatching { bible().obtainZipBibleTextReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, TranslationSource.DOWNLOADED) }
 
-    val notDownloaded = knownDownloadableTranslations.filterNot { downloadable ->
+    val list = latestDownloadableTranslations.ifEmpty { downloadableTranslations }
+
+    val notDownloaded = list.filterNot { downloadable ->
         downloadedCodes.contains(downloadable.code) || Translation.embeddedTranslations.any { it.code == downloadable.code }
     }.map { TranslationEntry(it, TranslationSource.DOWNLOADABLE) }
 
@@ -1123,38 +1124,11 @@ private fun downloadedTranslationCodesSafe(): List<String> =
 
 private fun ensureTrailingSlash(base: String): String = if (base.endsWith("/")) base else "$base/"
 
-private val knownDownloadableTranslations = listOf(
-    Translation("abtag", "tl", "Ang Biblia", "Ang Biblia", 1905, "Public Domain"),
-    Translation("ayt", "id", "The Opened Bible", "Alkitab Yang Terbuka", 2024, "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT"),
-    Translation("irvben", "bn", "Indian Revised Version - Bengali", "ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvguj", "gu", "Indian Revised Version - Gujarati", "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvhin", "hi", "Indian Revised Version - Hindi", "इंडियन रिवाइज्ड वर्जन (IRV) हिंदी", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvmar", "mr", "Indian Revised Version - Marathi", "इंडियन रीवाइज्ड वर्जन (IRV) मराठी", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvtam", "ta", "Indian Revised Version - Tamil", "இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvtel", "te", "Indian Revised Version - Telugu", "ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("irvurd", "ur", "Indian Revised Version - Urdu", "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
-    Translation("kttv", "vi", "Vietnamese Bible 1925", "Kinh Thánh Tiếng Việt", 1925, "Public Domain"),
-    Translation("th1971", "th", "Thai Bible 1925", "พระคริสตธรรมคัมภีร์ ฉบับ1971", 1971, "Public Domain")
-)
+private var latestDownloadableTranslations = emptyList<Translation>() // the list will be provided when TranslationManagerScreen() is called
 
 private const val ACTION_BAR_WIDTH = 72
 private const val ACTION_ICON_SIZE = 24
 private const val ACTION_ICON_SPACER = 12
-
-/*
-TODO Add feature set to customize the list of Translations with following requirements:
-First requirement is, long tap the any of the translation menu item will trigger the translation customization mode.
-Second requirement is, the mode will be full screen list of translation information including languageCode, englishName, nativeName, year, copyright.
-Third requirement is, there are 4 features and each of them has icons, show/hide/download/delete, icons can be found in composeApp/src/commonMain/composeResources/drawable dir.
-4th requirement is, there are 2 types of translations, one is embedded one, the other is downloadable one.
-    4.1. for embedded ones, only show/hide icon with feature should be added in the right end of the translation detail item menu.
-    4.2. For the downloadable ones which is not yet downloaded, only download icon with downloading feature should be added.
-    4.3. For downloadable ones which is already found in the system via AssetManager, show/hide/delete icon should be shown with each features.
-5th requirement is, the show/hide state should be remembered in the BibleState, so BibleState needs to add some kind of properties. maybe string like val menuItems: String = "webus:s,kjv:h,rvr09:s,tb:h" where s means show, h means hide.
-
-So after implementing these features, translations only translation menus marked as "show" should be shown in the TranslationDropdownMenu.
-*/
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
