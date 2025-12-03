@@ -1230,7 +1230,7 @@ private fun ChapterControlsBar(
             )
             .fillMaxWidth()
             .padding(horizontal = 4.dp)
-            .heightIn(min = BUTTON_SIZE.dp),
+            .height(BUTTON_SIZE.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         BibleButton(
