@@ -1685,5 +1685,6 @@ fun ScrollableColumn(
 
 private fun computeScrollPercent(scrollValue: Int, scrollState: ScrollState): Float {
     val totalScrollableHeight = scrollState.maxValue
-    return scrollValue.toFloat() / totalScrollableHeight
+    if (totalScrollableHeight <= 0) return 0f
+    return (scrollValue.toFloat() / totalScrollableHeight).coerceIn(0f, 1f)
 }
