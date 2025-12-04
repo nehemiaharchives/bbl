@@ -629,74 +629,69 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
     group = "build setup"
     description = "Downloads the Kotlin/Native LLVM toolchain archive that ships with the configured Kotlin version."
 
+    val bundle = kotlinNativeLlvmBundleProvider.get()
+    val depsDirFile = konanDataDir().resolve("dependencies")
+    val targetDir = File(depsDirFile, bundle.dependencyName)
+    val tarExe = System.getenv("TAR") ?: "tar"
+
+    inputs.property("bundleName", bundle.dependencyName)
+    inputs.property("archiveUrl", bundle.archiveUrl)
+    inputs.property("archiveExt", bundle.archiveExt)
+    inputs.property("kotlinVersion", kotlinVersionProvider.get())
+    outputs.dir(targetDir)
+
+    outputs.upToDateWhen {
+        targetDir.isDirectory &&
+            llvmToolCandidates(targetDir, "clang").any { it.canExecute() } &&
+            llvmToolCandidates(targetDir, "llvm-ar").any { it.canExecute() }
+    }
+
     doLast {
-        val kotlinVersion = kotlinVersionProvider.get()
-        val bundle = kotlinNativeLlvmBundleProvider.get()
-        val konanDataDir = konanDataDir()
-        val dependenciesDir = konanDataDir.resolve("dependencies")
-        val targetDir = dependenciesDir.resolve(bundle.dependencyName)
-
-        if (targetDir.exists()) {
-            logger.lifecycle("LLVM bundle directory exists: ${targetDir.absolutePath}")
-        } else {
-            logger.lifecycle("LLVM bundle directory missing: ${targetDir.absolutePath}")
-        }
-
         val clangCandidates = llvmToolCandidates(targetDir, "clang")
         val llvmArCandidates = llvmToolCandidates(targetDir, "llvm-ar")
-
-        clangCandidates.forEach { logToolCandidate("clang", it) }
-        llvmArCandidates.forEach { logToolCandidate("llvm-ar", it) }
-
         val resolvedClang = clangCandidates.firstOrNull { it.canExecute() }
         val resolvedAr = llvmArCandidates.firstOrNull { it.canExecute() }
 
         val needsDownload = resolvedClang == null || resolvedAr == null
-
-        if (needsDownload) {
-            if (gradle.startParameter.isOffline) {
-                throw GradleException("Offline mode cannot download Kotlin/Native LLVM bundle ${bundle.dependencyName}")
-            }
-
-            dependenciesDir.mkdirs()
-
-            val tmpDir = layout.buildDirectory.dir("tmp/${bundle.dependencyName}").get().asFile.also { it.mkdirs() }
-            val archiveFile = tmpDir.resolve("${bundle.dependencyName}.${bundle.archiveExt}")
-
-            logger.lifecycle("Downloading Kotlin/Native LLVM bundle ${bundle.dependencyName} (Kotlin $kotlinVersion) from ${bundle.archiveUrl}")
-            curlDownload(bundle.archiveUrl, archiveFile, retries = 3)
-            if (!archiveFile.exists() || archiveFile.length() == 0L) {
-                throw GradleException("Download produced an empty archive for ${bundle.archiveUrl}")
-            }
-
-            if (targetDir.exists()) {
-                targetDir.deleteRecursively()
-            }
-
-            when (bundle.archiveExt) {
-                "zip" -> project.copy { from(zipTree(archiveFile)); into(dependenciesDir) }
-                "tar.gz" -> {
-                    val tarExe = System.getenv("TAR") ?: "tar"
-                    val result = providers.exec {
-                        commandLine(tarExe, "-xzf", archiveFile.absolutePath, "-C", dependenciesDir.absolutePath)
-                        isIgnoreExitValue = true
-                    }.result.get()
-                    if (result.exitValue != 0) {
-                        throw GradleException("tar extraction failed for ${bundle.dependencyName} with exit ${result.exitValue}")
-                    }
-                }
-                else -> throw GradleException("Unsupported archive extension '${bundle.archiveExt}' for ${bundle.dependencyName}")
-            }
-
-            archiveFile.delete()
-            tmpDir.deleteRecursively()
-
-            logger.lifecycle("Installed Kotlin/Native LLVM bundle to ${targetDir.absolutePath}")
-        } else {
+        if (!needsDownload) {
             logger.lifecycle("Reusing existing Kotlin/Native LLVM bundle at ${targetDir.absolutePath}")
+            return@doLast
         }
 
-        ensureDependencyMarkedExtracted(dependenciesDir, bundle.dependencyName, logger)
+        if (gradle.startParameter.isOffline) {
+            throw GradleException("Offline mode cannot download Kotlin/Native LLVM bundle ${bundle.dependencyName}")
+        }
+
+        depsDirFile.mkdirs()
+        val tmpDir = layout.buildDirectory.dir("tmp/${bundle.dependencyName}").get().asFile.also { it.mkdirs() }
+        val archiveFile = tmpDir.resolve("${bundle.dependencyName}.${bundle.archiveExt}")
+
+        logger.lifecycle("Downloading Kotlin/Native LLVM bundle ${bundle.dependencyName} (Kotlin ${kotlinVersionProvider.get()}) from ${bundle.archiveUrl}")
+        curlDownload(bundle.archiveUrl, archiveFile, retries = 3)
+        if (!archiveFile.exists() || archiveFile.length() == 0L) {
+            throw GradleException("Download produced an empty archive for ${bundle.archiveUrl}")
+        }
+
+        if (targetDir.exists()) {
+            targetDir.deleteRecursively()
+        }
+
+        when (bundle.archiveExt) {
+            "zip" -> project.copy { from(zipTree(archiveFile)); into(depsDirFile) }
+            "tar.gz" -> {
+                val result = providers.exec {
+                    commandLine(tarExe, "-xzf", archiveFile.absolutePath, "-C", depsDirFile.absolutePath)
+                    isIgnoreExitValue = true
+                }.result.get()
+                if (result.exitValue != 0) {
+                    throw GradleException("tar extraction failed for ${bundle.dependencyName} with exit ${result.exitValue}")
+                }
+            }
+            else -> throw GradleException("Unsupported archive extension '${bundle.archiveExt}' for ${bundle.dependencyName}")
+        }
+
+        archiveFile.delete()
+        tmpDir.deleteRecursively()
 
         val finalClang = clangCandidates.firstOrNull { it.exists() }
             ?: throw GradleException("clang binary not found in ${targetDir.absolutePath}")
@@ -708,6 +703,7 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
 
         logToolVersionOutput(finalClang)
         logToolVersionOutput(finalAr)
+        ensureDependencyMarkedExtracted(depsDirFile, bundle.dependencyName, logger)
     }
 }
 

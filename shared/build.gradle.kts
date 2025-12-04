@@ -58,6 +58,7 @@ kotlin {
             dependsOn(nativeMain)
             dependencies {
                 implementation(libs.ktor.clientCurl)
+                implementation(libs.okio)
             }
         }
         val macosX64Main by getting { dependsOn(posixMain) }
@@ -71,7 +72,12 @@ kotlin {
         val iosSimulatorArm64Test by getting { dependsOn(iosTest) }
         val iosX64Test by getting { dependsOn(iosTest) }
 
-        val posixTest by creating { dependsOn(nativeTest) }
+        val posixTest by creating {
+            dependsOn(nativeTest)
+            dependencies {
+                implementation(libs.okio.fakefs)
+            }
+        }
         val macosX64Test by getting { dependsOn(posixTest) }
         val macosArm64Test by getting { dependsOn(posixTest) }
         val linuxX64Test by getting { dependsOn(posixTest) }
