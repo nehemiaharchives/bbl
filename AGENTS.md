@@ -17,9 +17,12 @@ Use **English** to communicate with me.
 
 ### Step 2: Code, Run, Debug
 
-* Apply the chosen code changes.
-* Run builds/tests and fix compilation or runtime errors.
-* Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
+* 1. Apply the chosen code changes.
+* 2. If you have access to JetBrains/Android Studio MCP server,
+  * 2.1. Try to use find problems tool to check if there are any errors and iterate over till all errors are fixed.
+  * 2.2. Try to compile so that you can find compilation errors and fix/edit iterate till it compiles without errors.
+* 3. Run builds/tests and fix compilation or runtime errors.
+* 4. Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
 
 ## Internet Research Guidelines
 
