@@ -3,22 +3,26 @@ package org.gnit.bible
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
-import kotlinx.coroutines.runBlocking
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
+import okio.buffer
+import okio.use
 
 interface AssetManager {
 
     val platform: Platform
-    fun downloadableTranslationList(listUrl: String): List<Translation>
-    fun download(baseUrl: String, fileName: String)
+    suspend fun downloadableTranslationList(listUrl: String): List<Translation>
+    suspend fun download(baseUrl: String, fileName: String)
     fun downloadedTranslationCodes(): List<String>
     fun delete(translationCode: String)
 }
@@ -31,38 +35,80 @@ class AssetManagerImpl(
 
     private val logger = KotlinLogging.logger {}
 
-    override fun downloadableTranslationList(listUrl: String): List<Translation> {
-        return try {
-            runBlocking {
-                val httpResponse = httpClient.get(listUrl)
-                val translations: List<Translation> = Json.decodeFromString(httpResponse.bodyAsText())
-                logger.debug { "AssetManagerImpl successfully fetched downloadable translation list with ${translations.size} translations" }
-                translations
+    override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
+        val cacheKey = "downloadable_translations_cache"
+        return runCatching {
+            val httpResponse = httpClient.get(listUrl) {
+                timeout { requestTimeoutMillis = 15_000 }
             }
-        } catch (e: Exception) {
-            logger.error { "AssetManagerImpl failed to fetch downloadable translation list: ${e.message}" }
-            emptyList()
+            if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
+            val translations: List<Translation> = Json.decodeFromString(httpResponse.bodyAsText())
+            platform.settings.putString(cacheKey, Json.encodeToString(translations))
+            logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
+            translations
+        }.getOrElse { error ->
+            logger.error { "AssetManagerImpl failed to fetch downloadable translation list: ${error.message}" }
+            val cached = platform.settings.getStringOrNull(cacheKey)
+            if (cached != null) {
+                runCatching { Json.decodeFromString<List<Translation>>(cached) }
+                    .onSuccess { logger.debug { "AssetManagerImpl served cached translation list (${it.size})" } }
+                    .getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
         }
     }
 
-    override fun download(
+    override suspend fun download(
         baseUrl: String,
         fileName: String
     ) {
         val url = "$baseUrl$fileName"
         val packDir = platform.packDir
         val destinationPath = packDir.toPath() / fileName
+        val tempPath = destinationPath.parent!! / "${fileName}.part"
         fileSystem.createDirectories(destinationPath.parent!!)
-        runBlocking {
-            val httpResponse = httpClient.get(url)
-            val byteChannel: ByteReadChannel = httpResponse.body()
-            fileSystem.write(destinationPath) {
+
+        val existingSize = runCatching { fileSystem.metadata(tempPath).size ?: 0L }.getOrDefault(0L)
+
+        val httpResponse = httpClient.get(url) {
+            if (existingSize > 0) {
+                header("Range", "bytes=$existingSize-")
+            }
+            timeout { requestTimeoutMillis = 30_000 }
+        }
+
+        val append = existingSize > 0 && httpResponse.status.value == 206
+        if (existingSize > 0 && !append) {
+            // server did not honor range; restart fresh
+            runCatching { fileSystem.delete(tempPath) }
+        }
+
+        if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
+
+        val byteChannel: ByteReadChannel = httpResponse.body()
+        runCatching {
+            if (!append) runCatching { fileSystem.delete(tempPath) }
+            val sink = if (append) fileSystem.appendingSink(tempPath) else fileSystem.sink(tempPath)
+            sink.buffer().use { buffered ->
                 while (!byteChannel.isClosedForRead) {
                     val packet = byteChannel.readRemaining()
                     val bytes = packet.readByteArray()
-                    write(bytes)
+                    buffered.write(bytes)
                 }
+                buffered.flush()
             }
+            // basic integrity: ensure file is not empty
+            val size = fileSystem.metadata(tempPath).size ?: 0
+            if (size == 0L) error("Empty download for $fileName")
+            // atomic move into place
+            runCatching { fileSystem.delete(destinationPath) }
+            fileSystem.atomicMove(tempPath, destinationPath)
+            logger.debug { "AssetManagerImpl downloaded $fileName (${size} bytes)" }
+        }.onFailure {
+            logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
+            runCatching { fileSystem.delete(tempPath) }
+            throw it
         }
     }
 

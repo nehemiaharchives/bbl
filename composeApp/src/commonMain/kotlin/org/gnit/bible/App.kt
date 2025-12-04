@@ -66,12 +66,12 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vanniktech.locale.Languages
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.gnit.bible.cmp.Res
@@ -183,7 +183,6 @@ const val BUTTON_CONTENT_PADDING = 0
 const val SPACE_BETWEEN_VERSES_MIN = 5
 const val SPACE_BETWEEN_VERSES_MAX = 50
 
-const val SHARED_PREFERENCE_NAME = "Bible"
 const val SHARED_PREFERENCE_KEY_BIBLE_STATE = "bible_state"
 
 val logger = KotlinLogging.logger {}
@@ -267,14 +266,13 @@ fun AppInAutoHideMode() {
 @Composable
 fun BibleApp(
     platformContext: Any? = null,
-    modifier: Modifier = Modifier,
     initialChromeVisible: Boolean = true
 ) {
 
     logger.debug { "BibleApp called with platformContext:$platformContext" }
 
     platform = getPlatform(platformContext)
-    val bible: Bible = bible()
+    bible()
 
     val initialBibleState = rememberBibleState()
     var bibleState by rememberSaveable(stateSaver = BibleStateSaver) {
@@ -286,9 +284,6 @@ fun BibleApp(
     var reopenDropdownAfterManager by rememberSaveable { mutableStateOf(false) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
-
-    var bibleTitle by rememberSaveable { mutableStateOf(bibleState.describeBookChapter()) }
-
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LifecycleResumeEffect(key1 = lifecycleOwner) {
@@ -316,17 +311,16 @@ fun BibleApp(
                         TopBarContent(
                             bibleState = bibleState,
                             onStateChange = { bibleState = it },
-                            onOpenSettings = { /* open settings screen/dialog */ },   // TODO put menu/book picker/actions here exactly as before
-                        onAnyUserAction = { chrome.onUserInteraction() },
-                        onDropdownVisibilityChange = { isOpen ->
-                            chrome.setPause(isOpen)
-                            if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
-                        },
-                        onOpenTranslationManager = { showTranslationManager = true },
-                        hideDropdown = showTranslationManager,
-                        reopenDropdown = reopenDropdownAfterManager,
-                        onDropdownReopened = { reopenDropdownAfterManager = false }
-                    )
+                            onAnyUserAction = { chrome.onUserInteraction() },
+                            onDropdownVisibilityChange = { isOpen ->
+                                chrome.setPause(isOpen)
+                                if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
+                            },
+                            onOpenTranslationManager = { showTranslationManager = true },
+                            hideDropdown = showTranslationManager,
+                            reopenDropdown = reopenDropdownAfterManager,
+                            onDropdownReopened = { reopenDropdownAfterManager = false }
+                        )
                         BookControlsBar(
                             bibleState = bibleState,
                             onStateChange = { bibleState = it },
@@ -360,7 +354,6 @@ fun BibleApp(
                 state = bibleState,
                 onStateChange = { bibleState = it },
                 chrome = chrome,
-                chromeVisible = chrome.isVisible(),
                 innerPadding = innerPadding
             )
         }
@@ -388,7 +381,6 @@ fun BibleApp(
 fun TopBarContent(
     bibleState: BibleState,
     onStateChange: (BibleState) -> Unit,
-    onOpenSettings: () -> Unit,
     onAnyUserAction: () -> Unit,
     onDropdownVisibilityChange: (Boolean) -> Unit,
     onOpenTranslationManager: () -> Unit,
@@ -817,6 +809,9 @@ private fun TranslationManagerScreen(
     val scope = rememberCoroutineScope()
     var downloadedCodes by remember { mutableStateOf(downloadedTranslationCodesSafe()) }
     var downloadingCodes by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var downloadableTranslations by remember { mutableStateOf<List<Translation>>(emptyList()) }
+    var isLoadingList by remember { mutableStateOf(true) }
+    var listError by remember { mutableStateOf<String?>(null) }
 
     // Seed visibility defaults if missing
     LaunchedEffect(Unit) {
@@ -827,11 +822,28 @@ private fun TranslationManagerScreen(
         }
     }
 
-    logger.debug { "TranslationManagerScreen called, fetching downloadable translations list" }
-    latestDownloadableTranslations = assetManager().downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
+    LaunchedEffect(Unit) {
+        logger.debug { "TranslationManagerScreen called, fetching downloadable translations list" }
+        isLoadingList = true
+        val list = runCatching {
+            assetManager().downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
+        }.fold(
+            onSuccess = {
+                listError = if (it.isEmpty()) "Unable to load online list; showing embedded/cached only." else null
+                it
+            },
+            onFailure = {
+                listError = "Failed to load downloadable translations (${it.message ?: "unknown"})"
+                emptyList()
+            }
+        )
+        downloadableTranslations = list
+        latestDownloadableTranslations = list
+        isLoadingList = false
+    }
 
-    val entries = remember(downloadedCodes, downloadingCodes) {
-        buildTranslationEntries(downloadedCodes)
+    val entries = remember(downloadedCodes, downloadingCodes, downloadableTranslations) {
+        buildTranslationEntries(downloadedCodes, downloadableTranslations)
     }
 
     Surface(
@@ -875,11 +887,32 @@ private fun TranslationManagerScreen(
                     .fillMaxSize()
                     .navigationBarsPadding()
             ) {
+                if (isLoadingList) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+                listError?.let { message ->
+                    item {
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                }
                 items(entries, key = { it.translation.code }) { entry ->
                     TranslationManagerRow(
                         entry = entry,
                         isShown = bibleState.isTranslationShown(entry.translation.code),
-                        isActive = bibleState.mainTranslation == entry.translation || bibleState.subTranslation == entry.translation,
                         isDownloading = downloadingCodes.contains(entry.translation.code),
                         onToggleVisibility = {
                             onStateChange(
@@ -893,7 +926,7 @@ private fun TranslationManagerScreen(
                             downloadingCodes = downloadingCodes + entry.translation.code
                             scope.launch(Dispatchers.IO) {
                                 runCatching {
-                                    val url = ensureTrailingSlash(DOWNLOADABLE_BIBLE_BASE_URL)
+                                    val url = if (DOWNLOADABLE_BIBLE_BASE_URL.endsWith("/")) DOWNLOADABLE_BIBLE_BASE_URL else "$DOWNLOADABLE_BIBLE_BASE_URL/"
                                     val fileName = "${entry.translation.code}.zip"
                                     logger.debug { "download button tapped, start download ${entry.translation.code} url=${url}$fileName" }
                                     assetManager().download(url, fileName)
@@ -946,7 +979,6 @@ private fun TranslationManagerScreenPreview() {
 private fun TranslationManagerRow(
     entry: TranslationEntry,
     isShown: Boolean,
-    isActive: Boolean,
     isDownloading: Boolean,
     onToggleVisibility: () -> Unit,
     onDownload: () -> Unit,
@@ -1001,13 +1033,11 @@ private fun TranslationManagerRow(
 @Composable
 private fun ShowHideIcon(
     isShown: Boolean,
-    enabled: Boolean,
     onToggle: () -> Unit
 ) {
     val icon = if (isShown) Res.drawable.translation_show else Res.drawable.translation_hide
     val description = if (isShown) "Shown" else "Hidden"
     val tint = when {
-        !enabled -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
         isShown -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.secondary
     }
@@ -1016,7 +1046,7 @@ private fun ShowHideIcon(
         contentDescription = description,
         modifier = Modifier
             .size(ACTION_ICON_SIZE.dp)
-            .clickable(enabled = enabled) { onToggle() },
+            .clickable { onToggle() },
         tint = tint
     )
 }
@@ -1077,7 +1107,6 @@ private fun ActionBar(
             TranslationSource.EMBEDDED -> {
                 ShowHideIcon(
                     isShown = isShown,
-                    enabled = true,
                     onToggle = onToggleVisibility
                 )
             }
@@ -1099,7 +1128,6 @@ private fun ActionBar(
                     Spacer(modifier = Modifier.width(ACTION_ICON_SPACER.dp))
                     ShowHideIcon(
                         isShown = isShown,
-                        enabled = true,
                         onToggle = onToggleVisibility
                     )
                 }
@@ -1108,14 +1136,17 @@ private fun ActionBar(
     }
 }
 
-private fun buildTranslationEntries(downloadedCodes: List<String>): List<TranslationEntry> {
+private fun buildTranslationEntries(
+    downloadedCodes: List<String>,
+    downloadable: List<Translation>
+): List<TranslationEntry> {
     val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, TranslationSource.EMBEDDED) }
 
     val downloadedTranslations = downloadedCodes.mapNotNull { code ->
         runCatching { bible().obtainZipBibleTextReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, TranslationSource.DOWNLOADED) }
 
-    val list = latestDownloadableTranslations.ifEmpty { downloadableTranslations }
+    val list = downloadable.ifEmpty { latestDownloadableTranslations.ifEmpty { downloadableTranslations } }
 
     val notDownloaded = list.filterNot { downloadable ->
         downloadedCodes.contains(downloadable.code) || Translation.embeddedTranslations.any { it.code == downloadable.code }
@@ -1126,8 +1157,6 @@ private fun buildTranslationEntries(downloadedCodes: List<String>): List<Transla
 
 private fun downloadedTranslationCodesSafe(): List<String> =
     runCatching { assetManager().downloadedTranslationCodes() }.getOrElse { emptyList() }
-
-private fun ensureTrailingSlash(base: String): String = if (base.endsWith("/")) base else "$base/"
 
 private var latestDownloadableTranslations = emptyList<Translation>() // the list will be provided when TranslationManagerScreen() is called
 
@@ -1283,7 +1312,6 @@ private fun BibleReadingArea(
     state: BibleState,
     onStateChange: (BibleState) -> Unit,
     chrome: ChromeAutoHide,
-    chromeVisible: Boolean,
     innerPadding: PaddingValues
 ) {
     var zoom by remember { mutableFloatStateOf(state.fontSize.toFloat()) }
@@ -1377,7 +1405,6 @@ private fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAuto
     var visible by remember { mutableStateOf(initiallyVisible) }
     var lastInteraction by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
     var pauseHide by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     // background job: hide after inactivity
     LaunchedEffect(lastInteraction, pauseHide) {
@@ -1661,22 +1688,17 @@ fun ScrollableColumn(
     val sharedPreferences = platform.settings
     LaunchedEffect(scrollState) {
         val lastScrollValue = scrollState.value
-        var pendingSaveJob: Job? = null
-
         snapshotFlow { scrollState.value }
-            .collect { newValue ->
+            .collectLatest { newValue ->
                 if (newValue != lastScrollValue) {
-                    pendingSaveJob?.cancel()
-                    pendingSaveJob = launch {
-                        delay(200)
-                        if (!scrollState.isScrollInProgress) {
-                            val scrollPercent = computeScrollPercent(newValue, scrollState)
-                            sharedPreferences.putString(
-                                SHARED_PREFERENCE_KEY_BIBLE_STATE,
-                                bibleState.copy(scrollPercent = scrollPercent).toJson()
-                            )
-                            logger.debug { "ScrollableColumn Saved scroll scrollPercent: $scrollPercent" }
-                        }
+                    delay(200)
+                    if (!scrollState.isScrollInProgress) {
+                        val scrollPercent = computeScrollPercent(newValue, scrollState)
+                        sharedPreferences.putString(
+                            SHARED_PREFERENCE_KEY_BIBLE_STATE,
+                            bibleState.copy(scrollPercent = scrollPercent).toJson()
+                        )
+                        logger.debug { "ScrollableColumn Saved scroll scrollPercent: $scrollPercent" }
                     }
                 }
             }

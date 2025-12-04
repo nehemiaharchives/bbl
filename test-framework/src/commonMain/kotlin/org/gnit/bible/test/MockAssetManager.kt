@@ -16,11 +16,11 @@ class MockAssetManager() : AssetManager {
             get() = TODO("Not yet implemented")
     }
 
-    override fun downloadableTranslationList(listUrl: String): List<Translation> {
+    override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
         TODO("Not yet implemented")
     }
 
-    override fun download(baseUrl: String, fileName: String) {
+    override suspend fun download(baseUrl: String, fileName: String) {
         TODO("Not yet implemented")
     }
 

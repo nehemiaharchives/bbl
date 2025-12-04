@@ -1,6 +1,7 @@
 package org.gnit.bible.test
 
 import org.gnit.bible.Bible
+import kotlinx.coroutines.runBlocking
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
 
@@ -13,7 +14,9 @@ interface BibleTest {
     }
 
     fun testDownloadedVerses(){
-        bible.assetManager.download("https://gnit.org/bblpacks/kttv.zip", "kttv.zip")
+        runBlocking {
+            bible.assetManager.download("https://gnit.org/bblpacks/kttv.zip", "kttv.zip")
+        }
         assertContains(bible.availableTranslationCodes(), "kttv")
         val verses = bible.verses(translation = "kttv", book = 1, chapter = 1)
         assertTrue(verses.startsWith("1 Ban đầu Đức Chúa Trời dựng nên trời đất."))

@@ -3,6 +3,7 @@ package org.gnit.bible
 import io.ktor.client.HttpClient
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -19,7 +20,7 @@ class AssetManagerTest : ResourcesTestBase() {
         val fileName = "kttv.zip"
         val baseUrl =
             "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/shared/src/commonTest/resources/data/"
-        am.download(baseUrl, fileName)
+        runBlocking { am.download(baseUrl, fileName) }
         val translations = am.downloadedTranslationCodes()
         assertContains(translations, "kttv")
 
@@ -35,7 +36,7 @@ class AssetManagerTest : ResourcesTestBase() {
         val httpClient = HttpClient(TestFixtures.downloadableTranslationsListMockEngine)
         val am = AssetManagerImpl(httpClient, platform)
         val listUrl = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json"
-        val result = am.downloadableTranslationList(listUrl)
+        val result = runBlocking { am.downloadableTranslationList(listUrl) }
         val abtag = result.first()
         assertEquals("abtag", abtag.code)
         assertEquals("tl", abtag.languageCode)
