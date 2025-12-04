@@ -9,7 +9,7 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun embeddedTranslationCompanionObjectExistsForEachResource() {
-        Bible.embeddedTranslationCodes.forEach { translationCode ->
+        embeddedTranslationCodes.forEach { translationCode ->
             val translation = Translation.embeddedTranslations.find { it.code == translationCode }
             assertNotNull(translation) { "Embedded Translation companion object not found for code: $translationCode" }
         }
