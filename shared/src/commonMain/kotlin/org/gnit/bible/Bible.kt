@@ -34,4 +34,10 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
             else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
     }
+
+    companion object {
+        fun splitChapterToVerses(aChapter: String): Array<String> {
+            return aChapter.substring(2).split("\\n\\d{1,3} ".toRegex()).toTypedArray()
+        }
+    }
 }
