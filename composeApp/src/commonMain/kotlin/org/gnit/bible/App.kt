@@ -854,7 +854,8 @@ private fun TranslationManagerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                // Respect system bars on all sides (landscape tablets were overlapping)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = 12.dp, vertical = 20.dp)
         ) {
             Row(
@@ -885,7 +886,6 @@ private fun TranslationManagerScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .navigationBarsPadding()
             ) {
                 if (isLoadingList) {
                     item {
