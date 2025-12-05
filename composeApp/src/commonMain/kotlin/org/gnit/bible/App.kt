@@ -66,11 +66,13 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vanniktech.locale.Languages
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -829,21 +831,23 @@ private fun TranslationManagerScreen(
     LaunchedEffect(Unit) {
         logger.debug { "TranslationManagerScreen called, fetching downloadable translations list" }
         isLoadingList = true
-        val list = runCatching {
-            assetManager().downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
-        }.fold(
-            onSuccess = {
-                listError = if (it.isEmpty()) "Unable to load online list; showing embedded/cached only." else null
-                it
-            },
-            onFailure = {
-                listError = "Failed to load downloadable translations (${it.message ?: "unknown"})"
-                emptyList()
+        var listResult: List<Translation> = emptyList()
+        try {
+            listResult = withTimeout(10_000) {
+                assetManager().downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
             }
-        )
-        downloadableTranslations = list
-        latestDownloadableTranslations = list
-        isLoadingList = false
+            listError = if (listResult.isEmpty()) "TranslationManagerScreen Unable to load online list; showing embedded/cached only." else null
+        } catch (e: TimeoutCancellationException) {
+            listError = "TranslationManagerScreen Timed out loading downloadable translations; showing embedded/cached only. (${e.message ?: "unknown"})"
+            listResult = latestDownloadableTranslations.ifEmpty { org.gnit.bible.downloadableTranslations }
+        } catch (e: Throwable) {
+            listError = "TranslationManagerScreen Failed to load downloadable translations (${e.message ?: "unknown"})"
+            listResult = latestDownloadableTranslations.ifEmpty { org.gnit.bible.downloadableTranslations }
+        } finally {
+            downloadableTranslations = listResult
+            latestDownloadableTranslations = listResult
+            isLoadingList = false
+        }
     }
 
     val entries = remember(downloadedCodes, downloadingCodes, downloadableTranslations) {
