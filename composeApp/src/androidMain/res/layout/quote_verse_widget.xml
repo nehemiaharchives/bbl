@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/verse_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Verse text will appear here"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:lineSpacingExtra="4sp"
+        android:maxLines="10"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/verse_reference"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="John 3:16 (KJV)"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        android:paddingTop="8dp"
+        android:gravity="end" />
+</LinearLayout>

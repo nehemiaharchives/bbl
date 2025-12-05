@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Open a specific chapter in the app via Assistant or deep link -->
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <parameter
+            android:name="feature"
+            android:key="feature"
+            android:value="open_bible_chapter" />
+        <parameter
+            android:name="org.gnit.bible.translation"
+            android:key="translation" />
+        <parameter
+            android:name="org.gnit.bible.book"
+            android:key="book" />
+        <parameter
+            android:name="org.gnit.bible.chapter"
+            android:key="chapter" />
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="org.gnit.bible.MainActivity"
+            android:targetPackage="org.gnit.bible"
+            android:data="bbl://read?translation={translation}&amp;book={book}&amp;chapter={chapter}" />
+    </capability>
+
+    <!-- Quote a verse via Assistant widget fulfillment -->
+    <capability android:name="org.gnit.bible.QUOTE_VERSE">
+        <app-widget
+            android:identifier="QUOTE_VERSE_WIDGET"
+            android:targetClass="org.gnit.bible.QuoteVerseAppWidgetProvider">
+            <parameter
+                android:name="verseQuery.book"
+                android:key="book"
+                android:required="true" />
+            <parameter
+                android:name="verseQuery.chapter"
+                android:key="chapter"
+                android:required="true" />
+            <parameter
+                android:name="verseQuery.verse"
+                android:key="verse"
+                android:required="true" />
+            <parameter
+                android:name="verseQuery.translation"
+                android:key="translation"
+                android:required="false" />
+        </app-widget>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="org.gnit.bible.MainActivity"
+            android:targetPackage="org.gnit.bible"
+            android:data="bbl://read?translation={translation}&amp;book={book}&amp;chapter={chapter}&amp;verse={verse}"
+            />
+    </capability>
+</shortcuts>

@@ -238,14 +238,17 @@ fun rememberBibleState(): BibleState {
 
 @Composable
 @Preview
-fun App(platformContext: Any? = null) {
+fun App(platformContext: Any? = null, initialBibleState: BibleState? = null) {
     BibleTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            BibleApp(platformContext)
+            BibleApp(
+                platformContext = platformContext,
+                initialBibleState = initialBibleState
+            )
         }
     }
 }
@@ -266,7 +269,8 @@ fun AppInAutoHideMode() {
 @Composable
 fun BibleApp(
     platformContext: Any? = null,
-    initialChromeVisible: Boolean = true
+    initialChromeVisible: Boolean = true,
+    initialBibleState: BibleState? = null
 ) {
 
     logger.debug { "BibleApp called with platformContext:$platformContext" }
@@ -274,16 +278,16 @@ fun BibleApp(
     platform = getPlatform(platformContext)
     bible()
 
-    val initialBibleState = rememberBibleState()
+    val initialState = initialBibleState ?: rememberBibleState()
     var bibleState by rememberSaveable(stateSaver = BibleStateSaver) {
         mutableStateOf(
-            initialBibleState
+            initialState
         )
     }
     var showTranslationManager by rememberSaveable { mutableStateOf(false) }
     var reopenDropdownAfterManager by rememberSaveable { mutableStateOf(false) }
 
-    logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialBibleState) } called, bibleState:$bibleState" }
+    logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialState) } called, bibleState:$bibleState" }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LifecycleResumeEffect(key1 = lifecycleOwner) {
