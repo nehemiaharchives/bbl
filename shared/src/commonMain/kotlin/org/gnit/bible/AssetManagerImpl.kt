@@ -28,7 +28,16 @@ data class TranslationEntry(
 interface AssetManager {
 
     val platform: Platform
+
+    /**
+     * @param baseUrl url of the translation list json file e.g. "https://bbl.pack.server.local/files/bblpacklist.json"
+     */
     suspend fun downloadableTranslationList(listUrl: String): List<Translation>
+
+    /**
+     * @param baseUrl url of the base dir of the zip file e.g. "https://bbl.pack.server.local/files/bblpack"
+     * @param fileName "${translationCode}.zip" e.g. "kttv.zip"
+     */
     suspend fun download(baseUrl: String, fileName: String)
     fun downloadedTranslationCodes(): List<String>
 

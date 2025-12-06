@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import org.gnit.bible.Bible
+import org.gnit.bible.InstallationState
 
 class Bbl(
     private val bible: Bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
@@ -16,7 +17,8 @@ class Bbl(
             //In(),
             //SearchCli(env = Environment.PRODUCTION, config),
             //RandCli(config),
-            ListCli(bible)
+            ListCli(bible),
+            InstallCli(bible)
         )
     }
 
