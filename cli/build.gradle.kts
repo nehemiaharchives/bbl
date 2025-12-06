@@ -161,11 +161,11 @@ tasks.withType<CInteropProcess>().configureEach {
                 else -> "macosX64"
             }
             val lib = layout.buildDirectory.file("embedded/$variantId/libbibles.a").get().asFile
-            println("DEBUG cinterop task: $name")
-            println("DEBUG lib exists: ${lib.exists()} size=${lib.length()} path=${lib.absolutePath}")
-            println("DEBUG embedded dir files:" + layout.buildDirectory.dir("embedded").get().asFile.listFiles()?.map { it.name })
-            println("DEBUG expecting libraryPaths entry pointing to:" + layout.buildDirectory.dir("embedded").get().asFile.absolutePath)
-            println("DEBUG compilerOpts module cache path: $cacheDirPath")
+            logger.info("DEBUG cinterop task: $name")
+            logger.info("DEBUG lib exists: ${lib.exists()} size=${lib.length()} path=${lib.absolutePath}")
+            logger.info("DEBUG embedded dir files:" + layout.buildDirectory.dir("embedded").get().asFile.listFiles()?.map { it.name })
+            logger.info("DEBUG expecting libraryPaths entry pointing to:" + layout.buildDirectory.dir("embedded").get().asFile.absolutePath)
+            logger.info("DEBUG compilerOpts module cache path: $cacheDirPath")
         }
     }
 }
