@@ -17,7 +17,7 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallKttv() {
         val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
-        val httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine)
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val fakeFs = FakeFileSystem()
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         val bible = Bible(assetManager = assetManager)

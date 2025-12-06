@@ -169,4 +169,32 @@ object TestFixtures {
             )
         )
     }
+
+    val bblInstallMockEngine = MockEngine {
+            request ->
+        val bytes = ZipUtil.buildMinimalZip(
+            listOf(
+                "kttv.1.1.txt" to genesisOneKttv,
+                "kttv${MANIFEST_JSON_POSTFIX}" to kttvManifestJson
+            )
+        )
+
+        when(request.url.encodedPath){
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json" -> respond(
+                content = downloadableTranslationsListJson, headers = headersOf(
+                    "Content-Type" to listOf("application/json"),
+                    "Content-Length" to listOf(downloadableTranslationsListJson.encodeToByteArray().size.toString())
+                )
+            )
+
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpackskttv.zip" -> respond(
+                content = bytes, headers = headersOf(
+                    "Content-Type" to listOf("application/zip"),
+                    "Content-Length" to listOf(bytes.size.toString())
+                )
+            )
+
+            else -> error("Unexpected request for path: ${request.url.encodedPath}")
+        }
+    }
 }
