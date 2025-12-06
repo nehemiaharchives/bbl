@@ -3,6 +3,8 @@ package org.gnit.bible.test
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.headersOf
+import org.gnit.bible.MANIFEST_JSON_POSTFIX
+import org.gnit.bible.Translation
 
 object TestFixtures {
 
@@ -42,8 +44,22 @@ object TestFixtures {
     31 Đức Chúa Trời thấy các việc Ngài đã làm thật rất tốt-lành. Vậy, có buổi chiều và buổi mai; ấy là ngày thứ sáu.
 """.trimIndent()
 
-    val kttvDownloadingMockEngine = MockEngine { request ->
-        val bytes = ZipUtil.buildMinimalZip(listOf("kttv.1.1.txt" to genesisOneKttv))
+    private val kttvManifestJson = Translation(
+        code = "kttv",
+        languageCode = "vi",
+        englishName = "Vietnamese Bible 1925",
+        nativeName = "Kinh Thánh Tiếng Việt",
+        year = 1925,
+        copyright = "Public Domain"
+    ).toJson()
+
+    val kttvDownloadingMockEngine = MockEngine { _ ->
+        val bytes = ZipUtil.buildMinimalZip(
+            listOf(
+                "kttv.1.1.txt" to genesisOneKttv,
+                "kttv${MANIFEST_JSON_POSTFIX}" to kttvManifestJson
+            )
+        )
         respond(
             content = bytes, headers = headersOf(
                 "Content-Type" to listOf("application/zip"),
@@ -145,7 +161,7 @@ object TestFixtures {
         ]
     """.trimIndent()
 
-    val downloadableTranslationsListMockEngine = MockEngine { request ->
+    val downloadableTranslationsListMockEngine = MockEngine { _ ->
         respond(
             content = downloadableTranslationsListJson, headers = headersOf(
                 "Content-Type" to listOf("application/json"),

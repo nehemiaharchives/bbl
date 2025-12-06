@@ -28,6 +28,10 @@ class MockAssetManager() : AssetManager {
         return listOf("kttv")
     }
 
+    override fun downloadedTranslations(): List<Translation> {
+        TODO("Not yet implemented")
+    }
+
     override fun delete(translationCode: String) {
         // no-op for tests
     }

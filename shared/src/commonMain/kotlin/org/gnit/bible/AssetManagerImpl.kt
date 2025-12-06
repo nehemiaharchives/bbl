@@ -18,12 +18,21 @@ import okio.SYSTEM
 import okio.buffer
 import okio.use
 
+enum class InstallationState { EMBEDDED, DOWNLOADED, DOWNLOADABLE }
+
+data class TranslationEntry(
+    val translation: Translation,
+    val source: InstallationState
+)
+
 interface AssetManager {
 
     val platform: Platform
     suspend fun downloadableTranslationList(listUrl: String): List<Translation>
     suspend fun download(baseUrl: String, fileName: String)
     fun downloadedTranslationCodes(): List<String>
+
+    fun downloadedTranslations(): List<Translation>
     fun delete(translationCode: String)
 }
 
@@ -116,6 +125,18 @@ class AssetManagerImpl(
         val packDir = platform.packDir.toPath()
         if (!fileSystem.exists(packDir)) return emptyList()
         return fileSystem.list(packDir).map { it.name.removeSuffix(".zip") }
+    }
+
+    override fun downloadedTranslations(): List<Translation> {
+        // Use ZipBibleTextReader to read the manifest from each downloaded zip and return the parsed Translation.
+        val codes = downloadedTranslationCodes()
+        if (codes.isEmpty()) return emptyList()
+        val reader = ZipBibleTextReader(platform)
+        return codes.mapNotNull { code ->
+            runCatching { reader.getTranslationFromManifest(code) }
+                .onFailure { logger.error { "AssetManagerImpl failed to read manifest for $code: ${it.message}" } }
+                .getOrNull()
+        }
     }
 
     override fun delete(translationCode: String) {

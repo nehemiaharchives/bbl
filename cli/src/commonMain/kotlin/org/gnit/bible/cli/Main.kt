@@ -12,11 +12,24 @@ class Bbl(
     override val invokeWithoutSubcommand = true
 
     init {
-        subcommands(ListCli(bible))
+        subcommands(
+            //In(),
+            //SearchCli(env = Environment.PRODUCTION, config),
+            //RandCli(config),
+            ListCli(bible)
+        )
     }
 
     override fun run() {
-        echo(bible.verses())
+
+        val subCommand = currentContext.invokedSubcommand
+
+        if(subCommand == null) {
+            echo(bible.verses())
+        } else {
+            // going to move on subCommand
+            currentContext.findOrSetObject { /*versePointer*/ }
+        }
     }
 }
 

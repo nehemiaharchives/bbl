@@ -47,6 +47,8 @@ import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
+import org.gnit.bible.TranslationEntry
+import org.gnit.bible.InstallationState
 import org.gnit.bible.assetManager
 import org.gnit.bible.bible
 import org.gnit.bible.downloadableTranslations
@@ -212,13 +214,6 @@ private fun TranslationManagerScreenPreview() {
     }
 }
 
-private enum class TranslationSource { EMBEDDED, DOWNLOADED, DOWNLOADABLE }
-
-private data class TranslationEntry(
-    val translation: Translation,
-    val source: TranslationSource
-)
-
 @Composable
 private fun TranslationManagerRow(
     entry: TranslationEntry,
@@ -274,7 +269,7 @@ private fun TranslationManagerRow(
 
 @Composable
 private fun TranslationManagerActionBar(
-    source: TranslationSource,
+    source: InstallationState,
     isShown: Boolean,
     isDownloading: Boolean,
     onToggleVisibility: () -> Unit,
@@ -289,21 +284,21 @@ private fun TranslationManagerActionBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (source) {
-            TranslationSource.EMBEDDED -> {
+            InstallationState.EMBEDDED -> {
                 ShowHideIcon(
                     isShown = isShown,
                     onToggle = onToggleVisibility
                 )
             }
 
-            TranslationSource.DOWNLOADABLE -> {
+            InstallationState.DOWNLOADABLE -> {
                 DownloadIcon(
                     isDownloading = isDownloading,
                     onDownload = onDownload
                 )
             }
 
-            TranslationSource.DOWNLOADED -> {
+            InstallationState.DOWNLOADED -> {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -325,17 +320,17 @@ private fun buildTranslationEntries(
     downloadedCodes: List<String>,
     downloadable: List<Translation>
 ): List<TranslationEntry> {
-    val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, TranslationSource.EMBEDDED) }
+    val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, InstallationState.EMBEDDED) }
 
     val downloadedTranslations = downloadedCodes.mapNotNull { code ->
         runCatching { bible().obtainZipBibleTextReader().getTranslationFromManifest(code) }.getOrNull()
-    }.map { TranslationEntry(it, TranslationSource.DOWNLOADED) }
+    }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
     val list = downloadable.ifEmpty { latestDownloadableTranslations.ifEmpty { downloadableTranslations } }
 
     val notDownloaded = list.filterNot { candidate ->
         downloadedCodes.contains(candidate.code) || Translation.embeddedTranslations.any { it.code == candidate.code }
-    }.map { TranslationEntry(it, TranslationSource.DOWNLOADABLE) }
+    }.map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
     return embedded + downloadedTranslations + notDownloaded
 }
