@@ -152,7 +152,10 @@ class AssetManagerImpl(
         val packDir = platform.packDir.toPath()
         val target = packDir / "$translationCode.zip"
         if (fileSystem.exists(target)) {
+            logger.debug { "AssetManagerImpl found existing $target, deleting" }
             fileSystem.delete(target)
+        }else{
+            logger.debug { "AssetManagerImpl was asked to delete but did not find $target" }
         }
     }
 }

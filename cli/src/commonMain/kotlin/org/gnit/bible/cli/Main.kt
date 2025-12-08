@@ -18,7 +18,8 @@ class Bbl(
             //SearchCli(env = Environment.PRODUCTION, config),
             //RandCli(config),
             ListCli(bible),
-            InstallCli(bible)
+            InstallCli(bible),
+            UninstallCli(bible)
         )
     }
 
@@ -35,7 +36,9 @@ class Bbl(
     }
 
     override fun aliases(): Map<String, List<String>> = mapOf(
-        "get" to listOf("install")
+        "get" to listOf("install"),
+        "remove" to listOf("uninstall"),
+        "delete" to listOf("uninstall")
     )
 }
 
