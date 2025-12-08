@@ -8,21 +8,39 @@ import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class InstallCliTest : ResourcesTestBase() {
 
-    @Test
-    fun testBblInstallKttv() {
+    lateinit var bible: Bible
+    lateinit var fakeFs: FakeFileSystem
+
+    @BeforeTest
+    fun setup(){
         val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
-        val fakeFs = FakeFileSystem()
+        fakeFs = FakeFileSystem()
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
-        val bible = Bible(assetManager = assetManager)
-        val result = Bbl(bible = bible).test("install kttv")
-        assertEquals("Installed kttv\n", result.stdout)
+        bible = Bible(assetManager = assetManager)
+    }
+
+    @Test
+    fun testBblInstallKttv() {
+        val result = Bbl(bible = bible).test("install kttv").stdout
+        assertResult(result)
+    }
+
+    @Test
+    fun testBblAliasGetKttv(){
+        val result = Bbl(bible = bible).test("get kttv").stdout
+        assertResult(result)
+    }
+
+    fun assertResult(result: String){
+        assertEquals("Installed kttv\n", result)
         val zipPath = "/tmp/bblpack/kttv.zip".toPath()
         assertTrue(fakeFs.exists(zipPath))
         fakeFs.metadata(zipPath).also { metadata ->

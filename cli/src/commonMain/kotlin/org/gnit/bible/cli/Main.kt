@@ -33,6 +33,10 @@ class Bbl(
             currentContext.findOrSetObject { /*versePointer*/ }
         }
     }
+
+    override fun aliases(): Map<String, List<String>> = mapOf(
+        "get" to listOf("install")
+    )
 }
 
 fun main(args: Array<String>) {
