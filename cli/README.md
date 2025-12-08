@@ -13,7 +13,7 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
 ### 1. Translation management
   * 1.1. bbl list : DONE
   * 1.2. bbl install : DONE
-  * 1.3. bbl remove : TODO
+  * 1.3. bbl uninstall : DONE
 
 ### 2. Bible reading
   * 2.1. bbl $bookName:$chapter  : TODO
