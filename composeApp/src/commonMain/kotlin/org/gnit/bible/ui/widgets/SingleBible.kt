@@ -21,14 +21,22 @@ import org.gnit.bible.ui.theme.BibleTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun SingleBible(bibleState: BibleState, scrollState: ScrollState) {
+fun SingleBible(
+    bibleState: BibleState,
+    scrollState: ScrollState,
+    onScrollPercentChange: (Float) -> Unit = {}
+) {
     val translation = bibleState.mainTranslation
     val book = bibleState.book
     val chapter = bibleState.chapter
     val chapterText = bible().verses(translation = translation.code, book = book, chapter = chapter)
     val verses = splitChapterToVerses(chapterText)
 
-    ScrollableColumn(bibleState, scrollState) {
+    ScrollableColumn(
+        bibleState = bibleState,
+        scrollState = scrollState,
+        onScrollPercentChange = onScrollPercentChange
+    ) {
         verses.forEachIndexed { verse, text ->
             val background = if (bibleState.isZebraBackground && verse.isEven()) {
                 MaterialTheme.colorScheme.primaryContainer

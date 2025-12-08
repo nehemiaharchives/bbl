@@ -1008,6 +1008,9 @@ private fun BibleReadingArea(
     // 3) Container that applies Scaffold padding and offsets for chrome
     val topChromePadding = 0.dp
     val bottomChromePadding = 0.dp
+    val onScrollPercentChange: (Float) -> Unit = { scrollPercent ->
+        onStateChange(currentState.copy(scrollPercent = scrollPercent))
+    }
 
     Box(
         modifier = Modifier
@@ -1019,9 +1022,9 @@ private fun BibleReadingArea(
     ) {
         when (state.readingMode) {
             // following 3 bible reading area includes ScrollableColumn
-            ReadingMode.SINGLE -> SingleBible(state, scrollState)
-            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(state, scrollState)
-            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(state, scrollState)
+            ReadingMode.SINGLE -> SingleBible(state, scrollState, onScrollPercentChange)
+            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(state, scrollState, onScrollPercentChange)
+            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(state, scrollState, onScrollPercentChange)
         }
     }
 }
@@ -1079,6 +1082,7 @@ private class ChromeAutoHide(
 fun ScrollableColumn(
     bibleState: BibleState,
     scrollState: ScrollState,
+    onScrollPercentChange: (Float) -> Unit = {},
     content: @Composable () -> Unit
 ) {
     Column(
@@ -1104,6 +1108,7 @@ fun ScrollableColumn(
                     delay(200)
                     if (!scrollState.isScrollInProgress) {
                         val scrollPercent = computeScrollPercent(newValue, scrollState)
+                        onScrollPercentChange(scrollPercent)
                         sharedPreferences.putString(
                             SHARED_PREFERENCE_KEY_BIBLE_STATE,
                             bibleState.copy(scrollPercent = scrollPercent).toJson()

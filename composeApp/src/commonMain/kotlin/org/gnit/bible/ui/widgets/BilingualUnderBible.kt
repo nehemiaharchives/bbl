@@ -25,7 +25,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun BilingualUnderBible(
     bibleState: BibleState,
-    scrollState: ScrollState
+    scrollState: ScrollState,
+    onScrollPercentChange: (Float) -> Unit = {}
 ) {
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_UNDER) { "ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode" }
@@ -33,7 +34,11 @@ fun BilingualUnderBible(
 
     val versePairs = getVersePairs(bibleState)
 
-    ScrollableColumn(bibleState, scrollState) {
+    ScrollableColumn(
+        bibleState = bibleState,
+        scrollState = scrollState,
+        onScrollPercentChange = onScrollPercentChange
+    ) {
         versePairs.forEachIndexed { verse, pair ->
             val background = if (bibleState.isZebraBackground && verse.isEven()) {
                 MaterialTheme.colorScheme.primaryContainer
