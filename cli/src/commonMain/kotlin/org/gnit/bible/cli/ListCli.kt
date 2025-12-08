@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
@@ -13,15 +14,20 @@ import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
+import org.gnit.bible.bookNameNumberArray
 import org.gnit.bible.downloadableTranslations
 
 class ListCli(
     private val bible: Bible
 ) : CliktCommand(name = "list") {
 
+    override fun help(context: Context): String {
+        return "List bibles/translations"
+    }
+
     private val logger = KotlinLogging.logger {}
 
-    private val target by argument(help = "What to list: bibles/translations")
+    private val target by argument(help = "What to list: bibles/translations or books")
         .default("bibles")
 
     override fun run() {
@@ -84,6 +90,12 @@ class ListCli(
                 }
                 //echo(terminal.render(table))
                 echo(table)
+            }
+
+            "book", "books" -> {
+                (1..66).forEach { book ->
+                    echo(bookNameNumberArray[book].joinToString(", "))
+                }
             }
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")

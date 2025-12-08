@@ -1,32 +1,31 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.testing.test
-import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.HttpClient
-import org.gnit.bible.AssetManager
+import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslations
-import org.gnit.bible.getPlatform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
+import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class ListCliTest : ResourcesTestBase() {
 
-    @Test
-    fun testBblList() {
+    lateinit var bible: Bible
+    lateinit var fakeFs: FakeFileSystem
+
+    @BeforeTest
+    fun setup(){
         val platform = createTestPlatform()
-        val httpClient = HttpClient(TestFixtures.downloadableTranslationsListMockEngine)
-        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform)
-        val bible = Bible(assetManager = assetManager)
-        val result = Bbl(bible = bible).test(argv = "list")
-        val expected = """
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        fakeFs = FakeFileSystem()
+        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
+        bible = Bible(assetManager = assetManager)
+        Bbl(bible).test("install kttv")
+    }
+    val expectedTranslationList = """
             ┌───────┬──────────────────────────────────────┬───────────┬─────┬────────────┐
             │ Code  │ English Name                         │ Language  │ Year│ Status     │
             ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
@@ -84,6 +83,25 @@ class ListCliTest : ResourcesTestBase() {
             └───────┴──────────────────────────────────────┴───────────┴─────┴────────────┘
             
         """.trimIndent()
-        assertEquals(expected, result.stdout)
+
+    @Test
+    fun testBblList() {
+        val bbl = Bbl(bible = bible)
+
+        arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
+            assertEquals(expectedTranslationList, bbl.test(argv = argv).stdout)
+        }
+    }
+
+    @Test
+    fun testBblListBooks(){
+        val bbl = Bbl(bible = bible)
+
+        arrayOf("list book", "list books").forEach { argv ->
+            val lines = bbl.test(argv).stdout.lines().filter { it.isNotBlank() }
+            assertEquals(66, lines.size)
+            assertEquals("genesis, gen, ge, gn", lines.first())
+            assertEquals("revelation, rev, re, the revelation", lines.last())
+        }
     }
 }
