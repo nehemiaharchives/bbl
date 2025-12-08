@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,11 @@ class InstallCli(
 ) : CliktCommand(name = "install") {
     private val logger = KotlinLogging.logger {}
 
-    private val target by argument(help = "download and install a translation using code e.g. bbl install kttv")
+    override fun help(context: Context): String {
+        return "Download and install a translation using code e.g. bbl install kttv"
+    }
+
+    private val target by argument(help = "translation code to download and install (e.g., kttv)")
 
     override fun run() {
         val translationCodeCandidate = target.lowercase()
