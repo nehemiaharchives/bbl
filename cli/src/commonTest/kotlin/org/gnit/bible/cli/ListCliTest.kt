@@ -18,7 +18,7 @@ class ListCliTest : ResourcesTestBase() {
 
     @BeforeTest
     fun setup(){
-        val platform = createTestPlatform()
+        val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         fakeFs = FakeFileSystem()
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)

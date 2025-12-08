@@ -122,6 +122,7 @@ class AssetManagerImpl(
             // atomic move into place
             runCatching { fileSystem.delete(destinationPath) }
             fileSystem.atomicMove(tempPath, destinationPath)
+            mirrorForZipReader(destinationPath)
             logger.debug { "AssetManagerImpl downloaded $fileName (${size} bytes)" }
         }.onFailure {
             logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
@@ -157,5 +158,24 @@ class AssetManagerImpl(
         }else{
             logger.debug { "AssetManagerImpl was asked to delete but did not find $target" }
         }
+        removeMirroredZip(target)
+    }
+
+    private fun mirrorForZipReader(path: okio.Path) {
+        if (fileSystem === FileSystem.SYSTEM) return
+        runCatching {
+            val data = fileSystem.read(path) { readByteArray() }
+            path.parent?.let { FileSystem.SYSTEM.createDirectories(it, mustCreate = false) }
+            FileSystem.SYSTEM.write(path) {
+                write(data)
+            }
+        }.onFailure {
+            logger.warn { "AssetManagerImpl failed to mirror $path for Zip reader: ${it.message}" }
+        }
+    }
+
+    private fun removeMirroredZip(path: okio.Path) {
+        if (fileSystem === FileSystem.SYSTEM) return
+        runCatching { FileSystem.SYSTEM.delete(path) }
     }
 }
