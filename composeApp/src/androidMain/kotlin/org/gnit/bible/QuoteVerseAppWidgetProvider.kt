@@ -42,7 +42,7 @@ class QuoteVerseAppWidgetProvider : AppWidgetProvider() {
 
         val translation = resolveTranslation(params.translationCode, bible.availableTranslations())
         val bookIndex = resolveBookIndex(params.bookValue, translation)
-        val chapter = params.chapter.coerceIn(1, Chapters.maxChapter(bookIndex))
+        val chapter = params.chapter.coerceIn(1, Books.maxChapter(bookIndex))
         val verseRange = params.verses
 
         val verseText = runCatching {

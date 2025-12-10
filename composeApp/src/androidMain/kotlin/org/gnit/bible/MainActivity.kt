@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
         val (cleanBook, chapterOverride) = splitBookAndChapter(bookValue, chapterValue)
         val translation = resolveTranslation(translationCode)
         val book = resolveBookIndex(cleanBook, translation)
-        val chapter = parseChapterNumber(chapterOverride)?.coerceIn(1, Chapters.maxChapter(book)) ?: 1
+        val chapter = parseChapterNumber(chapterOverride)?.coerceIn(1, Books.maxChapter(book)) ?: 1
 
         val state = BibleState(
             mainTranslation = translation,
@@ -166,7 +166,7 @@ class MainActivity : ComponentActivity() {
         val chapterCandidate = bookMatch?.groupValues?.getOrNull(2)
 
         val bookIndex = resolveBookIndex(bookCandidate, translation)
-        val chapter = parseChapterNumber(chapterCandidate)?.coerceIn(1, Chapters.maxChapter(bookIndex)) ?: 1
+        val chapter = parseChapterNumber(chapterCandidate)?.coerceIn(1, Books.maxChapter(bookIndex)) ?: 1
 
         val state = BibleState(mainTranslation = translation, book = bookIndex, chapter = chapter)
         logger.debug { "DEBUG MainActivity parseFromQuery produced $state" }

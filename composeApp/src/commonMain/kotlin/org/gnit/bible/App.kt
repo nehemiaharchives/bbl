@@ -127,8 +127,8 @@ data class BibleState(
     fun changeBook(newBook: Int) = copy(book = newBook, chapter = 1)
     fun prevChapter() = copy(chapter = chapter - 1)
     fun nextChapter() = copy(chapter = chapter + 1)
-    fun isLastChapter() = (chapter == Chapters.maxChapter(book))
-    fun lastChapter() = Chapters.maxChapter(book)
+    fun isLastChapter() = (chapter == Books.maxChapter(book))
+    fun lastChapter() = Books.maxChapter(book)
     fun describeBookChapter() = "${mainTranslation.books()[book]} $chapter"
     fun isSingleMain(translationToCompare: Translation) =
         (readingMode == ReadingMode.SINGLE && mainTranslation == translationToCompare)

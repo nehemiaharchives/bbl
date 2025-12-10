@@ -31,7 +31,7 @@ class ComposeBibleTextReaderTest : ResourcesTestBase() {
     @Test
     fun testEntireKJV(){
         (1..66).forEach { book ->
-            val maxChapter = Chapters.maxChapter(book)
+            val maxChapter = Books.maxChapter(book)
             (1..maxChapter).forEach { chapter ->
                 val actual = bibleTextReader.getChapterText("kjv", book, chapter)
                 assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
@@ -42,7 +42,7 @@ class ComposeBibleTextReaderTest : ResourcesTestBase() {
     @Test
     fun testWEBUS(){
         (1..66).forEach { book ->
-            val maxChapter = Chapters.maxChapter(book)
+            val maxChapter = Books.maxChapter(book)
             (1..maxChapter).forEach { chapter ->
                 val actual = bibleTextReader.getChapterText("webus", book, chapter)
                 assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
@@ -54,7 +54,7 @@ class ComposeBibleTextReaderTest : ResourcesTestBase() {
     fun testOtherTranslations() {
         val translations = listOf("rvr09", "tb", "delut", "lsg", "sinod", "svrj", "rdv24", "ubg", "ubio", "sven", "cunp", "krv", "jc").forEach { translation ->
             (1..66).forEach { book ->
-                val maxChapter = Chapters.maxChapter(book)
+                val maxChapter = Books.maxChapter(book)
                 (1..maxChapter).forEach { chapter ->
                     val actual = bibleTextReader.getChapterText(translation, book, chapter)
                     assertTrue((actual.startsWith("1 ") || actual.startsWith("1-2 ")), "expected to start with 1 but was '$actual'")
