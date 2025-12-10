@@ -21,7 +21,7 @@ actual abstract class ResourcesTestBase {
     }
 
     @Before
-    fun setup() {
+    fun setupResourcesTestBaseForAndroidPlatform() {
         setupAndroidContextProvider()
     }
 
@@ -45,6 +45,4 @@ actual abstract class ResourcesTestBase {
             throw e
         }
     }
-
-
 }

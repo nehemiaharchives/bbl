@@ -2,7 +2,9 @@ package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
 import io.ktor.client.HttpClient
+import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.SYSTEM
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
@@ -11,20 +13,21 @@ import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ListCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
-    private lateinit var fakeFs: FakeFileSystem
+    private lateinit var systemFileSystem: FileSystem
 
     @BeforeTest
     fun setup(){
-        val packDir = "/tmp/bblpack-cli-list"
-        fakeFs = FakeFileSystem()
-        fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
-        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        systemFileSystem = FileSystem.SYSTEM
+        val bblPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
+        systemFileSystem.createDirectories(bblPackDir.toPath())
+        val platform = createTestPlatform().apply { overridePlatformPackDir = bblPackDir }
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
-        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
+        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = systemFileSystem)
         bible = Bible(assetManager = assetManager)
         Bbl(bible).test("install kttv")
     }
@@ -90,6 +93,13 @@ class ListCliTest : ResourcesTestBase() {
     @Test
     fun testBblList() {
         val bbl = Bbl(bible = bible)
+
+        val packDir = bible.assetManager.platform.packDir.toPath()
+        val packFiles = systemFileSystem.list(packDir)
+        assertEquals(1, packFiles.size)
+        assertEquals("kttv.zip", packFiles.first().name)
+        val zipPath = packDir / "kttv.zip".toPath()
+        assertTrue(systemFileSystem.exists(zipPath))
 
         arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
             assertEquals(expectedTranslationList, bbl.test(argv = argv).stdout)

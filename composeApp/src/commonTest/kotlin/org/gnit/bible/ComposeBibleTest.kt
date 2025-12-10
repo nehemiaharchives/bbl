@@ -1,6 +1,7 @@
 package org.gnit.bible
 
 import io.ktor.client.HttpClient
+import okio.FileSystem
 import org.gnit.bible.test.BibleTest
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
@@ -10,7 +11,7 @@ class ComposeBibleTest : BibleTest, ResourcesTestBase() {
 
     override val bible: Bible = Bible(assetManager = AssetManagerImpl(
         httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
-        platform = createTestPlatform()
+        platform = createTestPlatform().apply { overridePlatformPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_composeapp_compose_bible_test_dir"}" }
     )).apply {
         bibleTextReader = ComposeBibleTextReader()
     }

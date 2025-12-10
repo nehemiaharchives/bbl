@@ -123,7 +123,7 @@ class AssetManagerImpl(
             // atomic move into place
             runCatching { fileSystem.delete(destinationPath) }
             fileSystem.atomicMove(tempPath, destinationPath)
-            logger.debug { "AssetManagerImpl downloaded $fileName (${size} bytes)" }
+            logger.debug { "AssetManagerImpl downloaded $fileName to destination: $destinationPath (${size} bytes)" }
         }.onFailure {
             logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
             runCatching { fileSystem.delete(tempPath) }

@@ -20,10 +20,9 @@ class InstallCliTest : ResourcesTestBase() {
 
     @BeforeTest
     fun setup(){
-        val packDir = "/tmp/bblpack-cli-install"
+
         fakeFs = FakeFileSystem()
-        fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
-        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        val platform = createTestPlatform()
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
@@ -43,7 +42,13 @@ class InstallCliTest : ResourcesTestBase() {
 
     fun assertResult(result: String){
         assertEquals("Installed kttv\n", result)
-        val zipPath = "/tmp/bblpack-cli-install/kttv.zip".toPath()
+
+        val packDir = bible.assetManager.platform.packDir.toPath()
+        val packFileList = fakeFs.list(packDir)
+        assertEquals(1, packFileList.size)
+        assertEquals("kttv.zip", packFileList.first().name)
+
+        val zipPath = packDir / "kttv.zip".toPath()
         assertTrue(fakeFs.exists(zipPath))
         fakeFs.metadata(zipPath).also { metadata ->
             assertTrue(metadata.isRegularFile)

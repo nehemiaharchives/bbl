@@ -98,6 +98,7 @@ kotlin {
             implementation(projects.testFramework)
             implementation(libs.kotlin.test)
             implementation(libs.ktor.clientMock)
+            implementation(libs.okio.fakefs)
         }
 
         val jvmMain by getting {

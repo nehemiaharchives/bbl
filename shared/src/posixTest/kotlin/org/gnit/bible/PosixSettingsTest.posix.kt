@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class PosixSettingsTest {
     private val realFs: FileSystem = FileSystem.SYSTEM
-    private val baseDir = "/tmp/bbl-kmp-tests".toPath()
+    private val baseDir = "/tmp/bbl_kmp_shared_posix_settings_test_dir".toPath()
 
     private fun freshPath() = run {
         realFs.createDirectories(baseDir)

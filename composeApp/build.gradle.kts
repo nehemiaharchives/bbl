@@ -63,6 +63,7 @@ kotlin {
             implementation(libs.kotlin.logging)
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.locale)
+            implementation(libs.okio)
             implementation(projects.shared)
         }
         commonTest.dependencies {
