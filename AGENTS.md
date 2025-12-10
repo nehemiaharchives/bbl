@@ -22,7 +22,7 @@ Use **English** to communicate with me.
   * 2.1. Try to use get_file_problems tool of jetbrains/androidstudio MCP server to check if there are any errors and iterate over till all errors are fixed.
   * 2.2. Try to compile so that you can find compilation errors and fix/edit iterate till it compiles without errors.
 * 3. Run builds/tests and fix compilation errors.
-  * 3.1. If you have access to jetbrains/androidstudio MCP server, get_run_configuration and execute_run_configuration tool and run compileKotlin task to find compilation errors then iterate over until you fix all of them. never use run_in_terminal tool for running gradle tasks try to use run_configuration as much as possible.
+  * 3.1. If you have access to jetbrains/androidstudio MCP server, use get_run_configuration and execute_run_configuration tool and run compileKotlin task to find compilation errors then iterate over until you fix all of them. never use run_in_terminal tool for running gradle tasks try to use run_configuration as much as possible.
   * 3.2. If you don't have access to JetBrains/Android Studio MCP server, use terminal to run ./gradle compileKotlin commands to find compilation errors then iterate over until you fix all of them.
 * 4. Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
 
