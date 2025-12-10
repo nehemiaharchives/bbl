@@ -70,6 +70,13 @@ class PosixSettings(
 
     private val lockAcquireTimeoutMs: Long = 10_000L
 
+    private fun ensureParentDirectoryExists() {
+        val parent = path.parent ?: return
+        if (!fileSystem.exists(parent)) {
+            fileSystem.createDirectories(parent)
+        }
+    }
+
     // --- escaping utilities ---
 
     private fun escape(s: String): String =
@@ -171,6 +178,7 @@ class PosixSettings(
         if (loaded) return
         withMemoryLock {
             if (!loaded) {
+                ensureParentDirectoryExists()
                 lock.acquire(timeoutMs = lockAcquireTimeoutMs).use {
                     if (!fileSystem.exists(path)) {
                         cache.clear()
@@ -186,6 +194,7 @@ class PosixSettings(
 
     private fun flushToDisk() {
         withMemoryLock {
+            ensureParentDirectoryExists()
             lock.acquire(timeoutMs = lockAcquireTimeoutMs).use {
                 val parent = path.parent
                 val tmpName = "${path.name}.tmp-${Random.nextLong().toString(16)}"
