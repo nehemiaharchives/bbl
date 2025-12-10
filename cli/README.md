@@ -21,9 +21,9 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 2.3. bbl $bookName:$chapter$startVerse:$endVerse : DONE
 
 ### 3. Bible reading specifying translation
-  * 2.1. bbl $bookName:$chapter  : TODO
-  * 2.2. bbl $bookName:$chapter$startVerse : TODO
-  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse : TODO
+  * 2.1. bbl $bookName:$chapter  in $translation : TODO
+  * 2.2. bbl $bookName:$chapter$startVerse  in $translation : TODO
+  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse  in $translation : TODO
 
 ### 4. Random bible
   * 4.1. bbl rand : TODO
