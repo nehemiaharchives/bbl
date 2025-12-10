@@ -16,6 +16,15 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         return embeddedTranslations.plus(downloadedTranslations)
     }
 
+    fun findTranslationByCode(code: String): Boolean {
+        val foundInEmbedded = Translation.embeddedTranslations.find { it.code == code }
+        if (foundInEmbedded != null) {
+            return true
+        }
+        val foundInDownloaded = assetManager.downloadedTranslationCodes().find { it == code }
+        return foundInDownloaded != null
+    }
+
     lateinit var bibleTextReader: BibleTextReader
 
     var zipBibleTextReader: ZipBibleTextReader? = null
