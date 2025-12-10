@@ -20,7 +20,10 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
     fun obtainZipBibleTextReader(): ZipBibleTextReader {
         if (zipBibleTextReader == null) {
-            zipBibleTextReader = ZipBibleTextReader(assetManager.platform)
+            zipBibleTextReader = ZipBibleTextReader(
+                assetManager.platform,
+                assetManager.fileSystem
+            )
         }
         return zipBibleTextReader!!
     }

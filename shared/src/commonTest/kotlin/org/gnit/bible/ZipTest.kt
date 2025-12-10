@@ -3,6 +3,7 @@ package org.gnit.bible
 import com.oldguy.common.io.File
 import com.oldguy.common.io.TextFile
 import kotlinx.coroutines.runBlocking
+import okio.SYSTEM
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -35,7 +36,7 @@ class ZipTest {
         val overridePath = "src/commonTest/resources/data"
         platform.overridePlatformPackDir = overridePath
 
-        val zipBibleTextReader = ZipBibleTextReader(platform)
+        val zipBibleTextReader = ZipBibleTextReader(platform, okio.FileSystem.SYSTEM)
 
         val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
 
@@ -51,7 +52,7 @@ class ZipTest {
         val overridePath = "src/commonTest/resources/data"
         platform.overridePlatformPackDir = overridePath
 
-        val zipBibleTextReader = ZipBibleTextReader(platform)
+        val zipBibleTextReader = ZipBibleTextReader(platform, okio.FileSystem.SYSTEM)
 
         val translation = zipBibleTextReader.getTranslationFromManifest("kttv")
 

@@ -49,6 +49,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.clientMock)
             implementation(libs.multiplatform.settings)
+            implementation(libs.okio)
         }
 
         androidMain.dependencies {

@@ -4,6 +4,8 @@ import com.russhwolf.settings.Settings
 import org.gnit.bible.AssetManager
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
+import okio.FileSystem
+import okio.SYSTEM
 
 class MockAssetManager() : AssetManager {
 
@@ -15,6 +17,7 @@ class MockAssetManager() : AssetManager {
         override val settings: Settings
             get() = TODO("Not yet implemented")
     }
+    override val fileSystem: FileSystem = FileSystem.SYSTEM
 
     override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
         TODO("Not yet implemented")

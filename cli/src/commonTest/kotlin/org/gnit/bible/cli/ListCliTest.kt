@@ -2,6 +2,7 @@ package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
 import io.ktor.client.HttpClient
+import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
@@ -14,13 +15,15 @@ import kotlin.test.assertEquals
 class ListCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
-    lateinit var fakeFs: FakeFileSystem
+    private lateinit var fakeFs: FakeFileSystem
 
     @BeforeTest
     fun setup(){
-        val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        val packDir = "/tmp/bblpack-cli-list"
         fakeFs = FakeFileSystem()
+        fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
+        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
         Bbl(bible).test("install kttv")

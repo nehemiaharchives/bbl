@@ -28,6 +28,7 @@ data class TranslationEntry(
 interface AssetManager {
 
     val platform: Platform
+    val fileSystem: FileSystem
 
     /**
      * @param baseUrl url of the translation list json file e.g. "https://bbl.pack.server.local/files/bblpacklist.json"
@@ -48,7 +49,7 @@ interface AssetManager {
 class AssetManagerImpl(
     val httpClient: HttpClient = createPlatformHttpClient(),
     override val platform: Platform = getPlatform(),
-    val fileSystem: FileSystem = FileSystem.SYSTEM
+    override val fileSystem: FileSystem = FileSystem.SYSTEM
 ) : AssetManager {
 
     private val logger = KotlinLogging.logger {}
@@ -122,7 +123,6 @@ class AssetManagerImpl(
             // atomic move into place
             runCatching { fileSystem.delete(destinationPath) }
             fileSystem.atomicMove(tempPath, destinationPath)
-            mirrorForZipReader(destinationPath)
             logger.debug { "AssetManagerImpl downloaded $fileName (${size} bytes)" }
         }.onFailure {
             logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
@@ -141,7 +141,7 @@ class AssetManagerImpl(
         // Use ZipBibleTextReader to read the manifest from each downloaded zip and return the parsed Translation.
         val codes = downloadedTranslationCodes()
         if (codes.isEmpty()) return emptyList()
-        val reader = ZipBibleTextReader(platform)
+        val reader = ZipBibleTextReader(platform, fileSystem)
         return codes.mapNotNull { code ->
             runCatching { reader.getTranslationFromManifest(code) }
                 .onFailure { logger.error { "AssetManagerImpl failed to read manifest for $code: ${it.message}" } }
@@ -158,24 +158,5 @@ class AssetManagerImpl(
         }else{
             logger.debug { "AssetManagerImpl was asked to delete but did not find $target" }
         }
-        removeMirroredZip(target)
-    }
-
-    private fun mirrorForZipReader(path: okio.Path) {
-        if (fileSystem === FileSystem.SYSTEM) return
-        runCatching {
-            val data = fileSystem.read(path) { readByteArray() }
-            path.parent?.let { FileSystem.SYSTEM.createDirectories(it, mustCreate = false) }
-            FileSystem.SYSTEM.write(path) {
-                write(data)
-            }
-        }.onFailure {
-            logger.warn { "AssetManagerImpl failed to mirror $path for Zip reader: ${it.message}" }
-        }
-    }
-
-    private fun removeMirroredZip(path: okio.Path) {
-        if (fileSystem === FileSystem.SYSTEM) return
-        runCatching { FileSystem.SYSTEM.delete(path) }
     }
 }

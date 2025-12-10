@@ -16,13 +16,15 @@ import kotlin.test.assertTrue
 class InstallCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
-    lateinit var fakeFs: FakeFileSystem
+    private lateinit var fakeFs: FakeFileSystem
 
     @BeforeTest
     fun setup(){
-        val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        val packDir = "/tmp/bblpack-cli-install"
         fakeFs = FakeFileSystem()
+        fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
+        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
     }
@@ -41,7 +43,7 @@ class InstallCliTest : ResourcesTestBase() {
 
     fun assertResult(result: String){
         assertEquals("Installed kttv\n", result)
-        val zipPath = "/tmp/bblpack/kttv.zip".toPath()
+        val zipPath = "/tmp/bblpack-cli-install/kttv.zip".toPath()
         assertTrue(fakeFs.exists(zipPath))
         fakeFs.metadata(zipPath).also { metadata ->
             assertTrue(metadata.isRegularFile)

@@ -16,13 +16,15 @@ import kotlin.test.assertFalse
 class UninstallCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
-    lateinit var fakeFs: FakeFileSystem
+    private lateinit var fakeFs: FakeFileSystem
 
     @BeforeTest
     fun setup(){
-        val platform = createTestPlatform().apply { overridePlatformPackDir = "/tmp/bblpack" }
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        val packDir = "/tmp/bblpack-cli-uninstall"
         fakeFs = FakeFileSystem()
+        fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
+        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
         Bbl(bible = bible).test("install kttv")
@@ -48,7 +50,7 @@ class UninstallCliTest : ResourcesTestBase() {
 
     fun assertResult(result: String){
         assertEquals("Uninstalled kttv\n", result)
-        val zipPath = "/tmp/bblpack/kttv.zip".toPath()
+        val zipPath = "/tmp/bblpack-cli-uninstall/kttv.zip".toPath()
         assertFalse(fakeFs.exists(zipPath))
     }
 }
