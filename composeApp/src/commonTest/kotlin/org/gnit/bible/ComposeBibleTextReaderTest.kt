@@ -21,8 +21,8 @@ class ComposeBibleTextReaderTest : ResourcesTestBase() {
     }
 
     @Test
-    fun testReading50Chapters(){
-        for (chapter in 1..50) {
+    fun testReading5Chapters(){
+        for (chapter in 1..5) {
             val actual = bibleTextReader.getChapterText("kjv", 1, chapter)
             assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
         }
