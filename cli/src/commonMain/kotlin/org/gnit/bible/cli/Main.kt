@@ -36,6 +36,12 @@ class Bbl(
         )
     }
 
+    override fun aliases(): Map<String, List<String>> = mapOf(
+        "get" to listOf("install"),
+        "remove" to listOf("uninstall"),
+        "delete" to listOf("uninstall")
+    )
+
     override fun run() {
 
         if (versionFlag) {
@@ -56,12 +62,6 @@ class Bbl(
             }
         }
     }
-
-    override fun aliases(): Map<String, List<String>> = mapOf(
-        "get" to listOf("install"),
-        "remove" to listOf("uninstall"),
-        "delete" to listOf("uninstall")
-    )
 }
 
 fun main(args: Array<String>) {
