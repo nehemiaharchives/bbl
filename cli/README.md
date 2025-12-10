@@ -16,9 +16,9 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 1.3. bbl uninstall : DONE
 
 ### 2. Bible reading
-  * 2.1. bbl $bookName:$chapter  : TODO
-  * 2.2. bbl $bookName:$chapter$startVerse : TODO
-  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse : TODO
+  * 2.1. bbl $bookName:$chapter  : DONE
+  * 2.2. bbl $bookName:$chapter$startVerse : DONE
+  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse : DONE
 
 ### 3. Bible reading specifying translation
   * 2.1. bbl $bookName:$chapter  : TODO
