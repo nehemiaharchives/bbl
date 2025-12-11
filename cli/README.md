@@ -21,15 +21,15 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 2.3. bbl $bookName:$chapter$startVerse:$endVerse : DONE
 
 ### 3. Bible reading specifying translation
-  * 2.1. bbl $bookName:$chapter  in $translation : DONE
-  * 2.2. bbl $bookName:$chapter$startVerse  in $translation : DONE
-  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse  in $translation : DONE
+  * 2.1. bbl $bookName:$chapter in $translation : DONE
+  * 2.2. bbl $bookName:$chapter$startVerse in $translation : DONE
+  * 2.3. bbl $bookName:$chapter$startVerse:$endVerse in $translation : DONE
 
 ### 4. Random bible
   * 4.1. bbl rand : TODO
-  * 4.2. bbl rand g (random verse within 4 gospels) : TODO
-  * 4.3. bbl rand nt (random verse within New Testament) : TODO
-  * 4.4. bbl rand ot (random verse within Old Testament) : TODO
+  * 4.2. bbl rand g (random verse within 4 gospels) : DONE
+  * 4.3. bbl rand nt (random verse within New Testament) : DONE
+  * 4.4. bbl rand ot (random verse within Old Testament) : DONE
 
 ### 5. Configuration
   * 5.1. set default translation : TODO

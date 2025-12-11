@@ -30,7 +30,7 @@ class Bbl(
         subcommands(
             In(bible),
             //SearchCli(env = Environment.PRODUCTION, config),
-            //RandCli(config),
+            RandCli(bible),
             ListCli(bible),
             InstallCli(bible),
             UninstallCli(bible)
