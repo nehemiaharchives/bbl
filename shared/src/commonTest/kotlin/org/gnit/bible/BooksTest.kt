@@ -16,6 +16,17 @@ class BooksTest {
 
     @Test
     fun testCategory(){
+        fun bookContains(cat: Books.Category, book: Int) = cat.filter.contains(BookChapterVerse(book, 1, 1))
 
+        assertEquals(true, bookContains(Books.Category.OLD_TESTAMENT, 1))
+        assertEquals(false, bookContains(Books.Category.OLD_TESTAMENT, 40))
+
+        assertEquals(true, bookContains(Books.Category.NEW_TESTAMENT, 66))
+        assertEquals(false, bookContains(Books.Category.NEW_TESTAMENT, 39))
+
+        val abraham = Books.Category.ABRAHAM.filter
+        assertEquals(false, abraham.contains(BookChapterVerse(1, 11, 20))) // before start
+        assertEquals(true, abraham.contains(BookChapterVerse(1, 15, 1)))   // inside
+        assertEquals(false, abraham.contains(BookChapterVerse(1, 25, 12))) // after end
     }
 }

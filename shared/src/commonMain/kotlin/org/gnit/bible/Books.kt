@@ -39,32 +39,37 @@ object Books {
         else -> 50
     }
 
-    // TODO range/filter capability can be expanded as following
-    // 1. book..book IntRange
-    // 2. List<IntRange>
-    // 3. BookChapterVerse..BookChapterVerse : BookChapterVerseRange
-    // 4. List<BookChapterVerseRange>
+    enum class Category(val key: List<String>, val filter: BibleFilter){
+        OLD_TESTAMENT(listOf("ot", "old testament"), books(1..39)),
+        TORAH(listOf("t", "tor", "torah", "pe", "pent", "pentateuch"), books(1..5)),
+        ABRAHAM(listOf("abraham"), passage(BookChapterVerse(1, 11, 27), BookChapterVerse(1, 25, 11))),
+        HISTORICAL_BOOKS(listOf("h"), books(6..17)),
+        SAMUEL(listOf("sam", "samuel"), books(9..10)),
+        KINGS(listOf("ki", "kings"), books(11..12)),
+        CHRONICLES(listOf("chr", "chro", "chronicles"), books(13..14)),
+        WISDOM_BOOKS(listOf("w", "wis", "wisdom"), books(18..22)),
+        PROPHETS(listOf("p", "pro", "prophet", "prophets"), books(23..39)),
+        MAJOR_PROPHETS(listOf("map", "major", "major prophet", "major prophets"), books(23..27)),
+        MINOR_PROPHETS(listOf("mip", "minor", "minor prophet", "minor prophets"), books(28..39)),
+        NEW_TESTAMENT(listOf("nt", "new testament"), books(40..66)),
+        GOSPELS(listOf("g", "go", "gospel", "gospels"), books(40..43)),
+        SYNOPTIC_GOSPELS(listOf("sg", "synoptic", "synoptic gospel", "synoptic gospels"), books(40..42)),
+        PAULINE_EPISTLES(listOf("paul", "pauline", "pauline epi", "pauline epistle", "pauline episodes", "letter of paul", "letters of paul", "paul's letter", "paul's letters"), books(45..57)),
+        CORINTHIANS(listOf("cor", "corinthians", "epistle to the corinthians", "letter to the corinthians"), books(46..47)),
+        THESSALONIANS(listOf("thes", "thessalonians", "epistle to the thessalonians", "letter to the thessalonians"), books(52..53)),
+        TIMOTHY(listOf("tim", "thimothy", "epistle to thimothy", "letter to thimothy"), books(54..55)),
+        PETER(listOf("peter", "pet", "epistle of peter", "epistles of peter", "letter of peter", "letters of peter"), books(60, 61)),
+        JOHN_GOSPEL(listOf("john gospel", "gospel john", "johng"), books(43)),
+        JOHN_LETTERS(listOf("john", "jhn", "epistle of john", "epistles of john", "letter of john", "letters of john"), books(62, 63, 64)),
+        JOHANNINE(listOf("johannine", "john writings", "john+"), books(43, 62, 63, 64, 66)),
+        ALL(listOf("all"), BibleFilter.All),
+        ;
 
-    enum class Category(val key: List<String>, range: IntRange){
-        OLD_TESTAMENT(listOf("ot", "old testament"), 1..39),
-        TORAH(listOf("t", "tor", "torah", "pe", "pent", "pentateuch"), 1..5),
-        HISTORICAL_BOOKS(listOf("h"), 6..17),
-        SAMUEL(listOf("sam", "samuel"), 9..10),
-        KINGS(listOf("ki", "kings"), 11..12),
-        CHRONICLES(listOf("chr", "chro", "chronicles"), 13..14),
-        WISDOM_BOOKS(listOf("w", "wis", "wisdom"), 18..22),
-        PROPHETS(listOf("p", "pro", "prophet", "prophets"), 23..39),
-        MAJOR_PROPHETS(listOf("map", "major", "major prophet", "major prophets"), 23..27),
-        MINOR_PROPHETS(listOf("mip", "minor", "minor prophet", "minor prophets"), 28..39),
-        NEW_TESTAMENT(listOf("nt", "new testament"), 40..66),
-        GOSPELS(listOf("g", "go", "gospel", "gospels"), 40..43),
-        SYNOPTIC_GOSPELS(listOf("sg", "synoptic", "synoptic gospel", "synoptic gospels"), 40..42),
-        PAULINE_EPISTLES(listOf("paul", "pauline", "pauline epi", "pauline epistle", "pauline episodes", "letter of paul", "letters of paul", "paul's letter", "paul's letters"), 45..57),
-        CORINTHIANS(listOf("cor", "corinthians", "epistle to the corinthians", "letter to the corinthians"), 46..47),
-        THESSALONIANS(listOf("thes", "thessalonians", "epistle to the thessalonians", "letter to the thessalonians"), 52..53),
-        TIMOTHY(listOf("tim", "thimothy", "epistle to thimothy", "letter to thimothy"), 54..55),
-        PETER(listOf("peter", "pet", "epistle of peter", "epistles of peter", "letter of peter", "letters of peter"), 60..61),
-        JOHN(listOf("john", "jhn", "epistle of john", "epistles of john", "letter of john", "letters of john"), 62..64),
-        ALL(listOf("all"), 1..66),
+        companion object {
+            fun fromKey(raw: String): Category? {
+                val key = raw.lowercase()
+                return entries.firstOrNull { key in it.key }
+            }
+        }
     }
 }
