@@ -49,7 +49,7 @@ interface AssetManager {
 class AssetManagerImpl(
     val httpClient: HttpClient = createPlatformHttpClient(),
     override val platform: Platform = getPlatform(),
-    override val fileSystem: FileSystem = FileSystem.SYSTEM
+    override val fileSystem: FileSystem = platform.fileSystem
 ) : AssetManager {
 
     private val logger = KotlinLogging.logger {}

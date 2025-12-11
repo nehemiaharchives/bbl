@@ -23,7 +23,10 @@ class UninstallCliTest : ResourcesTestBase() {
         val packDir = "/tmp/bblpack-cli-uninstall"
         fakeFs = FakeFileSystem()
         fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
-        val platform = createTestPlatform().apply { overridePlatformPackDir = packDir }
+        val platform = createTestPlatform().apply {
+            overridePlatformPackDir = packDir
+            overrideFileSystem = fakeFs
+        }
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)

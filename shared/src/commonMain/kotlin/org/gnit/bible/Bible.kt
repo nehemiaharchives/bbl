@@ -15,9 +15,7 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
     fun availableTranslations(): List<Translation> {
         val embeddedTranslations = Translation.embeddedTranslations
-        val downloadedTranslations = assetManager.downloadedTranslationCodes().map { code ->
-            obtainZipBibleTextReader().getTranslationFromManifest(code)
-        }
+        val downloadedTranslations = assetManager.downloadedTranslations()
         return embeddedTranslations.plus(downloadedTranslations)
     }
 

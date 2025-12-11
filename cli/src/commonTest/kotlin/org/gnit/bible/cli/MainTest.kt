@@ -3,11 +3,20 @@ package org.gnit.bible.cli
 import com.github.ajalt.clikt.testing.test
 import org.gnit.bible.jcGenesisChapterOne
 import org.gnit.bible.webusGenesisChapterOne
+import org.gnit.bible.ConfigKey
+import org.gnit.bible.getPlatform
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class MainTest {
+
+    @BeforeTest
+    fun clearSavedTranslation() {
+        val platform = getPlatform()
+        platform.settings.remove(ConfigKey.TRANSLATION.value)
+    }
 
     @Test
     fun testBblWithVersionFlag(){

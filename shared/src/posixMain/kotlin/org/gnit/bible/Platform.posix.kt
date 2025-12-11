@@ -29,7 +29,7 @@ class PosixPlatform : Platform() {
     override val settings: Settings by lazy {
         val home = homeDir()
         val settingsPath = home / "$bblDir/settings.properties"
-        PosixSettings(fileSystem = okio.FileSystem.SYSTEM, path = settingsPath)
+        PosixSettings(fileSystem = fileSystem, path = settingsPath)
     }
 }
 

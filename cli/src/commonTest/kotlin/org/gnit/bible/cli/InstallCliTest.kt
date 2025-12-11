@@ -6,6 +6,7 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
@@ -23,6 +24,7 @@ class InstallCliTest : ResourcesTestBase() {
 
         fakeFs = FakeFileSystem()
         val platform = createTestPlatform()
+        platform.overrideFileSystem = fakeFs
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)

@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
-import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.test.ResourcesTestBase

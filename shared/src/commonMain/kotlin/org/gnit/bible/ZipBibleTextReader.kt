@@ -9,7 +9,7 @@ import okio.SYSTEM
 
 class ZipBibleTextReader(
     val platform: Platform,
-    private val fileSystem: FileSystem = FileSystem.SYSTEM
+    private val fileSystem: FileSystem = platform.fileSystem
 ) : BibleTextReader {
 
     val logger = KotlinLogging.logger {}

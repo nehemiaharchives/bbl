@@ -3,8 +3,8 @@
 package org.gnit.bible
 
 import com.russhwolf.settings.Settings
-import kotlin.random.Random
 import kotlinx.cinterop.*
+import kotlin.random.Random
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -67,6 +67,7 @@ class PosixSettings(
     private var loaded: Boolean = false
 
     private val lock = PosixFileLock(path)
+    private val usePosixLock: Boolean = fileSystem === FileSystem.SYSTEM
 
     private val lockAcquireTimeoutMs: Long = 10_000L
 
@@ -179,7 +180,7 @@ class PosixSettings(
         withMemoryLock {
             if (!loaded) {
                 ensureParentDirectoryExists()
-                lock.acquire(timeoutMs = lockAcquireTimeoutMs).use {
+                acquireLock().use {
                     if (!fileSystem.exists(path)) {
                         cache.clear()
                     } else {
@@ -195,7 +196,7 @@ class PosixSettings(
     private fun flushToDisk() {
         withMemoryLock {
             ensureParentDirectoryExists()
-            lock.acquire(timeoutMs = lockAcquireTimeoutMs).use {
+            acquireLock().use {
                 val parent = path.parent
                 val tmpName = "${path.name}.tmp-${Random.nextLong().toString(16)}"
                 val tmpStr = if (parent != null) {
@@ -209,10 +210,18 @@ class PosixSettings(
                 val contents = serialize()
                 fileSystem.write(tmpPath) { writeUtf8(contents) }
 
-                atomicReplace(tmpPath, path)
+                if (fileSystem.exists(path)) {
+                    fileSystem.delete(path)
+                }
+                fileSystem.atomicMove(source = tmpPath, target = path)
             }
         }
     }
+
+    private fun acquireLock(): Closeable =
+        if (usePosixLock) lock.acquire(timeoutMs = lockAcquireTimeoutMs) else object : Closeable {
+            override fun close() {}
+        }
 
     // --- utilities for encoded values ---
 
@@ -493,22 +502,4 @@ private class PosixFileLock(lockTarget: Path) {
 
         throw IllegalStateException("Failed to acquire lock on $lockPath within $timeoutMs ms")
     }
-}
-
-/**
- * Atomically replace [target] with [tmp] using POSIX rename(). Throws on failure.
- */
-private fun atomicReplace(tmp: Path, target: Path) {
-    val tmpStr = tmp.toString()
-    val targetStr = target.toString()
-    val res = rename(tmpStr, targetStr)
-    if (res == 0) return
-
-    // fallback: remove target then rename
-    if (unlink(targetStr) == 0) {
-        if (rename(tmpStr, targetStr) == 0) return
-    }
-
-    val e = errno
-    throw IllegalStateException("atomicReplace failed (errno=$e) replacing $targetStr with $tmpStr")
 }

@@ -2,6 +2,8 @@ package org.gnit.bible
 
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
+import okio.FileSystem
+import okio.SYSTEM
 
 abstract class Platform {
     abstract val name: String
@@ -19,6 +21,14 @@ abstract class Platform {
     abstract val platformPackDir: String
 
     var overridePlatformPackDir: String? = null
+
+    /**
+     * Allows tests to replace the default file system (which is usually FileSystem.SYSTEM).
+     */
+    var overrideFileSystem: FileSystem? = null
+
+    val fileSystem: FileSystem
+        get() = overrideFileSystem ?: FileSystem.SYSTEM
 
     val packDir: String
         get() = overridePlatformPackDir ?: platformPackDir
