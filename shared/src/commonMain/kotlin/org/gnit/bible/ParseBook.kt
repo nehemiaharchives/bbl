@@ -230,8 +230,8 @@ fun bookNumber(bookName: String) = when (bookName) {
     "2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
     "1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
     "2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
-    "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
-    "2nd chronicles", "2chronicles", "2 chronicles", "2chr", "2 chr", "2ch", "2ndchr", "2nd chr", "second chronicles", "second chr" -> 14
+    "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1chro", "1 chro", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
+    "2nd chronicles", "2chronicles", "2 chronicles", "2chr", "2chro", "2 chro", "2 chr", "2ch", "2ndchr", "2nd chr", "second chronicles", "second chr" -> 14
     "ezra", "ezr", "ez" -> 15
     "nehemiah", "neh", "ne" -> 16
     "esther", "est", "esth", "es" -> 17

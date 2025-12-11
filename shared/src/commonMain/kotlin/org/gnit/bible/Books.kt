@@ -45,28 +45,26 @@ object Books {
     // 3. BookChapterVerse..BookChapterVerse : BookChapterVerseRange
     // 4. List<BookChapterVerseRange>
 
-    // TODO key can be expanded to have multiple per entry being List<String>
-
-    enum class Category(val key: String, range: IntRange){
-        OLD_TESTAMENT("ot", 1..39),
-        TORAH("t", 1..5),
-        HISTORICAL_BOOKS("h", 6..17),
-        SAMUEL("samuel", 9..10),
-        KINGS("kings", 11..12),
-        CHRONICLES("chr", 13..14),
-        WISDOM_BOOKS("w", 18..22),
-        PROPHETS("p", 23..39),
-        MAJOR_PROPHETS("map", 23..27),
-        MINOR_PROPHETS("mip", 28..39),
-        NEW_TESTAMENT("nt", 40..66),
-        GOSPELS("g", 40..43),
-        SYNOPTIC_GOSPELS("sg", 40..42),
-        PAULINE_EPISTLES("paul", 45..57),
-        CORINTHIANS("cor", 46..47),
-        THESSALONIANS("thes", 52..53),
-        TIMOTHY("tim", 54..55),
-        PETER("peter", 60..61),
-        JOHN("john", 62..64),
-        ALL("all", 1..66)
+    enum class Category(val key: List<String>, range: IntRange){
+        OLD_TESTAMENT(listOf("ot", "old testament"), 1..39),
+        TORAH(listOf("t", "tor", "torah", "pe", "pent", "pentateuch"), 1..5),
+        HISTORICAL_BOOKS(listOf("h"), 6..17),
+        SAMUEL(listOf("sam", "samuel"), 9..10),
+        KINGS(listOf("ki", "kings"), 11..12),
+        CHRONICLES(listOf("chr", "chro", "chronicles"), 13..14),
+        WISDOM_BOOKS(listOf("w", "wis", "wisdom"), 18..22),
+        PROPHETS(listOf("p", "pro", "prophet", "prophets"), 23..39),
+        MAJOR_PROPHETS(listOf("map", "major", "major prophet", "major prophets"), 23..27),
+        MINOR_PROPHETS(listOf("mip", "minor", "minor prophet", "minor prophets"), 28..39),
+        NEW_TESTAMENT(listOf("nt", "new testament"), 40..66),
+        GOSPELS(listOf("g", "go", "gospel", "gospels"), 40..43),
+        SYNOPTIC_GOSPELS(listOf("sg", "synoptic", "synoptic gospel", "synoptic gospels"), 40..42),
+        PAULINE_EPISTLES(listOf("paul", "pauline", "pauline epi", "pauline epistle", "pauline episodes", "letter of paul", "letters of paul", "paul's letter", "paul's letters"), 45..57),
+        CORINTHIANS(listOf("cor", "corinthians", "epistle to the corinthians", "letter to the corinthians"), 46..47),
+        THESSALONIANS(listOf("thes", "thessalonians", "epistle to the thessalonians", "letter to the thessalonians"), 52..53),
+        TIMOTHY(listOf("tim", "thimothy", "epistle to thimothy", "letter to thimothy"), 54..55),
+        PETER(listOf("peter", "pet", "epistle of peter", "epistles of peter", "letter of peter", "letters of peter"), 60..61),
+        JOHN(listOf("john", "jhn", "epistle of john", "epistles of john", "letter of john", "letters of john"), 62..64),
+        ALL(listOf("all"), 1..66),
     }
 }
