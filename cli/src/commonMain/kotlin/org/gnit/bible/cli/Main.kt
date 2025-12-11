@@ -48,7 +48,7 @@ class Bbl(
         if (versionFlag) {
             echo(versionOutput)
         } else {
-            versePointer = Bible.parse(translation = Translation.webus/* TODO need to feed configured default translation later  */, book = book, chapterVerse = chapterVerse)
+            versePointer = Bible.parse(translation = bible.defaultTranslationFromSettings(), book = book, chapterVerse = chapterVerse)
 
             val subCommand = currentContext.invokedSubcommand
             if (subCommand == null) {

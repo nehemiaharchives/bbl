@@ -3,8 +3,6 @@ package org.gnit.bible
 import kotlin.math.min
 import kotlin.random.Random
 
-enum class RandomlyShow { verse, chapter }
-
 data class RandResult(
     val pointer: VersePointer,
     val selection: String,

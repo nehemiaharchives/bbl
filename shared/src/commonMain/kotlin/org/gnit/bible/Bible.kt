@@ -1,6 +1,11 @@
 package org.gnit.bible
 
-import kotlin.collections.get
+enum class RandomlyShow { verse, chapter }
+
+enum class ConfigKey(val value: String){
+    TRANSLATION("translation"),
+    RANDOMLY_SHOW("randomlyShow")
+}
 
 class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
@@ -47,6 +52,17 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
             assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
             else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
+    }
+
+    fun defaultTranslationFromSettings(): Translation{
+        val translationCode = assetManager.platform.settings.getStringOrNull(ConfigKey.TRANSLATION.value) ?: "webus"
+        val translation = availableTranslations().firstOrNull { it.code == translationCode }?: Translation.webus
+        return translation
+    }
+
+    fun randomlyShowFromSettings(): RandomlyShow {
+        val randomlyShowString = assetManager.platform.settings.getStringOrNull(ConfigKey.RANDOMLY_SHOW.value) ?: "verse"
+        return RandomlyShow.valueOf(randomlyShowString)
     }
 
     companion object {

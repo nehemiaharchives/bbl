@@ -8,17 +8,10 @@ import org.gnit.bible.BibleFilter
 import org.gnit.bible.Books
 import org.gnit.bible.RandPicker
 import org.gnit.bible.RandomlyShow
-import org.gnit.bible.Translation
 import org.gnit.bible.bookNameCapital
-
-data class Config(
-    val translation: Translation = Translation.webus,
-    val randomlyShow: RandomlyShow = RandomlyShow.verse
-)
 
 class RandCli(
     private val bible: Bible,
-    private val config: Config = Config(),
     private val picker: RandPicker = RandPicker(
         readChapter = { translation, book, chapter -> bible.verses(translation, book, chapter) }
     )
@@ -34,9 +27,9 @@ class RandCli(
         val filter = narrowDown?.let { resolveFilter(it) } ?: BibleFilter.All
 
         val result = picker.random(
-            translation = config.translation,
+            translation = bible.defaultTranslationFromSettings(),
             filter = filter,
-            randomlyShow = config.randomlyShow
+            randomlyShow = bible.randomlyShowFromSettings()
         )
 
         val pointer = result.pointer

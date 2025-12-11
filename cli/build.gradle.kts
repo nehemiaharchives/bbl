@@ -33,6 +33,7 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kmpio)
                 implementation(libs.kotlinx.coroutines)
+                implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
             }
         }
