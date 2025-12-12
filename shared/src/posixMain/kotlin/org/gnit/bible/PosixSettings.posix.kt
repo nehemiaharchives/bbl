@@ -34,14 +34,7 @@ private inline fun <T : Closeable, R> T.use(block: (T) -> R): R {
  * This single-file implementation is intended to be placed in the posixMain source set (not commonMain).
  *
  * Storage format:
- * - One entry per line: escapedKey=type:escapedValue
- * - type is one of:
- *   - 's' = String
- *   - 'i' = Int
- *   - 'l' = Long
- *   - 'f' = Float
- *   - 'd' = Double
- *   - 'b' = Boolean ("true" or "false")
+ * - One entry per line: escapedKey=escapedValue
  *
  * Escaping:
  * - Backslash, newline and equals in keys/values are escaped using backslash sequences:
@@ -62,7 +55,7 @@ class PosixSettings(
     private val path: Path
 ) : Settings {
 
-    // In-memory cache. Values are stored encoded as "<type>:<rawValue>" where <rawValue> is unescaped.
+    // In-memory cache. Values are stored as unescaped raw strings (type info is not preserved).
     private val cache: MutableMap<String, String> = mutableMapOf()
     private var loaded: Boolean = false
 
@@ -147,29 +140,14 @@ class PosixSettings(
             val key = unescape(keySb.toString())
             val rawValue = valSb.toString()
 
-            // Expect type prefix: <typeChar>:<payload>
-            if (rawValue.length >= 2 && rawValue[1] == ':') {
-                val typeChar = rawValue[0]
-                val payloadEscaped = rawValue.substring(2)
-                val payload = unescape(payloadEscaped)
-                cache[key] = "$typeChar:$payload"
-            } else {
-                // No type prefix found — treat as string
-                val payload = unescape(rawValue)
-                cache[key] = "s:$payload"
-            }
+            cache[key] = unescape(rawValue)
         }
     }
 
     private fun serialize(): String =
-        cache.entries.joinToString("\n") { (k, encoded) ->
-            val (typeChar, payload) = if (encoded.length >= 2 && encoded[1] == ':') {
-                Pair(encoded[0], encoded.substring(2))
-            } else {
-                Pair('s', encoded)
-            }
-            "${escape(k)}=${typeChar}:${escape(payload)}"
-    }
+        cache.entries.joinToString("\n") { (k, payload) ->
+            "${escape(k)}=${escape(payload)}"
+        }
 
     // --- load / flush ---
 
@@ -223,16 +201,20 @@ class PosixSettings(
             override fun close() {}
         }
 
-    // --- utilities for encoded values ---
+    private fun parseIntStrict(key: String, raw: String): Int =
+        raw.toIntOrNull() ?: error("Invalid Int value for key '$key': '$raw'")
 
-    private fun encodeValue(type: Char, raw: String): String = "$type:$raw"
+    private fun parseLongStrict(key: String, raw: String): Long =
+        raw.toLongOrNull() ?: error("Invalid Long value for key '$key': '$raw'")
 
-    private fun decode(value: String): Pair<Char, String> {
-        if (value.length >= 2 && value[1] == ':') {
-            return Pair(value[0], value.substring(2))
-        }
-        return Pair('s', value)
-    }
+    private fun parseFloatStrict(key: String, raw: String): Float =
+        raw.toFloatOrNull() ?: error("Invalid Float value for key '$key': '$raw'")
+
+    private fun parseDoubleStrict(key: String, raw: String): Double =
+        raw.toDoubleOrNull() ?: error("Invalid Double value for key '$key': '$raw'")
+
+    private fun parseBooleanStrict(key: String, raw: String): Boolean =
+        raw.toBooleanStrictOrNull() ?: error("Invalid Boolean value for key '$key': '$raw'")
 
     // --- Settings implementation ---
 
@@ -275,7 +257,7 @@ class PosixSettings(
     override fun putInt(key: String, value: Int) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('i', value.toString())
+            cache[key] = value.toString()
             flushToDisk()
         }
     }
@@ -284,8 +266,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 'i') payload.toIntOrNull() ?: defaultValue else defaultValue
+            parseIntStrict(key, raw)
         }
     }
 
@@ -293,15 +274,14 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 'i') payload.toIntOrNull() else null
+            parseIntStrict(key, raw)
         }
     }
 
     override fun putLong(key: String, value: Long) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('l', value.toString())
+            cache[key] = value.toString()
             flushToDisk()
         }
     }
@@ -310,8 +290,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 'l') payload.toLongOrNull() ?: defaultValue else defaultValue
+            parseLongStrict(key, raw)
         }
     }
 
@@ -319,15 +298,14 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 'l') payload.toLongOrNull() else null
+            parseLongStrict(key, raw)
         }
     }
 
     override fun putString(key: String, value: String) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('s', value)
+            cache[key] = value
             flushToDisk()
         }
     }
@@ -336,8 +314,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 's') payload else defaultValue
+            raw
         }
     }
 
@@ -345,15 +322,14 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 's') payload else null
+            raw
         }
     }
 
     override fun putFloat(key: String, value: Float) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('f', value.toString())
+            cache[key] = value.toString()
             flushToDisk()
         }
     }
@@ -362,8 +338,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 'f') payload.toFloatOrNull() ?: defaultValue else defaultValue
+            parseFloatStrict(key, raw)
         }
     }
 
@@ -371,15 +346,14 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 'f') payload.toFloatOrNull() else null
+            parseFloatStrict(key, raw)
         }
     }
 
     override fun putDouble(key: String, value: Double) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('d', value.toString())
+            cache[key] = value.toString()
             flushToDisk()
         }
     }
@@ -388,8 +362,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 'd') payload.toDoubleOrNull() ?: defaultValue else defaultValue
+            parseDoubleStrict(key, raw)
         }
     }
 
@@ -397,15 +370,14 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 'd') payload.toDoubleOrNull() else null
+            parseDoubleStrict(key, raw)
         }
     }
 
     override fun putBoolean(key: String, value: Boolean) {
         loadIfNeeded()
         withMemoryLock {
-            cache[key] = encodeValue('b', value.toString())
+            cache[key] = value.toString()
             flushToDisk()
         }
     }
@@ -414,8 +386,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock defaultValue
-            val (t, payload) = decode(raw)
-            if (t == 'b') payload.toBooleanStrictOrNull() ?: defaultValue else defaultValue
+            parseBooleanStrict(key, raw)
         }
     }
 
@@ -423,8 +394,7 @@ class PosixSettings(
         loadIfNeeded()
         return withMemoryLock {
             val raw = cache[key] ?: return@withMemoryLock null
-            val (t, payload) = decode(raw)
-            if (t == 'b') payload.toBooleanStrictOrNull() else null
+            parseBooleanStrict(key, raw)
         }
     }
 

@@ -45,11 +45,11 @@ class ConfigCliTest {
         assertTrue(fakeFs.exists(settingsPath), "settings file should be created")
         val text = fakeFs.read(settingsPath) { readUtf8() }
         assertTrue(
-            text.contains("translation=s:webus") || text.contains("translation=s\\:webus"),
+            text.contains("translation=webus"),
             "settings file should record default translation"
         )
         assertTrue(
-            text.contains("randomlyShow=s:verse") || text.contains("randomlyShow=s\\:verse"),
+            text.contains("randomlyShow=verse"),
             "settings file should record default randomlyShow"
         )
     }

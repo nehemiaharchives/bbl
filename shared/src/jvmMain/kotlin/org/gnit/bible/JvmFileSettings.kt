@@ -10,7 +10,7 @@ import java.util.Properties
 
 /**
  * File-backed Settings implementation for JVM using Okio FileSystem.
- * Uses the same on-disk encoding as PosixSettings (`key=<type>:value`).
+ * Uses a human-friendly on-disk encoding (`key=value`).
  * Meant to be testable with FakeFileSystem by injecting the fileSystem.
  */
 class JvmFileSettings(
@@ -46,15 +46,20 @@ class JvmFileSettings(
         }
     }
 
-    private fun encode(type: Char, raw: String): String = "$type:$raw"
+    private fun parseIntStrict(key: String, raw: String): Int =
+        raw.toIntOrNull() ?: error("Invalid Int value for key '$key': '$raw'")
 
-    private fun decode(value: String): Pair<Char, String> {
-        return if (value.length >= 2 && value[1] == ':') {
-            Pair(value[0], value.substring(2))
-        } else {
-            Pair('s', value)
-        }
-    }
+    private fun parseLongStrict(key: String, raw: String): Long =
+        raw.toLongOrNull() ?: error("Invalid Long value for key '$key': '$raw'")
+
+    private fun parseFloatStrict(key: String, raw: String): Float =
+        raw.toFloatOrNull() ?: error("Invalid Float value for key '$key': '$raw'")
+
+    private fun parseDoubleStrict(key: String, raw: String): Double =
+        raw.toDoubleOrNull() ?: error("Invalid Double value for key '$key': '$raw'")
+
+    private fun parseBooleanStrict(key: String, raw: String): Boolean =
+        raw.toBooleanStrictOrNull() ?: error("Invalid Boolean value for key '$key': '$raw'")
 
     override val keys: Set<String>
         get() {
@@ -95,7 +100,7 @@ class JvmFileSettings(
     override fun putInt(key: String, value: Int) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('i', value.toString()))
+            props.setProperty(key, value.toString())
             persist()
         }
     }
@@ -107,15 +112,14 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 'i') payload.toIntOrNull() else null
+            parseIntStrict(key, raw)
         }
     }
 
     override fun putLong(key: String, value: Long) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('l', value.toString()))
+            props.setProperty(key, value.toString())
             persist()
         }
     }
@@ -127,15 +131,14 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 'l') payload.toLongOrNull() else null
+            parseLongStrict(key, raw)
         }
     }
 
     override fun putString(key: String, value: String) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('s', value))
+            props.setProperty(key, value)
             persist()
         }
     }
@@ -147,15 +150,14 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 's') payload else null
+            raw
         }
     }
 
     override fun putFloat(key: String, value: Float) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('f', value.toString()))
+            props.setProperty(key, value.toString())
             persist()
         }
     }
@@ -167,15 +169,14 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 'f') payload.toFloatOrNull() else null
+            parseFloatStrict(key, raw)
         }
     }
 
     override fun putDouble(key: String, value: Double) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('d', value.toString()))
+            props.setProperty(key, value.toString())
             persist()
         }
     }
@@ -187,15 +188,14 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 'd') payload.toDoubleOrNull() else null
+            parseDoubleStrict(key, raw)
         }
     }
 
     override fun putBoolean(key: String, value: Boolean) {
         ensureLoaded()
         synchronized(lock) {
-            props.setProperty(key, encode('b', value.toString()))
+            props.setProperty(key, value.toString())
             persist()
         }
     }
@@ -207,8 +207,7 @@ class JvmFileSettings(
         ensureLoaded()
         return synchronized(lock) {
             val raw = props.getProperty(key) ?: return@synchronized null
-            val (t, payload) = decode(raw)
-            if (t == 'b') payload.toBooleanStrictOrNull() else null
+            parseBooleanStrict(key, raw)
         }
     }
 }

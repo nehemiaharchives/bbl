@@ -59,7 +59,7 @@ class SettingsTest {
         assertTrue(fakeFs.exists(settingsPath), "settings file should be created")
         val text = fakeFs.read(settingsPath) { readUtf8() }
         assertTrue(
-            text.contains("translation=s:jc") || text.contains("translation=s\\:jc"),
+            text.contains("translation=jc"),
             "settings file should record jc translation"
         )
     }
