@@ -10,26 +10,38 @@ Use **English** to communicate with me.
 
 * Propose multiple solutions using your built‑in knowledge.
 * Only perform external research if:
-
   * You are uncertain about an API or behavior, **or**
   * I explicitly request official documentation or references.
 * Otherwise, skip research and move straight to proposing fixes.
 
 ### Step 2: Code, Run, Debug
 
-* 1. Apply the chosen code changes.
-* 2. If you have access to jetbrains/androidstudio Studio MCP server,
-  * 2.1. Try to use get_file_problems tool of jetbrains/androidstudio MCP server to check if there are any errors and iterate over till all errors are fixed.
-  * 2.2. Try to compile so that you can find compilation errors and fix/edit iterate till it compiles without errors.
-* 3. Run builds/tests and fix compilation errors.
-  * 3.1. If you have access to jetbrains/androidstudio MCP server, use get_run_configuration and execute_run_configuration tool and run compileKotlin task to find compilation errors then iterate over until you fix all of them. never use run_in_terminal tool for running gradle tasks try to use run_configuration as much as possible.
-  * 3.2. If you don't have access to JetBrains/Android Studio MCP server, use terminal to run ./gradle compileKotlin commands to find compilation errors then iterate over until you fix all of them.
-* 4. Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
+1. Apply the chosen code changes. when you code be careful of writing code in platform agnostic kotlin common code. avoid expect/actual pattern as much as possible. do not mix platform specific code such as jvm code in commonMain/commonTest.
+2. Use `get_file_problems` tool of `jetbrains` MCP server to check if there are any compilation errors for each files you changed. iterate over until you solve all errors.
+3. Use `get_run_configuration` tool `jetbrains` MCP server to find proper run configuration. to run specific unit test and use execute_run_configuration to run tests. if any test fail, find out root cause, iterate over until you fix all of them
+4. Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
+
+## Tool Use Priority
+
+### Priority 1, jetbrains MCP Server (always)
+When you have access to jetbrains MCP server, you should use the IDEA's internal test runner. `.run` dir contains.
+Example agent runtime environment: locally running ai coding agent in desktop/laptop of a developer such as codex cli, GitHub Copilot Agent.
+
+### Priority 2, Gradle command line (avoid as much as possible)
+When you don't have access to jetbrains MCP server, first ask Human developer to enable it and wait until it is enabled! Never use Gradle wrapper (./gradlew).
+If you are in cloud environment where you have NO access to jetbrains MCP server, you are allowed to use the command line Gradle wrapper (./gradlew) to compile and run tests.
+Example agent runtime environment: desktop/laptop but human developer forgot to launch JetBrains IDEs, or cloud coding agent such as codex web, Google Jules.
+
+### Start running tests in specific test function, then specific test file, then all test files.
+Principle: gradle execution takes time, and we want to save time to wait for tests. Do not waste time running unnecessarily tests when smaller tests is enough to detect fail. Run `allTest` at last when you confirmed tests related to your change passes.
+For example, you have changed `BookRange` of `shared/src/commonMain/kotlin/org/gnit/bible/BibleFilter.kt`
+1. First you need to run `fun bookRangeTest()` of `BibleFilterTest` to verify quickly with less time to spend. If it fail iterate over until the specific test function pass.
+2. Then you proceed to run each test within `BibleFilterTest`, if some test fail, find out root cause, iterate over until you fix all of them.
+3. If your change only affects specific module `cli` or `composeApp`, then run `bbl-kmp_cli [allTests]` or `bbl-kmp_composeApp [allTests]` instead to save time.
+4. Run `bbl-kmp [allTests]` after tests for small changes pass, or when you change code in `shared` module or `test-framework` module which is used in other modules to verify anything not broken with your change.
 
 ## Internet Research Guidelines
-
 * Use official sources **only when needed**:
-
   * Kotlin: [https://kotlinlang.org/docs/](https://kotlinlang.org/docs/) and [https://github.com/JetBrains/kotlin](https://github.com/JetBrains/kotlin)
   * Android: [https://developer.android.com](https://developer.android.com) and [https://android.googlesource.com/platform/frameworks/base](https://android.googlesource.com/platform/frameworks/base)
   * Apple platforms: [https://developer.apple.com/documentation](https://developer.apple.com/documentation)
@@ -40,11 +52,3 @@ Use **English** to communicate with me.
 ## Fast Mode Option
 
 If I say **"fast mode"**, skip all research unless absolutely required. Focus on rapid code editing, running, and debugging.
-
-## Code, Run, Debug Cycle
-
-### Priority 1, IntelliJ IDEA MCP Server
-When you have access to IntelliJ IDEA MCP server, you should use the IDEA's internal test runner.
-
-### Priority 2, Gradle command line
-When you don't have access to IntelliJ IDEA MCP server, you should use the command line Gradle test runner.
