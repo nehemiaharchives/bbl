@@ -7,6 +7,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -28,7 +29,7 @@ class ConfigCliTest {
 
         val packDirPath = platform.packDir.toPath()
         bblDir = packDirPath.parent!!
-        settingsPath = bblDir.resolve("settings.properties")
+        settingsPath = bblDir.resolve(SETTINGS_FILE_NAME)
 
         val am = AssetManagerImpl(platform = platform, fileSystem = fakeFs)
         bible = Bible(am)

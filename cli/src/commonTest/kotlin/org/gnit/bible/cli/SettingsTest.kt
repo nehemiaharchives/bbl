@@ -8,6 +8,7 @@ import okio.Path.Companion.toPath
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
 import org.gnit.bible.jcGenesisChapterOne
 import kotlin.test.BeforeTest
@@ -29,7 +30,7 @@ class SettingsTest {
 
         // compute settings path using the same layout as Platform implementations
         val packDirPath = platform.packDir.toPath()
-        settingsPath = packDirPath.parent!!.resolve("settings.properties")
+        settingsPath = packDirPath.parent!!.resolve(SETTINGS_FILE_NAME)
 
         val settings = platform.settings
         settings.clear()

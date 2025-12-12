@@ -7,7 +7,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class PosixSettingsTest {
     private val realFs: FileSystem = FileSystem.SYSTEM
@@ -73,7 +72,7 @@ class PosixSettingsTest {
     fun createsMissingParentDirectoryBeforeLock() {
         // point settings to a fresh directory that does not exist yet
         val missingParent = "/tmp/bbl_kmp_shared_posix_settings_missing_${Random.nextLong().toString(16)}".toPath()
-        val path = missingParent / "settings.properties"
+        val path = missingParent / SETTINGS_FILE_NAME
 
         val settings = PosixSettings(fileSystem = realFs, path = path)
         settings.putString("key", "value")

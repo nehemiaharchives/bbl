@@ -16,7 +16,7 @@ class JVMPlatform : Platform() {
     }
     override val settings: Settings by lazy {
         val home = System.getProperty("user.home") ?: error("user.home not defined")
-        val settingsPath = "$home${FileSystems.getDefault().separator}$bblDir${FileSystems.getDefault().separator}settings.properties".toPath()
+        val settingsPath = "$home${FileSystems.getDefault().separator}$bblDir${FileSystems.getDefault().separator}$SETTINGS_FILE_NAME".toPath()
         JvmFileSettings(fileSystem = fileSystem, path = settingsPath)
     }
 }

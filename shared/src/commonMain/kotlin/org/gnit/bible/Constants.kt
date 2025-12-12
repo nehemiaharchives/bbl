@@ -5,6 +5,8 @@ const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/nehem
 const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks"
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
+const val SETTINGS_FILE_NAME = "config.properties"
+
 val embeddedTranslationCodes = arrayOf(
     "cunp",
     "delut",

@@ -28,7 +28,7 @@ class PosixPlatform : Platform() {
     }
     override val settings: Settings by lazy {
         val home = homeDir()
-        val settingsPath = home / "$bblDir/settings.properties"
+        val settingsPath = home / "$bblDir/$SETTINGS_FILE_NAME"
         PosixSettings(fileSystem = fileSystem, path = settingsPath)
     }
 }

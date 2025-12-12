@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class JvmFileSettingTest {
 
     private fun freshPath(): Path =
-        "/tmp/bbl_kmp_shared_jvm_file_settings_test_${Random.nextLong().toString(16)}/settings.properties".toPath()
+        "/tmp/bbl_kmp_shared_jvm_file_settings_test_${Random.nextLong().toString(16)}/$SETTINGS_FILE_NAME".toPath()
 
     @Test
     fun roundTripPersistsValues() {
@@ -96,7 +96,7 @@ class JvmFileSettingTest {
     @Test
     fun createsMissingParentDirectory() {
         val fs = FakeFileSystem()
-        val path = "/tmp/bbl_kmp_shared_jvm_file_settings_missing_${Random.nextLong().toString(16)}/nested/settings.properties".toPath()
+        val path = "/tmp/bbl_kmp_shared_jvm_file_settings_missing_${Random.nextLong().toString(16)}/nested/$SETTINGS_FILE_NAME".toPath()
 
         val settings = JvmFileSettings(fileSystem = fs, path = path)
         settings.putString("key", "value")
