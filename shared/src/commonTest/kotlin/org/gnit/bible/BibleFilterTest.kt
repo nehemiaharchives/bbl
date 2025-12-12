@@ -10,21 +10,21 @@ class BibleFilterTest {
     private val g2511 = BookChapterVerse(1, 25, 11)
 
     @Test
-    fun bookRange() {
+    fun bookRangeTest() {
         val f = books(1..39)
         assertTrue(f.contains(BookChapterVerse(1, 1, 1)))
         assertFalse(f.contains(BookChapterVerse(40, 1, 1)))
     }
 
     @Test
-    fun bookSet() {
+    fun bookSetTest() {
         val f = books(43, 62, 63)
         assertTrue(f.contains(BookChapterVerse(43, 1, 1)))
         assertFalse(f.contains(BookChapterVerse(44, 1, 1)))
     }
 
     @Test
-    fun passage() {
+    fun passageTest() {
         val f = passage(g1127, g2511)
         assertTrue(f.contains(BookChapterVerse(1, 12, 1)))
         assertTrue(f.contains(BookChapterVerse(1, 22, 1)))
@@ -33,7 +33,7 @@ class BibleFilterTest {
     }
 
     @Test
-    fun union() {
+    fun unionTest() {
         val f = union(books(1..5), books(40..43))
         assertTrue(f.contains(BookChapterVerse(1, 1, 1)))
         assertTrue(f.contains(BookChapterVerse(40, 1, 1)))
