@@ -33,7 +33,8 @@ class Bbl(
             RandCli(bible),
             ListCli(bible),
             InstallCli(bible),
-            UninstallCli(bible)
+            UninstallCli(bible),
+            ConfigCli(bible)
         )
     }
 
