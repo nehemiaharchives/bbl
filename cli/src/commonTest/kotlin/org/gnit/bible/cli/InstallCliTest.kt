@@ -6,10 +6,10 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -56,5 +56,13 @@ class InstallCliTest : ResourcesTestBase() {
             assertTrue(metadata.isRegularFile)
             assertTrue((metadata.size ?: 0L) > 0L)
         }
+    }
+
+    @Ignore //Integration test: touches real ~/.bbl/packs and uses network
+    @Test
+    fun testBblInstallInProductionEnv(){
+        val command = Bbl()
+        val result = command.test("install ayt")
+        println(result.stdout)
     }
 }

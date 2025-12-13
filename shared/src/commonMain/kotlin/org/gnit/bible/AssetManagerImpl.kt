@@ -82,7 +82,7 @@ class AssetManagerImpl(
         baseUrl: String,
         fileName: String
     ) {
-        val url = "$baseUrl$fileName"
+        val url = "${baseUrl.trimEnd('/')}/$fileName"
         val packDir = platform.packDir
         val destinationPath = packDir.toPath() / fileName
         val tempPath = destinationPath.parent!! / "${fileName}.part"

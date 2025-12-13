@@ -187,7 +187,7 @@ object TestFixtures {
                 )
             )
 
-            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpackskttv.zip" -> respond(
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/kttv.zip" -> respond(
                 content = bytes, headers = headersOf(
                     "Content-Type" to listOf("application/zip"),
                     "Content-Length" to listOf(bytes.size.toString())
