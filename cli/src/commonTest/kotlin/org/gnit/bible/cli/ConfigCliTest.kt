@@ -54,4 +54,62 @@ class ConfigCliTest {
             "settings file should record default randomlyShow"
         )
     }
+
+    @Test
+    fun configReadMissingKeyFails() {
+        val command = Bbl(bible)
+        val result = command.test("config translation")
+
+        assertTrue(result.statusCode != 0, "Command should fail when key is not set")
+        assertTrue(result.stderr.contains("is not set"), "Should explain missing config key")
+    }
+
+    @Test
+    fun configWriteThenReadTranslation() {
+        val command = Bbl(bible)
+        val write = command.test("config translation jc")
+        assertEquals(0, write.statusCode, "Write should succeed")
+        assertEquals("", write.stdout)
+
+        val read = command.test("config translation")
+        assertEquals(0, read.statusCode, "Read should succeed")
+        assertEquals("jc\n", read.stdout)
+
+        assertTrue(fakeFs.exists(settingsPath), "settings file should be created")
+        val text = fakeFs.read(settingsPath) { readUtf8() }
+        assertTrue(text.contains("translation=jc"), "settings file should record translation")
+    }
+
+    @Test
+    fun configWriteInvalidRandomlyShowFails() {
+        val command = Bbl(bible)
+        val result = command.test("config randomlyShow invalidValue")
+        assertTrue(result.statusCode != 0, "Command should fail on invalid randomlyShow")
+        assertTrue(result.stderr.contains("Valid values"), "Should show allowed values")
+    }
+
+    @Test
+    fun configUnknownKeyFails() {
+        val command = Bbl(bible)
+        val result = command.test("config doesNotExist")
+        assertTrue(result.statusCode != 0, "Command should fail on unknown key")
+        assertTrue(result.stderr.contains("Unknown config key"), "Should report unknown key")
+    }
+
+    @Test
+    fun configWriteInvalidTranslationFails() {
+        val command = Bbl(bible)
+        val result = command.test("config translation definitelyNotARealTranslation")
+        assertTrue(result.statusCode != 0, "Command should fail on invalid translation code")
+        assertTrue(result.stderr.contains("Invalid translation code"), "Should report invalid translation code")
+    }
+
+    @Test
+    fun configWriteDownloadableButNotInstalledTranslationSuggestsInstall() {
+        val command = Bbl(bible)
+        val result = command.test("config translation ayt")
+
+        assertTrue(result.statusCode != 0, "Command should fail when translation isn't installed")
+        assertTrue(result.stderr.contains("bbl install ayt"), "Should suggest installing the translation")
+    }
 }
