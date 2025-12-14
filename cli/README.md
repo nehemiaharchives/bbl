@@ -10,10 +10,12 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
 # Current status of bbl CLI: 
 
 ## Phase 1: Kotlin/Jvm to KMP migration of core reading features with additional translation management features
-### 1. Translation management
-  * 1.1. bbl list : DONE
-  * 1.2. bbl install : DONE
-  * 1.3. bbl uninstall : DONE
+### 1. Translation management and list
+  * 1.1. bbl install : DONE
+  * 1.2. bbl uninstall : DONE
+  * 1.3. bbl list translation : DONE
+  * 1.4. bbl list book : DONE
+  * 1.5. bbl list category : DONE
 
 ### 2. Bible reading
   * 2.1. bbl $bookName:$chapter  : DONE
@@ -32,11 +34,14 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 4.4. bbl rand ot (random verse within Old Testament) : DONE
 
 ### 5. Configuration
-  * 5.1. option to change default translation : DONE
-  * 5.2. option to show a whole chapter or a verse in bbl rand : DONE
-  * 5.3. bbl init : DONE
-  * 5.4. bbl config key : DONE
-  * 5.5. bbl config key value : DONE
+  * 5.1. bbl init : DONE
+  * 5.2. bbl config key : DONE
+  * 5.3. bbl config key value : DONE
+  * 5.4. option to change default translation : DONE
+  * 5.5. option to show a whole chapter or a verse in bbl rand : DONE
+  * 5.6. option to show/hide header : DONE
+  * 5.7. option to show/hide border : DONE for bbl list translation
+  * 5.7. option to show/hide border : TODO for bbl list book, bbl list category, bbl $bookName:$chapter(verses and/or in translation)
 
 ## Phase 2: Search feature development while debugging lucene-kmp
 ### 6. Search related features 
