@@ -34,8 +34,8 @@ class RandCliTest {
     // Old Testament book names (books 1-39)
     private val otBooks = listOf(
         "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-        "Joshua", "Judges", "Ruth", "1st Samuel", "2nd Samuel",
-        "1st Kings", "2nd Kings", "1st Chronicles", "2nd Chronicles",
+        "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+        "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
         "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
         "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
         "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
