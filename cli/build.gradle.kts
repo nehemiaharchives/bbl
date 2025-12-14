@@ -111,6 +111,7 @@ kotlin {
             }
             executable {
                 entryPoint = "org.gnit.bible.cli.main"
+                baseName = "bbl"
             }
         }
     }
