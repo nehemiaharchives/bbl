@@ -20,7 +20,7 @@ class ConfigCli(
 
     override val invokeWithoutSubcommand: Boolean = true
 
-    private val key: String? by argument(help = "Config key (e.g. translation, randomlyShow, header)").optional()
+    private val key: String? by argument(help = "Config key (e.g. translation, randomlyShow, header, border)").optional()
     private val value: String? by argument(help = "Config value").optional()
 
     init {
@@ -73,6 +73,13 @@ class ConfigCli(
             }
         }
 
+        if (configKey == ConfigKey.BORDER) {
+            val valid = newValue.toBooleanStrictOrNull() != null
+            if (!valid) {
+                throw UsageError("ConfigCli Invalid value '$newValue' for '${configKey.value}'. Valid values: true, false")
+            }
+        }
+
         if (configKey == ConfigKey.TRANSLATION) {
             val valid = bible.availableTranslationCodes().contains(newValue)
             if (!valid) {
@@ -103,6 +110,9 @@ private fun generateDefaultConfig(bible: Bible): okio.Path {
     }
     if (settings.getStringOrNull(ConfigKey.HEADER.value) == null) {
         settings.putString(ConfigKey.HEADER.value, ConfigKey.HEADER.defaultValue)
+    }
+    if (settings.getStringOrNull(ConfigKey.BORDER.value) == null) {
+        settings.putString(ConfigKey.BORDER.value, ConfigKey.BORDER.defaultValue)
     }
 
     return platform.packDir.toPath().parent!!

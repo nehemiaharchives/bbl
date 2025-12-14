@@ -57,6 +57,10 @@ class ConfigCliTest {
             text.contains("header=false"),
             "settings file should record default header"
         )
+        assertTrue(
+            text.contains("border=false"),
+            "settings file should record default border"
+        )
     }
 
     @Test
@@ -85,11 +89,35 @@ class ConfigCliTest {
     }
 
     @Test
+    fun configWriteThenReadBorder() {
+        val command = Bbl(bible)
+        val write = command.test("config border true")
+        assertEquals(0, write.statusCode, "Write should succeed")
+        assertEquals("", write.stdout)
+
+        val read = command.test("config border")
+        assertEquals(0, read.statusCode, "Read should succeed")
+        assertEquals("true\n", read.stdout)
+
+        assertTrue(fakeFs.exists(settingsPath), "settings file should be created")
+        val text = fakeFs.read(settingsPath) { readUtf8() }
+        assertTrue(text.contains("border=true"), "settings file should record border")
+    }
+
+    @Test
     fun configWriteInvalidRandomlyShowFails() {
         val command = Bbl(bible)
         val result = command.test("config randomlyShow invalidValue")
         assertTrue(result.statusCode != 0, "Command should fail on invalid randomlyShow")
         assertTrue(result.stderr.contains("Valid values"), "Should show allowed values")
+    }
+
+    @Test
+    fun configWriteInvalidBorderFails() {
+        val command = Bbl(bible)
+        val result = command.test("config border notABoolean")
+        assertTrue(result.statusCode != 0, "Command should fail on invalid border")
+        assertTrue(result.stderr.contains("Valid values: true, false"), "Should report boolean value requirement")
     }
 
     @Test

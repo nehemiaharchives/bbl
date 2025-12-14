@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
+import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.ColumnWidth
 import com.github.ajalt.mordant.table.table
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -59,9 +60,13 @@ class ListCli(
                 val yearWidth = 4
                 val installationWidth = 13
 
+                val border = if(bible.showBorderFromSettings()) Borders.ALL else Borders.NONE
+
                 val totalTableWidth = codeWidth + englishNameWidth + languageWidth + yearWidth + installationWidth
                 logger.debug { "ListCli terminal size is ${terminal.size}, total table width is $totalTableWidth" }
                 val table = table {
+                    cellBorders = border
+
                     column(0) { width = ColumnWidth.Fixed(codeWidth) } 
                     column(1) { width = ColumnWidth.Fixed(englishNameWidth) }
                     column(2) { width = ColumnWidth.Fixed(languageWidth) }

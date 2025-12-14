@@ -5,7 +5,8 @@ enum class RandomlyShow { verse, chapter }
 enum class ConfigKey(val value: String, val defaultValue: String, val description: String){
     TRANSLATION("translation", Translation.webus.code, "default translation of bible, use code e.g. webus, jc"),
     RANDOMLY_SHOW("randomlyShow", RandomlyShow.verse.toString(), "[bbl rand] option to show a verse or a chapter"),
-    HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not")
+    HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not"),
+    BORDER("border", false.toString(), "show borders around the result output")
 }
 
 class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
@@ -66,6 +67,11 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
 
     fun showHeaderFromSettings(): Boolean {
         val raw = assetManager.platform.settings.getStringOrNull(ConfigKey.HEADER.value) ?: ConfigKey.HEADER.defaultValue
+        return raw.toBooleanStrictOrNull() ?: false
+    }
+
+    fun showBorderFromSettings(): Boolean {
+        val raw = assetManager.platform.settings.getStringOrNull(ConfigKey.BORDER.value) ?: ConfigKey.BORDER.defaultValue
         return raw.toBooleanStrictOrNull() ?: false
     }
 
