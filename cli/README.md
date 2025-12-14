@@ -32,9 +32,11 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 4.4. bbl rand ot (random verse within Old Testament) : DONE
 
 ### 5. Configuration
-  * 5.1. set default translation : TODO
-  * 5.2. option to show a whole chapter or a verse in bbl rand : TODO
-
+  * 5.1. option to change default translation : DONE
+  * 5.2. option to show a whole chapter or a verse in bbl rand : DONE
+  * 5.3. bbl init : DONE
+  * 5.4. bbl config key : DONE
+  * 5.5. bbl config key value : DONE
 
 ## Phase 2: Search feature development while debugging lucene-kmp
 ### 6. Search related features 
