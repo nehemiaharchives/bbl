@@ -10,8 +10,9 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
-import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
+import org.gnit.bible.bookNameEnglishCapital
+import org.gnit.bible.formatHeader
 
 class Bbl(
     private val bible: Bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
@@ -55,6 +56,9 @@ class Bbl(
             if (subCommand == null) {
                 chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
                 selectedVerses = Bible.selectVerses(versePointer, chapterText)
+                if (bible.showHeaderFromSettings()) {
+                    echo(formatHeader(versePointer))
+                }
                 echo(selectedVerses)
             } else {
                 // going to move on subCommand
@@ -82,6 +86,9 @@ class In(
             versePointer.translation = bible.availableTranslations().first { it.code == translationOverride }
             val chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
             selectedVerses = Bible.selectVerses(versePointer, chapterText)
+            if (bible.showHeaderFromSettings()) {
+                echo(formatHeader(versePointer))
+            }
             echo(selectedVerses)
         }
     }

@@ -7,8 +7,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.Books
 import org.gnit.bible.RandPicker
-import org.gnit.bible.RandomlyShow
-import org.gnit.bible.bookNameCapital
+import org.gnit.bible.formatHeader
 
 class RandCli(
     private val bible: Bible,
@@ -33,12 +32,11 @@ class RandCli(
         )
 
         val pointer = result.pointer
-        val header = when (result.selectionType) {
-            RandomlyShow.chapter -> "${bookNameCapital(pointer.book)} ${pointer.chapter}"
-            RandomlyShow.verse -> "${bookNameCapital(pointer.book)} ${pointer.chapter}:${pointer.startVerse}"
-        }
 
-        echo(header)
+        if (bible.showHeaderFromSettings()) {
+            val header = formatHeader(pointer)
+            echo(header)
+        }
         echo(result.selection)
     }
 

@@ -53,6 +53,10 @@ class ConfigCliTest {
             text.contains("randomlyShow=verse"),
             "settings file should record default randomlyShow"
         )
+        assertTrue(
+            text.contains("header=false"),
+            "settings file should record default header"
+        )
     }
 
     @Test

@@ -8,9 +8,9 @@ class ParseBookTest {
 
     @Test
     fun bookNameCapitalTest(){
-        assertEquals("Genesis", bookNameCapital(1))
-        assertEquals("1 John", bookNameCapital(62))
-        assertEquals("Song of Solomon", bookNameCapital(22))
+        assertEquals("Genesis", bookNameEnglishCapital(1))
+        assertEquals("1 John", bookNameEnglishCapital(62))
+        assertEquals("Song of Solomon", bookNameEnglishCapital(22))
     }
 
     @Test
@@ -19,7 +19,7 @@ class ParseBookTest {
         (1..66).forEach { bookNumber ->
             assertEquals(
                 BookChapterFilter(book = bookNumber, term = "God"),
-                filterByBookChapter("God in ${bookName(bookNumber)}")
+                filterByBookChapter("God in ${bookNameEnglish(bookNumber)}")
             )
         }
     }
@@ -49,5 +49,16 @@ class ParseBookTest {
                 filterByBookChapter("pray in ps 1-$endChapter")
             )
         }
+    }
+
+    @Test
+    fun formatHeaderTest(){
+        assertEquals("Genesis 1", formatHeader(VersePointer(book = 1, chapter = 1)))
+        assertEquals("John 3:16", formatHeader(VersePointer(book = 43, chapter = 3, startVerse = 16)))
+        assertEquals("Matthew 28:18-20", formatHeader(VersePointer(book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
+
+        assertEquals("創世記 1", formatHeader(VersePointer(translation = Translation.jc, book = 1, chapter = 1)))
+        assertEquals("ヨハネによる福音書 3:16", formatHeader(VersePointer(translation = Translation.jc, book = 43, chapter = 3, startVerse = 16)))
+        assertEquals("マタイによる福音書 28:18-20", formatHeader(VersePointer(translation = Translation.jc, book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
     }
 }

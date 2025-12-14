@@ -13,9 +13,10 @@ import kotlin.test.assertEquals
 class MainTest {
 
     @BeforeTest
-    fun clearSavedTranslation() {
+    fun clearSavedSettings() {
         val platform = getPlatform()
         platform.settings.remove(ConfigKey.TRANSLATION.value)
+        platform.settings.remove(ConfigKey.HEADER.value)
     }
 
     @Test
@@ -40,11 +41,32 @@ class MainTest {
     }
 
     @Test
+    fun testBblGen1WithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("gen 1")
+        assertEquals("Genesis 1\n$webusGenesisChapterOne\n", result.stdout)
+    }
+
+    @Test
     fun testBblJohn3v16() {
         val command = Bbl()
         val result = command.test("john 3:16")
         val webusJohn3v16 = "16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life. "
         assertEquals("$webusJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16WithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("john 3:16")
+        val webusJohn3v16 = "16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life. "
+        assertEquals("John 3:16\n$webusJohn3v16\n", result.stdout)
     }
 
     @Test
@@ -67,10 +89,30 @@ class MainTest {
     }
 
     @Test
+    fun testBblInJcWithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("in jc")
+        assertEquals("創世記 1\n$jcGenesisChapterOne\n", result.stdout)
+    }
+
+    @Test
     fun testBblGen1InJc() {
         val command = Bbl()
         val result = command.test("gen 1 in jc")
         assertEquals("$jcGenesisChapterOne\n", result.stdout)
+    }
+
+    @Test
+    fun testBblGen1InJcWithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("gen 1 in jc")
+        assertEquals("創世記 1\n$jcGenesisChapterOne\n", result.stdout)
     }
 
     @Test
@@ -79,6 +121,17 @@ class MainTest {
         val result = command.test("john 3:16 in jc")
         val jcJohn3v16 = "16 神はそのひとり子を賜わったほどに、この世を愛して下さった。それは御子を信じる者がひとりも滅びないで、永遠の命を得るためである。"
         assertEquals("$jcJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16InJcWithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("john 3:16 in jc")
+        val jcJohn3v16 = "16 神はそのひとり子を賜わったほどに、この世を愛して下さった。それは御子を信じる者がひとりも滅びないで、永遠の命を得るためである。"
+        assertEquals("ヨハネによる福音書 3:16\n$jcJohn3v16\n", result.stdout)
     }
 
     @Test
@@ -91,5 +144,20 @@ class MainTest {
             20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
         """.trimIndent()
         assertEquals("$jcMatt28v18to20\n\n", result.stdout)
+    }
+
+    @Test
+    fun testBblMatt28v18to20InJcWithHeaderEnabled() {
+        val platform = getPlatform()
+        platform.settings.putString(ConfigKey.HEADER.value, "true")
+
+        val command = Bbl()
+        val result = command.test("matt 28:18-20 in jc")
+        val jcMatt28v18to20 = """
+            18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。
+            19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、
+            20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
+        """.trimIndent()
+        assertEquals("マタイによる福音書 28:18-20\n$jcMatt28v18to20\n\n", result.stdout)
     }
 }

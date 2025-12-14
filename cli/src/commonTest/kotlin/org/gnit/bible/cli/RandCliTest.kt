@@ -1,11 +1,25 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
+import org.gnit.bible.ConfigKey
+import org.gnit.bible.RandomlyShow
+import org.gnit.bible.getPlatform
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RandCliTest {
+
+    @BeforeTest
+    fun enableHeaderAndVerseMode() {
+        val settings = getPlatform().settings
+        settings.remove(ConfigKey.TRANSLATION.value)
+        settings.putString(ConfigKey.HEADER.value, "true")
+        settings.putString(ConfigKey.RANDOMLY_SHOW.value, RandomlyShow.verse.toString())
+    }
+
+    private val japaneseCharRegex = Regex("[\\u3040-\\u30FF\\u4E00-\\u9FFF]")
 
     // New Testament book names (books 40-66)
     private val ntBooks = listOf(
@@ -144,6 +158,64 @@ class RandCliTest {
         assertTrue(
             chapter != null && chapter in 11..25,
             "Chapter should be between 11 and 25 for Abraham passage. Got chapter: $chapter"
+        )
+    }
+
+    @Test
+    fun `bbl rand nt in jc uses Japanese header and verse`() {
+        val settings = getPlatform().settings
+        settings.putString(ConfigKey.TRANSLATION.value, "jc")
+
+        val command = Bbl()
+        val result = command.test(listOf("rand", "nt"))
+
+        assertEquals(0, result.statusCode, "Command should succeed")
+        assertTrue(result.stdout.isNotBlank(), "Output should not be empty")
+
+        val lines = result.stdout.lines()
+        val firstLine = lines.first()
+        assertTrue(
+            japaneseCharRegex.containsMatchIn(firstLine),
+            "Header should contain Japanese characters when default translation is jc. Got: $firstLine"
+        )
+        assertTrue(
+            firstLine.matches(Regex(".+ \\d+:\\d+")),
+            "Header should match 'BookName chapter:verse' pattern. Got: $firstLine"
+        )
+
+        val body = lines.drop(1).joinToString("\n")
+        assertTrue(
+            japaneseCharRegex.containsMatchIn(body),
+            "Verse should contain Japanese characters when default translation is jc."
+        )
+    }
+
+    @Test
+    fun `bbl rand abraham in jc uses Japanese header and verse`() {
+        val settings = getPlatform().settings
+        settings.putString(ConfigKey.TRANSLATION.value, "jc")
+
+        val command = Bbl()
+        val result = command.test(listOf("rand", "abraham"))
+
+        assertEquals(0, result.statusCode, "Command should succeed")
+        assertTrue(result.stdout.isNotBlank(), "Output should not be empty")
+
+        val lines = result.stdout.lines()
+        val firstLine = lines.first()
+        assertTrue(
+            firstLine.startsWith("創世記"),
+            "Header should start with '創世記' for Abraham passage in jc. Got: $firstLine"
+        )
+        assertTrue(
+            firstLine.matches(Regex("創世記 \\d+:\\d+")),
+            "Header should match '創世記 chapter:verse' pattern. Got: $firstLine"
+        )
+
+        val body = lines.drop(1).joinToString("\n")
+        assertTrue(
+            japaneseCharRegex.containsMatchIn(body),
+            "Verse should contain Japanese characters when default translation is jc."
         )
     }
 }

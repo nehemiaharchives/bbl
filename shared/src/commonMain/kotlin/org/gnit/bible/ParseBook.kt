@@ -356,10 +356,10 @@ private val numberToName = mapOf(
     66 to "revelation"
 )
 
-fun bookName(bookNumber: Int) = numberToName[bookNumber]
+fun bookNameEnglish(bookNumber: Int) = numberToName[bookNumber]
 
-fun bookNameCapital(bookNumber: Int): String {
-    val lowerCase = bookName(bookNumber)!!
+fun bookNameEnglishCapital(bookNumber: Int): String {
+    val lowerCase = bookNameEnglish(bookNumber)!!
     val split = lowerCase.split(" ")
     return when (split.size) {
         1 -> lowerCase.replaceFirstChar { it.uppercase() }
@@ -367,4 +367,15 @@ fun bookNameCapital(bookNumber: Int): String {
         3 -> "Song of Solomon"
         else -> throw RuntimeException("book name must be less than 3 words")
     }
+}
+
+fun formatHeader(pointer: VersePointer): String {
+    val bookName = arrayOf("chapterZero").plus(pointer.translation.language.bookNames())[pointer.book]
+    val chapter = pointer.chapter
+    val startVerse = pointer.startVerse
+    val endVerse = pointer.endVerse
+
+    if (startVerse == null) return "$bookName $chapter"
+    if (endVerse != null && endVerse != startVerse) return "$bookName $chapter:$startVerse-$endVerse"
+    return "$bookName $chapter:$startVerse"
 }
