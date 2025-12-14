@@ -9,13 +9,15 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
 
 # Current status of bbl CLI: 
 
-## Phase 1: Kotlin/Jvm to KMP migration of core reading features with additional translation management features
+## Phase 1: Kotlin/Jvm to KMP migration 
+This phase focus on porting core reading features with features additional translation management
+
 ### 1. Translation management and list
-  * 1.1. bbl install : DONE
-  * 1.2. bbl uninstall : DONE
+  * 1.1. bbl install (NEW) : DONE
+  * 1.2. bbl uninstall (NEW) : DONE
   * 1.3. bbl list translation : DONE
   * 1.4. bbl list book : DONE
-  * 1.5. bbl list category : DONE
+  * 1.5. bbl list category (NEW) : DONE
 
 ### 2. Bible reading
   * 2.1. bbl $bookName:$chapter  : DONE
@@ -32,18 +34,21 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 4.2. bbl rand g (random verse within 4 gospels) : DONE
   * 4.3. bbl rand nt (random verse within New Testament) : DONE
   * 4.4. bbl rand ot (random verse within Old Testament) : DONE
+  * 4.5. bbl rand $category (NEW) : DONE
 
 ### 5. Configuration
-  * 5.1. bbl init : DONE
-  * 5.2. bbl config key : DONE
-  * 5.3. bbl config key value : DONE
-  * 5.4. option to change default translation : DONE
-  * 5.5. option to show a whole chapter or a verse in bbl rand : DONE
-  * 5.6. option to show/hide header : DONE
-  * 5.7. option to show/hide border for bbl list : DONE
-  * 5.8. option to show/hide border for bbl $bookName:$chapter(verses and/or in translation) : TODO
+  * 5.1. bbl init (NEW): DONE
+  * 5.2. bbl config key (NEW) : DONE
+  * 5.3. bbl config key value (NEW) : DONE
+  * 5.4. option to change default translation (NEW) : DONE
+  * 5.5. option to show a whole chapter or a verse in bbl rand (NEW) : DONE
+  * 5.6. option to show/hide header (NEW) : DONE
+  * 5.7. option to show/hide border for bbl list (NEW) : DONE
+  * 5.8. option to show/hide border for bbl $bookName:$chapter(verses and/or in translation) (NEW) : TODO
 
-## Phase 2: Search feature development while debugging lucene-kmp
+## Phase 2: Search/Index 
+This phase focus on finish porting lucene-kmp needed in bbl-kmp while debugging lucene-kmp to enable bbl pack to create search index, then achieving bbl search in single binary Kotlin/Native
+
 ### 6. Search related features 
   * 6.1. bbl pack $translationSourceDir (build lucene index, expected a lot of debugging for lucene-kmp, port many language specific lucene Analyzers into kmp) : TODO
   * 6.2. bbl search $query (expected a lot of debugging for lucene-kmp) : TODO
