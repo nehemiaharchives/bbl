@@ -14,6 +14,13 @@ class JVMPlatform : Platform() {
         val s = FileSystems.getDefault().separator ?: error("file.separator not defined")
         "$home${s}$bblDir${s}$packBaseDir"
     }
+
+    override val platformCacheDir: String by lazy {
+        val home = System.getProperty("user.home") ?: error("user.home not defined")
+        val s = FileSystems.getDefault().separator ?: error("file.separator not defined")
+        "$home${s}$bblDir${s}$cacheBaseDir"
+    }
+
     override val settings: Settings by lazy {
         val home = System.getProperty("user.home") ?: error("user.home not defined")
         val settingsPath = "$home${FileSystems.getDefault().separator}$bblDir${FileSystems.getDefault().separator}$SETTINGS_FILE_NAME".toPath()

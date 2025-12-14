@@ -21,6 +21,16 @@ class AndroidPlatform(val platformContext: Any?) : Platform() {
         File(platformContext.filesDir, "$bblDir/$packBaseDir").absolutePath
     }
 
+    override val platformCacheDir: String
+        get() {
+            val ctx = platformContext as? Context
+            return if (ctx != null) {
+                File(ctx.cacheDir, "$bblDir/$cacheBaseDir").absolutePath
+            } else {
+                File(System.getProperty("java.io.tmpdir") ?: "/tmp", "$bblDir/$cacheBaseDir").absolutePath
+            }
+        }
+
     override val settings: Settings by lazy {
         if(platformContext == null){
             return@lazy PreviewSettings()

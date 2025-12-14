@@ -3,7 +3,6 @@ package org.gnit.bible
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import okio.FileSystem
-import okio.SYSTEM
 
 abstract class Platform {
     abstract val name: String
@@ -14,6 +13,9 @@ abstract class Platform {
     protected val packBaseDir: String
         get() = "packs"
 
+    protected val cacheBaseDir: String
+        get() = "cache"
+
     /**
      * resolves to $HOME/.bbl/packs on posix (linux/macos)
      * platform specific data dir for iOS and Android
@@ -21,6 +23,14 @@ abstract class Platform {
     abstract val platformPackDir: String
 
     var overridePlatformPackDir: String? = null
+
+    /**
+     * resolves to $HOME/.bbl/cache on posix (linux/macos)
+     * platform specific data dir for iOS and Android
+     */
+    abstract val platformCacheDir: String
+
+    var overridePlatformCacheDir: String? = null
 
     /**
      * Allows tests to replace the default file system (which is usually FileSystem.SYSTEM).
@@ -32,6 +42,9 @@ abstract class Platform {
 
     val packDir: String
         get() = overridePlatformPackDir ?: platformPackDir
+
+    val cacheDir: String
+        get() = overridePlatformCacheDir ?: platformCacheDir
 
     abstract val settings: Settings
 

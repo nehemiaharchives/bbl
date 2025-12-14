@@ -1,6 +1,9 @@
 package org.gnit.bible
 
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlinx.coroutines.runBlocking
@@ -25,6 +28,7 @@ class AssetManagerTest : ResourcesTestBase() {
 
     lateinit var platform: Platform
     lateinit var systemFileSystem: FileSystem
+    lateinit var tempCacheDirForTest: String
 
     @OptIn(ExperimentalTime::class)
     @BeforeTest
@@ -36,6 +40,9 @@ class AssetManagerTest : ResourcesTestBase() {
         val timeStamp = Clock.System.now().toEpochMilliseconds()
         val tempPackDirForTest = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_shared_asset_manager_test_dir" / timeStamp.toString()
         platform.overridePlatformPackDir = tempPackDirForTest.toString()
+        val tempCacheDirForTest = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_shared_asset_manager_cache_test_dir" / timeStamp.toString()
+        platform.overridePlatformCacheDir = tempCacheDirForTest.toString()
+        this.tempCacheDirForTest = tempCacheDirForTest.toString()
 
         am = AssetManagerImpl(httpClient, platform, systemFileSystem)
 
@@ -82,6 +89,18 @@ class AssetManagerTest : ResourcesTestBase() {
         val am = AssetManagerImpl(httpClient, platform)
         val listUrl = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json"
         val result = runBlocking { am.downloadableTranslationList(listUrl) }
+
+        val cachePath = tempCacheDirForTest.toPath() / "downloadable_translations_cache.json"
+        assertTrue(systemFileSystem.exists(cachePath))
+
+        val failingClient = HttpClient(
+            MockEngine { respond(content = "server error", status = HttpStatusCode.InternalServerError) }
+        )
+        val failingAm = AssetManagerImpl(failingClient, platform)
+        val cachedResult = runBlocking { failingAm.downloadableTranslationList(listUrl) }
+        assertTrue(cachedResult.isNotEmpty())
+        assertEquals(result.size, cachedResult.size)
+
         val abtag = result.first()
         assertEquals("abtag", abtag.code)
         assertEquals("tl", abtag.languageCode)

@@ -5,6 +5,7 @@ import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import platform.Foundation.NSApplicationSupportDirectory
+import platform.Foundation.NSCachesDirectory
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDefaults
@@ -18,6 +19,13 @@ class IOSPlatform : Platform() {
         val base = (paths.firstOrNull() as? String) ?: NSHomeDirectory()
         "$base/$bblDir/$packBaseDir"
     }
+
+    override val platformCacheDir: String by lazy {
+        val paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true)
+        val base = (paths.firstOrNull() as? String) ?: NSHomeDirectory()
+        "$base/$bblDir/$cacheBaseDir"
+    }
+
     override val settings: Settings by lazy {
         NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults())
     }
