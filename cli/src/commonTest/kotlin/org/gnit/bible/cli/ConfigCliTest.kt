@@ -41,7 +41,7 @@ class ConfigCliTest {
         val result = command.test("config init")
 
         assertEquals(0, result.statusCode, "Command should succeed")
-        assertEquals("default config file was generated at $bblDir\n", result.stdout)
+        assertEquals("default config file was generated at $bblDir/$SETTINGS_FILE_NAME\n", result.stdout)
 
         assertTrue(fakeFs.exists(settingsPath), "settings file should be created")
         val text = fakeFs.read(settingsPath) { readUtf8() }

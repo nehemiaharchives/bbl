@@ -10,6 +10,7 @@ import okio.Path.Companion.toPath
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandomlyShow
+import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.downloadableTranslationCodeList
 
 class ConfigCli(
@@ -21,7 +22,7 @@ class ConfigCli(
     override val invokeWithoutSubcommand: Boolean = true
 
     private val key: String? by argument(help = "Config key (e.g. translation, randomlyShow, header, border)").optional()
-    private val value: String? by argument(help = "Config value").optional()
+    private val value: String? by argument(help = "Config value, for translation: webus, for randomlyShow: verse, for header: true, for border: false").optional()
 
     init {
         subcommands(ConfigInitCli(bible))
@@ -115,14 +116,17 @@ private fun generateDefaultConfig(bible: Bible): okio.Path {
         settings.putString(ConfigKey.BORDER.value, ConfigKey.BORDER.defaultValue)
     }
 
-    return platform.packDir.toPath().parent!!
+    return platform.packDir.toPath().parent!! / SETTINGS_FILE_NAME
 }
 
 private class ConfigInitCli(
     private val bible: Bible
 ) : CliktCommand(name = "init") {
 
-    override fun help(context: Context): String = "Generate default config file"
+    override fun help(context: Context): String {
+        val bblDir = bible.assetManager.platform.packDir.toPath().parent
+        return "Generate default config file at $bblDir/$SETTINGS_FILE_NAME"
+    }
 
     override fun run() {
         val bblDir = generateDefaultConfig(bible)
