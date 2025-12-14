@@ -3,12 +3,14 @@ package org.gnit.bible.cli
 import com.github.ajalt.clikt.testing.test
 import org.gnit.bible.jcGenesisChapterOne
 import org.gnit.bible.webusGenesisChapterOne
+import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.getPlatform
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class MainTest {
 
@@ -159,5 +161,46 @@ class MainTest {
             20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
         """.trimIndent()
         assertEquals("マタイによる福音書 28:18-20\n$jcMatt28v18to20\n\n", result.stdout)
+    }
+
+    @Test
+    fun testBblUnknownBookShowsFriendlyError() {
+        val command = Bbl()
+        val result = command.test("notabook 1")
+        assertTrue(result.statusCode != 0, "Command should fail on unknown book name")
+        assertContains(result.stderr, "Unknown book 'notabook'")
+        assertContains(result.stderr, "bbl list books")
+    }
+
+    @Test
+    fun testBblChapterOutOfRangeShowsFriendlyError() {
+        val command = Bbl()
+        val result = command.test("gen 51")
+        assertTrue(result.statusCode != 0, "Command should fail on chapter out of range")
+        assertContains(result.stderr, "Chapter 51 is out of range for Genesis")
+        assertContains(result.stderr, "Valid range: 1..50")
+    }
+
+    @Test
+    fun testBblVerseOutOfRangeShowsFriendlyError() {
+        val bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
+        val maxVerses = Bible.splitChapterToVerses(bible.verses("webus", 43, 3)).size
+        val invalidVerse = maxVerses + 1
+
+        val command = Bbl(bible = bible)
+        val result = command.test("john 3:$invalidVerse")
+
+        assertTrue(result.statusCode != 0, "Command should fail on verse out of range")
+        assertContains(result.stderr, "Verse $invalidVerse is out of range for John 3")
+        assertContains(result.stderr, "Valid range: 1..$maxVerses")
+    }
+
+    @Test
+    fun testBblInvalidVerseRangeShowsFriendlyError() {
+        val command = Bbl()
+        val result = command.test("john 3:20-10")
+        assertTrue(result.statusCode != 0, "Command should fail on invalid verse range")
+        assertContains(result.stderr, "Invalid verse range 20-10")
+        assertContains(result.stderr, "Start verse must be <= end verse")
     }
 }
