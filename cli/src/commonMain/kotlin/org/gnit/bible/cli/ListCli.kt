@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
+import com.github.ajalt.mordant.rendering.OverflowWrap
 import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.ColumnWidth
 import com.github.ajalt.mordant.table.table
@@ -33,6 +34,9 @@ class ListCli(
         .default("bibles")
 
     override fun run() {
+
+        val border = if(bible.showBorderFromSettings()) Borders.ALL else Borders.NONE
+
         when (target.lowercase()) {
             "bible", "bibles", "translation", "translations", "version", "versions" -> {
                 val am = bible.assetManager
@@ -60,8 +64,6 @@ class ListCli(
                 val languageWidth = 11
                 val yearWidth = 4
                 val installationWidth = 13
-
-                val border = if(bible.showBorderFromSettings()) Borders.ALL else Borders.NONE
 
                 val totalTableWidth = codeWidth + englishNameWidth + languageWidth + yearWidth + installationWidth
                 logger.debug { "ListCli terminal size is ${terminal.size}, total table width is $totalTableWidth" }
@@ -99,18 +101,47 @@ class ListCli(
             }
 
             "book", "books" -> {
-                (1..66).forEach { book ->
-                    echo(bookNameNumberArray[book].joinToString(", "))
+                val bookWidth = 4
+
+                val table = table {
+                    cellBorders = border
+                    overflowWrap = OverflowWrap.BREAK_WORD
+
+                    column(0) { width = ColumnWidth.Fixed(bookWidth) }
+                    column(1) { width = ColumnWidth.Expand() }
+                    header { row("Book", "Names") }
+                    body {
+                        (1..66).forEach { book ->
+                            row(
+                                book.toString(),
+                                bookNameNumberArray[book].joinToString(", ")
+                            )
+                        }
+                    }
                 }
+                echo(table)
             }
 
             "category", "categories" -> {
-                Books.Category.entries
-                    .asSequence()
-                    .filterNot { it == Books.Category.ALL }
-                    .forEach { category ->
-                        echo("${category.name}: ${category.key.joinToString(", ")}")
+                val categoryWidth = 20
+
+                val table = table {
+                    cellBorders = border
+                    overflowWrap = OverflowWrap.BREAK_WORD
+
+                    column(0) { width = ColumnWidth.Fixed(categoryWidth) }
+                    column(1) { width = ColumnWidth.Expand() }
+                    header { row("Category", "Keys") }
+                    body {
+                        Books.Category.entries
+                            .asSequence()
+                            .filterNot { it == Books.Category.ALL }
+                            .forEach { category ->
+                                row(category.name, category.key.joinToString(", "))
+                            }
                     }
+                }
+                echo(table)
             }
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")

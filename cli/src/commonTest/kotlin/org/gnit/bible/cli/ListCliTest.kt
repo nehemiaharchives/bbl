@@ -13,6 +13,7 @@ import org.gnit.bible.ConfigKey
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -150,10 +151,27 @@ class ListCliTest : ResourcesTestBase() {
         val bbl = Bbl(bible = bible)
 
         arrayOf("list book", "list books").forEach { argv ->
-            val lines = bbl.test(argv).stdout.lines().filter { it.isNotBlank() }
-            assertEquals(66, lines.size)
-            assertEquals("genesis, gen, ge, gn", lines.first())
-            assertEquals("revelation, rev, re, the revelation", lines.last())
+            val out = bbl.test(argv).stdout
+            assertTrue(out.contains("Book"))
+            assertTrue(out.contains("Names"))
+            assertTrue(out.lines().filter { it.isNotBlank() }.size >= 67)
+            assertTrue(out.contains(" 1"))
+            assertTrue(out.contains(" 66"))
+            assertTrue(out.contains("genesis"))
+            assertTrue(out.contains("revelation"))
+            assertTrue(!out.contains("┌"))
+        }
+
+        bible.assetManager.platform.settings[ConfigKey.BORDER.value] = "true"
+        arrayOf("list book", "list books").forEach { argv ->
+            val out = bbl.test(argv).stdout
+            assertTrue(out.contains("┌"))
+            assertTrue(out.contains("┐"))
+            assertTrue(out.contains("│"))
+            assertTrue(out.contains("Book"))
+            assertTrue(out.contains("Names"))
+            assertTrue(out.contains("genesis"))
+            assertTrue(out.contains("revelation"))
         }
     }
 
@@ -162,12 +180,41 @@ class ListCliTest : ResourcesTestBase() {
         val bbl = Bbl(bible = bible)
 
         arrayOf("list category", "list categories").forEach { argv ->
-            val lines = bbl.test(argv).stdout.lines().filter { it.isNotBlank() }
-            assertEquals(Books.Category.entries.size - 1, lines.size)
-            assertTrue(lines.none { it.startsWith("ALL:") })
-
-            assertEquals("OLD_TESTAMENT: ot, old testament", lines.first())
-            assertTrue(lines.contains("NEW_TESTAMENT: nt, new testament"))
+            val out = bbl.test(argv).stdout
+            val lines = out.lines().filter { it.isNotBlank() }
+            assertTrue(lines.size >= Books.Category.entries.size)
+            assertTrue(lines.any { it.contains("Category") } && lines.any { it.contains("Keys") })
+            assertTrue(out.contains("OLD_TESTAMENT"))
+            assertTrue(out.contains("NEW_TESTAMENT"))
+            assertTrue(!out.contains("ALL"))
+            assertTrue(!out.contains("┌"))
         }
+
+        bible.assetManager.platform.settings[ConfigKey.BORDER.value] = "true"
+        arrayOf("list category", "list categories").forEach { argv ->
+            val out = bbl.test(argv).stdout
+            assertTrue(out.contains("┌"))
+            assertTrue(out.contains("┐"))
+            assertTrue(out.contains("│"))
+            assertTrue(out.contains("OLD_TESTAMENT"))
+            assertTrue(out.contains("NEW_TESTAMENT"))
+            assertTrue(!out.contains("ALL"))
+        }
+    }
+
+    @Test
+    @Ignore
+    fun testBblListBooksInProductionEnv(){
+        val command = Bbl()
+        val result = command.test("list books")
+        println(result.stdout)
+    }
+
+    @Test
+    @Ignore
+    fun testBblListCategoryInProductionEnv(){
+        val command = Bbl()
+        val result = command.test("list category")
+        println(result.stdout)
     }
 }

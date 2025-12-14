@@ -40,8 +40,8 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
   * 5.4. option to change default translation : DONE
   * 5.5. option to show a whole chapter or a verse in bbl rand : DONE
   * 5.6. option to show/hide header : DONE
-  * 5.7. option to show/hide border : DONE for bbl list translation
-  * 5.7. option to show/hide border : TODO for bbl list book, bbl list category, bbl $bookName:$chapter(verses and/or in translation)
+  * 5.7. option to show/hide border for bbl list : DONE
+  * 5.8. option to show/hide border for bbl $bookName:$chapter(verses and/or in translation) : TODO
 
 ## Phase 2: Search feature development while debugging lucene-kmp
 ### 6. Search related features 
