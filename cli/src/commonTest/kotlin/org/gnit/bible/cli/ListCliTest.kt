@@ -8,6 +8,7 @@ import okio.Path.Companion.toPath
 import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.Books
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
@@ -153,6 +154,20 @@ class ListCliTest : ResourcesTestBase() {
             assertEquals(66, lines.size)
             assertEquals("genesis, gen, ge, gn", lines.first())
             assertEquals("revelation, rev, re, the revelation", lines.last())
+        }
+    }
+
+    @Test
+    fun testBblListCategories() {
+        val bbl = Bbl(bible = bible)
+
+        arrayOf("list category", "list categories").forEach { argv ->
+            val lines = bbl.test(argv).stdout.lines().filter { it.isNotBlank() }
+            assertEquals(Books.Category.entries.size - 1, lines.size)
+            assertTrue(lines.none { it.startsWith("ALL:") })
+
+            assertEquals("OLD_TESTAMENT: ot, old testament", lines.first())
+            assertTrue(lines.contains("NEW_TESTAMENT: nt, new testament"))
         }
     }
 }

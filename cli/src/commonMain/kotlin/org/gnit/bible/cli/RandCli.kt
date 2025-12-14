@@ -19,7 +19,7 @@ class RandCli(
     override fun help(context: com.github.ajalt.clikt.core.Context) = "Display a random verse or chapter from the Bible"
 
     private val narrowDown: String? by argument(
-        help = "Narrow down to a category (e.g., nt, ot, prophets, paul, abraham, gospels)"
+        help = "Narrow down to a category (e.g., nt, ot, prophets, paul, abraham, gospels) for the list of categories, run bbl list category"
     ).optional()
 
     override fun run() {

@@ -11,6 +11,7 @@ import com.github.ajalt.mordant.table.table
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
+import org.gnit.bible.Books
 import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
@@ -101,6 +102,15 @@ class ListCli(
                 (1..66).forEach { book ->
                     echo(bookNameNumberArray[book].joinToString(", "))
                 }
+            }
+
+            "category", "categories" -> {
+                Books.Category.entries
+                    .asSequence()
+                    .filterNot { it == Books.Category.ALL }
+                    .forEach { category ->
+                        echo("${category.name}: ${category.key.joinToString(", ")}")
+                    }
             }
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")
