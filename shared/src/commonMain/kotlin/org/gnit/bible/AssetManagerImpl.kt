@@ -17,7 +17,11 @@ import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
 
-enum class InstallationState { EMBEDDED, DOWNLOADED, DOWNLOADABLE }
+enum class InstallationState(val description: String) {
+    EMBEDDED("Embedded"),
+    DOWNLOADED("Installed"),
+    DOWNLOADABLE("Available")
+}
 
 data class TranslationEntry(
     val translation: Translation,

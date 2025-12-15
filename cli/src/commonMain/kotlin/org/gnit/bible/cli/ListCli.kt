@@ -2,13 +2,8 @@ package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
-import com.github.ajalt.mordant.rendering.OverflowWrap
-import com.github.ajalt.mordant.table.Borders
-import com.github.ajalt.mordant.table.ColumnWidth
-import com.github.ajalt.mordant.table.table
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
@@ -35,8 +30,6 @@ class ListCli(
 
     override fun run() {
 
-        val border = if(bible.showBorderFromSettings()) Borders.ALL else Borders.NONE
-
         when (target.lowercase()) {
             "bible", "bibles", "translation", "translations", "version", "versions" -> {
                 val am = bible.assetManager
@@ -49,99 +42,89 @@ class ListCli(
 
                 val embedded = Translation.embeddedTranslations
 
-                val embeddedEntries = embedded.map { TranslationEntry(it, InstallationState.EMBEDDED) }
-                val downloadedEntries = downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
+                val embeddedEntries =
+                    embedded.map { TranslationEntry(it, InstallationState.EMBEDDED) }
+                val downloadedEntries =
+                    downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
                 val takenCodes = (embedded.map { it.code } + downloaded.map { it.code }).toSet()
                 val downloadableEntries = downloadable
                     .filterNot { takenCodes.contains(it.code) }
                     .map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
-                val entries: List<TranslationEntry> = embeddedEntries + downloadedEntries + downloadableEntries
+                val entries: List<TranslationEntry> =
+                    (embeddedEntries + downloadedEntries + downloadableEntries).sortedBy { entry ->
+                        entry.translation.language.order
+                    }
 
-                val codeWidth = 6
+                val codeWidth = 7
                 val englishNameWidth = 43
+                val nativeNameWidth = 33
                 val languageWidth = 11
-                val yearWidth = 4
-                val installationWidth = 13
+                val yearWidth = 5
+                val installationWidth = 10
 
-                val totalTableWidth = codeWidth + englishNameWidth + languageWidth + yearWidth + installationWidth
-                logger.debug { "ListCli terminal size is ${terminal.size}, total table width is $totalTableWidth" }
-                val table = table {
-                    cellBorders = border
+                /*val totalTableWidth =
+                    codeWidth + englishNameWidth + nativeNameWidth + languageWidth + yearWidth + installationWidth*/
 
-                    column(0) { width = ColumnWidth.Fixed(codeWidth) } 
-                    column(1) { width = ColumnWidth.Fixed(englishNameWidth) }
-                    column(2) { width = ColumnWidth.Fixed(languageWidth) }
-                    column(3) { width = ColumnWidth.Fixed(yearWidth) }
-                    column(4) { width = ColumnWidth.Fixed(installationWidth) }
-                    header {
-                        row("Code", "English Name", "Language", "Year", "Status")
-                    }
-                    body {
-                        entries.forEach { entry ->
-                            val t = entry.translation
-                            val state = when (entry.source) {
-                                InstallationState.EMBEDDED -> "Embedded"
-                                InstallationState.DOWNLOADED -> "Installed"
-                                InstallationState.DOWNLOADABLE -> "To Download"
-                            }
-                            row(
-                                t.code.uppercase(),
-                                t.englishName,
-                                t.language.englishName,
-                                t.year.toString(),
-                                state
-                            )
-                        }
-                    }
+                fun String.separator(): String {
+                    return this.plus("|")
                 }
-                //echo(terminal.render(table))
-                echo(table)
+
+                fun String.byteLength(): Int {
+                    return this.encodeToByteArray().size
+                }
+
+                fun Translation.byteDiff(): Int = when(this.code){
+                    // following works only in JetBrains IDEs Terminal
+                    /*"th1971" -> -6
+                    "irvhin" -> -2
+                    "irvben" -> -5
+                    "irvmar" -> -1
+                    "irvtel" -> -10
+                    "irvtam" -> 2
+                    "irvguj" -> -4
+                    "irvurd" -> -5*/
+
+                    // following works on Ghostty
+                    "th1971" -> -5
+                    "irvhin" -> -9
+                    "irvben" -> -10
+                    "irvmar" -> -8
+                    "irvtel" -> -13
+                    "irvtam" -> -12
+                    "irvguj" -> -9
+                    "irvurd" -> -8
+                    else -> 0
+                }
+
+                entries.forEach { entry ->
+                    val t = entry.translation
+                    val code =        t.code.uppercase()       .padEnd(codeWidth)          .separator()
+                    val englishName = t.englishName            .padEnd(englishNameWidth)   .separator()
+                    val byteDiff = if(t.language.isCJK) (t.nativeName.byteLength() - t.nativeName.length) / 2 else t.byteDiff()
+                    val nativeName =  t.nativeName             .padEnd((nativeNameWidth - byteDiff)).separator()
+                    val language =    t.language.englishName   .padEnd(languageWidth)      .separator()
+                    val year =        t.year.toString()        .padEnd(yearWidth)          .separator()
+                    val installation = entry.source.description.padEnd(installationWidth)  .separator()
+                    val copyright = t.copyright
+                    echo("$code $englishName $nativeName $language $year $installation $copyright")
+                }
             }
 
             "book", "books" -> {
-                val bookWidth = 4
-
-                val table = table {
-                    cellBorders = border
-                    overflowWrap = OverflowWrap.BREAK_WORD
-
-                    column(0) { width = ColumnWidth.Fixed(bookWidth) }
-                    column(1) { width = ColumnWidth.Expand() }
-                    header { row("Book", "Names") }
-                    body {
-                        (1..66).forEach { book ->
-                            row(
-                                book.toString(),
-                                bookNameNumberArray[book].joinToString(", ")
-                            )
-                        }
-                    }
+                (1..66).forEach { book ->
+                    echo(bookNameNumberArray[book].joinToString(", "))
                 }
-                echo(table)
             }
 
             "category", "categories" -> {
-                val categoryWidth = 20
-
-                val table = table {
-                    cellBorders = border
-                    overflowWrap = OverflowWrap.BREAK_WORD
-
-                    column(0) { width = ColumnWidth.Fixed(categoryWidth) }
-                    column(1) { width = ColumnWidth.Expand() }
-                    header { row("Category", "Keys") }
-                    body {
-                        Books.Category.entries
-                            .asSequence()
-                            .filterNot { it == Books.Category.ALL }
-                            .forEach { category ->
-                                row(category.name, category.key.joinToString(", "))
-                            }
+                Books.Category.entries
+                    .asSequence()
+                    .filterNot { it == Books.Category.ALL }
+                    .forEach { category ->
+                        echo(category.name + ": " + category.key.joinToString(", "))
                     }
-                }
-                echo(table)
             }
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")

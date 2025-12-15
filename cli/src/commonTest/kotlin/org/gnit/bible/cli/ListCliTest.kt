@@ -9,7 +9,7 @@ import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
-import org.gnit.bible.ConfigKey
+import org.gnit.bible.getPlatform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
@@ -32,98 +32,38 @@ class ListCliTest : ResourcesTestBase() {
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = systemFileSystem)
         bible = Bible(assetManager = assetManager)
-        bible.assetManager.platform.settings.remove(ConfigKey.BORDER.value)
 
         Bbl(bible).test("install kttv")
     }
 
-    val expectedTranslationList = """ Code    English Name                             Language    Year Status      
- WEBUS   World English Bible                      English     2000 Embedded    
- KJV     King James Version                       English     1611 Embedded    
- RVR09   Reina-Valera                             Spanish     1909 Embedded    
- TB      Brazilian Translation                    Portuguese  1917 Embedded    
- DELUT   Luther Bible                             German      1912 Embedded    
- LSG     Louis Segond                             French      1910 Embedded    
- SINOD   Russian Synodal Bible                    Russian     1876 Embedded    
- SVRJ    Statenvertaling Jongbloed edition        Dutch       1888 Embedded    
- RDV24   Revised Diodati Version                  Italian     1924 Embedded    
- UBG     Updated Gdansk Bible                     Polish      2017 Embedded    
- UBIO    Ukrainian Bible, Ivan Ogienko            Ukrainian   1962 Embedded    
- SVEN    Svenska 1917                             Swedish     1917 Embedded    
- CUNP    Chinese Union Version with New Punctuati Chinese     1919 Embedded    
- KRV     Korean Revised Version                   Korean      1961 Embedded    
- JC      Japanese Colloquial Bible                Japanese    1955 Embedded    
- KTTV    Vietnamese Bible 1925                    Vietnamese  1925 Installed   
- ABTAG   Ang Biblia                               Tagalog     1905 To Download 
- AYT     The Opened Bible                         Indonesian  2024 To Download 
- IRVBEN  Indian Revised Version - Bengali         Bengali     2019 To Download 
- IRVGUJ  Indian Revised Version - Gujarati        Gujarati    2019 To Download 
- IRVHIN  Indian Revised Version - Hindi           Hindi       2019 To Download 
- IRVMAR  Indian Revised Version - Marathi         Marathi     2019 To Download 
- IRVTAM  Indian Revised Version - Tamil           Tamil       2019 To Download 
- IRVTEL  Indian Revised Version - Telugu          Telugu      2019 To Download 
- IRVURD  Indian Revised Version - Urdu            Urdu        2019 To Download 
- TH1971  Thai Bible 1925                          Thai        1971 To Download 
+    val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Embedded  | Public Domain
+KJV    | King James Version                         | King James Version               | English    | 1611 | Embedded  | Public Domain
+RVR09  | Reina-Valera                               | Reina-Valera                     | Spanish    | 1909 | Embedded  | Public Domain
+TB     | Brazilian Translation                      | Tradução Brasileira              | Portuguese | 1917 | Embedded  | Public Domain
+DELUT  | Luther Bible                               | Lutherbibel                      | German     | 1912 | Embedded  | Public Domain
+LSG    | Louis Segond                               | Bible Segond                     | French     | 1910 | Embedded  | Public Domain
+SINOD  | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876 | Embedded  | Public Domain
+SVRJ   | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Embedded  | Public Domain
+RDV24  | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924 | Embedded  | Public Domain
+UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Embedded  | © 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted.
+UBIO   | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Embedded  | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society
+SVEN   | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917 | Embedded  | Public Domain
+CUNP   | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919 | Embedded  | Public Domain
+KRV    | Korean Revised Version                     | 개역한글                         | Korean     | 1961 | Embedded  | Public Domain
+JC     | Japanese Colloquial Bible                  | 口語訳                           | Japanese   | 1955 | Embedded  | Public Domain
+ABTAG  | Ang Biblia                                 | Ang Biblia                       | Tagalog    | 1905 | Available | Public Domain
+AYT    | The Opened Bible                           | Alkitab Yang Terbuka             | Indonesian | 2024 | Available | CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT
+KTTV   | Vietnamese Bible 1925                      | Kinh Thánh Tiếng Việt            | Vietnamese | 1925 | Installed | Public Domain
+TH1971 | Thai Bible 1925                            | พระคริสตธรรมคัมภีร์ ฉบับ1971          | Thai       | 1971 | Available | Public Domain
+IRVHIN | Indian Revised Version - Hindi             | इंडियन रिवाइज्ड वर्जन (IRV) हिंदी         | Hindi      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVBEN | Indian Revised Version - Bengali           | ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী    | Bengali    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVMAR | Indian Revised Version - Marathi           | इंडियन रीवाइज्ड वर्जन (IRV) मराठी        | Marathi    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVTEL | Indian Revised Version - Telugu            | ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు       | Telugu     | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVTAM | Indian Revised Version - Tamil             | இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்      | Tamil      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVGUJ | Indian Revised Version - Gujarati          | ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી            | Gujarati   | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVURD | Indian Revised Version - Urdu              | इंडियन रिवाइज्ड वर्जन (IRV) उर्दू        | Urdu       | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 """
 
-    val expectedTranslationListWithBorder = """
-            ┌───────┬──────────────────────────────────────┬───────────┬─────┬────────────┐
-            │ Code  │ English Name                         │ Language  │ Year│ Status     │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ WEBUS │ World English Bible                  │ English   │ 2000│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ KJV   │ King James Version                   │ English   │ 1611│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ RVR09 │ Reina-Valera                         │ Spanish   │ 1909│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ TB    │ Brazilian Translation                │ Portuguese│ 1917│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ DELUT │ Luther Bible                         │ German    │ 1912│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ LSG   │ Louis Segond                         │ French    │ 1910│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ SINOD │ Russian Synodal Bible                │ Russian   │ 1876│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ SVRJ  │ Statenvertaling Jongbloed edition    │ Dutch     │ 1888│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ RDV24 │ Revised Diodati Version              │ Italian   │ 1924│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ UBG   │ Updated Gdansk Bible                 │ Polish    │ 2017│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ UBIO  │ Ukrainian Bible, Ivan Ogienko        │ Ukrainian │ 1962│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ SVEN  │ Svenska 1917                         │ Swedish   │ 1917│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ CUNP  │ Chinese Union Version with New Punctu│ Chinese   │ 1919│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ KRV   │ Korean Revised Version               │ Korean    │ 1961│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ JC    │ Japanese Colloquial Bible            │ Japanese  │ 1955│ Embedded   │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ KTTV  │ Vietnamese Bible 1925                │ Vietnamese│ 1925│ Installed  │
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ ABTAG │ Ang Biblia                           │ Tagalog   │ 1905│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ AYT   │ The Opened Bible                     │ Indonesian│ 2024│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVBEN│ Indian Revised Version - Bengali     │ Bengali   │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVGUJ│ Indian Revised Version - Gujarati    │ Gujarati  │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVHIN│ Indian Revised Version - Hindi       │ Hindi     │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVMAR│ Indian Revised Version - Marathi     │ Marathi   │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVTAM│ Indian Revised Version - Tamil       │ Tamil     │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVTEL│ Indian Revised Version - Telugu      │ Telugu    │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ IRVURD│ Indian Revised Version - Urdu        │ Urdu      │ 2019│ To Download│
-            ├───────┼──────────────────────────────────────┼───────────┼─────┼────────────┤
-            │ TH1971│ Thai Bible 1925                      │ Thai      │ 1971│ To Download│
-            └───────┴──────────────────────────────────────┴───────────┴─────┴────────────┘
-            
-        """.trimIndent()
 
     @Test
     fun testBblList() {
@@ -139,11 +79,6 @@ class ListCliTest : ResourcesTestBase() {
         arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
             assertEquals(expectedTranslationList, bbl.test(argv = argv).stdout)
         }
-
-        bible.assetManager.platform.settings[ConfigKey.BORDER.value] = "true"
-        arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
-            assertEquals(expectedTranslationListWithBorder, bbl.test(argv = argv).stdout)
-        }
     }
 
     @Test
@@ -152,24 +87,7 @@ class ListCliTest : ResourcesTestBase() {
 
         arrayOf("list book", "list books").forEach { argv ->
             val out = bbl.test(argv).stdout
-            assertTrue(out.contains("Book"))
-            assertTrue(out.contains("Names"))
-            assertTrue(out.lines().filter { it.isNotBlank() }.size >= 67)
-            assertTrue(out.contains(" 1"))
-            assertTrue(out.contains(" 66"))
-            assertTrue(out.contains("genesis"))
-            assertTrue(out.contains("revelation"))
-            assertTrue(!out.contains("┌"))
-        }
-
-        bible.assetManager.platform.settings[ConfigKey.BORDER.value] = "true"
-        arrayOf("list book", "list books").forEach { argv ->
-            val out = bbl.test(argv).stdout
-            assertTrue(out.contains("┌"))
-            assertTrue(out.contains("┐"))
-            assertTrue(out.contains("│"))
-            assertTrue(out.contains("Book"))
-            assertTrue(out.contains("Names"))
+            assertEquals(66, out.lines().filter { it.isNotBlank() }.size)
             assertTrue(out.contains("genesis"))
             assertTrue(out.contains("revelation"))
         }
@@ -182,24 +100,19 @@ class ListCliTest : ResourcesTestBase() {
         arrayOf("list category", "list categories").forEach { argv ->
             val out = bbl.test(argv).stdout
             val lines = out.lines().filter { it.isNotBlank() }
-            assertTrue(lines.size >= Books.Category.entries.size)
-            assertTrue(lines.any { it.contains("Category") } && lines.any { it.contains("Keys") })
+            assertEquals(Books.Category.entries.size - 1, lines.size)
             assertTrue(out.contains("OLD_TESTAMENT"))
             assertTrue(out.contains("NEW_TESTAMENT"))
             assertTrue(!out.contains("ALL"))
-            assertTrue(!out.contains("┌"))
         }
+    }
 
-        bible.assetManager.platform.settings[ConfigKey.BORDER.value] = "true"
-        arrayOf("list category", "list categories").forEach { argv ->
-            val out = bbl.test(argv).stdout
-            assertTrue(out.contains("┌"))
-            assertTrue(out.contains("┐"))
-            assertTrue(out.contains("│"))
-            assertTrue(out.contains("OLD_TESTAMENT"))
-            assertTrue(out.contains("NEW_TESTAMENT"))
-            assertTrue(!out.contains("ALL"))
-        }
+    @Test
+    @Ignore
+    fun testBblListTranslationsInProductionEnv(){
+        val command = Bbl()
+        val result = command.test("list translation")
+        println(result.stdout)
     }
 
     @Test

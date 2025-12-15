@@ -43,8 +43,6 @@ This phase focus on porting core reading features with features additional trans
   * 5.4. option to change default translation (NEW) : DONE
   * 5.5. option to show a whole chapter or a verse in bbl rand (NEW) : DONE
   * 5.6. option to show/hide header (NEW) : DONE
-  * 5.7. option to show/hide border for bbl list (NEW) : DONE
-  * 5.8. option to show/hide border for bbl $bookName:$chapter(verses and/or in translation) (NEW) : TODO
 
 ## Phase 2: Search/Index 
 This phase focus on finish porting lucene-kmp needed in bbl-kmp while debugging lucene-kmp to enable bbl pack to create search index, then achieving bbl search in single binary Kotlin/Native
