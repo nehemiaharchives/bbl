@@ -1,5 +1,16 @@
 # AGENTS.md for bbl-kmp Project
 
+## Project Overview
+This project is bbl-kmp, a set of software to read/search bible in many languages.
+First software is [bbl-kmp/cli] which is Kotlin/Native single binary executable command line tool targeting macOS and Linux
+Second software is [bbl-kmp/composeApp] which is Compose Multiplatform GUI app targeting Android/iOS/Desktop JVM
+The tech stack is Kotlin Multiplatform and both cli and composeApp depends on [bbl-kmp/shared] in this project and [lucene-kmp]  
+[lucene-kmp] is a Kotlin Multiplatform work in progress port of Apache Lucene Java search engine library and
+[lucene-kmp] is made for [bbl-kmp] and nobody has used/tested word yet, so a lot of bug is expected.
+[lucene-kmp] core functions are ported but many components should still need to be ported from Java version. 
+So [bbl-kmp/cli] is the world first user of [lucene-kmp] and aiming to heavily dogfood, debug and make it working.
+[bbl-kmp] development proceeds at the same time [lucene-kmp] whenever you find bug, you need to create github issue using github mcp server in [lucene-kmp] github repo.
+
 ## Language
 
 Use **English** to communicate with me.
