@@ -1,5 +1,6 @@
 package org.gnit.bible.cli
 
+import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import okio.FileSystem
 import okio.Path
@@ -10,6 +11,7 @@ import org.gnit.bible.Translation
 import org.gnit.bible.ZipBibleTextReader
 import org.gnit.bible.downloadableTranslationCodeList
 import org.gnit.bible.getPlatform
+import kotlinx.coroutines.runBlocking
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -102,6 +104,31 @@ class PackCliTest {
 
             val manifestTranslation = zipBibleTextReader.getTranslationFromManifest("webus")
             assertEquals("webus", manifestTranslation.code)
+
+            // Verify lucene-kmp index files are included in the zip (and lock is not).
+            val zipEntries = mutableListOf<String>()
+            runBlocking {
+                val zipFile = ZipFile(com.oldguy.common.io.File(zipPath.toString()))
+                try {
+                    zipFile.open()
+                    zipEntries.addAll(zipFile.entries.map { it.name.replace('\\', '/') })
+                } finally {
+                    runCatching { zipFile.close() }.getOrNull()
+                }
+            }
+
+            assertTrue(
+                zipEntries.any { it.startsWith("index/segments_") },
+                "Expected lucene-kmp index segments file in zip. Entries: ${zipEntries.take(50)}"
+            )
+            assertTrue(
+                zipEntries.any { it.startsWith("index/_") && (it.endsWith(".cfs") || it.endsWith(".si") || it.endsWith(".cfe")) },
+                "Expected lucene-kmp index data files in zip. Entries: ${zipEntries.take(50)}"
+            )
+            assertTrue(
+                zipEntries.none { it.endsWith("index/write.lock") },
+                "Did not expect write.lock to be included in bblpack zip"
+            )
         } finally {
             if (fileSystem.exists(zipPath)) {
                 fileSystem.delete(zipPath)
@@ -111,6 +138,27 @@ class PackCliTest {
 
     @Test
     fun createLuceneKmpIndexTest() {
-    // TODO implement proper tests for lucene-index is created properly
+        val fileSystem = getPlatform().fileSystem
+        val translationDir = tmpWorkingDirForBblPack.toPath() / "webus"
+        val indexDir = translationDir / "index"
+
+        if (fileSystem.exists(indexDir)) {
+            deleteRecursively(fileSystem, indexDir)
+        }
+
+        val chapterText = fileSystem.read(translationDir / "webus.1.1.txt") { readUtf8() }
+        val expectedDocCount = Bible.splitChapterToVerses(chapterText).size
+
+        val actualDocCount =
+            PackCli(Bible()).createLuceneKmpIndex(translation = Translation.webus, translationDir = translationDir)
+
+        assertEquals(expectedDocCount, actualDocCount)
+        assertTrue(
+            fileSystem.exists(indexDir) && fileSystem.metadata(indexDir).isDirectory,
+            "Expected index directory to exist at $indexDir"
+        )
+
+        val entryNames = fileSystem.list(indexDir).map { it.name }
+        assertTrue(entryNames.any { it.startsWith("segments_") }, "Expected a segments_N file in $indexDir, got: $entryNames")
     }
 }

@@ -9,16 +9,15 @@ import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import okio.FileSystem
 import okio.Path
 import org.gnit.bible.Bible
 import org.gnit.bible.Bible.Companion.splitChapterToVerses
-import org.gnit.bible.Books
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.VersePointer
 import org.gnit.bible.bookNameEnglish
 import org.gnit.bible.downloadableTranslationCodeList
-import org.gnit.lucenekmp.analysis.standard.StandardAnalyzer
+import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
 import org.gnit.lucenekmp.document.IntPoint
@@ -56,6 +55,37 @@ class PackCli(
     }
 
     private val fileSystem = bible.assetManager.fileSystem
+
+    private fun deleteRecursively(fileSystem: FileSystem, path: Path) {
+        if (!fileSystem.exists(path)) return
+        val metadata = fileSystem.metadata(path)
+        if (metadata.isDirectory) {
+            fileSystem.list(path).forEach { child ->
+                deleteRecursively(fileSystem, child)
+            }
+        }
+        fileSystem.delete(path)
+    }
+
+    private fun sanitizeForLuceneStandardAnalyzer(text: String): String {
+        if (text.isEmpty()) return text
+        val sb = StringBuilder(text.length)
+        for (ch in text) {
+            val mapped = when (ch) {
+                '\u2018', '\u2019' -> '\''
+                '\u201C', '\u201D' -> '"'
+                '\u2013', '\u2014' -> '-'
+                '\u00A0' -> ' '
+                else -> ch
+            }
+            val cleaned = when {
+                mapped.code in 0x00..0x1F && mapped != '\n' && mapped != '\t' && mapped != '\r' -> ' '
+                else -> mapped
+            }
+            sb.append(cleaned)
+        }
+        return sb.toString()
+    }
 
     fun createBblPack(inputPathString: String, outputPathString: String = "bblpack") {
         val currentDir = currentDir()
@@ -111,7 +141,11 @@ class PackCli(
             logger.error { "error while reading/parsing $manifestPath: ${e.message}" }; return
         }
 
-        // TODO create lucene-kmp index later
+        runCatching { createLuceneKmpIndex(translation = translation, translationDir = inputPath) }
+            .onFailure { e ->
+                logger.error { "failed to create lucene-kmp index for ${translation.code} at $inputPath: ${e.message}" }
+                return
+            }
 
         // zip everything into ${translationCode}.zip
         val dir = File(outputPath.toString())
@@ -159,60 +193,86 @@ class PackCli(
         runBlocking {
             ZipFile(zip, FileMode.Write).use {
                 it.zipFile(manifestFile)
-                it.zipDirectory(sourceDirectory, shallow = true) {
-                    name -> name.endsWith(".txt")
+                it.zipDirectory(sourceDirectory, shallow = false) { name ->
+                    val normalized = name.replace('\\', '/')
+                    normalized.endsWith(".txt") ||
+                        (normalized.startsWith("index/") && !normalized.endsWith("write.lock"))
                 }
             }
         }
 
     }
 
-    fun createLuceneKmpIndex(translation: Translation /* TODO define proper parameters including fileSystem swappable with FakeFileSystem for tests*/) {
-        // TODO create lucene-kmp search index for English language bible
-
-        val indexPath: Path = TODO("proper index path for both production and test")
-
-        val analyzer = StandardAnalyzer()
-        val config = IndexWriterConfig(analyzer)
-        val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
-        (1..66).forEach { book ->
-            val maxChapter = Books.maxChapter(book)
-            (1..maxChapter).forEach { chapter ->
-
-                val versePointer =
-                    VersePointer(translation = translation, book = book, chapter = chapter)
-
-                val aChapter = bible.verses(translation = versePointer.translation.code, book = versePointer.book, chapter = versePointer.chapter)
-
-                val split = splitChapterToVerses(aChapter)
-
-                logger.debug {"book $book ${bookNameEnglish(book)} $chapter split to ${split.size}"}
-
-                split.forEachIndexed { index, text ->
-                    val doc = Document()
-                    val verse = index + 1
-
-                    logger.debug {"adding book $book ${bookNameEnglish(book)} $chapter:$verse $text as a document"}
-
-                    doc.add(IntPoint("book", book))
-                    doc.add(StoredField("book", book))
-
-                    doc.add(IntPoint("chapter", chapter))
-                    doc.add((StoredField("chapter", chapter)))
-
-                    doc.add(IntPoint("verse", verse))
-                    doc.add((StoredField("verse", verse)))
-
-                    doc.add(Field("text", text, TextField.TYPE_STORED))
-                    iWriter.addDocument(doc)
-                    val count = iWriter.getDocStats().numDocs
-
-                    logger.debug {"$count docs were added to the index of $translation"}
-                }
-            }
+    fun createLuceneKmpIndex(
+        translation: Translation,
+        translationDir: Path,
+        indexDirName: String = "index",
+        fileSystem: FileSystem = this.fileSystem
+    ): Int {
+        val indexPath = translationDir.resolve(indexDirName)
+        if (fileSystem.exists(indexPath)) {
+            deleteRecursively(fileSystem, indexPath)
         }
 
-        iWriter.close()
+        fileSystem.createDirectories(indexPath)
+
+        val analyzer = SimpleAnalyzer()
+        val config = IndexWriterConfig(analyzer)
+        val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
+        val chapterFileRegex =
+            Regex("^${Regex.escape(translation.code)}\\.(\\d{1,2})\\.(\\d{1,3})\\.txt$")
+
+        var totalDocs = 0
+        try {
+            val chapterFiles = fileSystem.list(translationDir)
+                .filter { path ->
+                    fileSystem.metadata(path).isRegularFile && chapterFileRegex.matches(path.name)
+                }
+                .sortedWith(
+                    compareBy<Path>(
+                        { chapterFileRegex.matchEntire(it.name)!!.groupValues[1].toInt() },
+                        { chapterFileRegex.matchEntire(it.name)!!.groupValues[2].toInt() }
+                    )
+                )
+
+            chapterFiles.forEach { chapterPath ->
+                val match = chapterFileRegex.matchEntire(chapterPath.name)!!
+                val book = match.groupValues[1].toInt()
+                val chapter = match.groupValues[2].toInt()
+
+                val chapterText = fileSystem.read(chapterPath) { readUtf8() }
+                val verses = splitChapterToVerses(chapterText)
+
+                logger.debug { "indexing ${translation.code} ${bookNameEnglish(book)} $chapter (${verses.size} verses) from $chapterPath" }
+
+                verses.forEachIndexed { index, text ->
+                    val verse = index + 1
+                    val sanitizedText = sanitizeForLuceneStandardAnalyzer(text)
+                    val doc = Document().apply {
+                        add(IntPoint("book", book))
+                        add(StoredField("book", book))
+
+                        add(IntPoint("chapter", chapter))
+                        add(StoredField("chapter", chapter))
+
+                        add(IntPoint("verse", verse))
+                        add(StoredField("verse", verse))
+
+                        add(Field("text", sanitizedText, TextField.TYPE_STORED))
+                    }
+                    iWriter.addDocument(doc)
+                    totalDocs++
+                }
+            }
+        } finally {
+            runCatching { iWriter.close() }.getOrNull()
+            runCatching {
+                val lockPath = indexPath.resolve("write.lock")
+                if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)
+            }.getOrNull()
+        }
+
+        return totalDocs
     }
 }
 

@@ -35,6 +35,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
+                implementation(libs.lucene.kmp.core)
             }
         }
         val commonTest by getting {
