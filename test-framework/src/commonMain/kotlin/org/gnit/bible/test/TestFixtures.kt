@@ -53,6 +53,17 @@ object TestFixtures {
         copyright = "Public Domain"
     ).toJson()
 
+    private val genesisOneTh1971 = "1 (test) Thai Bible 1971 Genesis 1:1"
+
+    private val th1971ManifestJson = Translation(
+        code = "th1971",
+        languageCode = "th",
+        englishName = "Thai Bible 1925",
+        nativeName = "พระคริสตธรรมคัมภีร์ ฉบับ1971",
+        year = 1971,
+        copyright = "Public Domain"
+    ).toJson()
+
     val kttvDownloadingMockEngine = MockEngine { _ ->
         val bytes = ZipUtil.buildMinimalZip(
             listOf(
@@ -172,12 +183,24 @@ object TestFixtures {
 
     val bblInstallMockEngine = MockEngine {
             request ->
-        val bytes = ZipUtil.buildMinimalZip(
-            listOf(
-                "kttv.1.1.txt" to genesisOneKttv,
-                "kttv${MANIFEST_JSON_POSTFIX}" to kttvManifestJson
-            )
-        )
+        fun packBytes(translationCode: String): ByteArray =
+            when (translationCode) {
+                "kttv" -> ZipUtil.buildMinimalZip(
+                    listOf(
+                        "kttv.1.1.txt" to genesisOneKttv,
+                        "kttv${MANIFEST_JSON_POSTFIX}" to kttvManifestJson
+                    )
+                )
+
+                "th1971" -> ZipUtil.buildMinimalZip(
+                    listOf(
+                        "th1971.1.1.txt" to genesisOneTh1971,
+                        "th1971${MANIFEST_JSON_POSTFIX}" to th1971ManifestJson
+                    )
+                )
+
+                else -> error("Unexpected translation code: $translationCode")
+            }
 
         when(request.url.encodedPath){
             "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json" -> respond(
@@ -187,12 +210,27 @@ object TestFixtures {
                 )
             )
 
-            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/kttv.zip" -> respond(
-                content = bytes, headers = headersOf(
-                    "Content-Type" to listOf("application/zip"),
-                    "Content-Length" to listOf(bytes.size.toString())
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/kttv.zip" -> {
+                val bytes = packBytes("kttv")
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
                 )
-            )
+            }
+
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/th1971.zip" -> {
+                val bytes = packBytes("th1971")
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
 
             else -> error("Unexpected request for path: ${request.url.encodedPath}")
         }

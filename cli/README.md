@@ -13,11 +13,13 @@ project has 2 phases, "migrating bible reading features kotlin/jvm to kmp" and "
 This phase focus on porting core reading features with features additional translation management
 
 ### 1. Translation management and list
-  * 1.1. bbl install (NEW) : DONE
-  * 1.2. bbl uninstall (NEW) : DONE
-  * 1.3. bbl list translation : DONE
-  * 1.4. bbl list book : DONE
-  * 1.5. bbl list category (NEW) : DONE
+  * 1.1. bbl list translation : DONE
+  * 1.2. bbl list book : DONE
+  * 1.3. bbl list category (NEW) : DONE
+  * 1.4. bbl install $translation (NEW) : DONE
+  * 1.5. bbl uninstall $translation (NEW) : DONE
+  * 1.4. bbl install $translation1 $translation2 $translation3 ... (NEW) : DONE
+  * 1.5. bbl uninstall $translation1 $translation2 $translation3 ... (NEW) : TODO
 
 ### 2. Bible reading
   * 2.1. bbl $bookName:$chapter  : DONE
@@ -28,6 +30,9 @@ This phase focus on porting core reading features with features additional trans
   * 2.1. bbl $bookName:$chapter in $translation : DONE
   * 2.2. bbl $bookName:$chapter$startVerse in $translation : DONE
   * 2.3. bbl $bookName:$chapter$startVerse:$endVerse in $translation : DONE
+  * 2.4. bbl $bookName:$chapter in $translation1 $translation2 $translation3 ... : TODO
+  * 2.5. bbl $bookName:$chapter$startVerse in $translation1 $translation2 $translation3 ... : TODO
+  * 2.6. bbl $bookName:$chapter$startVerse:$endVerse in $translation1 $translation2 $translation3 ... : TODO
 
 ### 4. Random bible
   * 4.1. bbl rand : TODO

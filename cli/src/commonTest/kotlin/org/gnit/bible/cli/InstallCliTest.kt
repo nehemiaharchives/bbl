@@ -33,28 +33,39 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallKttv() {
         val result = Bbl(bible = bible).test("install kttv").stdout
-        assertResult(result)
+        assertInstallResult(result, listOf("kttv"))
     }
 
     @Test
     fun testBblAliasGetKttv(){
         val result = Bbl(bible = bible).test("get kttv").stdout
-        assertResult(result)
+        assertInstallResult(result, listOf("kttv"))
     }
 
-    fun assertResult(result: String){
-        assertEquals("Installed kttv\n", result)
+    @Test
+    fun testBblInstallMultipleTranslations() {
+        val result = Bbl(bible = bible).test("install kttv th1971").stdout
+        assertInstallResult(result, listOf("kttv", "th1971"))
+    }
+
+    private fun assertInstallResult(result: String, expectedCodes: List<String>){
+        val expectedOutput = expectedCodes.joinToString(separator = "") { "Installed $it\n" }
+        assertEquals(expectedOutput, result)
 
         val packDir = bible.assetManager.platform.packDir.toPath()
         val packFileList = fakeFs.list(packDir)
-        assertEquals(1, packFileList.size)
-        assertEquals("kttv.zip", packFileList.first().name)
+        assertEquals(expectedCodes.size, packFileList.size)
+        val actualNames = packFileList.map { it.name }.sorted()
+        val expectedNames = expectedCodes.map { "$it.zip" }.sorted()
+        assertEquals(expectedNames, actualNames)
 
-        val zipPath = packDir / "kttv.zip".toPath()
-        assertTrue(fakeFs.exists(zipPath))
-        fakeFs.metadata(zipPath).also { metadata ->
-            assertTrue(metadata.isRegularFile)
-            assertTrue((metadata.size ?: 0L) > 0L)
+        expectedCodes.forEach { code ->
+            val zipPath = packDir / "$code.zip".toPath()
+            assertTrue(fakeFs.exists(zipPath))
+            fakeFs.metadata(zipPath).also { metadata ->
+                assertTrue(metadata.isRegularFile)
+                assertTrue((metadata.size ?: 0L) > 0L)
+            }
         }
     }
 

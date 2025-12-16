@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
@@ -17,21 +18,27 @@ class InstallCli(
     private val logger = KotlinLogging.logger {}
 
     override fun help(context: Context): String {
-        return "Download and install a translation using code e.g. bbl install kttv"
+        return "Download and install one or more translations by code (e.g. bbl install kttv th1971)"
     }
 
-    private val target by argument(help = "translation code to download and install (e.g., kttv)")
+    private val targets: List<String> by argument(help = "translation code(s) to download and install (e.g., kttv th1971)")
+        .multiple()
 
     override fun run() {
         logger.debug { "InstallCli called" }
-        val translationCodeCandidate = target.lowercase()
         val am = bible.assetManager
 
-        val alreadyInstalled = runCatching { am.downloadedTranslationCodes() }
+        val requestedCodes = targets
+            .map { it.lowercase() }
+            .distinct()
+
+        val installedCodes = runCatching { am.downloadedTranslationCodes() }
             .getOrDefault(emptyList())
-            .any { it == translationCodeCandidate }
-        if (alreadyInstalled) {
-            echo("$translationCodeCandidate already installed, skipping download")
+            .toSet()
+
+        val toInstall = requestedCodes.filterNot { it in installedCodes }
+        if (toInstall.isEmpty()) {
+            requestedCodes.forEach { echo("$it already installed, skipping download") }
             return
         }
 
@@ -40,32 +47,38 @@ class InstallCli(
                 .onFailure { logger.debug { "InstallCli failed to download latest downloadable translation list, falling back to embedded list" } }
                 .getOrDefault(downloadableTranslations)
         }
-        val translation = downloadable.find { it.code == translationCodeCandidate }
 
-        if (translation == null) {
-            throw CliktError("Translation $translationCodeCandidate was not in the list of downloadable translations: $downloadable")
-        } else {
-            logger.debug { "InstallCli downloading $translationCodeCandidate" }
+        val availableDownloadableCodes = downloadable.map { it.code }.toSet()
+        val unknownCodes = toInstall.filterNot { it in availableDownloadableCodes }
+        if (unknownCodes.isNotEmpty()) {
+            throw CliktError(
+                "Translation code(s) not found: ${unknownCodes.joinToString()}. " +
+                    "Run 'bbl list translations' to see downloadable translations."
+            )
+        }
+
+        requestedCodes
+            .filter { it in installedCodes }
+            .forEach { echo("$it already installed, skipping download") }
+
+        for (translationCode in toInstall) {
+            logger.debug { "InstallCli downloading $translationCode" }
             val downloadResult = runBlocking {
-                runCatching {
-                    am.download(
-                        DOWNLOADABLE_BIBLE_BASE_URL,
-                        "${translation.code}.zip"
-                    )
-                }
+                runCatching { am.download(DOWNLOADABLE_BIBLE_BASE_URL, "${translationCode}.zip") }
             }
+
             downloadResult.onFailure { error ->
-                throw CliktError("Installing $translationCodeCandidate failed: ${error.message}")
+                throw CliktError("Installing $translationCode failed: ${error.message}")
             }
 
             val installedNow = runCatching { am.downloadedTranslationCodes() }
                 .getOrDefault(emptyList())
-                .any { it == translationCodeCandidate }
+                .any { it == translationCode }
             if (!installedNow) {
-                throw CliktError("Installing $translationCodeCandidate failed: file was not found after download")
+                throw CliktError("Installing $translationCode failed: file was not found after download")
             }
 
-            echo("Installed $translationCodeCandidate")
+            echo("Installed $translationCode")
         }
     }
 }
