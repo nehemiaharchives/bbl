@@ -2,17 +2,22 @@ package org.gnit.bible.cli
 
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-import org.gnit.bible.MANIFEST_JSON_POSTFIX
+import okio.SYSTEM
+import okio.buffer
+import okio.use
 import org.gnit.bible.Bible
+import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.ZipBibleTextReader
 import org.gnit.bible.downloadableTranslationCodeList
 import org.gnit.bible.getPlatform
-import kotlinx.coroutines.runBlocking
+import org.gnit.bible.webusGenesisChapterOne
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -160,5 +165,25 @@ class PackCliTest {
 
         val entryNames = fileSystem.list(indexDir).map { it.name }
         assertTrue(entryNames.any { it.startsWith("segments_") }, "Expected a segments_N file in $indexDir, got: $entryNames")
+    }
+
+    @Test
+    @Ignore
+    fun createLuceneKmpIndexInProductionEnv() {
+
+        val translationDir = "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
+        val fs = FileSystem.SYSTEM
+        assertTrue(fs.exists(translationDir))
+
+        val webusGen1Path = translationDir / "webus.1.1.txt"
+        assertTrue(fs.exists(webusGen1Path))
+
+        val actual = fs.source(webusGen1Path).buffer().use { bufferedSource ->
+            bufferedSource.readUtf8()
+        }
+
+        assertEquals(webusGenesisChapterOne + "\n", actual)
+
+        PackCli(Bible()).createLuceneKmpIndex(translation = Translation.webus, translationDir = translationDir)
     }
 }
