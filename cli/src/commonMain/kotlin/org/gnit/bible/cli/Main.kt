@@ -120,7 +120,10 @@ class Bbl(
             ListCli(bible),
             InstallCli(bible),
             UninstallCli(bible),
-            ConfigCli(bible)
+            ConfigCli(bible),
+
+            // this is for developers to create new bbl pack zip file for bbl
+            PackCli(bible),
         )
     }
 

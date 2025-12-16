@@ -1,18 +1,45 @@
 package org.gnit.bible.cli
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CliktError
+import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.parameters.arguments.argument
 import com.oldguy.common.io.File
 import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import okio.SYSTEM
+import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.downloadableTranslationCodeList
 
-class Packer {
+class PackCli(
+    bible: Bible
+) : CliktCommand(name = "pack") {
 
-    val fileSystem = okio.FileSystem.SYSTEM
+    override fun help(context: Context): String {
+        return "Pack a directory named with translation code into a zip file of bblpack file which can be imported for bbl"
+    }
+
+    private val target by argument(help = "translation code of new bblpack dir/zip to be created, e.g. webus, jc")
+
+    override fun run(){
+        val normalizedTarget = target.trim().lowercase()
+        if (normalizedTarget.isEmpty()) {
+            throw CliktError("Missing translation code")
+        }
+
+        val inputPathString = when {
+            normalizedTarget.contains("/") || normalizedTarget.contains("\\") -> normalizedTarget
+            else -> "../server/src/main/resources/files/bbltexts/$normalizedTarget"
+        }
+
+        val outputPathString = "../server/src/main/resources/files/bblpacks"
+        createBblPack(inputPathString = inputPathString, outputPathString = outputPathString)
+    }
+
+    private val fileSystem = bible.assetManager.fileSystem
 
     private val logger = KotlinLogging.logger {}
 
@@ -128,7 +155,7 @@ class Packer {
 }
 
 fun packTranslation(translationCode: String){
-    Packer().createBblPack(
+    PackCli(Bible()).createBblPack(
         inputPathString = "../server/src/main/resources/files/bbltexts/$translationCode",
         outputPathString = "../server/src/main/resources/files/bblpacks/"
     )
