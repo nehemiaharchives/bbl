@@ -126,6 +126,7 @@ class Bbl(
 
     override fun aliases(): Map<String, List<String>> = mapOf(
         "get" to listOf("install"),
+        "rm" to listOf("uninstall"),
         "remove" to listOf("uninstall"),
         "delete" to listOf("uninstall")
     )

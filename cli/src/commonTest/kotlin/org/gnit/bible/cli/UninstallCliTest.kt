@@ -46,6 +46,12 @@ class UninstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblAliasRmKttv() {
+        val result = Bbl(bible = bible).test("rm kttv").stdout
+        assertResult(result)
+    }
+
+    @Test
     fun testBblAliasDeleteKttv() {
         val result = Bbl(bible = bible).test("delete kttv").stdout
         assertResult(result)
