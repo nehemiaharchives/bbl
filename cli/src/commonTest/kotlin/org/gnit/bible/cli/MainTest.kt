@@ -108,6 +108,24 @@ class MainTest {
     }
 
     @Test
+    fun testBblGen1InJcWebusComparison() {
+        val command = Bbl()
+        val result = command.test("gen 1 in jc webus")
+        val jcVerses = Bible.splitChapterToVerses(jcGenesisChapterOne)
+        val webusVerses = Bible.splitChapterToVerses(webusGenesisChapterOne)
+
+        val expected = buildString {
+            for (verseNumber in 1..jcVerses.size) {
+                append("$verseNumber ${jcVerses[verseNumber - 1].trim()}\n")
+                append("$verseNumber ${webusVerses[verseNumber - 1].trim()}\n")
+                if (verseNumber != jcVerses.size) append('\n')
+            }
+        }
+
+        assertEquals(expected, result.stdout)
+    }
+
+    @Test
     fun testBblGen1InJcWithHeaderEnabled() {
         val platform = getPlatform()
         platform.settings.putString(ConfigKey.HEADER.value, "true")
@@ -123,6 +141,18 @@ class MainTest {
         val result = command.test("john 3:16 in jc")
         val jcJohn3v16 = "16 神はそのひとり子を賜わったほどに、この世を愛して下さった。それは御子を信じる者がひとりも滅びないで、永遠の命を得るためである。"
         assertEquals("$jcJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16InJcWebusComparison() {
+        val command = Bbl()
+        val result = command.test("john 3:16 in jc webus")
+        val expected = """
+            16 神はそのひとり子を賜わったほどに、この世を愛して下さった。それは御子を信じる者がひとりも滅びないで、永遠の命を得るためである。
+            16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life.
+            
+        """.trimIndent()
+        assertEquals(expected, result.stdout)
     }
 
     @Test
@@ -146,6 +176,25 @@ class MainTest {
             20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
         """.trimIndent()
         assertEquals("$jcMatt28v18to20\n\n", result.stdout)
+    }
+
+    @Test
+    fun testBblMatt28v18to20InJcWebusComparison() {
+        val command = Bbl()
+        val result = command.test("matt 28:18-20 in jc webus")
+        val expected = """
+            18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。
+            18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
+
+            19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、
+            19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
+
+            20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
+            20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
+            
+        """.trimIndent()
+
+        assertEquals(expected, result.stdout)
     }
 
     @Test

@@ -162,18 +162,31 @@ class In(
     private val bible: Bible
 ) : CliktCommand() {
 
-    val translationOverride: String by argument(help = "specify translation with translation code")
+    val translationOverrides: List<String> by argument(help = "specify one or more translations with translation code(s)")
+        .multiple()
     val versePointer by requireObject<VersePointer>()
 
     lateinit var selectedVerses: String
 
     override fun run() {
-        val found = bible.findTranslationByCode(translationOverride)
-        if(!found){
-            echo("Translation code not found", err = true)
-            return
-        }else{
-            versePointer.translation = bible.availableTranslations().first { it.code == translationOverride }
+        val codes = translationOverrides
+            .map { it.lowercase() }
+            .distinct()
+
+        val translations = codes.mapNotNull { code ->
+            if (!bible.findTranslationByCode(code)) {
+                echo("Translation code '$code' not found", err = true)
+                null
+            } else {
+                bible.availableTranslations().first { it.code == code }
+            }
+        }
+
+        if (translations.size != codes.size) return
+        val firstTranslation = translations.first()
+
+        if (translations.size == 1) {
+            versePointer.translation = firstTranslation
             val chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
             validateVerseRangeOrThrow(versePointer, chapterText)
             selectedVerses = Bible.selectVerses(versePointer, chapterText)
@@ -181,6 +194,50 @@ class In(
                 echo(formatHeader(versePointer))
             }
             echo(selectedVerses)
+            return
+        }
+
+        val versesByCode = translations.associate { translation ->
+            val chapterText = bible.verses(translation.code, versePointer.book, versePointer.chapter)
+            translation.code to Bible.splitChapterToVerses(chapterText).map { it.trim() }.toTypedArray()
+        }
+
+        val start = versePointer.startVerse
+        val end = versePointer.endVerse
+
+        val verseNumbers = if (start == null) {
+            val maxVerseCount = versesByCode.values.maxOfOrNull { it.size } ?: 0
+            1..maxVerseCount
+        } else {
+            val maxVerseCount = versesByCode.values.maxOfOrNull { it.size } ?: 0
+            val requestedLast = end ?: start
+            val last = minOf(requestedLast, maxVerseCount)
+            if (start > last) IntRange.EMPTY else start..last
+        }
+
+        if (bible.showHeaderFromSettings()) {
+            val headerEndVerse = if (end == null) null else verseNumbers.lastOrNull()
+            val headerPointer = VersePointer(
+                translation = firstTranslation,
+                book = versePointer.book,
+                chapter = versePointer.chapter,
+                startVerse = versePointer.startVerse,
+                endVerse = headerEndVerse
+            )
+            echo(formatHeader(headerPointer))
+        }
+
+        val lastVerse = verseNumbers.last
+        for (verseNumber in verseNumbers) {
+            translations.forEach { translation ->
+                val verses = versesByCode.getValue(translation.code)
+                if (verseNumber - 1 < verses.size) {
+                    echo("$verseNumber ${verses[verseNumber - 1]}")
+                }
+            }
+            if (verseNumber != lastVerse) {
+                echo("")
+            }
         }
     }
 }
