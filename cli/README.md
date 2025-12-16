@@ -19,7 +19,7 @@ This phase focus on porting core reading features with features additional trans
   * 1.4. bbl install $translation (NEW) : DONE
   * 1.5. bbl uninstall $translation (NEW) : DONE
   * 1.4. bbl install $translation1 $translation2 $translation3 ... (NEW) : DONE
-  * 1.5. bbl uninstall $translation1 $translation2 $translation3 ... (NEW) : TODO
+  * 1.5. bbl uninstall $translation1 $translation2 $translation3 ... (NEW) : DONE
 
 ### 2. Bible reading
   * 2.1. bbl $bookName:$chapter  : DONE

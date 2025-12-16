@@ -30,7 +30,7 @@ class UninstallCliTest : ResourcesTestBase() {
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
-        Bbl(bible = bible).test("install kttv")
+        Bbl(bible = bible).test("install kttv th1971")
     }
 
     @Test
@@ -49,6 +49,14 @@ class UninstallCliTest : ResourcesTestBase() {
     fun testBblAliasDeleteKttv() {
         val result = Bbl(bible = bible).test("delete kttv").stdout
         assertResult(result)
+    }
+
+    @Test
+    fun testBblUninstallMultipleTranslations() {
+        val result = Bbl(bible = bible).test("uninstall kttv th1971").stdout
+        assertEquals("Uninstalled kttv\nUninstalled th1971\n", result)
+        assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/kttv.zip".toPath()))
+        assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/th1971.zip".toPath()))
     }
 
     fun assertResult(result: String){

@@ -3,6 +3,7 @@ package org.gnit.bible.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
 //import io.github.oshai.kotlinlogging.KotlinLogging
 import org.gnit.bible.Bible
 
@@ -12,27 +13,36 @@ class UninstallCli(
     //private val logger = KotlinLogging.logger {}
 
     override fun help(context: Context): String {
-        return "Delete a downloaded bible translation pack from your computer"
+        return "Delete one or more downloaded bible translation packs from your computer"
     }
 
-    private val target by argument(help = "translation code to uninstall (e.g., kttv)")
+    private val targets: List<String> by argument(help = "translation code(s) to uninstall (e.g., kttv th1971)")
+        .multiple()
 
     override fun run() {
-        val translationCodeCandidate = target.lowercase()
         val am = bible.assetManager
-        val downloaded = am.downloadedTranslationCodes()
-        val translation = downloaded.find { it == translationCodeCandidate }
+        val requestedCodes = targets
+            .map { it.lowercase() }
+            .distinct()
 
-        if (translation == null) {
-            echo("Translation $translationCodeCandidate was not in the list of downloaded translations")
-        } else {
-            runCatching {
-                am.delete(translationCodeCandidate)
-            }.onSuccess {
-                echo("Uninstalled $translationCodeCandidate")
-            }.onFailure {
-                echo("Uninstalling $translationCodeCandidate failed")
+        val downloaded = runCatching { am.downloadedTranslationCodes() }
+            .getOrDefault(emptyList())
+            .toMutableSet()
+
+        for (translationCode in requestedCodes) {
+            if (translationCode !in downloaded) {
+                echo("Translation $translationCode was not in the list of downloaded translations")
+                continue
             }
+
+            runCatching { am.delete(translationCode) }
+                .onSuccess {
+                    downloaded.remove(translationCode)
+                    echo("Uninstalled $translationCode")
+                }
+                .onFailure {
+                    echo("Uninstalling $translationCode failed")
+                }
         }
     }
 }
