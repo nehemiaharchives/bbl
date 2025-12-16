@@ -108,4 +108,9 @@ class PackCliTest {
             }
         }
     }
+
+    @Test
+    fun createLuceneKmpIndexTest() {
+    // TODO implement proper tests for lucene-index is created properly
+    }
 }
