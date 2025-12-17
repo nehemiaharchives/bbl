@@ -60,6 +60,7 @@ okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = 
 kmpio = { module = "io.github.skolson:kmp-io", version.ref = "kmpio" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 lucene-kmp-core = { module = "org.gnit.lucene-kmp:lucene-kmp-core", version.ref = "lucene-kmp" }
+lucene-kmp-queryparser = { module = "org.gnit.lucene-kmp:lucene-kmp-queryparser", version.ref = "lucene-kmp" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-simple" }
 slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4j-android" }

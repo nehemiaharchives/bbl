@@ -86,6 +86,7 @@ kotlin {
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             implementation(libs.lucene.kmp.core)
+            implementation(libs.lucene.kmp.queryparser)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.clientCore)
             implementation(libs.ktor.clientCio)
