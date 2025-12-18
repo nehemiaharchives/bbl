@@ -25,11 +25,10 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
     }
 
     actual override fun listIndexFiles(translation: String): List<String> {
-        val indexManifestFile = object {}.javaClass.getResource("/files/$base/$translation/$translation${SearchEngine.INDEX_MANIFEST_FILENAME_POSTFIX}")
-
-        println(indexManifestFile)
-
-        return emptyList()
+        val translationIndexManifestFile =
+            "/files/$base/$translation/index/$translation${SearchEngine.INDEX_MANIFEST_FILENAME_POSTFIX}"
+        val indexManifestFiles = object {}.javaClass.getResource(translationIndexManifestFile)!!.readText().lines().filter { it.isNotEmpty() }
+        return indexManifestFiles
     }
 
     actual override fun readIndexFile(

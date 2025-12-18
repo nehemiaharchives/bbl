@@ -8,11 +8,13 @@ import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
+import org.gnit.bible.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.BibleTest
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -52,7 +54,9 @@ class CliBibleTest : BibleTest {
 
     @Test
     fun testListIndexFiles() {
-        val indexFiles = bible.bibleResourcesReader.listIndexFiles("webus")
-
+        embeddedTranslationCodes.forEach { translationCode ->
+            val indexFiles = bible.bibleResourcesReader.listIndexFiles(translationCode)
+            assertTrue(indexFiles.isNotEmpty())
+        }
     }
 }
