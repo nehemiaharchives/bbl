@@ -358,17 +358,52 @@ abstract class TarBblpacksTask @Inject constructor(
             false
         }
 
+        fun stageTranslationFiles(translation: String): File {
+            val source = File(srcRoot, "bblpacks/$translation")
+            if (!source.isDirectory) {
+                throw GradleException("Expected translation directory to exist: ${source.absolutePath}")
+            }
+
+            // Stage only what the CLI needs:
+            // - chapter text files: *.txt (flat)
+            // - lucene-kmp index files: index/** (flat, but keep subdirs just in case)
+            // This makes the embedded TAR deterministic and guarantees index files are present.
+            val stageRoot = File(temporaryDir, "bblpacks-stage/$translation").also {
+                if (it.exists()) it.deleteRecursively()
+                it.mkdirs()
+            }
+            val stageTranslationDir = File(stageRoot, "bblpacks/$translation").also { it.mkdirs() }
+
+            source.walkTopDown()
+                .filter { it.isFile }
+                .forEach { f ->
+                    val rel = f.relativeTo(source).invariantSeparatorsPath
+                    val include =
+                        rel.endsWith(".txt") ||
+                            rel.startsWith("index/")
+                    if (!include) return@forEach
+                    if (rel == "index/write.lock") return@forEach
+
+                    val dest = File(stageTranslationDir, rel)
+                    dest.parentFile?.mkdirs()
+                    Files.copy(f.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                }
+
+            return stageRoot
+        }
+
         translations.parallelStream().forEach { t ->
             logger.lifecycle("Archiving bblpack for $t")
             val outTar = File(tarDir, "$t.tar")
+            val stageRoot = stageTranslationFiles(t)
             if (tarAvailable) {
                 val execResult = execOperations.exec {
-                    workingDir = srcRoot
+                    workingDir = stageRoot
                     commandLine(tarExe, "-cf", outTar.absolutePath, "bblpacks/$t")
                 }
                 execResult.assertNormalExitValue()
             } else {
-                val base = File(srcRoot, "bblpacks/$t")
+                val base = File(stageRoot, "bblpacks/$t")
                 outTar.outputStream().use { out ->
                     base.walkTopDown().filter { it.isFile }.forEach { f ->
                         val rel = "bblpacks/$t/" + f.relativeTo(base).invariantSeparatorsPath

@@ -3,6 +3,7 @@ package org.gnit.bible.cli
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.UByteVar
 import org.gnit.bible.BibleResourcesReader
+import org.gnit.bible.SearchEngine
 import kotlinx.cinterop.*
 
 actual class CliBibleResourcesReader : BibleResourcesReader {
@@ -21,14 +22,29 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
     }
 
     actual override fun listIndexFiles(translation: String): List<String> {
-        TODO("Not yet implemented")
+        val reader = generatedReaderFor(translation)
+            ?: error("No embedded bible pack for translation: $translation")
+        val manifestPath = "$base/$translation/index/$translation${SearchEngine.INDEX_MANIFEST_FILENAME_POSTFIX}"
+        val text = reader.read(manifestPath).decodeToString()
+        return text.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
     }
 
     actual override fun readIndexFile(
         translation: String,
         name: String
     ): ByteArray {
-        TODO("Not yet implemented")
+        require(name.isNotBlank()) { "Index file name is blank" }
+        require(!name.contains('/')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains('\\')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains("..")) { "Index file name must not contain '..', got: $name" }
+
+        val reader = generatedReaderFor(translation)
+            ?: error("No embedded bible pack for translation: $translation")
+        val path = "$base/$translation/index/$name"
+        return reader.read(path)
     }
 
 }
