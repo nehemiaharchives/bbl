@@ -173,7 +173,18 @@ class PackCli(
 
         val zip = File(dir, "${translation.code}.zip")
         if (zip.exists) {
-            logger.info { "zip file ${zip.name} exists" }
+            logger.info { "zip file ${zip.name} exists; deleting to recreate (ZipFile does not support overwriting entries)" }
+            val deleted = runCatching { runBlocking { zip.delete() } }
+                .onFailure { e -> logger.error { "failed to delete existing zip file ${zip.name}: ${e.message}" } }
+                .getOrElse { false }
+            if (!deleted) {
+                logger.error { "failed to delete existing zip file ${zip.name}" }
+                return
+            }
+            if (zip.exists) {
+                logger.error { "failed to delete existing zip file ${zip.name}" }
+                return
+            }
         } else {
             logger.info { "Zip file ${zip.name} does not exist as expected, creating new one" }
         }
