@@ -27,6 +27,8 @@ import org.gnit.lucenekmp.index.IndexWriter
 import org.gnit.lucenekmp.index.IndexWriterConfig
 import org.gnit.lucenekmp.store.FSDirectory
 
+private const val INDEX_MANIFEST_FILENAME_POSTFIX = ".index.manifest"
+
 class PackCli(
     private val bible: Bible
 ) : CliktCommand(name = "pack") {
@@ -281,6 +283,26 @@ class PackCli(
                 val lockPath = indexPath.resolve("write.lock")
                 if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)
             }.getOrNull()
+
+            logger.debug { "creating index manifest for ${translation.code} at $indexPath" }
+            // Create index manifest file in the same output dir.
+            // Plaintext format: one filename per line (relative to index dir).
+            runCatching {
+                val manifestPath = indexPath.resolve("${translation.code}$INDEX_MANIFEST_FILENAME_POSTFIX")
+                val entries = fileSystem.list(indexPath)
+                    .filter { p -> fileSystem.metadata(p).isRegularFile }
+                    .map { it.name }
+                    .filter { it != manifestPath.name }
+                    .sorted()
+
+                fileSystem.write(manifestPath) {
+                    writeUtf8(entries.joinToString(separator = "\n", postfix = if (entries.isNotEmpty()) "\n" else ""))
+                }
+            }.onSuccess {
+                logger.debug { "wrote index manifest for ${translation.code} at $indexPath" }
+            }.onFailure { e ->
+                logger.error { "failed to write index manifest for ${translation.code} at $indexPath: ${e.message}" }
+            }
         }
 
         return totalDocs

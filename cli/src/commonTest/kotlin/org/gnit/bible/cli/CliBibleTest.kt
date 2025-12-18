@@ -49,4 +49,10 @@ class CliBibleTest : BibleTest {
         assertTrue(bible.findTranslationByCode("kttv"))
         assertFalse(bible.findTranslationByCode("unknown_code"))
     }
+
+    @Test
+    fun testListIndexFiles() {
+        val indexFiles = bible.bibleResourcesReader.listIndexFiles("webus")
+
+    }
 }

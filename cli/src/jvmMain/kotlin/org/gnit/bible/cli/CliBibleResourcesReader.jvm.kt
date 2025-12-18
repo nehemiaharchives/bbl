@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import org.gnit.bible.BibleResourcesReader
+import org.gnit.bible.SearchEngine
 
 actual class CliBibleResourcesReader : BibleResourcesReader {
 
@@ -24,7 +25,11 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
     }
 
     actual override fun listIndexFiles(translation: String): List<String> {
-        TODO("Not yet implemented")
+        val indexManifestFile = object {}.javaClass.getResource("/files/$base/$translation/$translation${SearchEngine.INDEX_MANIFEST_FILENAME_POSTFIX}")
+
+        println(indexManifestFile)
+
+        return emptyList()
     }
 
     actual override fun readIndexFile(

@@ -66,7 +66,8 @@ class PackCliTest {
         }
         fileSystem.createDirectories(tmpDir)
 
-        val sourceDir = "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
+        val sourceDir =
+            "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
         assertTrue(
             fileSystem.exists(sourceDir) && fileSystem.metadata(sourceDir).isDirectory,
             "Expected webus bblpack dir to exist at $sourceDir"
@@ -103,7 +104,8 @@ class PackCliTest {
             val platform = getPlatform().apply { overridePlatformPackDir = outputDir }
             val zipBibleResourcesReader = ZipBibleResourcesReader(platform)
 
-            val expected = fileSystem.read(tmpWorkingDirForBblPack.toPath() / "webus" / "webus.1.1.txt") { readUtf8() }
+            val expected =
+                fileSystem.read(tmpWorkingDirForBblPack.toPath() / "webus" / "webus.1.1.txt") { readUtf8() }
             val actual = zipBibleResourcesReader.getChapterText("webus", 1, 1)
             assertEquals(expected, actual)
 
@@ -127,7 +129,11 @@ class PackCliTest {
                 "Expected lucene-kmp index segments file in zip. Entries: ${zipEntries.take(50)}"
             )
             assertTrue(
-                zipEntries.any { it.startsWith("index/_") && (it.endsWith(".cfs") || it.endsWith(".si") || it.endsWith(".cfe")) },
+                zipEntries.any {
+                    it.startsWith("index/_") && (it.endsWith(".cfs") || it.endsWith(".si") || it.endsWith(
+                        ".cfe"
+                    ))
+                },
                 "Expected lucene-kmp index data files in zip. Entries: ${zipEntries.take(50)}"
             )
             assertTrue(
@@ -155,7 +161,10 @@ class PackCliTest {
         val expectedDocCount = Bible.splitChapterToVerses(chapterText).size
 
         val actualDocCount =
-            PackCli(Bible()).createLuceneKmpIndex(translation = Translation.webus, translationDir = translationDir)
+            PackCli(Bible()).createLuceneKmpIndex(
+                translation = Translation.webus,
+                translationDir = translationDir
+            )
 
         assertEquals(expectedDocCount, actualDocCount)
         assertTrue(
@@ -164,14 +173,60 @@ class PackCliTest {
         )
 
         val entryNames = fileSystem.list(indexDir).map { it.name }
-        assertTrue(entryNames.any { it.startsWith("segments_") }, "Expected a segments_N file in $indexDir, got: $entryNames")
+        assertTrue(
+            entryNames.any { it.startsWith("segments_") },
+            "Expected a segments_N file in $indexDir, got: $entryNames"
+        )
+
+        val manifestPath = indexDir / "webus.index.manifest"
+        assertTrue(
+            fileSystem.exists(manifestPath) && fileSystem.metadata(manifestPath).isRegularFile,
+            "Expected index manifest file to exist at $manifestPath"
+        )
+
+        val manifestContent = fileSystem.read(manifestPath) { readUtf8() }
+        val manifestLines = manifestContent
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
+
+        assertTrue(
+            manifestLines.size >= 2,
+            "Expected index manifest to contain multiple lines (files). Content:\n$manifestContent"
+        )
+
+        // Ensure entries are relative file names (not paths) and do not include the manifest itself.
+        assertTrue(
+            manifestLines.all { !it.contains("/") && !it.contains("\\") },
+            "Expected manifest entries to be file names only. Lines: $manifestLines"
+        )
+        assertTrue(
+            manifestLines.none { it == manifestPath.name },
+            "Did not expect manifest to list itself. Lines: $manifestLines"
+        )
+        // Ensure lock file is never listed.
+        assertTrue(
+            manifestLines.none { it == "write.lock" },
+            "Did not expect write.lock in index manifest. Lines: $manifestLines"
+        )
+
+        // Sanity: all listed files should exist in `indexDir`.
+        manifestLines.forEach { entry ->
+            val p = indexDir / entry
+            assertTrue(
+                fileSystem.exists(p) && fileSystem.metadata(p).isRegularFile,
+                "Expected manifest entry to exist as file: $p"
+            )
+        }
     }
 
     @Test
     @Ignore
     fun createLuceneKmpIndexInProductionEnv() {
 
-        val translationDir = "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
+        val translationDir =
+            "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
         val fs = FileSystem.SYSTEM
         assertTrue(fs.exists(translationDir))
 
@@ -184,6 +239,9 @@ class PackCliTest {
 
         assertEquals(webusGenesisChapterOne + "\n", actual)
 
-        PackCli(Bible()).createLuceneKmpIndex(translation = Translation.webus, translationDir = translationDir)
+        PackCli(Bible()).createLuceneKmpIndex(
+            translation = Translation.webus,
+            translationDir = translationDir
+        )
     }
 }

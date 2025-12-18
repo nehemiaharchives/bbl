@@ -18,8 +18,6 @@ import org.gnit.lucenekmp.store.FSDirectory
 
 class SearchEngine(val fs: FileSystem) {
 
-    val indexFiles = arrayOf("_0.cfe", "_0.cfs", "_0.si", "segments_1", "write.lock")
-
     val logger = KotlinLogging.logger {}
 
     fun search(
@@ -79,6 +77,22 @@ class SearchEngine(val fs: FileSystem) {
     }
 
     companion object {
+
+        /**
+         * filename postfix for index manifest the file name will be constructed as
+         * `val fileName: String = "${translation.code}$INDEX_MANIFEST_FILENAME_POSTFIX"`
+         *
+         * file format is a plaintext containing list of file names like following:
+         *
+         * ```
+         * _0.cfe
+         * _0.cfs
+         * _0.si
+         * segments_1
+         * write.lock
+         * ```
+        */
+        const val INDEX_MANIFEST_FILENAME_POSTFIX = ".index.manifest"
 
         fun chapterQuery(startChapter: Int, endChapter: Int?): Query {
             return IntPoint.newRangeQuery("chapter", startChapter, endChapter ?: startChapter)
