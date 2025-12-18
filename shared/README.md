@@ -44,17 +44,17 @@ Notes:
 ### Abstractions in commonMain
 Add a minimal index-bytes provider interface in `shared/commonMain`:
 
-- `BibleIndexReader`
+- `BibleTextReader` additional functions
   - `fun listIndexFiles(translation: Translation): List<String>`
   - `fun readIndexFile(translation: Translation, name: String): ByteArray`
 
-`SearchEngine` must remain platform-agnostic and depend only on lucene-kmp `Directory` (or on `BibleIndexReader` to build one).
+`SearchEngine` must remain platform-agnostic and depend only on lucene-kmp `Directory` (or on `BibleTextReader` to build one).
 
 ### Build an in-memory Directory from embedded bytes
 Implement a small builder in `shared/commonMain`:
 
 - Create `ByteBuffersDirectory()`
-- For each `name` from `BibleIndexReader.listIndexFiles(translation)`:
+- For each `name` from `BibleTextReader.listIndexFiles(translation)`:
   - `dir.createOutput(name, IOContext.DEFAULT).use { it.writeBytes(bytes, 0, bytes.size) }`
 - Return the populated `Directory`
 
@@ -67,26 +67,25 @@ Option A (preferred):
 - `class SearchEngine(private val directory: Directory)`
 
 Option B:
-- `class SearchEngine(private val reader: BibleIndexReader)` and build/cache a `Directory` per translation.
+- `class SearchEngine(private val reader: BibleTextReader)` and build/cache a `Directory` per translation.
 
 Then:
 - `StandardDirectoryReader.open(directory, leafSorter = null, commit = null)`
 - Construct `IndexSearcher` and run queries.
 
-### Platform implementations of `BibleIndexReader`
-Implement `BibleIndexReader` outside `shared`:
+### Platform implementations of `BibleTextReader` index reading functionality 
+Implement `BibleTextReader` read index functions outside `shared`:
 
 - CLI Kotlin/Native:
   - Reuse the existing TAR→C→.a + cinterop approach.
-  - Add a parallel pipeline for `bblindexes/`.
+  - Add a parallel pipeline for `composeApp/src/commonMain/composeResources/files/bblpacks/$translationCode/index/$file`.
   - Read `index.manifest` and files from the embedded TAR.
 
 - JVM (desktop + tests):
   - Read via `getResourceAsStream` from packaged resources.
 
-- Android/iOS:
-  - Use the platform’s resource/bundle access if already available.
-  - If resource access is painful on Kotlin/Native iOS, reuse the TAR embedding approach.
+- CMP (App Android/iOS/Desktop JVM):
+  - Use the Compose Multiplatform’s `composeApp/src/commonMain/composeResources` access.
 
 ### Validation / acceptance criteria
 - `SearchEngine` compiles in `shared/commonMain` with no TODOs.
