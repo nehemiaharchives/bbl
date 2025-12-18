@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.InternalResourceApi
 
-class ComposeBibleTextReader : BibleTextReader {
+class ComposeBibleResourcesReader : BibleResourcesReader {
 
     private val cache = HashMap<String, String>()
 

@@ -1,6 +1,6 @@
 package org.gnit.bible
 
-interface BibleTextReader {
+interface BibleResourcesReader {
 
     val base: String
         get() = "bblpacks"

@@ -23,7 +23,7 @@ class CliBibleTest : BibleTest {
         httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
         platform = getPlatform().apply { overridePlatformPackDir = cliBibleTestPackDir }
     )).apply {
-        bibleTextReader = CliBibleTextReader()
+        bibleResourcesReader = CliBibleResourcesReader()
     }
 
     @BeforeTest

@@ -62,7 +62,7 @@ fun BilingualUnderBible(
                     text = "${verse + 1} ${pair.second}",
                     style = TextStyle(
                         fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation!!.language.serifFontFamily() else bibleState.subTranslation!!.language.sansFontFamily()
+                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily()
                     ),
                     modifier = Modifier
                         .fillMaxWidth()

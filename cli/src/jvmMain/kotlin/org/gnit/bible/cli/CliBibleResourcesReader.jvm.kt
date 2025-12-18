@@ -1,8 +1,8 @@
 package org.gnit.bible.cli
 
-import org.gnit.bible.BibleTextReader
+import org.gnit.bible.BibleResourcesReader
 
-actual class CliBibleTextReader : BibleTextReader {
+actual class CliBibleResourcesReader : BibleResourcesReader {
 
     /**
      * Corresponds to the following in `cli/build.gradle.kts`:

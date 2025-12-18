@@ -5,12 +5,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import okio.SYSTEM
 
-class ZipBibleTextReader(
+class ZipBibleResourcesReader(
     val platform: Platform,
     private val fileSystem: FileSystem = platform.fileSystem
-) : BibleTextReader {
+) : BibleResourcesReader {
 
     val logger = KotlinLogging.logger {}
 
@@ -49,7 +48,7 @@ class ZipBibleTextReader(
         crossinline block: suspend (ZipFile) -> T
     ): T {
         val zipPath = platform.packDir.toPath() / "$translationCode.zip"
-        require(fileSystem.exists(zipPath)) { "ZipBibleTextReader Zip file not found at $zipPath" }
+        require(fileSystem.exists(zipPath)) { "ZipBibleResourcesReader Zip file not found at $zipPath" }
         val file = com.oldguy.common.io.File(zipPath.toString())
 
         return runBlocking {
@@ -58,7 +57,7 @@ class ZipBibleTextReader(
             var fileOpenError: Throwable? = null
 
             runCatching { zipFile = ZipFile(file) }
-                .onSuccess { logger.debug { "ZipBibleTextReader successfully found and opened $zipPath" } }
+                .onSuccess { logger.debug { "ZipBibleResourcesReader successfully found and opened $zipPath" } }
                 .onFailure { fileOpenError = it }
 
             if (zipFile != null) {
@@ -69,7 +68,7 @@ class ZipBibleTextReader(
                     runCatching { zipFile.close() }.getOrNull()
                 }
             } else {
-                error("ZipBibleTextReader failed to open $zipPath with error: ${fileOpenError?.message}")
+                error("ZipBibleResourcesReader failed to open $zipPath with error: ${fileOpenError?.message}")
             }
         }
     }

@@ -36,9 +36,9 @@ class ZipTest {
         val overridePath = "src/commonTest/resources/data"
         platform.overridePlatformPackDir = overridePath
 
-        val zipBibleTextReader = ZipBibleTextReader(platform, okio.FileSystem.SYSTEM)
+        val zipBibleResourcesReader = ZipBibleResourcesReader(platform, okio.FileSystem.SYSTEM)
 
-        val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
+        val kttvGenesisChapterOne = zipBibleResourcesReader.getChapterText("kttv", 1, 1)
 
         assertContains(kttvGenesisChapterOne, TestFixtures.KTTV_GENESIS_1_1)
     }
@@ -52,9 +52,9 @@ class ZipTest {
         val overridePath = "src/commonTest/resources/data"
         platform.overridePlatformPackDir = overridePath
 
-        val zipBibleTextReader = ZipBibleTextReader(platform, okio.FileSystem.SYSTEM)
+        val zipBibleResourcesReader = ZipBibleResourcesReader(platform, okio.FileSystem.SYSTEM)
 
-        val translation = zipBibleTextReader.getTranslationFromManifest("kttv")
+        val translation = zipBibleResourcesReader.getTranslationFromManifest("kttv")
 
         assertEquals("kttv", translation.code)
     }

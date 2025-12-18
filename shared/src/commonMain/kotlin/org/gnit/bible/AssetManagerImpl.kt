@@ -91,7 +91,7 @@ class AssetManagerImpl(
             logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
             translations
         }.getOrElse { error ->
-            logger.error { "AssetManagerImpl failed to fetch downloadable translation list: ${error.message}" }
+            logger.debug { "AssetManagerImpl failed to fetch downloadable translation list: ${error.message}" }
             val cached = readCachedTranslations()
             if (cached != null) logger.debug { "AssetManagerImpl served cached translation list (${cached.size})" }
             cached ?: emptyList()
@@ -157,11 +157,13 @@ class AssetManagerImpl(
         return fileSystem.list(packDir).map { it.name.removeSuffix(".zip") }
     }
 
+    /**
+     * Use [ZipBibleResourcesReader] to read the manifest from each downloaded zip and return the parsed Translation.
+    */
     override fun downloadedTranslations(): List<Translation> {
-        // Use ZipBibleTextReader to read the manifest from each downloaded zip and return the parsed Translation.
         val codes = downloadedTranslationCodes()
         if (codes.isEmpty()) return emptyList()
-        val reader = ZipBibleTextReader(platform, fileSystem)
+        val reader = ZipBibleResourcesReader(platform, fileSystem)
         return codes.mapNotNull { code ->
             runCatching { reader.getTranslationFromManifest(code) }
                 .onFailure { logger.error { "AssetManagerImpl failed to read manifest for $code: ${it.message}" } }

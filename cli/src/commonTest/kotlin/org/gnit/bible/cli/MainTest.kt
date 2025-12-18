@@ -232,7 +232,7 @@ class MainTest {
 
     @Test
     fun testBblVerseOutOfRangeShowsFriendlyError() {
-        val bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
+        val bible = Bible().apply { bibleResourcesReader = CliBibleResourcesReader() }
         val maxVerses = Bible.splitChapterToVerses(bible.verses("webus", 43, 3)).size
         val invalidVerse = maxVerses + 1
 

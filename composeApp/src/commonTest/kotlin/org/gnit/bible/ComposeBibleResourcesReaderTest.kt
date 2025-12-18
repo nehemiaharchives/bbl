@@ -1,29 +1,29 @@
-package org.gnit.bible.cli
+package org.gnit.bible
 
-import org.gnit.bible.Books
+import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class CliBibleTextReaderTest {
+class ComposeBibleResourcesReaderTest : ResourcesTestBase() {
 
-    val bibleTextReader = CliBibleTextReader()
+    val bibleResourcesReader = ComposeBibleResourcesReader()
 
     @Test
     fun testReadByPath() {
-        val actual = bibleTextReader.readByPath("bblpacks/kjv/kjv.1.1.txt")
+        val actual = bibleResourcesReader.readByPath("files/bblpacks/kjv/kjv.1.1.txt")
         assertTrue(actual.startsWith("1 In the beginning God created the heaven and the earth."))
     }
 
     @Test
     fun testGetChapterText() {
-        val actual = bibleTextReader.getChapterText("kjv", 1, 1)
+        val actual = bibleResourcesReader.getChapterText("kjv", 1, 1)
         assertTrue(actual.startsWith("1 In the beginning God created the heaven and the earth."))
     }
 
     @Test
-    fun testReading50Chapters(){
-        for (chapter in 1..50) {
-            val actual = bibleTextReader.getChapterText("kjv", 1, chapter)
+    fun testReading5Chapters(){
+        for (chapter in 1..5) {
+            val actual = bibleResourcesReader.getChapterText("kjv", 1, chapter)
             assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
         }
     }
@@ -33,7 +33,7 @@ class CliBibleTextReaderTest {
         (1..66).forEach { book ->
             val maxChapter = Books.maxChapter(book)
             (1..maxChapter).forEach { chapter ->
-                val actual = bibleTextReader.getChapterText("kjv", book, chapter)
+                val actual = bibleResourcesReader.getChapterText("kjv", book, chapter)
                 assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
             }
         }
@@ -44,7 +44,7 @@ class CliBibleTextReaderTest {
         (1..66).forEach { book ->
             val maxChapter = Books.maxChapter(book)
             (1..maxChapter).forEach { chapter ->
-                val actual = bibleTextReader.getChapterText("webus", book, chapter)
+                val actual = bibleResourcesReader.getChapterText("webus", book, chapter)
                 assertTrue(actual.startsWith("1 "), "expected to start with 1 but was '$actual'")
             }
         }
@@ -53,14 +53,13 @@ class CliBibleTextReaderTest {
     @Test
     fun testOtherTranslations() {
         val translations = listOf("rvr09", "tb", "delut", "lsg", "sinod", "svrj", "rdv24", "ubg", "ubio", "sven", "cunp", "krv", "jc").forEach { translation ->
-            (1..2 /* //TODO should be 66 but reduced for test speed */).forEach { book ->
+            (1..66).forEach { book ->
                 val maxChapter = Books.maxChapter(book)
                 (1..maxChapter).forEach { chapter ->
-                    val actual = bibleTextReader.getChapterText(translation, book, chapter)
+                    val actual = bibleResourcesReader.getChapterText(translation, book, chapter)
                     assertTrue((actual.startsWith("1 ") || actual.startsWith("1-2 ")), "expected to start with 1 but was '$actual'")
                 }
             }
         }
     }
-
 }

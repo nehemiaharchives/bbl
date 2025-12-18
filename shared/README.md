@@ -21,7 +21,7 @@ Therefore the simplest correct approach is:
 - Open `StandardDirectoryReader` on that in-memory directory
 
 ### Index packaging format
-Package each translation’s Lucene index files as embedded resources (same principle as `BibleTextReader` for chapter text).
+Package each translation’s Lucene index files as embedded resources (same principle as `BibleResourcesReader` for chapter text).
 
 Recommended resource layout:
 
@@ -44,17 +44,17 @@ Notes:
 ### Abstractions in commonMain
 Add a minimal index-bytes provider interface in `shared/commonMain`:
 
-- `BibleTextReader` additional functions
+- `BibleResourcesReader` additional functions
   - `fun listIndexFiles(translation: Translation): List<String>`
   - `fun readIndexFile(translation: Translation, name: String): ByteArray`
 
-`SearchEngine` must remain platform-agnostic and depend only on lucene-kmp `Directory` (or on `BibleTextReader` to build one).
+`SearchEngine` must remain platform-agnostic and depend only on lucene-kmp `Directory` (or on `BibleResourcesReader` to build one).
 
 ### Build an in-memory Directory from embedded bytes
 Implement a small builder in `shared/commonMain`:
 
 - Create `ByteBuffersDirectory()`
-- For each `name` from `BibleTextReader.listIndexFiles(translation)`:
+- For each `name` from `BibleResourcesReader.listIndexFiles(translation)`:
   - `dir.createOutput(name, IOContext.DEFAULT).use { it.writeBytes(bytes, 0, bytes.size) }`
 - Return the populated `Directory`
 
@@ -67,14 +67,14 @@ Option A (preferred):
 - `class SearchEngine(private val directory: Directory)`
 
 Option B:
-- `class SearchEngine(private val reader: BibleTextReader)` and build/cache a `Directory` per translation.
+- `class SearchEngine(private val reader: BibleResourcesReader)` and build/cache a `Directory` per translation.
 
 Then:
 - `StandardDirectoryReader.open(directory, leafSorter = null, commit = null)`
 - Construct `IndexSearcher` and run queries.
 
-### Platform implementations of `BibleTextReader` index reading functionality 
-Implement `BibleTextReader` read index functions outside `shared`:
+### Platform implementations of `BibleResourcesReader` index reading functionality 
+Implement `BibleResourcesReader` read index functions outside `shared`:
 
 - CLI Kotlin/Native:
   - Reuse the existing TAR→C→.a + cinterop approach.

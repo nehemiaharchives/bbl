@@ -100,7 +100,7 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
 }
 
 class Bbl(
-    private val bible: Bible = Bible().apply { bibleTextReader = CliBibleTextReader() }
+    private val bible: Bible = Bible().apply { bibleResourcesReader = CliBibleResourcesReader() }
 ) : CliktCommand() {
 
     override val invokeWithoutSubcommand = true

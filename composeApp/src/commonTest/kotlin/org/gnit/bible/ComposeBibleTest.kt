@@ -13,7 +13,7 @@ class ComposeBibleTest : BibleTest, ResourcesTestBase() {
         httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
         platform = createTestPlatform().apply { overridePlatformPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_composeapp_compose_bible_test_dir"}" }
     )).apply {
-        bibleTextReader = ComposeBibleTextReader()
+        bibleResourcesReader = ComposeBibleResourcesReader()
     }
 
     @Test

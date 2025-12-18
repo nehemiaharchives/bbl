@@ -58,8 +58,8 @@ class AssetManagerTest : ResourcesTestBase() {
         val translations = am.downloadedTranslationCodes()
         assertContains(translations, "kttv")
 
-        val zipBibleTextReader = ZipBibleTextReader(platform, systemFileSystem)
-        val kttvGenesisChapterOne = zipBibleTextReader.getChapterText("kttv", 1, 1)
+        val zipBibleResourcesReader = ZipBibleResourcesReader(platform, systemFileSystem)
+        val kttvGenesisChapterOne = zipBibleResourcesReader.getChapterText("kttv", 1, 1)
         assertTrue(kttvGenesisChapterOne.startsWith(TestFixtures.KTTV_GENESIS_1_1))
     }
 

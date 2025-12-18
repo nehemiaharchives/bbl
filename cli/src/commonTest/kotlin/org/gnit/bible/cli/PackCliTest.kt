@@ -12,7 +12,7 @@ import okio.use
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.ZipBibleTextReader
+import org.gnit.bible.ZipBibleResourcesReader
 import org.gnit.bible.downloadableTranslationCodeList
 import org.gnit.bible.getPlatform
 import org.gnit.bible.webusGenesisChapterOne
@@ -29,9 +29,9 @@ class PackCliTest {
     fun testGeneratedZipFilesByMain() {
         val platform = getPlatform()
         platform.overridePlatformPackDir = "../server/src/main/resources/files/bblpacks"
-        val zipBibleTextReader = ZipBibleTextReader(platform)
+        val zipBibleResourcesReader = ZipBibleResourcesReader(platform)
         downloadableTranslationCodeList.forEach { translationCode ->
-            val genesisChapterOne = zipBibleTextReader.getChapterText(translationCode, 1, 1)
+            val genesisChapterOne = zipBibleResourcesReader.getChapterText(translationCode, 1, 1)
             (1..16).forEach { verseNumber ->
                 assertContains(genesisChapterOne, "$verseNumber ")
             }
@@ -101,13 +101,13 @@ class PackCliTest {
             assertTrue(fileSystem.exists(zipPath), "Expected zip file to be created at $zipPath")
 
             val platform = getPlatform().apply { overridePlatformPackDir = outputDir }
-            val zipBibleTextReader = ZipBibleTextReader(platform)
+            val zipBibleResourcesReader = ZipBibleResourcesReader(platform)
 
             val expected = fileSystem.read(tmpWorkingDirForBblPack.toPath() / "webus" / "webus.1.1.txt") { readUtf8() }
-            val actual = zipBibleTextReader.getChapterText("webus", 1, 1)
+            val actual = zipBibleResourcesReader.getChapterText("webus", 1, 1)
             assertEquals(expected, actual)
 
-            val manifestTranslation = zipBibleTextReader.getTranslationFromManifest("webus")
+            val manifestTranslation = zipBibleResourcesReader.getTranslationFromManifest("webus")
             assertEquals("webus", manifestTranslation.code)
 
             // Verify lucene-kmp index files are included in the zip (and lock is not).

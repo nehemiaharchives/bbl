@@ -37,7 +37,7 @@ class QuoteVerseAppWidgetProvider : AppWidgetProvider() {
 
         val platform = getPlatform(context)
         val bible = Bible(assetManager = AssetManagerImpl(platform = platform)).apply {
-            bibleTextReader = ComposeBibleTextReader()
+            bibleResourcesReader = ComposeBibleResourcesReader()
         }
 
         val translation = resolveTranslation(params.translationCode, bible.availableTranslations())

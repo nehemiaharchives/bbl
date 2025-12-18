@@ -439,7 +439,7 @@ Now implement the widget provider in
                     val platform = getPlatform(context)  // get Platform for Android with context
                     val assetManager = AssetManagerImpl(platform = platform)
                     val bible = Bible(assetManager)
-                    bible.bibleTextReader = ComposeBibleTextReader()  // use Compose reader for embedded texts
+                    bible.bibleResourcesReader = ComposeBibleResourcesReader()  // use Compose reader for embedded texts
 
                     // Determine the translation object (if translationCode not found, default to KJV)
                     val translationObj = bible.availableTranslations().find { it.code.equals(translationCode, ignoreCase = true) }
@@ -492,7 +492,7 @@ shared logic to get the verse text: - Create a `Platform` for Android
 using the context (`getPlatform(context)` returns an AndroidPlatform). -
 Instantiate `AssetManagerImpl` with that platform (for file access if
 needed). - Instantiate `Bible` with the AssetManager and set its
-`bibleTextReader` to `ComposeBibleTextReader()` so we can read embedded
+`bibleResourcesReader` to `ComposeBibleResourcesReader()` so we can read embedded
 translations. - Find the `Translation` object for the given code (or
 default to KJV). We use `bible.availableTranslations()` which merges
 embedded and downloaded translations. (This uses `AssetManager` to
@@ -587,9 +587,9 @@ corresponds to verse 1's text, index 1 to verse 2's text, etc. By using
 this function, we don't have to manually parse verse text; we rely on
 the format coming from `Bible.verses()`.
 
-**Important:** Ensure the `BibleTextReader` is set (as we did with
-`ComposeBibleTextReader()`) before calling `Bible.verses`, otherwise for
-embedded translations the call will fail (since `bibleTextReader` is
+**Important:** Ensure the `BibleResourcesReader` is set (as we did with
+`ComposeBibleResourcesReader()`) before calling `Bible.verses`, otherwise for
+embedded translations the call will fail (since `bibleResourcesReader` is
 lateinit in `Bible`). We handle that in the widget provider.
 
 ### 3. Testing the Quote Verse Action

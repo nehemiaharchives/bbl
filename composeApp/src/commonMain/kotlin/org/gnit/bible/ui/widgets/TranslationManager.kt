@@ -323,7 +323,7 @@ private fun buildTranslationEntries(
     val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, InstallationState.EMBEDDED) }
 
     val downloadedTranslations = downloadedCodes.mapNotNull { code ->
-        runCatching { bible().obtainZipBibleTextReader().getTranslationFromManifest(code) }.getOrNull()
+        runCatching { bible().obtainZipBibleResourcesReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
     val list = downloadable.ifEmpty { latestDownloadableTranslations.ifEmpty { downloadableTranslations } }

@@ -29,26 +29,26 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         return foundInDownloaded != null
     }
 
-    lateinit var bibleTextReader: BibleTextReader
+    lateinit var bibleResourcesReader: BibleResourcesReader
 
-    var zipBibleTextReader: ZipBibleTextReader? = null
+    var zipBibleResourcesReader: ZipBibleResourcesReader? = null
 
-    fun obtainZipBibleTextReader(): ZipBibleTextReader {
-        if (zipBibleTextReader == null) {
-            zipBibleTextReader = ZipBibleTextReader(
+    fun obtainZipBibleResourcesReader(): ZipBibleResourcesReader {
+        if (zipBibleResourcesReader == null) {
+            zipBibleResourcesReader = ZipBibleResourcesReader(
                 assetManager.platform,
                 assetManager.fileSystem
             )
         }
-        return zipBibleTextReader!!
+        return zipBibleResourcesReader!!
     }
 
     fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
         return when{
             translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
             translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
-            embeddedTranslationCodes.contains(translation) -> bibleTextReader.getChapterText(translation = translation, book = book, chapter = chapter)
-            assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleTextReader().getChapterText(translation = translation, book = book, chapter = chapter)
+            embeddedTranslationCodes.contains(translation) -> bibleResourcesReader.getChapterText(translation = translation, book = book, chapter = chapter)
+            assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleResourcesReader().getChapterText(translation = translation, book = book, chapter = chapter)
             else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
     }

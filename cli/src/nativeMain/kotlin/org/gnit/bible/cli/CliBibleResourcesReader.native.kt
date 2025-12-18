@@ -2,10 +2,10 @@ package org.gnit.bible.cli
 
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.UByteVar
-import org.gnit.bible.BibleTextReader
+import org.gnit.bible.BibleResourcesReader
 import kotlinx.cinterop.*
 
-actual class CliBibleTextReader : BibleTextReader {
+actual class CliBibleResourcesReader : BibleResourcesReader {
 
     actual override fun chapterFile(translation: String, book: Int, chapter: Int): String =
         "$base/$translation/$translation.$book.$chapter.txt"

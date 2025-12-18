@@ -195,7 +195,7 @@ var bible: Bible? = null
 fun bible(): Bible {
     if (bible == null) {
         bible = Bible(assetManager())
-        bible!!.bibleTextReader = ComposeBibleTextReader()
+        bible!!.bibleResourcesReader = ComposeBibleResourcesReader()
     }
     return bible!!
 }
