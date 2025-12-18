@@ -35,6 +35,14 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
         translation: String,
         name: String
     ): ByteArray {
-        TODO("Not yet implemented")
+        require(name.isNotBlank()) { "Index file name is blank" }
+        require(!name.contains('/')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains('\\')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains("..")) { "Index file name must not contain '..', got: $name" }
+
+        val path = "/files/$base/$translation/index/$name"
+        val stream = object {}.javaClass.getResourceAsStream(path)
+            ?: error("Index file not found in resources: $path")
+        return stream.use { it.readBytes() }
     }
 }

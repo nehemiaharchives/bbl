@@ -59,4 +59,28 @@ class CliBibleTest : BibleTest {
             assertTrue(indexFiles.isNotEmpty())
         }
     }
+
+    @Test
+    fun testReadIndexFile() {
+        val luceneCodecMagic = byteArrayOf(0x3f, 0xd7.toByte(), 0x6c, 0x17)
+        embeddedTranslationCodes.forEach { translationCode ->
+            val indexFiles = bible.bibleResourcesReader.listIndexFiles(translationCode)
+            indexFiles.forEach { indexFileName ->
+                val indexFileBytes = bible.bibleResourcesReader.readIndexFile(translationCode, indexFileName)
+                assertTrue(indexFileName.isNotBlank(), "Index file name must not be blank")
+                assertTrue(!indexFileName.contains('/'), "Index file name must be flat, got: $indexFileName")
+                assertTrue(!indexFileName.contains('\\'), "Index file name must be flat, got: $indexFileName")
+
+                assertTrue(indexFileBytes.isNotEmpty(), "Index file must not be empty: $translationCode/$indexFileName")
+                assertTrue(
+                    indexFileBytes.size >= luceneCodecMagic.size,
+                    "Index file is too small: $translationCode/$indexFileName (${indexFileBytes.size} bytes)"
+                )
+                assertTrue(
+                    indexFileBytes.copyOfRange(0, luceneCodecMagic.size).contentEquals(luceneCodecMagic),
+                    "Index file does not look like a Lucene codec file (CODEC_MAGIC mismatch): $translationCode/$indexFileName"
+                )
+            }
+        }
+    }
 }
