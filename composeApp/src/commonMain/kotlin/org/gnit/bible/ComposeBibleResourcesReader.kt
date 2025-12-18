@@ -28,10 +28,26 @@ class ComposeBibleResourcesReader : BibleResourcesReader {
     }
 
     override fun listIndexFiles(translation: String): List<String> {
-        TODO("Not yet implemented")
+        val manifestPath = "files/$base/$translation/index/$translation${SearchEngine.INDEX_MANIFEST_FILENAME_POSTFIX}"
+        val text = readByPath(manifestPath)
+        return text.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
     }
 
     override fun readIndexFile(translation: String, name: String): ByteArray {
-        TODO("Not yet implemented")
+        require(name.isNotBlank()) { "Index file name is blank" }
+        require(!name.contains('/')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains('\\')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains("..")) { "Index file name must not contain '..', got: $name" }
+
+        val path = "files/$base/$translation/index/$name"
+
+        return runBlocking {
+            withContext(Dispatchers.IO) {
+                Res.readBytes(path)
+            }
+        }
     }
 }

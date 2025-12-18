@@ -10,15 +10,14 @@ import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
-import org.gnit.bible.test.BibleTest
+import org.gnit.bible.test.BibleTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class CliBibleTest : BibleTest {
+class CliBibleTest : BibleTestBase {
 
     val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_cli_bible_test_dir"}"
     override val bible: Bible = Bible(assetManager = AssetManagerImpl(
@@ -53,34 +52,8 @@ class CliBibleTest : BibleTest {
     }
 
     @Test
-    fun testListIndexFiles() {
-        embeddedTranslationCodes.forEach { translationCode ->
-            val indexFiles = bible.bibleResourcesReader.listIndexFiles(translationCode)
-            assertTrue(indexFiles.isNotEmpty())
-        }
-    }
+    override fun testListIndexFiles() = super.testListIndexFiles()
 
     @Test
-    fun testReadIndexFile() {
-        val luceneCodecMagic = byteArrayOf(0x3f, 0xd7.toByte(), 0x6c, 0x17)
-        embeddedTranslationCodes.forEach { translationCode ->
-            val indexFiles = bible.bibleResourcesReader.listIndexFiles(translationCode)
-            indexFiles.forEach { indexFileName ->
-                val indexFileBytes = bible.bibleResourcesReader.readIndexFile(translationCode, indexFileName)
-                assertTrue(indexFileName.isNotBlank(), "Index file name must not be blank")
-                assertTrue(!indexFileName.contains('/'), "Index file name must be flat, got: $indexFileName")
-                assertTrue(!indexFileName.contains('\\'), "Index file name must be flat, got: $indexFileName")
-
-                assertTrue(indexFileBytes.isNotEmpty(), "Index file must not be empty: $translationCode/$indexFileName")
-                assertTrue(
-                    indexFileBytes.size >= luceneCodecMagic.size,
-                    "Index file is too small: $translationCode/$indexFileName (${indexFileBytes.size} bytes)"
-                )
-                assertTrue(
-                    indexFileBytes.copyOfRange(0, luceneCodecMagic.size).contentEquals(luceneCodecMagic),
-                    "Index file does not look like a Lucene codec file (CODEC_MAGIC mismatch): $translationCode/$indexFileName"
-                )
-            }
-        }
-    }
+    override fun testReadIndexFile() = super.testReadIndexFile()
 }

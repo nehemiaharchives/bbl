@@ -2,12 +2,12 @@ package org.gnit.bible
 
 import io.ktor.client.HttpClient
 import okio.FileSystem
-import org.gnit.bible.test.BibleTest
+import org.gnit.bible.test.BibleTestBase
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 
-class ComposeBibleTest : BibleTest, ResourcesTestBase() {
+class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
 
     override val bible: Bible = Bible(assetManager = AssetManagerImpl(
         httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
@@ -21,4 +21,10 @@ class ComposeBibleTest : BibleTest, ResourcesTestBase() {
 
     @Test
     override fun testDownloadedVerses() = super.testDownloadedVerses()
+
+    @Test
+    override fun testListIndexFiles() = super.testListIndexFiles()
+
+    @Test
+    override fun testReadIndexFile() = super.testReadIndexFile()
 }
