@@ -8,6 +8,8 @@ import org.gnit.bible.Translation
 
 object TestFixtures {
 
+    val tmpWorkingDirForBblPack = "/tmp/bblpack-cli-create"
+
     const val KTTV_GENESIS_1_1 = "1 Ban đầu Đức Chúa Trời dựng nên trời đất."
 
     private val genesisOneKttv = """

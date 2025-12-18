@@ -15,6 +15,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Bible.Companion.splitChapterToVerses
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
+import org.gnit.bible.Translation.Companion.embeddedTranslations
 import org.gnit.bible.bookNameEnglish
 import org.gnit.bible.downloadableTranslationCodeList
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
@@ -57,37 +58,6 @@ class PackCli(
     }
 
     private val fileSystem = bible.assetManager.fileSystem
-
-    private fun deleteRecursively(fileSystem: FileSystem, path: Path) {
-        if (!fileSystem.exists(path)) return
-        val metadata = fileSystem.metadata(path)
-        if (metadata.isDirectory) {
-            fileSystem.list(path).forEach { child ->
-                deleteRecursively(fileSystem, child)
-            }
-        }
-        fileSystem.delete(path)
-    }
-
-    private fun sanitizeForLuceneStandardAnalyzer(text: String): String {
-        if (text.isEmpty()) return text
-        val sb = StringBuilder(text.length)
-        for (ch in text) {
-            val mapped = when (ch) {
-                '\u2018', '\u2019' -> '\''
-                '\u201C', '\u201D' -> '"'
-                '\u2013', '\u2014' -> '-'
-                '\u00A0' -> ' '
-                else -> ch
-            }
-            val cleaned = when {
-                mapped.code in 0x00..0x1F && mapped != '\n' && mapped != '\t' && mapped != '\r' -> ' '
-                else -> mapped
-            }
-            sb.append(cleaned)
-        }
-        return sb.toString()
-    }
 
     fun createBblPack(inputPathString: String, outputPathString: String = "bblpack") {
         val currentDir = currentDir()
@@ -143,7 +113,9 @@ class PackCli(
             logger.error { "error while reading/parsing $manifestPath: ${e.message}" }; return
         }
 
-        runCatching { createLuceneKmpIndex(translation = translation, translationDir = inputPath) }
+        val indexBuilder = IndexBuilder(bible)
+
+        runCatching { indexBuilder.createLuceneKmpIndex(translation = translation, translationDir = inputPath) }
             .onFailure { e ->
                 logger.error { "failed to create lucene-kmp index for ${translation.code} at $inputPath: ${e.message}" }
                 return
@@ -216,97 +188,7 @@ class PackCli(
 
     }
 
-    fun createLuceneKmpIndex(
-        translation: Translation,
-        translationDir: Path,
-        indexDirName: String = "index",
-        fileSystem: FileSystem = this.fileSystem
-    ): Int {
-        val indexPath = translationDir.resolve(indexDirName)
-        if (fileSystem.exists(indexPath)) {
-            deleteRecursively(fileSystem, indexPath)
-        }
 
-        fileSystem.createDirectories(indexPath)
-
-        val analyzer = SimpleAnalyzer()
-        val config = IndexWriterConfig(analyzer)
-        val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
-        val chapterFileRegex =
-            Regex("^${Regex.escape(translation.code)}\\.(\\d{1,2})\\.(\\d{1,3})\\.txt$")
-
-        var totalDocs = 0
-        try {
-            val chapterFiles = fileSystem.list(translationDir)
-                .filter { path ->
-                    fileSystem.metadata(path).isRegularFile && chapterFileRegex.matches(path.name)
-                }
-                .sortedWith(
-                    compareBy<Path>(
-                        { chapterFileRegex.matchEntire(it.name)!!.groupValues[1].toInt() },
-                        { chapterFileRegex.matchEntire(it.name)!!.groupValues[2].toInt() }
-                    )
-                )
-
-            chapterFiles.forEach { chapterPath ->
-                val match = chapterFileRegex.matchEntire(chapterPath.name)!!
-                val book = match.groupValues[1].toInt()
-                val chapter = match.groupValues[2].toInt()
-
-                val chapterText = fileSystem.read(chapterPath) { readUtf8() }
-                val verses = splitChapterToVerses(chapterText)
-
-                logger.debug { "indexing ${translation.code} ${bookNameEnglish(book)} $chapter (${verses.size} verses) from $chapterPath" }
-
-                verses.forEachIndexed { index, text ->
-                    val verse = index + 1
-                    val sanitizedText = sanitizeForLuceneStandardAnalyzer(text)
-                    val doc = Document().apply {
-                        add(IntPoint("book", book))
-                        add(StoredField("book", book))
-
-                        add(IntPoint("chapter", chapter))
-                        add(StoredField("chapter", chapter))
-
-                        add(IntPoint("verse", verse))
-                        add(StoredField("verse", verse))
-
-                        add(Field("text", sanitizedText, TextField.TYPE_STORED))
-                    }
-                    iWriter.addDocument(doc)
-                    totalDocs++
-                }
-            }
-        } finally {
-            runCatching { iWriter.close() }.getOrNull()
-            runCatching {
-                val lockPath = indexPath.resolve("write.lock")
-                if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)
-            }.getOrNull()
-
-            logger.debug { "creating index manifest for ${translation.code} at $indexPath" }
-            // Create index manifest file in the same output dir.
-            // Plaintext format: one filename per line (relative to index dir).
-            runCatching {
-                val manifestPath = indexPath.resolve("${translation.code}$INDEX_MANIFEST_FILENAME_POSTFIX")
-                val entries = fileSystem.list(indexPath)
-                    .filter { p -> fileSystem.metadata(p).isRegularFile }
-                    .map { it.name }
-                    .filter { it != manifestPath.name }
-                    .sorted()
-
-                fileSystem.write(manifestPath) {
-                    writeUtf8(entries.joinToString(separator = "\n", postfix = if (entries.isNotEmpty()) "\n" else ""))
-                }
-            }.onSuccess {
-                logger.debug { "wrote index manifest for ${translation.code} at $indexPath" }
-            }.onFailure { e ->
-                logger.error { "failed to write index manifest for ${translation.code} at $indexPath: ${e.message}" }
-            }
-        }
-
-        return totalDocs
-    }
 }
 
 
@@ -317,7 +199,18 @@ fun packTranslation(translationCode: String){
     )
 }
 
+/**
+ * run this when
+ * 1. you add new embedded/downloadable translation
+ * 2. you add new Analyzer added in lucene-kmp and imported into bbl-kmp
+ * 3. any other case you update index of embedded/downloadable translations
+ */
 fun main() {
+
+    embeddedTranslations.forEach { translation ->
+        createEmbeddedLuceneKmpIndex(translation)
+    }
+
     downloadableTranslationCodeList.forEach { translationCode ->
         packTranslation(translationCode)
     }
