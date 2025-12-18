@@ -1,8 +1,6 @@
 package org.gnit.bible
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import okio.FileSystem
-import okio.Path
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.document.IntPoint
 import org.gnit.lucenekmp.index.DirectoryReader
@@ -14,11 +12,13 @@ import org.gnit.lucenekmp.search.IndexSearcher
 import org.gnit.lucenekmp.search.Query
 import org.gnit.lucenekmp.search.Sort
 import org.gnit.lucenekmp.search.SortField
-import org.gnit.lucenekmp.store.FSDirectory
+import org.gnit.lucenekmp.store.ByteBuffersDirectory
+import org.gnit.lucenekmp.store.IOContext
 
-class SearchEngine(val fs: FileSystem) {
+class SearchEngine(private val reader: BibleResourcesReader) {
 
-    val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
+    private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
 
     fun search(
         term: String,
@@ -28,52 +28,69 @@ class SearchEngine(val fs: FileSystem) {
         verses: Int = 100,
         translation: Translation
     ): List<String> {
-        val result = mutableListOf<String>()
-
-        val indexDir: Path = TODO("implement some kotlin/common code to obtain index dir which works on all platforms including, Kotlin/Common for both [composeApp: Kotlin/Android, iOS Kotlin/Native, Kotlin/JVM] and [cli: macOS Kotlin/Native, linux Kotlin/Native]")
-
-        val fsDirectory: FSDirectory = TODO("proper FSDirectory implementation need to be spplied depending on platform using indexDir")
+        val directory = embeddedIndexDirectory(translation)
 
         val iReader: DirectoryReader = StandardDirectoryReader.open(
-            directory = fsDirectory,
+            directory = directory,
             leafSorter = null,
             commit = null
         )
 
-        val iSearcher = IndexSearcher(iReader)
-        val parser = QueryParser("text", SimpleAnalyzer())
-        val termQuery = parser.parse(term)!!
+        iReader.use { reader ->
+            val iSearcher = IndexSearcher(reader)
+            val parser = QueryParser("text", SimpleAnalyzer())
+            val termQuery = parser.parse(term)!!
 
-        val queryBuilder = BooleanQuery.Builder()
+            val queryBuilder = BooleanQuery.Builder()
 
-        if (includesNewTestamentOnlyPhrase(term)) {
-            queryBuilder.add(IntPoint.newRangeQuery("book", 40, 66), BooleanClause.Occur.MUST)
+            if (includesNewTestamentOnlyPhrase(term)) {
+                queryBuilder.add(IntPoint.newRangeQuery("book", 40, 66), BooleanClause.Occur.MUST)
+            }
+
+            if (bookNumber != null) {
+                queryBuilder.add(IntPoint.newExactQuery("book", bookNumber), BooleanClause.Occur.MUST)
+
+                if (startChapter != null) {
+                    queryBuilder.add(chapterQuery(startChapter, endChapter), BooleanClause.Occur.MUST)
+                }
+            }
+
+            val query = queryBuilder.add(termQuery, BooleanClause.Occur.MUST).build()
+
+            logger.debug {
+                "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+            }
+
+            val hits = iSearcher.search(query, verses, Sort(SortField.FIELD_DOC)).scoreDocs
+            return hits.map { hit ->
+                val hitDoc = iSearcher.indexReader.storedFields().document(hit.doc)
+                val book = hitDoc.getField("book")?.numericValue()?.toInt()!!
+                val chapter = hitDoc.getField("chapter")?.numericValue()?.toInt()
+                val verse = hitDoc.getField("verse")?.numericValue()?.toInt()
+                val text = hitDoc.get("text")
+
+                "${bookNameEnglishCapital(book)} $chapter:$verse $text"
+            }
         }
+    }
 
-        if (bookNumber != null) {
-            queryBuilder.add(IntPoint.newExactQuery("book", bookNumber), BooleanClause.Occur.MUST)
+    private fun embeddedIndexDirectory(translation: Translation): ByteBuffersDirectory {
+        directoriesByTranslation[translation.code]?.let { return it }
 
-            if (startChapter != null) {
-                queryBuilder.add(chapterQuery(startChapter, endChapter), BooleanClause.Occur.MUST)
+        val indexDir = ByteBuffersDirectory()
+        val files = reader.listIndexFiles(translation.code)
+        require(files.isNotEmpty()) { "Index manifest returned empty file list for ${translation.code}" }
+
+        files.forEach { name ->
+            val bytes = reader.readIndexFile(translation.code, name)
+            indexDir.createOutput(name, IOContext.DEFAULT).use { out ->
+                out.writeBytes(bytes, 0, bytes.size)
             }
         }
 
-        val query = queryBuilder.add(termQuery, BooleanClause.Occur.MUST).build()
-
-        logger.debug {"searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"}
-
-        val hits = iSearcher.search(query, verses, Sort(SortField.FIELD_DOC)).scoreDocs
-        return hits.map { hit ->
-            val hitDoc = iSearcher.indexReader.storedFields().document(hit.doc)
-            val book = hitDoc.getField("book")?.numericValue()?.toInt()!!
-            val chapter = hitDoc.getField("chapter")?.numericValue()?.toInt()
-            val verse = hitDoc.getField("verse")?.numericValue()?.toInt()
-            val text = hitDoc.get("text")
-
-            "${bookNameEnglishCapital(book)} $chapter:$verse $text"
-        }
-
-        return result
+        directoriesByTranslation[translation.code] = indexDir
+        logger.debug { "loaded ${files.size} embedded index files into ByteBuffersDirectory for ${translation.code}" }
+        return indexDir
     }
 
     companion object {

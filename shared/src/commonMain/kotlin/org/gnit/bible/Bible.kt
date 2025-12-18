@@ -43,6 +43,24 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
         return zipBibleResourcesReader!!
     }
 
+    var embeddedTranslationSearchEngine: SearchEngine? = null
+
+    var zipTranslationSearchEngine: SearchEngine? = null
+
+    fun obtainSearchEngine(isEmbedded: Boolean = true): SearchEngine {
+        if(isEmbedded){
+            if (embeddedTranslationSearchEngine == null) {
+                embeddedTranslationSearchEngine = SearchEngine(bibleResourcesReader)
+            }
+            return embeddedTranslationSearchEngine!!
+        }else {
+            if (zipTranslationSearchEngine == null) {
+                zipTranslationSearchEngine = SearchEngine(obtainZipBibleResourcesReader())
+            }
+            return zipTranslationSearchEngine!!
+        }
+    }
+
     fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
         return when{
             translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
@@ -67,6 +85,19 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
     fun showHeaderFromSettings(): Boolean {
         val raw = assetManager.platform.settings.getStringOrNull(ConfigKey.HEADER.value) ?: ConfigKey.HEADER.defaultValue
         return raw.toBooleanStrictOrNull() ?: false
+    }
+
+    fun search(
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        translation: Translation
+    ): List<String> {
+        val isEmbedded = embeddedTranslationCodes.contains(translation.code)
+        val searchEngine = obtainSearchEngine(isEmbedded)
+        return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, translation)
     }
 
     companion object {

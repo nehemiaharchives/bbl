@@ -55,8 +55,6 @@ Implement a small builder in `shared/commonMain`:
 This keeps search fully in memory.
 
 ## Refactor `SearchEngine`
-Refactor `SearchEngine` to avoid `Path`/`FSDirectory`:
-
 Option A (preferred):
 - `class SearchEngine(private val directory: Directory)`
 

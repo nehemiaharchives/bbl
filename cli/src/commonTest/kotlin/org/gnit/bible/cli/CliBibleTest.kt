@@ -8,7 +8,6 @@ import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
-import org.gnit.bible.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.BibleTestBase
 import org.gnit.bible.test.TestFixtures
@@ -56,4 +55,7 @@ class CliBibleTest : BibleTestBase {
 
     @Test
     override fun testReadIndexFile() = super.testReadIndexFile()
+
+    @Test
+    override fun searchJesusChristInWebus() = super.searchJesusChristInWebus()
 }

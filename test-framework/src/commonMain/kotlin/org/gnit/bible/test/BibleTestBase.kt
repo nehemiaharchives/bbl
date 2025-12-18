@@ -2,8 +2,10 @@ package org.gnit.bible.test
 
 import org.gnit.bible.Bible
 import kotlinx.coroutines.runBlocking
+import org.gnit.bible.Translation
 import org.gnit.bible.embeddedTranslationCodes
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 interface BibleTestBase {
@@ -51,5 +53,14 @@ interface BibleTestBase {
                 )
             }
         }
+    }
+
+
+    fun searchJesusChristInWebus() {
+        val result = bible.search("Jesus Christ", null, null, null, 100, Translation.webus)
+        assertEquals(
+            "Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.",
+            result.first().trim()
+        )
     }
 }
