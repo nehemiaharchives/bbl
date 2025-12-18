@@ -1,15 +1,9 @@
-# shared module
+# Memory-only embedded Lucene index for `SearchEngine`
 
-This module contains Kotlin Multiplatform `commonMain` code shared by:
-- `cli` (Kotlin/Native macOS + Linux, Kotlin/JVM tests)
-- `composeApp` (Android, iOS, Desktop JVM)
-
-## Plan: Memory-only embedded Lucene index for `SearchEngine`
-
-### Goal
+## Goal
 Enable `SearchEngine` (in `shared/commonMain`) to search Lucene indexes **entirely in memory**, with **no disk/filesystem access**, including on Kotlin/Native (single executable).
 
-### Key design decision
+## Key design decision
 Do **not** use `FSDirectory` for this feature.
 
 - In lucene-kmp, `FSDirectory` is explicitly a filesystem-backed `Directory` and it creates/opens real directories.
@@ -20,7 +14,7 @@ Therefore the simplest correct approach is:
 - Load them into a `ByteBuffersDirectory`
 - Open `StandardDirectoryReader` on that in-memory directory
 
-### Index packaging format
+## Index packaging format
 Package each translation’s Lucene index files as embedded resources (same principle as `BibleResourcesReader` for chapter text).
 
 Recommended resource layout:
@@ -41,7 +35,7 @@ Notes:
 - Lucene `Directory` is flat (no subdirectories), so the manifest should list **filenames only**.
 - `index.manifest` is required because cross-platform resource systems typically cannot reliably list directory contents.
 
-### Abstractions in commonMain
+## Abstractions in commonMain
 Add a minimal index-bytes provider interface in `shared/commonMain`:
 
 - `BibleResourcesReader` additional functions
@@ -50,7 +44,7 @@ Add a minimal index-bytes provider interface in `shared/commonMain`:
 
 `SearchEngine` must remain platform-agnostic and depend only on lucene-kmp `Directory` (or on `BibleResourcesReader` to build one).
 
-### Build an in-memory Directory from embedded bytes
+## Build an in-memory Directory from embedded bytes
 Implement a small builder in `shared/commonMain`:
 
 - Create `ByteBuffersDirectory()`
@@ -60,7 +54,7 @@ Implement a small builder in `shared/commonMain`:
 
 This keeps search fully in memory.
 
-### Refactor `SearchEngine`
+## Refactor `SearchEngine`
 Refactor `SearchEngine` to avoid `Path`/`FSDirectory`:
 
 Option A (preferred):
@@ -73,7 +67,7 @@ Then:
 - `StandardDirectoryReader.open(directory, leafSorter = null, commit = null)`
 - Construct `IndexSearcher` and run queries.
 
-### Platform implementations of `BibleResourcesReader` index reading functionality 
+## Platform implementations of `BibleResourcesReader` index reading functionality 
 Implement `BibleResourcesReader` read index functions outside `shared`:
 
 - CLI Kotlin/Native:
@@ -87,12 +81,12 @@ Implement `BibleResourcesReader` read index functions outside `shared`:
 - CMP (App Android/iOS/Desktop JVM):
   - Use the Compose Multiplatform’s `composeApp/src/commonMain/composeResources` access.
 
-### Validation / acceptance criteria
+## Validation / acceptance criteria
 - `SearchEngine` compiles in `shared/commonMain` with no TODOs.
 - Search runs without touching the filesystem:
   - Uses `ByteBuffersDirectory`, not `FSDirectory`.
 - JVM test loads an embedded index for one translation (e.g. `webus`) and asserts search returns at least one hit.
 - CLI native can load the same embedded index and perform a search.
 
-### Future optimization (optional)
+## Future optimization (optional)
 This plan loads embedded index bytes into `ByteBuffersDirectory` (copies data into memory). If memory footprint becomes a problem, a phase-2 improvement is implementing a read-only `Directory` + `IndexInput` that reads directly from the embedded TAR pointer (zero-copy on Native).
