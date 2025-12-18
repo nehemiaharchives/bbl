@@ -6,4 +6,6 @@ expect class CliBibleResourcesReader() : BibleResourcesReader {
     override fun chapterFile(translation: String, book: Int, chapter: Int): String
     override fun readByPath(path: String): String
     override fun getChapterText(translation: String, book: Int, chapter: Int): String
+    override fun listIndexFiles(translation: String): List<String>
+    override fun readIndexFile(translation: String, name: String): ByteArray
 }

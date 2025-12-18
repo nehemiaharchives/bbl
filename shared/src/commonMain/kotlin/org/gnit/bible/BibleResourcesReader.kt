@@ -13,4 +13,8 @@ interface BibleResourcesReader {
         val path = chapterFile(translation, book, chapter)
         return readByPath(path)
     }
+
+    fun listIndexFiles(translation: String): List<String>
+
+    fun readIndexFile(translation: String, name: String): ByteArray
 }

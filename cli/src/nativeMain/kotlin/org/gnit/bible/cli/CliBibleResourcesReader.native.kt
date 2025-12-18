@@ -20,6 +20,17 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
         return bytes.decodeToString()
     }
 
+    actual override fun listIndexFiles(translation: String): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    actual override fun readIndexFile(
+        translation: String,
+        name: String
+    ): ByteArray {
+        TODO("Not yet implemented")
+    }
+
 }
 
 internal class TarPtrReader(private val tar: CPointer<UByteVar>?, private val size: Int) {

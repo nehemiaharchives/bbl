@@ -26,4 +26,12 @@ class ComposeBibleResourcesReader : BibleResourcesReader {
         cache[path] = text
         return text
     }
+
+    override fun listIndexFiles(translation: String): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun readIndexFile(translation: String, name: String): ByteArray {
+        TODO("Not yet implemented")
+    }
 }

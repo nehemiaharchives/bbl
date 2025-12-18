@@ -22,4 +22,15 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
         val text = stream!!.bufferedReader().use { it.readText() }
         return text
     }
+
+    actual override fun listIndexFiles(translation: String): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    actual override fun readIndexFile(
+        translation: String,
+        name: String
+    ): ByteArray {
+        TODO("Not yet implemented")
+    }
 }

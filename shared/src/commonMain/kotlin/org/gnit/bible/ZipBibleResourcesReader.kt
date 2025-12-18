@@ -32,6 +32,14 @@ class ZipBibleResourcesReader(
         return sb.toString()
     }
 
+    override fun listIndexFiles(translation: String): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun readIndexFile(translation: String, name: String): ByteArray {
+        TODO("Not yet implemented")
+    }
+
     fun getTranslationFromManifest(translationCode: String): Translation {
         val manifestJson = StringBuilder()
         withZipFile(translationCode) { zip ->
