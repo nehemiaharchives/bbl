@@ -20,6 +20,7 @@ kotlin {
     // windows, good to have, and build later, but for now commenting out
     jvm() // primarily for testing purposes,
     // in case windows native implementation has too much problems
+    jvmToolchain(24)
 
     compilerOptions {
         optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
