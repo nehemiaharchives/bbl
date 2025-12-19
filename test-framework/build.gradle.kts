@@ -50,6 +50,7 @@ kotlin {
             implementation(libs.ktor.clientMock)
             implementation(libs.multiplatform.settings)
             implementation(libs.okio)
+            implementation(libs.lucene.kmp.core)
         }
 
         androidMain.dependencies {

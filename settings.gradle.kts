@@ -32,6 +32,21 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+// --- Optional local composite dependency on sibling lucene-kmp ---
+// This repository is often used as a parent workspace that also contains a sibling
+// checkout of lucene-kmp. When that sibling exists, use it for fast iteration.
+// When it doesn't (e.g. cloned standalone / CI), fall back to published artifacts.
+val luceneKmpSiblingDir = file("../lucene-kmp")
+if (luceneKmpSiblingDir.isDirectory) {
+    includeBuild("../lucene-kmp") {
+        dependencySubstitution {
+            substitute(module("org.gnit.lucene-kmp:lucene-kmp-core")).using(project(":core"))
+            substitute(module("org.gnit.lucene-kmp:lucene-kmp-queryparser")).using(project(":queryparser"))
+            substitute(module("org.gnit.lucene-kmp:lucene-kmp-test-framework")).using(project(":test-framework"))
+        }
+    }
+}
+
 include(":composeApp")
 include(":server")
 include(":shared")
