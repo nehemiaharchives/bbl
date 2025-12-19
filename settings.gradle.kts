@@ -38,6 +38,9 @@ plugins {
 // When it doesn't (e.g. cloned standalone / CI), fall back to published artifacts.
 val luceneKmpSiblingDir = file("../lucene-kmp")
 if (luceneKmpSiblingDir.isDirectory) {
+
+    logger.lifecycle("Found sibling lucene-kmp at ${luceneKmpSiblingDir.absolutePath} substituting maven published lucene-kmp dependency with local development version")
+
     includeBuild("../lucene-kmp") {
         dependencySubstitution {
             substitute(module("org.gnit.lucene-kmp:lucene-kmp-core")).using(project(":core"))
