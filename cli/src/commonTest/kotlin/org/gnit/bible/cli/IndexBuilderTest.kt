@@ -4,37 +4,61 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 import org.gnit.bible.Bible
+import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.embeddedTranslations
 import org.gnit.bible.downloadableTranslations
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
-import org.gnit.bible.test.TestFixtures.tmpWorkingDirForBblPack
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class IndexBuilderTest {
 
+    @OptIn(ExperimentalUuidApi::class)
     @Test
     fun createLuceneKmpIndexTest() {
         val fileSystem = getPlatform().fileSystem
-        val translationDir = tmpWorkingDirForBblPack.toPath() / "webus"
+
+        // Don't rely on shared fixed paths like /tmp/bblpack-cli-create.
+        // CI can run tests in different order / in parallel, so we create our own fixture dir.
+        val tmpRoot = "/tmp".toPath()
+        val translationDir = tmpRoot / "bbl-kmp" / "IndexBuilderTest" / "webus-${Uuid.random()}"
         val indexDir = translationDir / "index"
 
-        if (fileSystem.exists(indexDir)) {
-            deleteRecursively(fileSystem, indexDir)
+        // Ensure clean fixture dir.
+        if (fileSystem.exists(translationDir)) {
+            deleteRecursively(fileSystem, translationDir)
+        }
+        fileSystem.createDirectories(translationDir)
+
+        // Minimal required inputs: manifest + one chapter file.
+        fileSystem.write(translationDir / "webus$MANIFEST_JSON_POSTFIX") {
+            writeUtf8(Translation.webus.toJson())
         }
 
-        val chapterText = fileSystem.read(translationDir / "webus.1.1.txt") { readUtf8() }
+        // Use a deterministic multi-verse chapter string so the doc count assertion is meaningful.
+        val chapterText = """
+            1 In the beginning God created the heaven and the earth.
+            2 And the earth was without form, and void; and darkness was upon the face of the deep.
+            3 And God said, Let there be light: and there was light.
+            4 And God saw the light, that it was good.
+        """.trimIndent()
+
+        fileSystem.write(translationDir / "webus.1.1.txt") {
+            writeUtf8(chapterText)
+        }
+
         val expectedDocCount = Bible.splitChapterToVerses(chapterText).size
 
-        val actualDocCount =
-            IndexBuilder(Bible()).createLuceneKmpIndex(
-                translation = Translation.webus,
-                translationDir = translationDir
-            )
+        val actualDocCount = IndexBuilder(Bible()).createLuceneKmpIndex(
+            translation = Translation.webus,
+            translationDir = translationDir
+        )
 
         assertEquals(expectedDocCount, actualDocCount)
         assertTrue(
@@ -89,6 +113,9 @@ class IndexBuilderTest {
                 "Expected manifest entry to exist as file: $p"
             )
         }
+
+        // Best-effort cleanup (avoid leaking temp dirs in CI).
+        runCatching { deleteRecursively(fileSystem, translationDir) }.getOrNull()
     }
 
     @Test
