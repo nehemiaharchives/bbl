@@ -60,15 +60,15 @@ interface BibleTestBase {
 
 
     fun searchJesusChristInWebus() {
+        val term = "Jesus Christ"
+        val result = bible.search(term, null, null, null, 100, Translation.webus)
+        val actual = result.first().trim()
 
-        val bbd = ByteBuffersDirectory()
+        println("search result for term: $term: $actual")
 
-        assertEquals("2",2.toString())
-
-        /*val result = bible.search("Jesus Christ", null, null, null, 100, Translation.webus)
         assertEquals(
             "Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.",
-            result.first().trim()
-        )*/
+            actual
+        )
     }
 }

@@ -27,4 +27,7 @@ class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
 
     @Test
     override fun testReadIndexFile() = super.testReadIndexFile()
+
+    @Test
+    override fun searchJesusChristInWebus() = super.searchJesusChristInWebus()
 }
