@@ -369,6 +369,10 @@ fun bookNameEnglishCapital(bookNumber: Int): String {
     }
 }
 
+fun bookNameFor(bookNumber: Int, translation: Translation): String {
+    return arrayOf("chapterZero").plus(translation.language.bookNames())[bookNumber]
+}
+
 fun formatHeader(pointer: VersePointer): String {
     val bookName = arrayOf("chapterZero").plus(pointer.translation.language.bookNames())[pointer.book]
     val chapter = pointer.chapter

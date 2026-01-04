@@ -72,7 +72,7 @@ class IndexBuilder(
 
         fileSystem.createDirectories(indexPath)
 
-        val analyzer = SimpleAnalyzer() // TODO use translation.language to get XxxAnalyzer() after lucene-kmp actually got them ported from Apache Lucene.
+        val analyzer = translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()
         val config = IndexWriterConfig(analyzer)
         val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
         val chapterFileRegex =

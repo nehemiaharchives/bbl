@@ -3,6 +3,7 @@ package org.gnit.bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class ParseBookTest {
 
@@ -60,5 +61,23 @@ class ParseBookTest {
         assertEquals("創世記 1", formatHeader(VersePointer(translation = Translation.jc, book = 1, chapter = 1)))
         assertEquals("ヨハネによる福音書 3:16", formatHeader(VersePointer(translation = Translation.jc, book = 43, chapter = 3, startVerse = 16)))
         assertEquals("マタイによる福音書 28:18-20", formatHeader(VersePointer(translation = Translation.jc, book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
+    }
+
+    @Test
+    fun bookNameForTest() {
+        val translation = Translation.webus
+        val bookNames = translation.language.bookNames()
+        (1..66).forEach { bookNumber ->
+            assertEquals(bookNames[bookNumber - 1], bookNameFor(bookNumber, translation))
+        }
+    }
+
+    @Test
+    fun bookNameForJapaneseTest() {
+        val translation = Translation.jc
+        val bookNames = translation.language.bookNames()
+        (1..66).forEach { bookNumber ->
+            assertEquals(bookNames[bookNumber - 1], bookNameFor(bookNumber, translation))
+        }
     }
 }

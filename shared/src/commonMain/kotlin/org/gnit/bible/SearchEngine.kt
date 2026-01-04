@@ -1,6 +1,7 @@
 package org.gnit.bible
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.document.IntPoint
 import org.gnit.lucenekmp.index.DirectoryReader
@@ -20,6 +21,14 @@ class SearchEngine(private val reader: BibleResourcesReader) {
     private val logger = KotlinLogging.logger {}
     private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
 
+    private val languageAnalyserCache: MutableMap<String, Analyzer> = mutableMapOf()
+
+    private fun analyzerFor(translation: Translation): Analyzer{
+        return languageAnalyserCache.getOrPut(translation.language.code){
+            translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()
+        }
+    }
+
     fun search(
         term: String,
         bookNumber: Int? = null,
@@ -38,14 +47,15 @@ class SearchEngine(private val reader: BibleResourcesReader) {
 
         iReader.use { reader ->
             val iSearcher = IndexSearcher(reader)
-            val parser = QueryParser("text", SimpleAnalyzer())
+            val analyzer = analyzerFor(translation)
+            val parser = QueryParser("text", analyzer)
             val termQuery = parser.parse(term)!!
 
             val queryBuilder = BooleanQuery.Builder()
 
-            if (includesNewTestamentOnlyPhrase(term)) {
+            /*if (includesNewTestamentOnlyPhrase(term)) {
                 queryBuilder.add(IntPoint.newRangeQuery("book", 40, 66), BooleanClause.Occur.MUST)
-            }
+            }*/
 
             if (bookNumber != null) {
                 queryBuilder.add(IntPoint.newExactQuery("book", bookNumber), BooleanClause.Occur.MUST)
@@ -69,7 +79,7 @@ class SearchEngine(private val reader: BibleResourcesReader) {
                 val verse = hitDoc.getField("verse")?.numericValue()?.toInt()
                 val text = hitDoc.get("text")
 
-                "${bookNameEnglishCapital(book)} $chapter:$verse $text"
+                "${bookNameFor(bookNumber = book, translation = translation)} $chapter:$verse $text"
             }
         }
     }

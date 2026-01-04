@@ -32,6 +32,11 @@ class LanguageTest {
     @Test
     fun decodeLanguageFromJsonTest() {
         val actual = Json.decodeFromString<Language>(englishJsonString)
-        assertEquals(Language.en, actual)
+        assertEquals(Language.en.code, actual.code)
+        assertEquals(Language.en.customScriptCode, actual.customScriptCode)
+        assertEquals(Language.en.englishName, actual.englishName)
+        assertEquals(Language.en.nativeName, actual.nativeName)
+        assertEquals(Language.en.isCJK, actual.isCJK)
+        assertEquals(Language.en.order, actual.order)
     }
 }

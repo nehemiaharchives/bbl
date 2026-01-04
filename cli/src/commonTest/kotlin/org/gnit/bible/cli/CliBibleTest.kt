@@ -57,5 +57,5 @@ class CliBibleTest : BibleTestBase {
     override fun testReadIndexFile() = super.testReadIndexFile()
 
     @Test
-    override fun searchJesusChristInWebus() = super.searchJesusChristInWebus()
+    override fun searchJesusChrist() = super.searchJesusChrist()
 }

@@ -1,12 +1,9 @@
 package org.gnit.bible.test
 
-import org.gnit.bible.Bible
 import kotlinx.coroutines.runBlocking
-import org.gnit.bible.SearchEngine
+import org.gnit.bible.Bible
 import org.gnit.bible.Translation
 import org.gnit.bible.embeddedTranslationCodes
-import org.gnit.lucenekmp.index.StandardDirectoryReader
-import org.gnit.lucenekmp.store.ByteBuffersDirectory
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -58,17 +55,18 @@ interface BibleTestBase {
         }
     }
 
+    fun searchJesusChrist() {
+        val englishTerm = "Jesus Christ"
+        val webusResult = bible.search(englishTerm, null, null, null, 100, Translation.webus).first().trim()
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.", webusResult)
 
-    fun searchJesusChristInWebus() {
-        val term = "Jesus Christ"
-        val result = bible.search(term, null, null, null, 100, Translation.webus)
-        val actual = result.first().trim()
+        val kjvResult = bible.search(term = englishTerm, translation = Translation.kjv).first().trim()
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.", kjvResult)
 
-        println("search result for term: $term: $actual")
+        val rvr09Result = bible.search(term = "Jesucristo", translation = Translation.rvr09).first().trim()
+        assertEquals("Mateo 1:1 LIBRO de la generación de Jesucristo, hijo de David, hijo de Abraham.", rvr09Result)
 
-        assertEquals(
-            "Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.",
-            actual
-        )
+        val tbResult = bible.search(term = "Jesus Cristo", translation = Translation.tb).first().trim()
+        assertEquals("Mateus 1:1 Livro da geração de Jesus Cristo, filho de Davi, filho de Abraão.", tbResult)
     }
 }
