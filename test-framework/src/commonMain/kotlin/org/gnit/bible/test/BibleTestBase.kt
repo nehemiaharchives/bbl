@@ -68,5 +68,38 @@ interface BibleTestBase {
 
         val tbResult = bible.search(term = "Jesus Cristo", translation = Translation.tb).first().trim()
         assertEquals("Mateus 1:1 Livro da geração de Jesus Cristo, filho de Davi, filho de Abraão.", tbResult)
+
+        val delutResult = bible.search(term = "Jesu Christi", translation = Translation.delut).first().trim()
+        assertEquals("Matthäus 1:1 Dies ist das Buch von der Geburt Jesu Christi, der da ist ein Sohn Davids, des Sohnes Abrahams.", delutResult)
+
+        val lsgResult = bible.search(term = "Jésus-Christ", translation = Translation.lsg).first().trim()
+        assertEquals("Matthieu 1:1 Généalogie de Jésus-Christ, fils de David, fils d'Abraham.", lsgResult)
+
+        val sinodResult = bible.search(term = "Иисуса Христа", translation = Translation.sinod).first().trim()
+        assertEquals("От Матфея святое благовествование 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.", sinodResult)
+
+        val svrjResult = bible.search(term = "JEZUS CHRISTUS", translation = Translation.svrj).first().trim()
+        assertEquals("MATTHEÜS 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.", svrjResult)
+
+        val rdv24Result = bible.search(term = "Gesù Cristo", translation = Translation.rdv24).first().trim()
+        assertEquals("Matteo 1:1 Genealogia di Gesù Cristo figliuolo di Davide, figliuolo d'Abramo.", rdv24Result)
+
+        val ubgResult = bible.search(term = "Jezusa Chrystusa", translation = Translation.ubg).first().trim()
+        assertEquals("Mateusza 1:1 Księga rodu Jezusa Chrystusa, syna Dawida, syna Abrahama.", ubgResult)
+
+        val ubioResult = bible.search(term = "Ісуса Христа", translation = Translation.ubio).first().trim()
+        assertEquals("Вiд Матвiя 1:1 Книга родоводу Ісуса Христа, Сина Давидового, Сина Авраамового:", ubioResult)
+
+        val svenResult = bible.search(term = "Jesu Kristi", translation = Translation.sven).first().trim()
+        assertEquals("Matteus 1:1 Detta är Jesu Kristi, Davids sons, Abrahams sons, släkttavla.", svenResult)
+
+        val cunpResult = bible.search(term = "耶稣基督", translation = Translation.cunp).first().trim()
+        assertEquals("马太福音 1:1 亚伯拉罕 的后裔， 大卫 的子孙 ，耶稣基督的家谱：", cunpResult)
+
+        val krvResult = bible.search(term = "예수 그리스도의", translation = Translation.krv).first().trim()
+        assertEquals("마태복음 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라", krvResult)
+
+        val jcResult = bible.search(term = "イエス・キリスト", translation = Translation.jc).first().trim()
+        assertEquals("マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。", jcResult)
     }
 }
