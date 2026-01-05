@@ -31,8 +31,7 @@ However, bbl-kmp includes lucene-kmp analyzers for languages of downloadable bib
 Even if we split the *runtime search* into external binaries, the current *index build / pack* flow also depends on analyzers.
 
 - `PackCli` calls `IndexBuilder.createLuceneKmpIndex(...)`.
-- `IndexBuilder.createLuceneKmpIndex(...)` currently chooses analyzer via:
-  - `val analyzer = translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()`
+- `IndexBuilder.createLuceneKmpIndex(...)` currently chooses analyzer via an `AnalyzerProvider` (defaults to `DefaultAnalyzerProvider`).
 
 This means `bbl-kmp:cli` (and/or `bbl-kmp:core` where these classes are also used) ends up depending on language analyzers such as `kuromoji`, `nori`, etc.
 
@@ -69,7 +68,7 @@ The main command `bbl` then do not need to contain large size Analyzers other th
 ## PackCli, IndexBuilder, Translation, Language
 `bbl-kmp:indexbuilder` module need to be newly created to decouple indexing logic from `bbl-kmp:cli` module.
 
-` translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()` logic which is used in `SearchEngine.kt` and `IndexBuilder.kt` need to be moved from `bbl-kmp:core`.
+Analyzer selection in `SearchEngine`/`IndexBuilder` now flows through `AnalyzerProvider` and should be kept out of `bbl-kmp:core` for non-common analyzers.
 `bbl pack` command needs to be `bbl-pack` command line tool separately first with kotlin/jvm because this is developer tool to create new bbl pack with text and search index. For now the user of the pack command is only me, the author of bbl. So the size does not matter that much. So all Analyzers and all analysis modules can be linked into `bbl-pack` command line tool. It does not even need to be a executable, but it can just be an main() function to be called from Intellij run configuration. As a result, a new module named `bbl-kmp:cli:packer` will be created to contain `PackCli.kt` and `IndexBuilder.kt`. In the future, if advanced user of bbl wants to create their own we can delegate `bbl pack` command to `bbl-pack` command line tool. It will be installed via `bbl install packer` or something.
 
 ## Steps to implement/refactor

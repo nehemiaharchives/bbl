@@ -16,8 +16,9 @@ actual class CliBibleResourcesReader : BibleResourcesReader {
         val parts = path.split('/', limit = 3)
         val translation = parts[1]
         val reader = generatedReaderFor(translation)
+            ?: error("No embedded bible pack for translation: $translation")
 
-        val bytes = reader!!.read(path)
+        val bytes = reader.read(path)
         return bytes.decodeToString()
     }
 
@@ -122,4 +123,76 @@ internal class TarPtrReader(private val tar: CPointer<UByteVar>?, private val si
         return if(rem == 0) n else n + (512 - rem)
     }
 
+}
+
+/**
+ * TAR reader backed by an in-memory ByteArray.
+ *
+ * This is used when we embed bible packs without relying on C interop symbols.
+ */
+internal class TarBytesReader(private val tar: ByteArray, private val translation: String) {
+    private data class Entry(val dataOff: Int, val dataLen: Int)
+    private val cache = HashMap<String, Entry>(64)
+
+    private fun u8(index: Int): Int = tar[index].toInt() and 0xFF
+
+    fun read(path: String): ByteArray {
+        cache[path]?.let { e -> return tar.copyOfRange(e.dataOff, e.dataOff + e.dataLen) }
+
+        var p = 0
+        while (p + 512 <= tar.size) {
+            if (isZeroBlock(p)) break
+            val name = readCString(p + 0, 100)
+            val fileSize = parseOctal(p + 124, 12)
+            val typeFlag = u8(p + 156)
+            val dataOff = p + 512
+
+            if (name == path && (typeFlag == 0 || typeFlag == '0'.code)) {
+                val e = Entry(dataOff, fileSize)
+                cache[path] = e
+                return tar.copyOfRange(e.dataOff, e.dataOff + e.dataLen)
+            }
+            p += 512 + roundUp512(fileSize)
+        }
+        error("Embedded resource not found in TAR ($translation): $path")
+    }
+
+    private fun isZeroBlock(off: Int): Boolean {
+        for (i in 0 until 512) if (u8(off + i) != 0) return false
+        return true
+    }
+
+    private fun readCString(off: Int, len: Int): String {
+        val sb = StringBuilder(len)
+        var i = 0
+        while (i < len) {
+            val b = u8(off + i)
+            if (b == 0) break
+            sb.append(b.toChar()); i++
+        }
+        return sb.toString()
+    }
+
+    private fun parseOctal(off: Int, len: Int): Int {
+        var i = off
+        val end = off + len
+        while (i < end) {
+            val b = u8(i)
+            if (b != 0 && b != ' '.code) break
+            i++
+        }
+        var v = 0
+        while (i < end) {
+            val b = u8(i)
+            if (b < '0'.code || b > '7'.code) break
+            v = (v shl 3) + (b - '0'.code)
+            i++
+        }
+        return v
+    }
+
+    private fun roundUp512(n: Int): Int {
+        val rem = n and 511
+        return if (rem == 0) n else n + (512 - rem)
+    }
 }

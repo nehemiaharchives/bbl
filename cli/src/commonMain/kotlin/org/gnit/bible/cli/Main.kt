@@ -100,7 +100,8 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
 }
 
 class Bbl(
-    private val bible: Bible = Bible().apply { bibleResourcesReader = CliBibleResourcesReader() }
+    private val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider())
+        .apply { bibleResourcesReader = CliBibleResourcesReader() }
 ) : CliktCommand() {
 
     override val invokeWithoutSubcommand = true
@@ -115,7 +116,7 @@ class Bbl(
     init {
         subcommands(
             In(bible),
-            //SearchCli(env = Environment.PRODUCTION, config),
+            SearchCli(bible),
             RandCli(bible),
             ListCli(bible),
             InstallCli(bible),

@@ -42,7 +42,7 @@ val embedBuild = layout.buildDirectory.dir("embedded")
 val cOutDir = embedBuild.map { it.dir("c") }
 val tarOutDir = embedBuild.map { it.dir("tar") }
 val includeOutDir = embedBuild.map { it.dir("include") }
-val generatedKtDir = layout.buildDirectory.dir("generated/cli")
+val generatedKtDir = layout.buildDirectory.dir("generated/cli-linuxX64Main")
 val cinteropConfigDirProvider = layout.projectDirectory.dir("src/nativeMain/cinterop")
 val cinteropDefFileProvider = layout.projectDirectory.file("src/nativeMain/cinterop/bibles.def")
 
@@ -644,6 +644,10 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val headerFile: RegularFileProperty
 
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val tarInputDir: DirectoryProperty
+
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
@@ -654,23 +658,38 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
         val ktDir = File(baseOutput, "org/gnit/bible/cli").also { it.mkdirs() }
         val ktFile = File(ktDir, "GeneratedTarBindings.kt")
 
-        val names = header.readLines()
-            .mapNotNull { Regex("""extern const unsigned char ([a-zA-Z0-9_]+)\[\];""").find(it)?.groupValues?.getOrNull(1) }
-            .filter { it.endsWith("_tar") }
-            .sorted()
+        // Extract translation IDs from the generated TARs, not from the header.
+        // The header contains C symbols only when we bind via C interop. In the ByteArray
+        // embedding mode (BblpacksResources), those symbols may be absent, which would
+        // incorrectly generate `generatedReaderFor(..) = null`.
+        val translations = tarInputDir.get().asFile
+            .listFiles()
+            ?.asSequence()
+            ?.filter { it.isFile && it.name.endsWith(".tar") }
+            ?.map { it.name.removeSuffix(".tar") }
+            ?.sorted()
+            ?.toList()
+            ?: emptyList()
 
         val body = buildString {
             appendLine("/* Auto-generated. Do not edit. */")
             appendLine("package org.gnit.bible.cli")
             appendLine()
-            appendLine("import kotlinx.cinterop.CPointer")
-            appendLine("import kotlinx.cinterop.UByteVar")
+            appendLine("import kotlinx.cinterop.*")
             appendLine("import org.gnit.bible.cli.ci.*")
             appendLine()
+            // Declare external C symbols from the cinterop-generated stubs so we can take pointers.
+            translations.forEach { t ->
+                appendLine("@CName(\"${t}_tar\")")
+                appendLine("private external val ${t}_tar: CPointer<UByteVar>")
+                appendLine("@CName(\"${t}_tar_len\")")
+                appendLine("private external val ${t}_tar_len: UInt")
+                appendLine()
+            }
+
             appendLine("internal actual fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
-            names.forEach { sym ->
-                val t = sym.removeSuffix("_tar")
-                appendLine("    \"$t\" -> TarPtrReader(${sym}, ${sym}_len.toInt())")
+            translations.forEach { t ->
+                appendLine("    \"$t\" -> TarPtrReader(${t}_tar, ${t}_tar_len.toInt())")
             }
             appendLine("    else -> null")
             appendLine("}")
@@ -683,7 +702,7 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
             StandardOpenOption.TRUNCATE_EXISTING,
             StandardOpenOption.WRITE
         )
-        logger.lifecycle("Wrote ${ktFile.absolutePath}")
+        logger.lifecycle("Wrote ${'$'}{ktFile.absolutePath}")
     }
 }
 
@@ -877,28 +896,12 @@ val archiveTasksByVariant = nativeVariants.associate { variant ->
     variant.id to archiveTask
 }
 
-// 5) Generate Kotlin binding from generated header
+// 5) Generate Kotlin binding + resource reader from generated header
 val generateTarBindingsKt = tasks.register<GenerateTarBindingsTask>("generateTarBindingsKt") {
-    dependsOn(generateCFromTar)
     headerFile.set(includeOutDir.map { it.file("generated_bibles.h") })
+    dependsOn(generateCFromTar)
+    tarInputDir.set(tarOutDir)
     outputDirectory.set(generatedKtDir)
-}
-
-// Make per-target copies of generated Kotlin into unique directories to satisfy IDE/module constraints
-val syncGeneratedTarBindingsLinuxX64 = tasks.register<Sync>("syncGeneratedTarBindingsLinuxX64") {
-    dependsOn(generateTarBindingsKt)
-    from(generatedKtDir)
-    into(layout.buildDirectory.dir("generated/cli-linuxX64Main"))
-}
-val syncGeneratedTarBindingsMacosX64 = tasks.register<Sync>("syncGeneratedTarBindingsMacosX64") {
-    dependsOn(generateTarBindingsKt)
-    from(generatedKtDir)
-    into(layout.buildDirectory.dir("generated/cli-macosX64Main"))
-}
-val syncGeneratedTarBindingsMacosArm64 = tasks.register<Sync>("syncGeneratedTarBindingsMacosArm64") {
-    dependsOn(generateTarBindingsKt)
-    from(generatedKtDir)
-    into(layout.buildDirectory.dir("generated/cli-macosArm64Main"))
 }
 
 // 6) Aggregate task

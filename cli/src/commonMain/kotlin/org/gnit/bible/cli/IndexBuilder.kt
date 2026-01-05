@@ -4,13 +4,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.Bible.Companion.splitChapterToVerses
+import org.gnit.bible.DefaultAnalyzerProvider
 import org.gnit.bible.SearchEngine.Companion.INDEX_MANIFEST_FILENAME_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.embeddedTranslations
 import org.gnit.bible.bookNameEnglish
-import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
 import org.gnit.lucenekmp.document.IntPoint
@@ -21,7 +22,8 @@ import org.gnit.lucenekmp.index.IndexWriterConfig
 import org.gnit.lucenekmp.store.FSDirectory
 
 class IndexBuilder(
-    private val bible: Bible
+    private val bible: Bible,
+    private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
 ) {
 
     val logger = KotlinLogging.logger {}
@@ -72,7 +74,7 @@ class IndexBuilder(
 
         fileSystem.createDirectories(indexPath)
 
-        val analyzer = translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()
+        val analyzer = analyzerProvider.analyzerFor(translation.language)
         val config = IndexWriterConfig(analyzer)
         val iWriter = IndexWriter(FSDirectory.open(indexPath), config)
         val chapterFileRegex =

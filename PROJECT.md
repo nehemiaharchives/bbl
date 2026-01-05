@@ -109,6 +109,14 @@ packs/<id>@<version>/
 - Analyzer registry maps language/ID → implementation.  
 - Index compatibility is enforced via `luceneKmpVersion` + `analyzerId` + optional `dictVersion`.
 
+### Analyzer coupling inventory (Phase 0)
+These file locations currently pull analyzer modules into the main `bbl` binary.
+
+- `shared/src/commonMain/kotlin/org/gnit/bible/DefaultAnalyzerProvider.kt` maps language codes to concrete analyzers, which still pulls analyzer modules into `shared` when used.
+- `shared/src/commonMain/kotlin/org/gnit/bible/SearchEngine.kt` takes an `AnalyzerProvider`, so the provider choice determines which analyzers are linked.
+- `cli/src/commonMain/kotlin/org/gnit/bible/cli/IndexBuilder.kt` uses an `AnalyzerProvider` (defaults to `DefaultAnalyzerProvider`), so pack/index paths link analyzers too.
+- `cli/src/commonMain/kotlin/org/gnit/bible/cli/PackCli.kt` depends on `IndexBuilder`, so analyzer linkage reaches the CLI binary through pack command.
+
 ---
 
 ## Fonts

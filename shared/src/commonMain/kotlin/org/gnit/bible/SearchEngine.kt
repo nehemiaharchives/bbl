@@ -18,16 +18,19 @@ import org.gnit.lucenekmp.store.ByteBuffersDirectory
 import org.gnit.lucenekmp.store.IOContext
 import org.gnit.lucenekmp.util.QueryBuilder
 
-class SearchEngine(private val reader: BibleResourcesReader) {
+class SearchEngine(
+    private val reader: BibleResourcesReader,
+    private val analyzerProvider: AnalyzerProvider
+) {
 
     private val logger = KotlinLogging.logger {}
     private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
 
     private val languageAnalyserCache: MutableMap<String, Analyzer> = mutableMapOf()
 
-    private fun analyzerFor(translation: Translation): Analyzer{
-        return languageAnalyserCache.getOrPut(translation.language.code){
-            translation.language.analyzerFactory?.invoke() ?: SimpleAnalyzer()
+    private fun analyzerFor(translation: Translation): Analyzer {
+        return languageAnalyserCache.getOrPut(translation.language.code) {
+            analyzerProvider.analyzerFor(translation.language)
         }
     }
 

@@ -59,7 +59,7 @@ Option A (preferred):
 - `class SearchEngine(private val directory: Directory)`
 
 Option B:
-- `class SearchEngine(private val reader: BibleResourcesReader)` and build/cache a `Directory` per translation.
+- `class SearchEngine(private val reader: BibleResourcesReader, private val analyzerProvider: AnalyzerProvider)` and build/cache a `Directory` per translation.
 
 Then:
 - `StandardDirectoryReader.open(directory, leafSorter = null, commit = null)`

@@ -10,7 +10,7 @@
 
 ## Phase 0 — Baseline + coupling inventory (no behavior change)
 
-- [ ] **DOC**: Identify and list every place analyzer selection leaks into `bbl` core.
+- [x] **DOC**: Identify and list every place analyzer selection leaks into `bbl` core.
   - Likely files (verify & update list as you go):
     - `shared/.../SearchEngine.kt`
     - `shared/.../Language.kt` (or wherever `analyzerFactory` lives)
@@ -23,19 +23,19 @@
 
 ## Phase 1 — Introduce “analysis module id” in models (minimal refactor, testable)
 
-- [ ] Add a stable identifier representing which search/analyzer bundle a language needs.
+- [x] Add a stable identifier representing which search/analyzer bundle a language needs.
   - Add `SearchModuleId` (enum or sealed interface) in `shared/commonMain`:
     - `COMMON`, `MORFOLOGIK`, `SMARTCN`, `NORI`, `KUROMOJI`, `EXTRA`
   - Add mapping `Language -> SearchModuleId` (prefer property on `Language` or a separate mapper in `shared`).
   - **Do not** reference lucene analyzers here; this must stay “data-only”.
-- [ ] Update `Language` / `Translation` metadata:
+- [x] Update `Language` / `Translation` metadata:
   - Replace `analyzerFactory: (() -> Analyzer)?` (or similar) with `searchModuleId: SearchModuleId`.
   - If a fallback existed (`?: SimpleAnalyzer()`), preserve it but implemented outside `shared`.
-- [ ] Tests (`shared/commonTest`):
+- [x] Tests (`shared/commonTest`):
   - Assert every `Language` has a non-null `searchModuleId`.
   - Assert known languages map correctly (at least 1 per module id).
   - Lock mapping down (so accidental changes break tests).
-- [ ] Ensure `:cli` still builds and existing tests pass.
+- [x] Ensure `:cli` still builds and existing tests pass.
 
 Commit criteria:
 - Behavior unchanged.
@@ -44,12 +44,12 @@ Commit criteria:
 
 ## Phase 2 — Make `SearchEngine` accept analyzers via injection (preserve behavior)
 
-- [ ] Introduce `AnalyzerProvider` in `shared/commonMain`:
+- [x] Introduce `AnalyzerProvider` in `shared/commonMain`:
   - `fun analyzerFor(language: Language): Analyzer`
   - (Optional) allow query-time overrides if current API supports.
-- [ ] Refactor `SearchEngine` to take an `AnalyzerProvider` (constructor arg or param to `search`).
+- [x] Refactor `SearchEngine` to take an `AnalyzerProvider` (constructor arg or param to `search`).
   - Remove any analyzer selection logic that pulls in lucene-kmp analyzer modules.
-- [ ] Add tests (`shared/commonTest`):
+- [x] Add tests (`shared/commonTest`):
   - A fake provider is invoked for a given `Language`.
   - Fallback behavior remains correct (if applicable).
 
@@ -60,20 +60,20 @@ Commit criteria:
 
 ## Phase 3 — Add core CLI delegation layer (internal vs external search)
 
-- [ ] Define a `SearchBackend` interface in `cli` (or `shared` if needed):
+- [x] Define a `SearchBackend` interface in `cli` (or `shared` if needed):
   - Internal backend: uses `SearchEngine` + **COMMON** analyzers only.
   - External backend: runs `bbl-search-<module>` executable.
-- [ ] Implement a delegating `SearchCommand`:
+- [x] Implement a delegating `SearchCommand`:
   - Determine `SearchModuleId` from `Translation.language.searchModuleId`.
   - If `COMMON` → internal search.
   - Else → external exec:
     - Primary path: `$HOME/.bbl/bin/bbl-search-<moduleId-lowercase>`
     - Optional: if not found, give actionable error (“run `bbl install <translation>`”).
-- [ ] Introduce process execution abstraction:
+- [x] Introduce process execution abstraction:
   - `expect/actual ProcessRunner` (common API): run command + args, capture exit code/stdout/stderr.
   - `actual` for `jvm` using `ProcessBuilder`.
   - `actual` for `native` using `posix_spawn`/`fork+exec` (choose based on existing project utilities).
-- [ ] Tests (`cli/commonTest`):
+- [x] Tests (`cli/commonTest`):
   - `COMMON` language uses internal backend.
   - Non-common language builds correct argv and tries external executable.
   - Error propagation does not lose stderr and includes module id.
@@ -198,4 +198,3 @@ Commit criteria:
 8. Phase 7 install co-install helpers
 9. Phase 8 embedded → downloadable migration + docs
 10. Phase 9 size reporting
-

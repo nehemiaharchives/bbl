@@ -8,7 +8,10 @@ enum class ConfigKey(val value: String, val defaultValue: String, val descriptio
     HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not")
 }
 
-class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
+class Bible(
+    val assetManager: AssetManager = AssetManagerImpl(),
+    private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
+) {
 
     fun availableTranslationCodes(): Array<String> {
         return embeddedTranslationCodes.plus(assetManager.downloadedTranslationCodes())
@@ -50,12 +53,12 @@ class Bible(val assetManager: AssetManager = AssetManagerImpl()) {
     fun obtainSearchEngine(isEmbedded: Boolean = true): SearchEngine {
         if(isEmbedded){
             if (embeddedTranslationSearchEngine == null) {
-                embeddedTranslationSearchEngine = SearchEngine(bibleResourcesReader)
+                embeddedTranslationSearchEngine = SearchEngine(bibleResourcesReader, analyzerProvider)
             }
             return embeddedTranslationSearchEngine!!
         }else {
             if (zipTranslationSearchEngine == null) {
-                zipTranslationSearchEngine = SearchEngine(obtainZipBibleResourcesReader())
+                zipTranslationSearchEngine = SearchEngine(obtainZipBibleResourcesReader(), analyzerProvider)
             }
             return zipTranslationSearchEngine!!
         }
