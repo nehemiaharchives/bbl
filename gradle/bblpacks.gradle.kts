@@ -2,12 +2,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -301,25 +303,25 @@ abstract class TarBblpacksTask @Inject constructor(
     private val execOperations: ExecOperations
 ) : DefaultTask() {
 
-    @get:InputDirectory
+    /**
+     * Only include files that actually go into the output TARs.
+     *
+     * Important: Do not snapshot the whole bblpacks directory, because IDE sync and other tooling
+     * may touch unrelated files (or create transient lock/tmp files), which would invalidate the task.
+     */
+    @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val bblpacksInputFiles: ConfigurableFileCollection
+
+    @get:Internal
     abstract val bblpacksDir: DirectoryProperty
 
     @get:Internal
     abstract val resourcesRootDir: DirectoryProperty
 
-    @get:Optional
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val cinteropConfigDir: DirectoryProperty
-
-    @get:Optional
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val cinteropDefFile: RegularFileProperty
-
-    @get:Input
-    abstract val cinteropCompilerOptions: ListProperty<String>
+    // NOTE: This task produces deterministic TARs from bible pack text/index files only.
+    // Do NOT add unrelated inputs here (like cinterop def/include dirs), otherwise IDE sync
+    // or build directory changes will invalidate the task and defeat UP-TO-DATE checking.
 
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
@@ -333,7 +335,6 @@ abstract class TarBblpacksTask @Inject constructor(
     fun generate() {
         val srcRoot = resourcesRootDir.get().asFile
         val tarDir = outputDirectory.get().asFile
-        tarDir.mkdirs()
 
         val translations = bblpacksDir.get().asFile.listFiles()
             ?.filter { it.isDirectory }
@@ -341,20 +342,47 @@ abstract class TarBblpacksTask @Inject constructor(
             ?.sorted()
             .orEmpty()
 
+        // If there are no translations (or bblpacks is missing), ensure outputs are cleared so the task is stable.
         if (translations.isEmpty()) {
+            if (tarDir.exists()) {
+                tarDir.deleteRecursively()
+            }
+            tarDir.mkdirs()
             logger.warn("No translations found in ${bblpacksDir.get().asFile}")
             return
         }
 
+        tarDir.mkdirs()
+
         val tarExe = tarExecutable.get()
-        val tarAvailable = try {
+
+        val tarVersion = try {
             val result = execOperations.exec {
                 commandLine(tarExe, "--version")
                 isIgnoreExitValue = true
             }
-            result.exitValue == 0
-        } catch (ex: Exception) {
-            logger.debug("tar --version failed; falling back", ex)
+            if (result.exitValue == 0) {
+                execOperations.exec {
+                    commandLine(tarExe, "--version")
+                    isIgnoreExitValue = true
+                    // capture output is not directly available here; best-effort via exit code
+                }
+                "ok"
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
+
+        // GNU tar supports reproducibility flags; enable determinism when we can.
+        val isGnuTar = try {
+            val pb = ProcessBuilder(tarExe, "--version").redirectErrorStream(true)
+            val proc = pb.start()
+            val out = proc.inputStream.bufferedReader().use { it.readText() }
+            proc.waitFor()
+            out.contains("GNU tar", ignoreCase = true)
+        } catch (_: Exception) {
             false
         }
 
@@ -366,7 +394,7 @@ abstract class TarBblpacksTask @Inject constructor(
 
             // Stage only what the CLI needs:
             // - chapter text files: *.txt (flat)
-            // - lucene-kmp index files: index/** (flat, but keep subdirs just in case)
+            // - lucene-kmp index files: index/**
             // This makes the embedded TAR deterministic and guarantees index files are present.
             val stageRoot = File(temporaryDir, "bblpacks-stage/$translation").also {
                 if (it.exists()) it.deleteRecursively()
@@ -374,45 +402,77 @@ abstract class TarBblpacksTask @Inject constructor(
             }
             val stageTranslationDir = File(stageRoot, "bblpacks/$translation").also { it.mkdirs() }
 
-            source.walkTopDown()
+            // Ensure deterministic traversal order by sorting by relative path.
+            val included = source.walkTopDown()
                 .filter { it.isFile }
-                .forEach { f ->
+                .mapNotNull { f ->
                     val rel = f.relativeTo(source).invariantSeparatorsPath
-                    val include =
-                        rel.endsWith(".txt") ||
-                            rel.startsWith("index/")
-                    if (!include) return@forEach
-                    if (rel == "index/write.lock") return@forEach
-
-                    val dest = File(stageTranslationDir, rel)
-                    dest.parentFile?.mkdirs()
-                    Files.copy(f.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                    val include = rel.endsWith(".txt") || rel.startsWith("index/")
+                    if (!include) return@mapNotNull null
+                    if (rel == "index/write.lock") return@mapNotNull null
+                    rel to f
                 }
+                .toList()
+                .sortedBy { (rel, _) -> rel }
+
+            for ((rel, f) in included) {
+                val dest = File(stageTranslationDir, rel)
+                dest.parentFile?.mkdirs()
+                Files.copy(f.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
 
             return stageRoot
         }
 
-        translations.parallelStream().forEach { t ->
+        // Avoid parallel writes to reduce non-determinism and make diagnostics stable.
+        for (t in translations) {
             logger.lifecycle("Archiving bblpack for $t")
             val outTar = File(tarDir, "$t.tar")
             val stageRoot = stageTranslationFiles(t)
+
+            val tarAvailable = tarVersion != null
             if (tarAvailable) {
+                val args = mutableListOf<String>()
+                // tar -C <dir> ... is more portable than setting workingDir on some platforms.
+                // However, Gradle Exec supports workingDir fine; keeping it.
+
+                if (isGnuTar) {
+                    // Deterministic archives across invocations on the same inputs.
+                    args.addAll(
+                        listOf(
+                            "--sort=name",
+                            "--mtime=@0",
+                            "--owner=0",
+                            "--group=0",
+                            "--numeric-owner"
+                        )
+                    )
+                }
+
                 val execResult = execOperations.exec {
                     workingDir = stageRoot
-                    commandLine(tarExe, "-cf", outTar.absolutePath, "bblpacks/$t")
+                    commandLine(tarExe, *args.toTypedArray(), "-cf", outTar.absolutePath, "bblpacks/$t")
                 }
                 execResult.assertNormalExitValue()
             } else {
+                // Fallback deterministic writer (stable order because of sorting above).
                 val base = File(stageRoot, "bblpacks/$t")
                 outTar.outputStream().use { out ->
-                    base.walkTopDown().filter { it.isFile }.forEach { f ->
-                        val rel = "bblpacks/$t/" + f.relativeTo(base).invariantSeparatorsPath
-                        val bytes = f.readBytes()
-                        val header = "FILE:$rel:${bytes.size}\n".toByteArray()
-                        out.write(header)
-                        out.write(bytes)
-                        out.write("\nEND\n".toByteArray())
-                    }
+                    base.walkTopDown()
+                        .filter { it.isFile }
+                        .map { f ->
+                            val rel = "bblpacks/$t/" + f.relativeTo(base).invariantSeparatorsPath
+                            rel to f
+                        }
+                        .toList()
+                        .sortedBy { (rel, _) -> rel }
+                        .forEach { (rel, f) ->
+                            val bytes = f.readBytes()
+                            val header = "FILE:$rel:${bytes.size}\n".toByteArray()
+                            out.write(header)
+                            out.write(bytes)
+                            out.write("\nEND\n".toByteArray())
+                        }
                 }
             }
         }
@@ -631,18 +691,56 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
 val clangPath = providers.provider { findTool("clang", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
 val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
 
+// --- Embed/cinterop wiring control ---
+// IDE sync and Kotlin/Native commonize/metadata tasks may request cinterop/link task models.
+// If those tasks unconditionally depend on embedBblpacks, then Gradle sync ends up executing the
+// whole embedding pipeline (tarBblpacks -> generateCFromTar -> compileC... -> lib + header).
+//
+// Behavior:
+// - Normal builds: embed wired by default.
+// - IDE sync: embed NOT wired by default.
+// - Override any time with: -Pbblpacks.embed=true / -Pbblpacks.embed=false
+val bblpacksEmbedRequested: Provider<Boolean> = providers.gradleProperty("bblpacks.embed")
+    .map { it.equals("true", ignoreCase = true) }
+    .orElse(true)
+
+// IntelliJ / Android Studio mark sync in different ways depending on version.
+// We treat *any* of these as a sync context.
+val isIdeaSyncActive: Provider<Boolean> = listOf(
+    "idea.sync.active",
+    // Seen in Android Studio / AGP tooling.
+    "android.injected.invoked.from.ide",
+    // Fallback (IDE is running). Not perfect, but helps.
+    "idea.active"
+).map { key ->
+    providers.systemProperty(key).map { it.equals("true", ignoreCase = true) }.orElse(false)
+}.reduce { acc, next ->
+    acc.zip(next) { a, b -> a || b }
+}
+
+val bblpacksEmbedEnabled: Provider<Boolean> = bblpacksEmbedRequested.zip(isIdeaSyncActive) { requested, isSync ->
+    requested && !isSync
+}
+
 // 1) TAR bblpacks preserving path "bblpacks/<t>/..."
 val tarBblpacks = tasks.register<TarBblpacksTask>("tarBblpacks") {
     bblpacksDir.set(bblpacksDirProvider)
     resourcesRootDir.set(resourcesRoot)
-    cinteropConfigDir.set(cinteropConfigDirProvider)
-    if (cinteropDefFileProvider.asFile.exists()) {
-        cinteropDefFile.set(cinteropDefFileProvider)
-    }
-    cinteropCompilerOptions.set(cinteropCompilerOptionsProvider)
+
+    // Track only files that are actually included in the TAR.
+    bblpacksInputFiles.from(
+        bblpacksDirProvider.asFileTree.matching {
+            include("**/*.txt")
+            include("**/index/**")
+            exclude("**/index/write.lock")
+            // be defensive: ignore other well-known transient files
+            exclude("**/*.lock")
+            exclude("**/.DS_Store")
+        }
+    )
+
     outputDirectory.set(tarOutDir)
     tarExecutable.set(providers.environmentVariable("TAR").orElse("tar"))
-    // intentionally NOT setting kotlinVersion to avoid unnecessary invalidation on unrelated catalog changes
 }
 
 // 2) Generate C arrays and combined header
@@ -811,9 +909,13 @@ tasks.register("embedBblpacks") {
 
 plugins.withId("org.jetbrains.kotlin.multiplatform") {
     tasks.matching { it.name.startsWith("cinteropBibles") }.configureEach {
-        dependsOn(tasks.named("embedBblpacks"))
-        doFirst {
-            logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
+        if (bblpacksEmbedEnabled.get()) {
+            dependsOn(tasks.named("embedBblpacks"))
+            doFirst {
+                logger.lifecycle("cinterop depends on header dir: ${includeOutDir.get().asFile.absolutePath}")
+            }
+        } else {
+            logger.info("Not wiring $name -> embedBblpacks (IDE sync detected or bblpacks.embed=false)")
         }
     }
 }
@@ -827,6 +929,10 @@ if (kotlinNativeLinkClass == null) {
     logger.info("KotlinNativeLink class not found on classpath (plugin may not be applied yet).")
 } else {
     tasks.matching { kotlinNativeLinkClass.isInstance(it) }.configureEach {
-        dependsOn(tasks.named("embedBblpacks"))
+        if (bblpacksEmbedEnabled.get()) {
+            dependsOn(tasks.named("embedBblpacks"))
+        } else {
+            logger.info("Not wiring $name -> embedBblpacks (IDE sync detected or bblpacks.embed=false)")
+        }
     }
 }

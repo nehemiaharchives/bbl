@@ -10,6 +10,25 @@ plugins {
 
 apply(from = rootProject.file("gradle/bblpacks.gradle.kts"))
 
+// Keep embed pipeline out of IDE sync task graphs.
+val isIdeaSyncActive: Provider<Boolean> = listOf(
+    "idea.sync.active",
+    "android.injected.invoked.from.ide",
+    "idea.active"
+).map { key ->
+    providers.systemProperty(key).map { it.equals("true", ignoreCase = true) }.orElse(false)
+}.reduce { acc, next ->
+    acc.zip(next) { a, b -> a || b }
+}
+
+val bblpacksEmbedRequested: Provider<Boolean> = providers.gradleProperty("bblpacks.embed")
+    .map { it.equals("true", ignoreCase = true) }
+    .orElse(true)
+
+val bblpacksEmbedEnabled: Provider<Boolean> = bblpacksEmbedRequested.zip(isIdeaSyncActive) { requested, isSync ->
+    requested && !isSync
+}
+
 @Suppress("UNCHECKED_CAST")
 val bblpacksCompilerOptsProvider = project.extensions.extraProperties.get("bblpacksCompilerOpts") as Provider<List<String>>
 
@@ -94,7 +113,7 @@ kotlin {
 
         compilations.getByName("main") {
             cinterops {
-                val bibles by creating {
+                creating {
                     defFile(project.file("src/nativeMain/cinterop/bibles.def"))
                     val inc = project.layout.buildDirectory.dir("embedded/include").get().asFile
                     includeDirs(inc)
@@ -109,7 +128,11 @@ kotlin {
             all {
                 val embedDir = project.layout.buildDirectory.dir("embedded/$variantId").get().asFile
                 linkerOpts("-L${embedDir.absolutePath}", "-lbibles")
-                linkTaskProvider.configure { dependsOn("embedBblpacks") }
+                linkTaskProvider.configure {
+                    if (bblpacksEmbedEnabled.get()) {
+                        dependsOn("embedBblpacks")
+                    }
+                }
             }
             executable {
                 entryPoint = "org.gnit.bible.cli.main"
@@ -119,16 +142,24 @@ kotlin {
     }
 }
 
-tasks.matching { it.name.startsWith("link") && it.name.contains("LinuxX64", ignoreCase = true) }.configureEach { dependsOn("embedBblpacks") }
+tasks.matching { it.name.startsWith("link") && it.name.contains("LinuxX64", ignoreCase = true) }.configureEach {
+    if (bblpacksEmbedEnabled.get()) {
+        dependsOn("embedBblpacks")
+    }
+}
 
 // Ensure Kotlin compilation sees the file (independent of cinterop timing)
+// (syncGeneratedTarBindings tasks already depend on generateTarBindingsKt -> tarBblpacks,
+// so we must also gate these for IDE sync).
 listOf(
     "compileKotlinLinuxX64" to ":cli:syncGeneratedTarBindingsLinuxX64",
     "compileKotlinMacosX64" to ":cli:syncGeneratedTarBindingsMacosX64",
     "compileKotlinMacosArm64" to ":cli:syncGeneratedTarBindingsMacosArm64"
 ).forEach { (tn, dep) ->
     tasks.matching { it.name == tn }.configureEach {
-        dependsOn(dep)
+        if (bblpacksEmbedEnabled.get()) {
+            dependsOn(dep)
+        }
     }
 }
 
@@ -137,7 +168,9 @@ listOf(
 afterEvaluate {
     if (tasks.findByName("compileNativeMainKotlinMetadata") != null) {
         tasks.named("compileNativeMainKotlinMetadata") {
-            dependsOn(tasks.named("generateTarBindingsKt"))
+            if (bblpacksEmbedEnabled.get()) {
+                dependsOn(tasks.named("generateTarBindingsKt"))
+            }
         }
     }
 }
@@ -150,7 +183,9 @@ tasks.withType<CInteropProcess>().configureEach {
         settings.compilerOpts.removeAll { it.startsWith("-fmodules-cache-path=") }
         settings.compilerOpts.add("-fmodules-cache-path=$cacheDirPath")
 
-        dependsOn("embedBblpacks")
+        if (bblpacksEmbedEnabled.get()) {
+            dependsOn("embedBblpacks")
+        }
         doFirst {
             sharedKonanCache?.takeIf { it.exists() }?.deleteRecursively()
 
