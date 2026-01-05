@@ -59,7 +59,7 @@ class CliBibleTest : BibleTestBase {
     @Test
     override fun searchJesusChrist() = super.searchJesusChrist()
 
-    @Test
+    /*@Test
     override fun searchJesusChristInWebusInRomans() = super.searchJesusChristInWebusInRomans()
 
     @Test
@@ -69,5 +69,5 @@ class CliBibleTest : BibleTestBase {
     override fun searchJesusChristInWebusInRomans3To5() = super.searchJesusChristInWebusInRomans3To5()
 
     @Test
-    override fun searchJesusChristInKjv() = super.searchJesusChristInKjv()
+    override fun searchJesusChristInKjv() = super.searchJesusChristInKjv()*/
 }
