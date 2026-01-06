@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="cli:packer [jvmRun]" type="GradleRunConfiguration" factoryName="Gradle">
+    <ExternalSystemSettings>
+      <option name="externalProjectPath" value="$PROJECT_DIR$/cli/packer" />
+      <option name="externalSystemIdString" value="GRADLE" />
+      <option name="scriptParameters" value="-DmainClass=org.gnit.bible.cli.PackerKt --quiet" />
+      <option name="taskNames">
+        <list>
+          <option value="jvmRun" />
+        </list>
+      </option>
+    </ExternalSystemSettings>
+    <method v="2" />
+  </configuration>
+</component>
