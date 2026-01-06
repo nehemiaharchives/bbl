@@ -1,5 +1,0 @@
-package = org.gnit.bible.cli.ci
-headers = generated_bibles.h
-# Module cache path is injected from Gradle to ensure fresh PCH per build
-# staticLibraries = bibles removed so that it links at the final native binary stage via binaries {} block
-# includeDirs are provided from Gradle: $buildDir/embedded/include

@@ -40,20 +40,16 @@ class ListCli(
                 }
                 val downloaded = am.downloadedTranslations()
 
-                val embedded = Translation.embeddedTranslations
-
-                val embeddedEntries =
-                    embedded.map { TranslationEntry(it, InstallationState.EMBEDDED) }
                 val downloadedEntries =
                     downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
-                val takenCodes = (embedded.map { it.code } + downloaded.map { it.code }).toSet()
+                val takenCodes = (downloaded.map { it.code }).toSet()
                 val downloadableEntries = downloadable
                     .filterNot { takenCodes.contains(it.code) }
                     .map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
                 val entries: List<TranslationEntry> =
-                    (embeddedEntries + downloadedEntries + downloadableEntries).sortedBy { entry ->
+                    (downloadedEntries + downloadableEntries).sortedBy { entry ->
                         entry.translation.language.order
                     }
 

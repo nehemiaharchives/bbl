@@ -34,7 +34,7 @@ interface AssetManager {
     val fileSystem: FileSystem
 
     /**
-     * @param baseUrl url of the translation list json file e.g. "https://bbl.pack.server.local/files/bblpacklist.json"
+     * @param listUrl url of the translation list json file e.g. "https://bbl.pack.server.local/files/bblpacklist.json"
      */
     suspend fun downloadableTranslationList(listUrl: String): List<Translation>
 
@@ -152,21 +152,36 @@ class AssetManagerImpl(
     }
 
     override fun downloadedTranslationCodes(): List<String> {
-        val packDir = platform.packDir.toPath()
-        if (!fileSystem.exists(packDir)) return emptyList()
-        return fileSystem.list(packDir).map { it.name.removeSuffix(".zip") }
+        val packDirPath = platform.packDir.toPath()
+        return runCatching {
+            if (!fileSystem.exists(packDirPath)) return emptyList()
+            fileSystem.list(packDirPath)
+                .mapNotNull { path ->
+                    val name = path.name
+                    if (!name.endsWith(".zip")) return@mapNotNull null
+                    name.removeSuffix(".zip")
+                }
+                .sorted()
+        }.getOrElse {
+            logger.debug { "AssetManagerImpl failed to list downloadedTranslationCodes: ${it.message}" }
+            emptyList()
+        }
     }
 
     /**
      * Use [ZipBibleResourcesReader] to read the manifest from each downloaded zip and return the parsed Translation.
-    */
+     */
     override fun downloadedTranslations(): List<Translation> {
         val codes = downloadedTranslationCodes()
         if (codes.isEmpty()) return emptyList()
-        val reader = ZipBibleResourcesReader(platform, fileSystem)
+
+        val reader = ZipBibleResourcesReader(platform = platform, fileSystem = fileSystem)
+
         return codes.mapNotNull { code ->
             runCatching { reader.getTranslationFromManifest(code) }
-                .onFailure { logger.error { "AssetManagerImpl failed to read manifest for $code: ${it.message}" } }
+                .onFailure { error ->
+                    logger.debug { "AssetManagerImpl failed to read manifest for installed pack '$code': ${error.message}" }
+                }
                 .getOrNull()
         }
     }

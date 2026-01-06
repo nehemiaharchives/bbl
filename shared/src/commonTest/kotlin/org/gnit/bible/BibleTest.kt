@@ -8,6 +8,7 @@ class BibleTest {
     @Test
     fun testSplitChapterToVerses() {
         val versesWebus = Bible.splitChapterToVerses(webusGenesisChapterOne)
+        assertEquals("In the beginning, God created the heavens and the earth.", versesWebus.first())
         assertEquals(31, versesWebus.size)
 
         val versesJc = Bible.splitChapterToVerses(jcGenesisChapterOne)
@@ -40,14 +41,14 @@ class BibleTest {
         assertEquals(webusGenesisChapterOne, selectedVersesGen1)
 
         val selectedVersesJohn3v16 = Bible.selectVerses(versePointer = versePointerJohn3v16, aChapter = webusJohnChapter3)
-        val webusJohn3v16 = "16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life."
+        val webusJohn3v16 = "For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life."
         assertEquals(webusJohn3v16, selectedVersesJohn3v16)
 
         val selectedVersesMatt28v18to20 = Bible.selectVerses(versePointer = versePointerMatt28v18to20, aChapter = webusMatthewChapter28)
         val webusMatt28v18to20 = """
-            18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
-            19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
-            20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
+            Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
+            Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
+            teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
         """.trimIndent()
         assertEquals(webusMatt28v18to20, selectedVersesMatt28v18to20)
     }

@@ -96,8 +96,16 @@ private fun generateDefaultConfig(bible: Bible): okio.Path {
     val platform = bible.assetManager.platform
     val settings = platform.settings
 
+    // CLI no longer embeds default translations. If the default translation pack isn't installed,
+    // fail fast and ask the user to install it.
+    val defaultTranslation = "webus"
+    if (!bible.availableTranslationCodes().contains(defaultTranslation)) {
+        // keep message user-friendly; tests look for "bbl install"
+        throw UsageError("Default translation '$defaultTranslation' is not installed. Run: bbl install $defaultTranslation")
+    }
+
     if (settings.getStringOrNull(ConfigKey.TRANSLATION.value) == null) {
-        settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        settings.putString(ConfigKey.TRANSLATION.value, defaultTranslation)
     }
     if (settings.getStringOrNull(ConfigKey.RANDOMLY_SHOW.value) == null) {
         settings.putString(ConfigKey.RANDOMLY_SHOW.value, "verse")

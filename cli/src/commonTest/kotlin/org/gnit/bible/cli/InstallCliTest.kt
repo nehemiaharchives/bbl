@@ -32,25 +32,25 @@ class InstallCliTest : ResourcesTestBase() {
 
     @Test
     fun testBblInstallKttv() {
-        val result = Bbl(bible = bible).test("install kttv").stdout
+        val result = Bbl(bible = bible).test("install kttv").output
         assertInstallResult(result, listOf("kttv"))
     }
 
     @Test
     fun testBblAliasGetKttv(){
-        val result = Bbl(bible = bible).test("get kttv").stdout
+        val result = Bbl(bible = bible).test("get kttv").output
         assertInstallResult(result, listOf("kttv"))
     }
 
     @Test
     fun testBblInstallMultipleTranslations() {
-        val result = Bbl(bible = bible).test("install kttv th1971").stdout
+        val result = Bbl(bible = bible).test("install kttv th1971").output
         assertInstallResult(result, listOf("kttv", "th1971"))
     }
 
     private fun assertInstallResult(result: String, expectedCodes: List<String>){
         val expectedOutput = expectedCodes.joinToString(separator = "") { "Installed $it\n" }
-        assertEquals(expectedOutput, result)
+        assertEquals(expectedOutput, result.replace("\r\n", "\n"))
 
         val packDir = bible.assetManager.platform.packDir.toPath()
         val packFileList = fakeFs.list(packDir)

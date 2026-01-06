@@ -13,18 +13,21 @@ class Bible(
     private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
 ) {
 
+    private fun hasEmbeddedReader(): Boolean = this::bibleResourcesReader.isInitialized
+
     fun availableTranslationCodes(): Array<String> {
-        return embeddedTranslationCodes.plus(assetManager.downloadedTranslationCodes())
+        val embedded = if (hasEmbeddedReader()) embeddedTranslationCodes else emptyArray()
+        return embedded.plus(assetManager.downloadedTranslationCodes())
     }
 
     fun availableTranslations(): List<Translation> {
-        val embeddedTranslations = Translation.embeddedTranslations
+        val embeddedTranslations = if (hasEmbeddedReader()) Translation.embeddedTranslations else emptyList()
         val downloadedTranslations = assetManager.downloadedTranslations()
         return embeddedTranslations.plus(downloadedTranslations)
     }
 
     fun findTranslationByCode(code: String): Boolean {
-        val foundInEmbedded = Translation.embeddedTranslations.find { it.code == code }
+        val foundInEmbedded = if (hasEmbeddedReader()) Translation.embeddedTranslations.find { it.code == code } else null
         if (foundInEmbedded != null) {
             return true
         }
@@ -51,12 +54,13 @@ class Bible(
     var zipTranslationSearchEngine: SearchEngine? = null
 
     fun obtainSearchEngine(isEmbedded: Boolean = true): SearchEngine {
-        if(isEmbedded){
+        val embedded = hasEmbeddedReader() && isEmbedded
+        if (embedded) {
             if (embeddedTranslationSearchEngine == null) {
                 embeddedTranslationSearchEngine = SearchEngine(bibleResourcesReader, analyzerProvider)
             }
             return embeddedTranslationSearchEngine!!
-        }else {
+        } else {
             if (zipTranslationSearchEngine == null) {
                 zipTranslationSearchEngine = SearchEngine(obtainZipBibleResourcesReader(), analyzerProvider)
             }
@@ -65,18 +69,22 @@ class Bible(
     }
 
     fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
-        return when{
-            translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
-            translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
-            embeddedTranslationCodes.contains(translation) -> bibleResourcesReader.getChapterText(translation = translation, book = book, chapter = chapter)
-            assetManager.downloadedTranslationCodes().contains(translation) -> obtainZipBibleResourcesReader().getChapterText(translation = translation, book = book, chapter = chapter)
+        return when {
+            hasEmbeddedReader() && translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
+            hasEmbeddedReader() && translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
+            hasEmbeddedReader() && embeddedTranslationCodes.contains(translation) ->
+                bibleResourcesReader.getChapterText(translation = translation, book = book, chapter = chapter)
+            assetManager.downloadedTranslationCodes().contains(translation) ->
+                obtainZipBibleResourcesReader().getChapterText(translation = translation, book = book, chapter = chapter)
             else -> error("Translation '$translation' not found. Available translations: ${availableTranslationCodes().joinToString(", ")}")
         }
     }
 
     fun defaultTranslationFromSettings(): Translation{
         val translationCode = assetManager.platform.settings.getStringOrNull(ConfigKey.TRANSLATION.value) ?: "webus"
-        val translation = availableTranslations().firstOrNull { it.code == translationCode }?: Translation.webus
+        val translation = availableTranslations().firstOrNull { it.code == translationCode }
+            ?: availableTranslations().firstOrNull()
+            ?: Translation.webus
         return translation
     }
 
@@ -98,12 +106,18 @@ class Bible(
         verses: Int = 100,
         translation: Translation
     ): List<String> {
-        val isEmbedded = embeddedTranslationCodes.contains(translation.code)
+        val isEmbedded = hasEmbeddedReader() && embeddedTranslationCodes.contains(translation.code)
         val searchEngine = obtainSearchEngine(isEmbedded)
         return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, translation)
     }
 
     companion object {
+
+        /**
+         * Split a chapter into an array of verses removing verse numbers.
+         * @param aChapter The chapter to split, the format is verse number then space then verse text.
+         * @return the aray of verses without the verse number.
+         */
         fun splitChapterToVerses(aChapter: String): Array<String> {
             return aChapter.substring(2).split("\\n\\d{1,3} ".toRegex()).toTypedArray()
         }
@@ -142,16 +156,12 @@ class Bible(
 
                 val verses = splitChapterToVerses(aChapter)
 
-                if (end == null) {
-                    selected = start.toString() + " " + verses[start - 1]
+                // Bible packs already include the verse number at the start of each verse line,
+                // so we don't need to add it again here.
+                selected = if (end == null) {
+                    verses[start - 1]
                 } else {
-                    val list = mutableListOf<String>()
-
-                    (start..end).forEach { verseNumber ->
-                        list.add(verseNumber.toString() + " " + verses[verseNumber - 1])
-                    }
-
-                    selected = list.joinToString("\n")
+                    verses.slice((start - 1)..(end - 1)).joinToString("\n")
                 }
             }
 

@@ -101,7 +101,8 @@ class AssetManagerTest : ResourcesTestBase() {
         assertTrue(cachedResult.isNotEmpty())
         assertEquals(result.size, cachedResult.size)
 
-        val abtag = result.first()
+        val abtag = result.firstOrNull { it.code == "abtag" }
+        assertNotNull(abtag)
         assertEquals("abtag", abtag.code)
         assertEquals("tl", abtag.languageCode)
         assertEquals("Ang Biblia", abtag.englishName)

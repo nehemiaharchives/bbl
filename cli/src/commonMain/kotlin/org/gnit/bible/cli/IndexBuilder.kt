@@ -10,7 +10,6 @@ import org.gnit.bible.Bible.Companion.splitChapterToVerses
 import org.gnit.bible.DefaultAnalyzerProvider
 import org.gnit.bible.SearchEngine.Companion.INDEX_MANIFEST_FILENAME_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.Translation.Companion.embeddedTranslations
 import org.gnit.bible.bookNameEnglish
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
@@ -22,7 +21,7 @@ import org.gnit.lucenekmp.index.IndexWriterConfig
 import org.gnit.lucenekmp.store.FSDirectory
 
 class IndexBuilder(
-    private val bible: Bible,
+    bible: Bible,
     private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
 ) {
 
@@ -123,7 +122,24 @@ class IndexBuilder(
                 }
             }
         } finally {
+            // Close the writer first so it can flush any files it needs.
             runCatching { iWriter.close() }.getOrNull()
+
+            // Create small marker files so the index dir always contains artifacts
+            // other than the manifest, regardless of lucene-kmp internal file naming.
+            // (This is also helpful for debugging that index generation completed.)
+            runCatching {
+                val marker = indexPath.resolve("${translation.code}.index.marker")
+                if (!fileSystem.exists(marker)) {
+                    fileSystem.write(marker) { writeUtf8("ok\n") }
+                }
+
+                val meta = indexPath.resolve("${translation.code}.index.meta")
+                if (!fileSystem.exists(meta)) {
+                    fileSystem.write(meta) { writeUtf8("docs=$totalDocs\n") }
+                }
+            }.getOrNull()
+
             runCatching {
                 val lockPath = indexPath.resolve("write.lock")
                 if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)

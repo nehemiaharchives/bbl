@@ -24,20 +24,53 @@ class ZipBibleResourcesReader(
     override fun getChapterText(translation: String, book: Int, chapter: Int): String {
         val sb = StringBuilder()
         withZipFile(translation) { zip ->
-            val targetName =
-                zip.entries.firstOrNull { it.name.endsWith("$translation.$book.$chapter.txt") }?.name
-                    ?: error("No entry ending with $translation.$book.$chapter.txt found")
+            val expectedFileName = "$translation.$book.$chapter.txt"
+            val targetName = zip.entries
+                .firstOrNull { it.name.substringAfterLast('/') == expectedFileName }
+                ?.name
+                ?: error("No entry ending with $expectedFileName found")
+
             zip.readTextEntry(targetName) { text, _ -> sb.append(text) }
         }
         return sb.toString()
     }
 
     override fun listIndexFiles(translation: String): List<String> {
-        TODO("Not yet implemented")
+        return withZipFile(translation) { zip ->
+            zip.entries
+                .map { it.name }
+                .filter { it.startsWith("index/") && !it.endsWith("/") }
+                .map { it.removePrefix("index/") }
+                .toList()
+        }
     }
 
     override fun readIndexFile(translation: String, name: String): ByteArray {
-        TODO("Not yet implemented")
+        require(name.isNotBlank()) { "Index file name is blank" }
+        require(!name.contains('/')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains('\\')) { "Index file name must be a flat filename, got: $name" }
+        require(!name.contains("..")) { "Index file name must not contain '..', got: $name" }
+
+        val target = "index/$name"
+        return withZipFile(translation) { zip ->
+            val entry = zip.entries.firstOrNull { it.name == target }
+                ?: error("Index file not found in zip: $target")
+            val chunks = ArrayList<ByteArray>(4)
+            zip.readEntry(entry) { _, content, count, last ->
+                if (count.toInt() > 0) {
+                    chunks.add(content.copyOfRange(0, count.toInt()))
+                }
+                // `last` is intentionally unused; we just buffer all chunks and merge at the end.
+            }
+            val total = chunks.sumOf { it.size }
+            val merged = ByteArray(total)
+            var offset = 0
+            chunks.forEach { bytes ->
+                bytes.copyInto(merged, offset)
+                offset += bytes.size
+            }
+            merged
+        }
     }
 
     fun getTranslationFromManifest(translationCode: String): Translation {

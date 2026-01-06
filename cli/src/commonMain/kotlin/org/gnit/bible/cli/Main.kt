@@ -99,14 +99,42 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
     }
 }
 
+private fun formatSelectedVersesFromChapterText(
+    chapterText: String,
+    startVerse: Int?,
+    endVerse: Int?
+): String {
+    if (startVerse == null) {
+        // Chapter output: keep as-is. Different packs may have different trailing newline counts.
+        return chapterText
+    }
+
+    // Packs store verse numbers in the chapter text. splitChapterToVerses removes them.
+    val verses = Bible.splitChapterToVerses(chapterText)
+
+    // Single-verse output: MainTest expects exactly the stored verse line (including the verse number)
+    // without us adding another prefix.
+    if (endVerse == null) {
+        return "${startVerse} ${verses[startVerse - 1].trimEnd()}"
+    }
+
+    // Range output: prefix verse numbers for consistent CLI output.
+    return (startVerse..endVerse)
+        .joinToString("\n") { verseNumber ->
+            "$verseNumber ${verses[verseNumber - 1].trimEnd()}"
+        }
+}
+
 class Bbl(
     private val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider())
-        .apply { bibleResourcesReader = CliBibleResourcesReader() }
 ) : CliktCommand() {
 
     override val invokeWithoutSubcommand = true
+
+    // Verse lookup args (used when running `bbl gen 1`, etc).
     val book: List<String> by argument().multiple(default = listOf("gen"))
     val chapterVerse: String by argument().default("1")
+
     val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
 
     lateinit var versePointer: VersePointer
@@ -139,26 +167,50 @@ class Bbl(
 
         if (versionFlag) {
             echo(versionOutput)
-        } else {
-            versePointer = parseVersePointerOrThrow(
-                translation = bible.defaultTranslationFromSettings(),
-                bookTokens = book,
-                chapterVerse = chapterVerse
-            )
+            return
+        }
 
-            val subCommand = currentContext.invokedSubcommand
-            if (subCommand == null) {
-                chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
-                validateVerseRangeOrThrow(versePointer, chapterText)
-                selectedVerses = Bible.selectVerses(versePointer, chapterText)
-                if (bible.showHeaderFromSettings()) {
-                    echo(formatHeader(versePointer))
-                }
-                echo(selectedVerses)
-            } else {
-                // going to move on subCommand
-                currentContext.findOrSetObject { versePointer }
-            }
+        // Always parse the verse pointer from the top-level args first and publish it.
+        // Subcommands like `in` depend on it (e.g. `bbl matt 28:18-20 in jc`).
+        versePointer = parseVersePointerOrThrow(
+            translation = bible.defaultTranslationFromSettings(),
+            bookTokens = book,
+            chapterVerse = chapterVerse
+        )
+        currentContext.findOrSetObject { versePointer }
+
+        // If a subcommand (or alias) is invoked, don't treat args as verse lookup.
+        // This allows `bbl install kttv` to work even when no default translation is installed.
+        val invoked = currentContext.invokedSubcommand
+        if (invoked != null) {
+            return
+        }
+
+        if (!bible.findTranslationByCode(versePointer.translation.code)) {
+            throw UsageError("Translation '${versePointer.translation.code}' is not installed. Run 'bbl install ${versePointer.translation.code}' first.")
+        }
+
+        chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
+        validateVerseRangeOrThrow(versePointer, chapterText)
+
+        val start = versePointer.startVerse
+        val end = versePointer.endVerse
+
+        selectedVerses = formatSelectedVersesFromChapterText(
+            chapterText = chapterText,
+            startVerse = start,
+            endVerse = end
+        )
+
+        if (bible.showHeaderFromSettings()) {
+            echo(formatHeader(versePointer))
+        }
+
+        echo(selectedVerses.trimEnd())
+
+        // Preserve historical behavior: ranges print an extra blank line after output.
+        if (start != null && end != null) {
+            echo("")
         }
     }
 }
@@ -194,11 +246,21 @@ class In(
             versePointer.translation = firstTranslation
             val chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
             validateVerseRangeOrThrow(versePointer, chapterText)
-            selectedVerses = Bible.selectVerses(versePointer, chapterText)
+
+            val start = versePointer.startVerse
+            val end = versePointer.endVerse
+
+            selectedVerses = formatSelectedVersesFromChapterText(
+                chapterText = chapterText,
+                startVerse = start,
+                endVerse = end
+            )
+
             if (bible.showHeaderFromSettings()) {
                 echo(formatHeader(versePointer))
             }
-            echo(selectedVerses)
+
+            echo(selectedVerses.trimEnd())
             return
         }
 

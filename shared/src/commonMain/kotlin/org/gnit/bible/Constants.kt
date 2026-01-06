@@ -7,6 +7,10 @@ const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
 const val SETTINGS_FILE_NAME = "config.properties"
 
+fun hasEmbeddedTranslation(translationCode: String, readerInitialized: Boolean): Boolean {
+    return readerInitialized && embeddedTranslationCodes.contains(translationCode)
+}
+
 val embeddedTranslationCodes = arrayOf(
     "cunp",
     "delut",
@@ -25,7 +29,7 @@ val embeddedTranslationCodes = arrayOf(
     "webus",
 )
 
-val downloadableTranslations = listOf(
+val downloadableTranslations = Translation.embeddedTranslations.plus(listOf(
     Translation("abtag", "tl", "Ang Biblia", "Ang Biblia", 1905, "Public Domain"),
     Translation("ayt", "id", "The Opened Bible", "Alkitab Yang Terbuka", 2024, "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT"),
     Translation("irvben", "bn", "Indian Revised Version - Bengali", "ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
@@ -37,7 +41,7 @@ val downloadableTranslations = listOf(
     Translation("irvurd", "ur", "Indian Revised Version - Urdu", "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."),
     Translation("kttv", "vi", "Vietnamese Bible 1925", "Kinh Thánh Tiếng Việt", 1925, "Public Domain"),
     Translation("th1971", "th", "Thai Bible 1925", "พระคริสตธรรมคัมภีร์ ฉบับ1971", 1971, "Public Domain")
-)
+))
 
 val downloadableTranslationCodeList = downloadableTranslations.map { it.code }
 

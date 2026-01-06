@@ -25,6 +25,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Properties
+import java.util.Locale
 import javax.inject.Inject
 
 // This script plugin is applied to the 'cli' project.
@@ -480,6 +481,59 @@ abstract class TarBblpacksTask @Inject constructor(
 }
 
 @CacheableTask
+abstract class ObjcopyTarToObjectsTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val tarInputDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val objectOutputDir: DirectoryProperty
+
+    @get:Input
+    abstract val objcopyExecutable: Property<String>
+
+    @get:Input
+    abstract val outputFormat: Property<String>
+
+    @get:Input
+    abstract val binaryArch: Property<String>
+
+    @TaskAction
+    fun generate() {
+        val tarDir = tarInputDir.get().asFile
+        val objDir = objectOutputDir.get().asFile.also { it.mkdirs() }
+        val objcopy = objcopyExecutable.get()
+        val tars = tarDir.listFiles { f -> f.isFile && f.name.endsWith(".tar") }
+            ?.sortedBy { it.name }
+            .orEmpty()
+
+        if (tars.isEmpty()) {
+            logger.warn("No .tar files to objcopy in $tarDir")
+        }
+
+        for (tar in tars) {
+            val out = File(objDir, tar.nameWithoutExtension + "_tar.o")
+            val execResult = execOperations.exec {
+                workingDir = tarDir
+                commandLine(
+                    objcopy,
+                    "--input-target=binary",
+                    "--output-target=${'$'}{outputFormat.get()}",
+                    "--binary-architecture=${'$'}{binaryArch.get()}",
+                    tar.name,
+                    out.absolutePath
+                )
+            }
+            execResult.assertNormalExitValue()
+            logger.lifecycle("Objcopied ${tar.name} -> ${out.name}")
+        }
+    }
+}
+
+@CacheableTask
 abstract class GenerateCFromTarTask : DefaultTask() {
 
     @get:InputDirectory
@@ -495,8 +549,12 @@ abstract class GenerateCFromTarTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val tarDir = tarInputDir.get().asFile
-        val cDir = cOutputDir.get().asFile.also { it.mkdirs() }
-        val incDir = includeOutputDir.get().asFile.also { it.mkdirs() }
+        val cDir = cOutputDir.get().asFile.also {
+            it.mkdirs(); it.listFiles()?.forEach(File::deleteRecursively)
+        }
+        val incDir = includeOutputDir.get().asFile.also {
+            it.mkdirs(); it.listFiles()?.forEach(File::deleteRecursively)
+        }
 
         val tars = tarDir.listFiles { f -> f.isFile && f.name.endsWith(".tar") }
             ?.sortedBy { it.name }
@@ -506,44 +564,64 @@ abstract class GenerateCFromTarTask : DefaultTask() {
             logger.warn("No .tar files in $tarDir")
         }
 
+        fun symbolBase(name: String) = name.replace(Regex("[^A-Za-z0-9]"), "_")
+
+        val entries = tars.map { tar ->
+            val base = symbolBase(tar.name)
+            Triple(tar.nameWithoutExtension, "_binary_${base}_start", "_binary_${base}_end")
+        }
+
         val header = File(incDir, "generated_bibles.h")
-        val externs = StringBuilder().apply {
-            appendLine("#pragma once")
-            appendLine("#ifdef __cplusplus")
-            appendLine("extern \"C\" {")
-            appendLine("#endif")
-            appendLine()
-        }
-
-        tars.parallelStream().forEach { tar ->
-            logger.lifecycle("Generating C array from ${tar.name}")
-            val name = tar.nameWithoutExtension
-            val symbol = "${name}_tar"
-            val bytes = Files.readAllBytes(tar.toPath())
-            val cFile = File(cDir, "$symbol.c")
-
-            cFile.printWriter().use { pw ->
-                pw.println("/* Auto-generated. Do not edit. */")
-                pw.println("#include <stddef.h>")
-                pw.println("const unsigned char $symbol[] = {")
-                bytes.asSequence().chunked(16).forEach { chunk ->
-                    val line = chunk.joinToString(", ") { String.format("0x%02X", it) }
-                    pw.println("  $line,")
+        header.writeText(
+            buildString {
+                appendLine("#pragma once")
+                appendLine("#include <stddef.h>")
+                appendLine("#ifdef __cplusplus")
+                appendLine("extern \"C\" {")
+                appendLine("#endif")
+                appendLine("struct EmbeddedTar { const char* name; const unsigned char* data; size_t len; };")
+                appendLine("const struct EmbeddedTar* find_embedded_tar(const char* name);")
+                appendLine("const struct EmbeddedTar* embedded_tar_at(size_t index);")
+                appendLine("size_t embedded_tar_count(void);")
+                appendLine()
+                entries.forEach { (_, startSym, endSym) ->
+                    appendLine("extern const unsigned char ${startSym}[];")
+                    appendLine("extern const unsigned char ${endSym}[];")
                 }
-                pw.println("};")
-                pw.println("const unsigned int ${symbol}_len = ${bytes.size};")
+                appendLine("#ifdef __cplusplus")
+                appendLine("}")
+                appendLine("#endif")
             }
+        )
 
-            externs.appendLine("extern const unsigned char ${symbol}[];   extern const unsigned int ${symbol}_len;")
-        }
-
-        externs.appendLine()
-        externs.appendLine("#ifdef __cplusplus")
-        externs.appendLine("}")
-        externs.appendLine("#endif")
-
-        header.writeText(externs.toString())
-        logger.lifecycle("Wrote ${header.absolutePath} and ${cDir.listFiles()?.size ?: 0} C files")
+        val tableC = File(cDir, "generated_bibles_table.c")
+        tableC.writeText(
+            buildString {
+                appendLine("/* Auto-generated. Do not edit. */")
+                appendLine("#include <stddef.h>")
+                appendLine("#include <string.h>")
+                appendLine("#include \"generated_bibles.h\"")
+                appendLine()
+                appendLine("static const struct EmbeddedTar EMBEDDED_TARS[] = {")
+                entries.forEach { (name, startSym, endSym) ->
+                    appendLine("  { \"$name\", $startSym, (size_t)($endSym - $startSym) },")
+                }
+                appendLine("};")
+                appendLine()
+                appendLine("size_t embedded_tar_count(void) { return sizeof(EMBEDDED_TARS) / sizeof(EMBEDDED_TARS[0]); }")
+                appendLine("const struct EmbeddedTar* embedded_tar_at(size_t index) {")
+                appendLine("  return index < embedded_tar_count() ? &EMBEDDED_TARS[index] : NULL;")
+                appendLine("}")
+                appendLine("const struct EmbeddedTar* find_embedded_tar(const char* name) {")
+                appendLine("  if (!name) return NULL;")
+                appendLine("  for (size_t i = 0; i < embedded_tar_count(); ++i) {")
+                appendLine("    if (strcmp(name, EMBEDDED_TARS[i].name) == 0) return &EMBEDDED_TARS[i];")
+                appendLine("  }")
+                appendLine("  return NULL;")
+                appendLine("}")
+            }
+        )
+        logger.lifecycle("Wrote ${header.absolutePath} and ${tableC.absolutePath}")
     }
 }
 
@@ -559,13 +637,16 @@ abstract class CompileCToObjectsTask @Inject constructor(
     @get:OutputDirectory
     abstract val objectOutputDir: DirectoryProperty
 
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val includeDirectory: DirectoryProperty
+
     @get:Input
     abstract val clangExecutable: Property<String>
 
     @get:Input
     abstract val targetTriple: Property<String>
 
-    // Ensure recompilation only when Kotlin version changes (or sources change)
     @get:Input
     abstract val kotlinVersion: Property<String>
 
@@ -574,6 +655,7 @@ abstract class CompileCToObjectsTask @Inject constructor(
         val cDir = cInputDir.get().asFile
         val objDir = objectOutputDir.get().asFile.also { it.mkdirs() }
         val clang = clangExecutable.get()
+        val incDir = includeDirectory.get().asFile
 
         val sources = cDir.listFiles { f -> f.isFile && f.extension == "c" }
             ?.sortedBy { it.name }
@@ -584,14 +666,22 @@ abstract class CompileCToObjectsTask @Inject constructor(
             return
         }
 
-        logger.lifecycle("Compiling c files to .o files with: $clang")
         val target = targetTriple.get()
-
         sources.parallelStream().forEach { c ->
-            logger.lifecycle("Compiling ${c.name} to ${c.nameWithoutExtension}.o")
             val out = File(objDir, c.nameWithoutExtension + ".o")
             val execResult = execOperations.exec {
-                commandLine(clang, "-c", "-O2", "-target", target, c.absolutePath, "-o", out.absolutePath)
+                commandLine(
+                    clang,
+                    "-c",
+                    "-O2",
+                    "-target",
+                    target,
+                    "-I",
+                    incDir.absolutePath,
+                    c.absolutePath,
+                    "-o",
+                    out.absolutePath
+                )
             }
             execResult.assertNormalExitValue()
         }
@@ -653,15 +743,10 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val header = headerFile.get().asFile
         val baseOutput = outputDirectory.get().asFile
         val ktDir = File(baseOutput, "org/gnit/bible/cli").also { it.mkdirs() }
         val ktFile = File(ktDir, "GeneratedTarBindings.kt")
 
-        // Extract translation IDs from the generated TARs, not from the header.
-        // The header contains C symbols only when we bind via C interop. In the ByteArray
-        // embedding mode (BblpacksResources), those symbols may be absent, which would
-        // incorrectly generate `generatedReaderFor(..) = null`.
         val translations = tarInputDir.get().asFile
             .listFiles()
             ?.asSequence()
@@ -675,23 +760,28 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
             appendLine("/* Auto-generated. Do not edit. */")
             appendLine("package org.gnit.bible.cli")
             appendLine()
-            appendLine("import kotlinx.cinterop.*")
-            appendLine("import org.gnit.bible.cli.ci.*")
+            appendLine("import bibles.embedded_tar_count")
+            appendLine("import bibles.embedded_tar_at")
+            appendLine("import bibles.find_embedded_tar")
+            appendLine("import kotlinx.cinterop.ExperimentalForeignApi")
+            appendLine("import kotlinx.cinterop.pointed")
+            appendLine("import kotlinx.cinterop.readBytes")
             appendLine()
-            // Declare external C symbols from the cinterop-generated stubs so we can take pointers.
-            translations.forEach { t ->
-                appendLine("@CName(\"${t}_tar\")")
-                appendLine("private external val ${t}_tar: CPointer<UByteVar>")
-                appendLine("@CName(\"${t}_tar_len\")")
-                appendLine("private external val ${t}_tar_len: UInt")
-                appendLine()
-            }
-
-            appendLine("internal actual fun generatedReaderFor(translation: String): TarPtrReader? = when (translation) {")
-            translations.forEach { t ->
-                appendLine("    \"$t\" -> TarPtrReader(${t}_tar, ${t}_tar_len.toInt())")
-            }
-            appendLine("    else -> null")
+            appendLine("private val embeddedTranslations: Set<String> = setOf(${translations.joinToString { "\"$it\"" }})")
+            appendLine()
+            appendLine("@OptIn(ExperimentalForeignApi::class)")
+            appendLine("private fun loadTarBytes(name: String): ByteArray? {")
+            appendLine("    val entry = find_embedded_tar(name) ?: return null")
+            appendLine("    val len = entry.pointed.len.toLong()")
+            appendLine("    if (len <= 0L || len > Int.MAX_VALUE) return null")
+            appendLine("    val ptr = entry.pointed.data ?: return null")
+            appendLine("    return ptr.readBytes(len.toInt())")
+            appendLine("}")
+            appendLine()
+            appendLine("internal actual fun generatedReaderFor(translation: String): TarBytesReader? {")
+            appendLine("    if (!embeddedTranslations.contains(translation)) return null")
+            appendLine("    val bytes = loadTarBytes(translation) ?: return null")
+            appendLine("    return TarBytesReader(bytes, translation)")
             appendLine("}")
         }
 
@@ -709,6 +799,7 @@ abstract class GenerateTarBindingsTask : DefaultTask() {
 // Always use version-gated clang/llvm on all platforms to avoid PCH/ABI mismatches
 val clangPath = providers.provider { findTool("clang", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
 val llvmArPath = providers.provider { findTool("llvm-ar", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
+val llvmObjcopyPath: Provider<String> = providers.provider { findTool("llvm-objcopy", kotlinNativeLlvmBundleProvider.get().llvmMajorVersion) }
 
 // --- Embed/cinterop wiring control ---
 // IDE sync and Kotlin/Native commonize/metadata tasks may request cinterop/link task models.
@@ -860,33 +951,47 @@ val downloadKonanLlvm = tasks.register("downloadKonanLlvm") {
 }
 
 // 3) Compile C → .o
-data class NativeVariant(val id: String, val targetTriple: String)
+data class NativeVariant(val id: String, val targetTriple: String, val objcopyOutputFormat: String = "elf64-x86-64", val objcopyBinaryArch: String = "x86-64")
 
 private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
 val nativeVariants = listOf(
-    NativeVariant("macosArm64", "arm64-apple-macos11"),
-    NativeVariant("macosX64", "x86_64-apple-macos10.15"),
-    NativeVariant("linuxX64", "x86_64-unknown-linux-gnu")
+    NativeVariant("macosArm64", "arm64-apple-macos11", objcopyOutputFormat = "mach-o64-arm64", objcopyBinaryArch = "arm64"),
+    NativeVariant("macosX64", "x86_64-apple-macos10.15", objcopyOutputFormat = "mach-o64-x86-64", objcopyBinaryArch = "x86-64"),
+    NativeVariant("linuxX64", "x86_64-unknown-linux-gnu", objcopyOutputFormat = "elf64-x86-64", objcopyBinaryArch = "x86-64")
 )
+
+private fun NativeVariant.capId() = id.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
 val archiveTasksByVariant = nativeVariants.associate { variant ->
     val objDir = embedBuild.map { it.dir("obj/${variant.id}") }
     val libFile = embedBuild.map { it.file("${variant.id}/libbibles.a") }
 
-    val compileTask = tasks.register<CompileCToObjectsTask>("compileCToObjects${variant.id.capitalized()}") {
+    val objcopyTask = tasks.register<ObjcopyTarToObjectsTask>("objcopyTarToObjects${variant.capId()}") {
+        dependsOn(ensureKonanToolchain)
+        dependsOn(downloadKonanLlvm)
+        dependsOn(tarBblpacks)
+        tarInputDir.set(tarOutDir)
+        objectOutputDir.set(objDir)
+        objcopyExecutable.set(llvmObjcopyPath)
+        outputFormat.set(variant.objcopyOutputFormat)
+        binaryArch.set(variant.objcopyBinaryArch)
+    }
+
+    val compileTask = tasks.register<CompileCToObjectsTask>("compileCToObjects${variant.capId()}") {
         dependsOn(ensureKonanToolchain)
         dependsOn(downloadKonanLlvm)
         dependsOn(generateCFromTar)
         cInputDir.set(cOutDir)
+        includeDirectory.set(includeOutDir)
         objectOutputDir.set(objDir)
         clangExecutable.set(clangPath)
         targetTriple.set(variant.targetTriple)
-        // Make the task sensitive only to Kotlin version changes from the version catalog
         kotlinVersion.set(kotlinVersionProvider)
     }
 
-    val archiveTask = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive${variant.id.capitalized()}") {
+    val archiveTask = tasks.register<BuildEmbeddedArchiveTask>("buildEmbeddedArchive${variant.capId()}") {
+        dependsOn(objcopyTask)
         dependsOn(compileTask)
         objectInputDir.set(objDir)
         archiveOutputFile.set(libFile)

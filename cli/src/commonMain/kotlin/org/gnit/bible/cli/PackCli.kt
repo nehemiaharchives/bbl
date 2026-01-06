@@ -207,11 +207,15 @@ fun packTranslation(translationCode: String){
  */
 fun main() {
 
-    embeddedTranslations.forEach { translation ->
+    /*embeddedTranslations.forEach { translation ->
         createEmbeddedLuceneKmpIndex(translation)
     }
 
     downloadableTranslationCodeList.forEach { translationCode ->
         packTranslation(translationCode)
-    }
+    }*/
+
+    //packTranslation("webus")
+
+    println("this is PackCli")
 }

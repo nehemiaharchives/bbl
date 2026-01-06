@@ -1,7 +1,6 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
-import com.russhwolf.settings.set
 import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -9,7 +8,6 @@ import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
-import org.gnit.bible.getPlatform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
@@ -36,21 +34,21 @@ class ListCliTest : ResourcesTestBase() {
         Bbl(bible).test("install kttv")
     }
 
-    val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Embedded  | Public Domain
-KJV    | King James Version                         | King James Version               | English    | 1611 | Embedded  | Public Domain
-RVR09  | Reina-Valera                               | Reina-Valera                     | Spanish    | 1909 | Embedded  | Public Domain
-TB     | Brazilian Translation                      | Tradução Brasileira              | Portuguese | 1917 | Embedded  | Public Domain
-DELUT  | Luther Bible                               | Lutherbibel                      | German     | 1912 | Embedded  | Public Domain
-LSG    | Louis Segond                               | Bible Segond                     | French     | 1910 | Embedded  | Public Domain
-SINOD  | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876 | Embedded  | Public Domain
-SVRJ   | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Embedded  | Public Domain
-RDV24  | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924 | Embedded  | Public Domain
-UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Embedded  | © 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted.
-UBIO   | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Embedded  | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society
-SVEN   | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917 | Embedded  | Public Domain
-CUNP   | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919 | Embedded  | Public Domain
-KRV    | Korean Revised Version                     | 개역한글                         | Korean     | 1961 | Embedded  | Public Domain
-JC     | Japanese Colloquial Bible                  | 口語訳                           | Japanese   | 1955 | Embedded  | Public Domain
+    val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Available | Public Domain
+KJV    | King James Version                         | King James Version               | English    | 1611 | Available | Public Domain
+RVR09  | Reina-Valera                               | Reina-Valera                     | Spanish    | 1909 | Available | Public Domain
+TB     | Brazilian Translation                      | Tradução Brasileira              | Portuguese | 1917 | Available | Public Domain
+DELUT  | Luther Bible                               | Lutherbibel                      | German     | 1912 | Available | Public Domain
+LSG    | Louis Segond                               | Bible Segond                     | French     | 1910 | Available | Public Domain
+SINOD  | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876 | Available | Public Domain
+SVRJ   | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Available | Public Domain
+RDV24  | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924 | Available | Public Domain
+UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Available | © 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted.
+UBIO   | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Available | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society
+SVEN   | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917 | Available | Public Domain
+CUNP   | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919 | Available | Public Domain
+KRV    | Korean Revised Version                     | 개역한글                         | Korean     | 1961 | Available | Public Domain
+JC     | Japanese Colloquial Bible                  | 口語訳                           | Japanese   | 1955 | Available | Public Domain
 ABTAG  | Ang Biblia                                 | Ang Biblia                       | Tagalog    | 1905 | Available | Public Domain
 AYT    | The Opened Bible                           | Alkitab Yang Terbuka             | Indonesian | 2024 | Available | CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT
 KTTV   | Vietnamese Bible 1925                      | Kinh Thánh Tiếng Việt            | Vietnamese | 1925 | Installed | Public Domain
@@ -63,7 +61,6 @@ IRVTAM | Indian Revised Version - Tamil             | இண்டியன் �
 IRVGUJ | Indian Revised Version - Gujarati          | ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી            | Gujarati   | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 IRVURD | Indian Revised Version - Urdu              | इंडियन रिवाइज्ड वर्जन (IRV) उर्दू        | Urdu       | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 """
-
 
     @Test
     fun testBblList() {

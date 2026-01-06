@@ -28,6 +28,8 @@ class JVMPlatform : Platform() {
     }
 }
 
-actual fun getPlatform(platformContext: Any?): Platform = JVMPlatform()
+private val cachedPlatform: JVMPlatform by lazy { JVMPlatform() }
+
+actual fun getPlatform(platformContext: Any?): Platform = cachedPlatform
 
 actual fun createPlatformHttpClient(): HttpClient = HttpClient(OkHttp)

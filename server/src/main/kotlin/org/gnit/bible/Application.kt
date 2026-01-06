@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.gnit.bible.cli.CliBibleResourcesReader
+import org.gnit.bible.ServerBibleResourcesReader
 
 fun main() {
     embeddedServer(Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module)
@@ -14,7 +15,7 @@ fun main() {
 
 fun Application.module() {
 
-    val bible = Bible().apply { bibleResourcesReader = CliBibleResourcesReader() }
+    val bible = Bible().apply { bibleResourcesReader = ServerBibleResourcesReader() }
 
     routing {
         get("/") {

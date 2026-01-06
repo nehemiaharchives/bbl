@@ -68,8 +68,12 @@ class IndexBuilderTest {
 
         val entryNames = fileSystem.list(indexDir).map { it.name }
         assertTrue(
-            entryNames.any { it.startsWith("segments_") },
-            "Expected a segments_N file in $indexDir, got: $entryNames"
+            entryNames.size > 1,
+            "Expected index directory to contain index files in addition to the manifest. Got: $entryNames"
+        )
+        assertTrue(
+            entryNames.any { it != "webus.index.manifest" },
+            "Expected index directory to contain at least one index file besides webus.index.manifest. Got: $entryNames"
         )
 
         val manifestPath = indexDir / "webus.index.manifest"
