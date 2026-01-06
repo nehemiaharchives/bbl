@@ -85,11 +85,11 @@ Commit criteria:
 
 ## Phase 4 — Define helper binary protocol (contract + fixtures)
 
-- [ ] Write a minimal CLI contract for helper binaries (document in `cli/README.md` or new `cli-search/README.md`):
+- [x] Write a minimal CLI contract for helper binaries (document in `cli/README.md` or new `cli-search/README.md`):
   - Required args: `-t <translationCode>` and query term(s).
   - Output format: match `bbl search` output semantics exactly.
   - Non-zero exit code on error; stderr contains human-readable message.
-- [ ] Create a tiny “test fixture pack” (small index + minimal bible text) usable by all helper modules.
+- [x] Create a tiny “test fixture pack” (small index + minimal bible text) usable by all helper modules.
   - Prefer storing as a small test resource in a shared test module.
 
 Commit criteria:
