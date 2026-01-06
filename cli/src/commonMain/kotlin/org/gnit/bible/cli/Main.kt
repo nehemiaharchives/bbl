@@ -151,8 +151,7 @@ class Bbl(
             UninstallCli(bible),
             ConfigCli(bible),
 
-            // this is for developers to create new bbl pack zip file for bbl
-            PackCli(bible),
+            // pack/index builder has been moved to :cli:packer (developer-only tool)
         )
     }
 

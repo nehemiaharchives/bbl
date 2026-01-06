@@ -62,3 +62,12 @@ This phase focus on finish porting lucene-kmp needed in bbl-kmp while debugging 
   * 6.7. bbl search $query in $book:$chapter in $translation : TODO
   * 6.8. bbl search $query in $book:$chapter:$startVerse-$endVerse : TODO
   * 6.9. bbl search $query in $book:$chapter:$startVerse-$endVerse in $translation : TODO
+
+## Developer tooling: pack/index
+
+`bbl pack` has been moved out of the main `bbl` binary as part of the SEARCH_BINARY_SPLIT_PLAN Phase 6.
+
+Use the dev-only module `:cli:packer` instead.
+
+- Run configuration: `cli:packer [jvmRun]` (or equivalent)
+- Command: `bbl-packer pack <translationCode>`

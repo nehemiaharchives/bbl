@@ -12,6 +12,8 @@ object TestFixtures {
 
     const val KTTV_GENESIS_1_1 = "1 Ban đầu Đức Chúa Trời dựng nên trời đất."
     const val WEBUS_GENESIS_1_1 = "1 In the beginning, God created the heavens and the earth."
+    const val WEBUS_GENESIS_1_2 = "2 The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters."
+    const val WEBUS_GENESIS_1_3 = "3 God said, “Let there be light,” and there was light."
     const val JC_GENESIS_1_1 = "1 はじめに神は天と地とを創造された。"
     const val WEBUS_JOHN_3_16 = "For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life."
     const val WEBUS_MATT_28_18 = "Jesus came to them and spoke to them, saying, \\“All authority has been given to me in heaven and on earth."

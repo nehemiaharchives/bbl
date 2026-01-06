@@ -8,9 +8,9 @@ import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.ZipBibleResourcesReader
-import org.gnit.bible.downloadableTranslationCodeList
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
+import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.test.TestFixtures.tmpWorkingDirForBblPack
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 
 class PackCliTest {
 
-    val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
     @BeforeTest
     fun setup() {
@@ -32,43 +32,52 @@ class PackCliTest {
         }
         fileSystem.createDirectories(tmpDir)
 
-        val sourceDir =
-            "../composeApp/src/commonMain/composeResources/files/bblpacks/webus".toPath()
-        assertTrue(
-            fileSystem.exists(sourceDir) && fileSystem.metadata(sourceDir).isDirectory,
-            "Expected webus bblpack dir to exist at $sourceDir"
-        )
-
         val targetDir = tmpDir / "webus"
         fileSystem.createDirectories(targetDir)
 
         // Minimal set: manifest + one chapter file to keep the test fast.
+        // Do NOT depend on composeApp resources (tests may run with a different working dir).
         val manifestPath = targetDir / "webus$MANIFEST_JSON_POSTFIX"
         fileSystem.write(manifestPath) { writeUtf8(Translation.webus.toJson()) }
 
-        val chapterPath = sourceDir / "webus.1.1.txt"
-        assertTrue(
-            fileSystem.exists(chapterPath) && fileSystem.metadata(chapterPath).isRegularFile,
-            "Expected chapter file to exist at $chapterPath"
-        )
-        val chapterText = fileSystem.read(chapterPath) { readUtf8() }
+        // Create a tiny chapter file; keep it deterministic and small.
+        // The indexer splits verses by leading verse numbers ("1 ", "2 ", etc.).
+        val chapterText = """
+            ${TestFixtures.WEBUS_GENESIS_1_1.trimEnd()}
+            2 And the earth was formless and empty.
+            3 God said, Let there be light.
+        """.trimIndent() + "\n"
+
         fileSystem.write(targetDir / "webus.1.1.txt") { writeUtf8(chapterText) }
     }
 
     @Test
     fun testGeneratedZipFilesByMain() {
-        val platform = getPlatform()
-        platform.overridePlatformPackDir = "../server/src/main/resources/files/bblpacks"
-        val zipBibleResourcesReader = ZipBibleResourcesReader(platform)
-        downloadableTranslationCodeList.forEach { translationCode ->
-            val genesisChapterOne = zipBibleResourcesReader.getChapterText(translationCode, 1, 1)
+        // This test used to assume that "real" packs are already committed under server resources.
+        // In CI / local dev that’s often not true, and it makes the test flaky.
+        // Instead, create a minimal pack and verify ZipBibleResourcesReader can load it.
 
-            // Packs in tests/fixtures are intentionally minimal (often only Gen 1:1),
-            // so don't assert specific verse ranges here.
-            assertTrue(genesisChapterOne.isNotBlank(), "Expected non-empty Genesis 1 for $translationCode")
+        val fileSystem = getPlatform().fileSystem
+
+        val inputDir = (tmpWorkingDirForBblPack.toPath() / "webus").toString()
+        val outputDir = tmpWorkingDirForBblPack
+        val zipPath = outputDir.toPath() / "webus.zip"
+
+        try {
+            PackCli(Bible()).createBblPack(inputPathString = inputDir, outputPathString = outputDir)
+            assertTrue(fileSystem.exists(zipPath), "Expected zip file to be created at $zipPath")
+
+            val platform = getPlatform().apply { overridePlatformPackDir = outputDir }
+            val zipBibleResourcesReader = ZipBibleResourcesReader(platform)
+
+            // Smoke-check that reading works.
+            val genesisChapterOne = zipBibleResourcesReader.getChapterText("webus", 1, 1)
+            assertTrue(genesisChapterOne.isNotBlank(), "Expected non-empty Genesis 1 for webus")
             assertContains(genesisChapterOne, "1 ")
-
-            logger.info { "translationCode: $translationCode\ngenesisChapterOne:\n$genesisChapterOne" }
+        } finally {
+            if (fileSystem.exists(zipPath)) {
+                fileSystem.delete(zipPath)
+            }
         }
     }
 
@@ -113,9 +122,7 @@ class PackCliTest {
             )
             assertTrue(
                 zipEntries.any {
-                    it.startsWith("index/_") && (it.endsWith(".cfs") || it.endsWith(".si") || it.endsWith(
-                        ".cfe"
-                    ))
+                    it.startsWith("index/_") && (it.endsWith(".cfs") || it.endsWith(".si") || it.endsWith(".cfe"))
                 },
                 "Expected lucene-kmp index data files in zip. Entries: ${zipEntries.take(50)}"
             )

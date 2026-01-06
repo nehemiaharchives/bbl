@@ -1,8 +1,7 @@
 package org.gnit.bible.cli
 
-class Packer {
-}
-
-fun main(){
-    println("this is Packer")
-}
+/**
+ * Placeholder type kept for backward compatibility with any early references.
+ * The real entrypoint for this module is now in `PackerMain.kt`.
+ */
+class Packer
