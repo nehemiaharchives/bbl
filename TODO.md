@@ -101,29 +101,36 @@ Commit criteria:
 
 > Create these as new K/N executables so they can be installed into `~/.bbl/bin/`.
 
-- [ ] Add module `cli-search-kuromoji`:
+- [x] Add module `:cli:search:common`:
+  - Module dir, empty package and noop class already added so fill them
   - Depends on `shared` + lucene-kmp kuromoji analyzer module.
   - Implements `main()` following the helper protocol.
   - Tests: smoke search using test fixture pack.
-- [ ] Add module `cli-search-nori`:
+- [x] Add module `:cli:search:kuromoji`:
+  - Module dir, empty package and noop class already added so fill them
+  - Depends on `shared` + lucene-kmp kuromoji analyzer module.
+  - Implements `main()` following the helper protocol.
+  - Tests: smoke search using test fixture pack.
+- [x] Add module `:cli:search:nori`:
+  - Module dir, empty package and noop class already added so fill them
   - Depends on `shared` + lucene-kmp nori analyzer module.
   - Implements helper protocol.
   - Tests: smoke search.
-- [ ] Add module `cli-search-smartcn`:
+- [x] Add module `:cli:search:smartcn`:
+  - Module dir, empty package and noop class already added so fill them
   - Depends on `shared` + lucene-kmp smartcn analyzer module.
   - Implements helper protocol.
   - Tests: smoke search.
-- [ ] Add module `cli-search-morfologik`:
+- [x] Add module `:cli:search:morfologik`:
+  - Module dir, empty package and noop class already added so fill them
   - Depends on `shared` + lucene-kmp morfologik analyzer module.
   - Implements helper protocol.
   - Tests: smoke search.
-- [ ] Add module `cli-search-extra`:
+- [x] Add module `:cli:search:extra`:
+  - Module dir, empty package and noop class already added so fill them
   - Depends on `shared` + lucene-kmp analysis-extra module.
   - Implements helper protocol.
   - Tests: smoke search.
-
-Optional (decide later):
-- [ ] Add module `cli-search-common` if we want to fully externalize search; otherwise keep COMMON in the main `bbl` binary.
 
 Commit criteria (each module):
 - Module builds its K/N executable.
