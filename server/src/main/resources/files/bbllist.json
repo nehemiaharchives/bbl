@@ -1,5 +1,21 @@
 [
   {
+    "code": "webus",
+    "languageCode": "en",
+    "englishName": "World English Bible",
+    "nativeName": "World English Bible",
+    "year": 2000,
+    "copyright": "Public Domain"
+  },
+  {
+    "code": "jc",
+    "languageCode": "ja",
+    "englishName": "Japanese Colloquial Bible",
+    "nativeName": "口語訳聖書",
+    "year": 1955,
+    "copyright": "Public Domain"
+  },
+  {
     "code": "abtag",
     "languageCode": "tl",
     "englishName": "Ang Biblia",
