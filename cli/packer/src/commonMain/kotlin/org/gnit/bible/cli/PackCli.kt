@@ -15,6 +15,8 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
+import org.gnit.bible.downloadableTranslationCodeList
+import org.gnit.bible.downloadableTranslations
 
 class PackCli(
     private val bible: Bible
@@ -166,6 +168,7 @@ fun main(){
     println("currentDir: $currentDir")
     // above prints something like: currentDir: /home/joel/code/bbl-lucene/bbl-kmp/cli/packer
 
-    packTranslation("webus")
-
+    downloadableTranslationCodeList.forEach { translationCode ->
+        packTranslation(translationCode)
+    }
 }

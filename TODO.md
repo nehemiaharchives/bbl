@@ -143,12 +143,12 @@ Commit criteria (each module):
 
 > End state: building `bbl` should not require linking heavyweight analyzers *even for pack/index creation*.
 
-- [ ] Create new dev-only module `cli-packer`.
+- [x] Create new dev-only module `cli-packer`.
   - Move `PackCli` and `IndexBuilder` into this module.
   - Allow `cli-packer` to depend on “all analyzers” (size doesn’t matter).
-- [ ] Remove `pack` subcommand from the end-user `bbl` binary (or gate it behind JVM-only tooling).
-- [ ] Update any references (docs/tests) to new entrypoint.
-- [ ] Tests:
+- [x] Remove `pack` subcommand from the end-user `bbl` binary (or gate it behind JVM-only tooling).
+- [x] Update any references (docs/tests) to new entrypoint.
+- [x] Tests:
   - `cli` tests verify `pack` is no longer available.
   - `cli-packer` tests cover pack/index creation (at least a smoke test).
 

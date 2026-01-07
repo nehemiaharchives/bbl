@@ -287,4 +287,16 @@ class MainTest {
         assertContains(result.stderr, "Invalid verse range 20-10")
         assertContains(result.stderr, "Start verse must be <= end verse")
     }
+
+    @Test
+    fun testPackSubcommandIsNotAvailable() {
+        val command = Bbl()
+        val result = command.test(listOf("pack", "webus"))
+        assertTrue(
+            result.statusCode != 0,
+            "Expected `bbl pack` to be unavailable (Phase 6 moved it to :cli:packer)."
+        )
+        // clikt prints help/usage on unknown subcommand; keep assertion flexible.
+        assertContains(result.output.lowercase(), "pack")
+    }
 }

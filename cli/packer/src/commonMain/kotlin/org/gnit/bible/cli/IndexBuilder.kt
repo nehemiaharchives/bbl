@@ -116,7 +116,9 @@ class IndexBuilder(
                         add(IntPoint("verse", verse))
                         add(StoredField("verse", verse))
 
-                        add(Field("text", sanitizedText, TextField.TYPE_STORED))
+                        // Index-only (not stored) to reduce pack size.
+                        // The search binary can return verse pointers and load verse text from .txt files.
+                        add(Field("text", sanitizedText, TextField.TYPE_NOT_STORED))
                     }
                     iWriter.addDocument(doc)
                     totalDocs++
@@ -172,4 +174,3 @@ fun createEmbeddedLuceneKmpIndex(translation: Translation) {
         translationDir = translationDir
     )
 }
-
