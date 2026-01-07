@@ -54,21 +54,21 @@ class PackCli(
         // validate input path
         val inputPath = currentDir.resolve(inputPathString, true)
         if (!(fileSystem.exists(inputPath) && fileSystem.metadata(inputPath).isDirectory)) {
-            when {
-                !fileSystem.exists(inputPath) -> logger.error { "Input path $inputPath does not exits" }
-                else -> logger.error { "Input path $inputPath is not a directory" }
+            val msg = when {
+                !fileSystem.exists(inputPath) -> "Input path $inputPath does not exist"
+                else -> "Input path $inputPath is not a directory"
             }
-            return
+            throw IllegalStateException(msg)
         }
 
         // validate output path
         val outputPath = currentDir.resolve(outputPathString, true)
         if (!(fileSystem.exists(outputPath) && fileSystem.metadata(outputPath).isDirectory)) {
-            when {
-                !fileSystem.exists(outputPath) -> logger.error { "Input path $outputPath does not exits" }
-                else -> logger.error { "Input path $outputPath is not a directory" }
+            val msg = when {
+                !fileSystem.exists(outputPath) -> "Output path $outputPath does not exist"
+                else -> "Output path $outputPath is not a directory"
             }
-            return
+            throw IllegalStateException(msg)
         }
 
         // get translation code
@@ -79,45 +79,49 @@ class PackCli(
         // Convention: manifest file name is '<translationCode>.0.manifest.json' (MANIFEST_JSON_POSTFIX)
         val manifestPath = inputPath.resolve("$translationCode$MANIFEST_JSON_POSTFIX")
         if (!(fileSystem.exists(manifestPath) && fileSystem.metadata(manifestPath).isRegularFile)) {
-            when {
-                !fileSystem.exists(manifestPath) -> logger.error {
+            val msg = when {
+                !fileSystem.exists(manifestPath) ->
                     "Manifest path $manifestPath does not exist. Expected <translationCode>$MANIFEST_JSON_POSTFIX in $inputPath"
-                }
-                else -> logger.error { "Manifest path $manifestPath is not a file" }
+                else -> "Manifest path $manifestPath is not a file"
             }
-            return
+            throw IllegalStateException(msg)
         }
 
+        val rawManifest = runCatching { fileSystem.read(manifestPath) { readUtf8() } }
+            .getOrElse { e -> throw IllegalStateException("Failed to read manifest $manifestPath: ${e.message}", e) }
+
         val translation: Translation = try {
-            Translation.fromJson(fileSystem.read(manifestPath) { readUtf8() })
+            Translation.fromJson(rawManifest)
         } catch (e: Throwable) {
-            logger.error { "error while reading/parsing $manifestPath: ${e.message}" }
-            return
+            throw IllegalStateException("Error while parsing manifest $manifestPath: ${e.message}", e)
         }
 
         val indexBuilder = IndexBuilder(bible)
-        runCatching { indexBuilder.createLuceneKmpIndex(translation = translation, translationDir = inputPath) }
-            .onFailure { e ->
-                logger.error { "failed to create lucene-kmp index for ${translation.code} at $inputPath: ${e.message}" }
-                return
-            }
+        runCatching {
+            indexBuilder.createLuceneKmpIndex(translation = translation, translationDir = inputPath)
+        }.onFailure { e ->
+            throw IllegalStateException(
+                "Failed to create lucene-kmp index for ${translation.code} at $inputPath: ${e.message}",
+                e
+            )
+        }
 
         // zip everything into ${translationCode}.zip
         val dir = File(outputPath.toString())
         if (!(dir.exists && dir.isDirectory)) {
-            when {
-                !dir.exists -> logger.error { "Output directory ${dir.name} does not exits" }
-                else -> logger.error { "Output directory ${dir.name} is not a directory" }
+            val msg = when {
+                !dir.exists -> "Output directory ${dir.name} does not exist"
+                else -> "Output directory ${dir.name} is not a directory"
             }
-            return
+            throw IllegalStateException(msg)
         }
         val sourceDirectory = File(inputPath.toString())
         if (!(sourceDirectory.exists && sourceDirectory.isDirectory)) {
-            when {
-                !sourceDirectory.exists -> logger.error { "Source directory ${sourceDirectory.name} does not exits" }
-                else -> logger.error { "Source directory ${sourceDirectory.name} is not a directory" }
+            val msg = when {
+                !sourceDirectory.exists -> "Source directory ${sourceDirectory.name} does not exist"
+                else -> "Source directory ${sourceDirectory.name} is not a directory"
             }
-            return
+            throw IllegalStateException(msg)
         }
 
         val zip = File(dir, "${translation.code}.zip")
@@ -127,18 +131,17 @@ class PackCli(
                 .onFailure { e -> logger.error { "failed to delete existing zip file ${zip.name}: ${e.message}" } }
                 .getOrElse { false }
             if (!deleted || zip.exists) {
-                logger.error { "failed to delete existing zip file ${zip.name}" }
-                return
+                throw IllegalStateException("Failed to delete existing zip file ${zip.name}")
             }
         }
 
         val manifestFile = File(manifestPath.toString())
         if (!(manifestFile.exists && !manifestFile.isDirectory)) {
-            when {
-                !manifestFile.exists -> logger.error { "Manifest file ${manifestFile.name} does not exits" }
-                else -> logger.error { "Manifest file ${manifestFile.name} is dir and so is not a file" }
+            val msg = when {
+                !manifestFile.exists -> "Manifest file ${manifestFile.name} does not exist"
+                else -> "Manifest file ${manifestFile.name} is dir and so is not a file"
             }
-            return
+            throw IllegalStateException(msg)
         }
 
         runBlocking {
@@ -161,14 +164,30 @@ fun packTranslation(translationCode: String) {
     )
 }
 
-fun main(){
+fun main() {
     println("bbl-packer: use PackCli (developer tool)")
-    // print current dir
     val currentDir = currentDir()
     println("currentDir: $currentDir")
-    // above prints something like: currentDir: /home/joel/code/bbl-lucene/bbl-kmp/cli/packer
+
+    val failures = mutableListOf<Pair<String, String>>()
 
     downloadableTranslationCodeList.forEach { translationCode ->
-        packTranslation(translationCode)
+        runCatching {
+            packTranslation(translationCode)
+        }.onFailure { e ->
+            val msg = e.message ?: e.toString()
+            failures += translationCode to msg
+            // Keep this kmp-friendly (commonMain): no java.lang.System.
+            println("FAILED to pack $translationCode: $msg")
+        }
+    }
+
+    if (failures.isNotEmpty()) {
+        println("\nSummary: ${failures.size} translation(s) failed to pack:")
+        failures.forEach { (code, msg) ->
+            println(" - $code: $msg")
+        }
+        // Make CI / automation fail.
+        throw IllegalStateException("Failed to pack ${failures.size} translations")
     }
 }

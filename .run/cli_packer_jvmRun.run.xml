@@ -3,7 +3,7 @@
     <ExternalSystemSettings>
       <option name="externalProjectPath" value="$PROJECT_DIR$/cli/packer" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="-DmainClass=org.gnit.bible.cli.PackerKt --quiet" />
+      <option name="scriptParameters" value="-DmainClass=org.gnit.bible.cli.PackCliKt --quiet" />
       <option name="taskNames">
         <list>
           <option value="jvmRun" />

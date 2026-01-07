@@ -21,6 +21,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.shared)
+                implementation(projects.cli.search.common)
                 implementation(libs.clikt)
                 implementation(libs.okio)
                 implementation(libs.kmpio)

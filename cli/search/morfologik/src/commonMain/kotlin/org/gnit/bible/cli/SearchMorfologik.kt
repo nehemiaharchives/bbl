@@ -15,7 +15,7 @@ import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
 
-private class MorfologikAnalyzerProvider : AnalyzerProvider {
+class MorfologikAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null
 
     override fun analyzerFor(language: Language): Analyzer {

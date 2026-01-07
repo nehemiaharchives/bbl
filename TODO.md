@@ -151,10 +151,18 @@ Commit criteria (each module):
 - [x] Tests:
   - `cli` tests verify `pack` is no longer available.
   - `cli-packer` tests cover pack/index creation (at least a smoke test).
+- [x] Create new lucene-kmp index without stored verse texts
 
 Commit criteria:
 - `bbl` CLI module no longer depends on indexing/analyzer selection code.
 
+## Phase 6.5 — Test all modules under :cli:search
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:common
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:morfologik
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:smartcn
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:nori
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:kuromoji
+- [ ] Write, run, fix bugs and iterate over until pass Unit tests for :cli:search:extra
 
 ## Phase 7 — Installer changes: co-install pack + helper binary (functional, testable)
 

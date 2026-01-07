@@ -15,7 +15,6 @@ application {
 
 dependencies {
     implementation(projects.shared)
-    implementation(projects.cli)
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     testImplementation(libs.ktor.serverTestHost)

@@ -44,6 +44,10 @@ kotlin {
         val macosArm64Main by getting { dependsOn(posixMain) }
         val linuxX64Main by getting { dependsOn(posixMain) }
 
+        // ---- Tests ----
+        val commonTest by getting
+        val jvmTest by getting
+
         commonMain.dependencies {
             implementation(projects.shared)
             implementation(libs.kotlin.test)
@@ -51,6 +55,17 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.okio)
             implementation(libs.lucene.kmp.core)
+            implementation(libs.okio.fakefs)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.okio)
+            implementation(libs.okio.fakefs)
         }
 
         androidMain.dependencies {

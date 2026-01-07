@@ -15,7 +15,7 @@ import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.ja.JapaneseAnalyzer
 
-private class KuromojiAnalyzerProvider : AnalyzerProvider {
+class KuromojiAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null
 
     override fun analyzerFor(language: Language): Analyzer {

@@ -105,7 +105,7 @@ class Bible(
         endChapter: Int? = null,
         verses: Int = 100,
         translation: Translation
-    ): List<String> {
+    ): List<VersePointer> {
         val isEmbedded = hasEmbeddedReader() && embeddedTranslationCodes.contains(translation.code)
         val searchEngine = obtainSearchEngine(isEmbedded)
         return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, translation)

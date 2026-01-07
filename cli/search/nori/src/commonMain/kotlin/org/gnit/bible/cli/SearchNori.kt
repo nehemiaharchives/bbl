@@ -15,7 +15,7 @@ import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.ko.KoreanAnalyzer
 
-private class NoriAnalyzerProvider : AnalyzerProvider {
+class NoriAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null
 
     override fun analyzerFor(language: Language): Analyzer {

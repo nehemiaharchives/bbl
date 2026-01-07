@@ -41,14 +41,18 @@ class SearchEngine(
         endChapter: Int? = null,
         verses: Int = 100,
         translation: Translation
-    ): List<String> {
+    ): List<VersePointer> {
+        // Some unit-test fixtures only include a placeholder codec file and no segments_N.
+        // Without a segments* file Lucene can't open the directory.
+        val fileNames = reader.listIndexFiles(translation.code)
+        if (fileNames.none { it.startsWith("segments") }) {
+            logger.debug { "no segments* file found for ${translation.code}; returning empty search result" }
+            return emptyList()
+        }
+
         val directory = embeddedIndexDirectory(translation)
 
-        val iReader: DirectoryReader = StandardDirectoryReader.open(
-            directory = directory,
-            leafSorter = null,
-            commit = null
-        )
+        val iReader: DirectoryReader = StandardDirectoryReader.open(directory, commit = null, leafSorter = null)
 
         iReader.use { reader ->
             val iSearcher = IndexSearcher(reader)
@@ -103,37 +107,32 @@ class SearchEngine(
                     hits = runSearch(SimpleAnalyzer(), requireAllTokens = false)
                 }
             }
+
             data class VerseHit(
                 val book: Int,
                 val chapter: Int,
                 val verse: Int,
-                val text: String
             )
+
             val verseHits = hits.map { hit ->
                 val hitDoc = iSearcher.indexReader.storedFields().document(hit.doc)
                 val book = hitDoc.getField("book")?.numericValue()?.toInt()!!
                 val chapter = hitDoc.getField("chapter")?.numericValue()?.toInt()!!
                 val verse = hitDoc.getField("verse")?.numericValue()?.toInt()!!
-                val text = hitDoc.get("text") ?: ""
+                VerseHit(book, chapter, verse)
+            }
 
-                VerseHit(book, chapter, verse, text)
-            }
-            val normalizedTerm = normalizeForContains(term)
-            val exactHits = if (normalizedTerm.isNotBlank()) {
-                verseHits.filter { normalizeForContains(it.text).contains(normalizedTerm) }
-            } else {
-                emptyList()
-            }
-            val fallbackHits = if (exactHits.isNotEmpty()) {
-                exactHits
-            } else {
-                verseHits
-            }
-            return fallbackHits
+            return verseHits
                 .sortedWith(compareBy<VerseHit>({ it.book }, { it.chapter }, { it.verse }))
                 .take(verses)
                 .map { hit ->
-                    "${bookNameFor(bookNumber = hit.book, translation = translation)} ${hit.chapter}:${hit.verse} ${hit.text}"
+                    VersePointer(
+                        translation = translation,
+                        book = hit.book,
+                        chapter = hit.chapter,
+                        startVerse = hit.verse,
+                        endVerse = null,
+                    )
                 }
         }
     }
@@ -168,22 +167,6 @@ class SearchEngine(
         }
         buildAnalyzedQuery("text", term, analyzer, requireAllTokens)?.let { queries.add(it) }
         return queries.distinct()
-    }
-
-    private fun normalizeForContains(text: String): String {
-        if (text.isEmpty()) return text
-        val sb = StringBuilder(text.length)
-        for (ch in text) {
-            val mapped = when (ch) {
-                '\u2018', '\u2019' -> '\''
-                '\u201C', '\u201D' -> '"'
-                '\u2013', '\u2014' -> '-'
-                '\u00A0' -> ' '
-                else -> ch
-            }
-            sb.append(mapped)
-        }
-        return sb.toString().lowercase()
     }
 
     private fun embeddedIndexDirectory(translation: Translation): ByteBuffersDirectory {
