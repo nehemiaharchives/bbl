@@ -117,7 +117,7 @@ jobs:
             ${{ runner.os }}-konan-        
 
       - name: Run Tests
-        run: ./gradlew :cli:linuxX64Test
+        run: ./gradlew :cli:core:linuxX64Test
 
   cli-unittest-macos:
     name: CLI Test macOS
@@ -149,7 +149,7 @@ jobs:
           xcode-version: '16.4'
 
       - name: Run Tests
-        run: ./gradlew :cli:macosArm64Test
+        run: ./gradlew :cli:core:macosArm64Test
 
   cli-unittest-jvm:
     name: CLI Test JVM
@@ -168,7 +168,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run JVM Tests
-        run: ./gradlew :cli:jvmTest
+        run: ./gradlew :cli:core:jvmTest
 
   cmp-test-ios:
     name: CMP Test iOS
@@ -263,7 +263,7 @@ jobs:
             ${{ runner.os }}-konan-
 
       - name: Build LinuxX64 Native Binary
-        run: ./gradlew :cli:linkReleaseExecutableLinuxX64
+        run: ./gradlew :cli:core:linkReleaseExecutableLinuxX64
 
   cli-build-macos:
     name:  CLI Build macOS
@@ -290,4 +290,4 @@ jobs:
             ${{ runner.os }}-konan-       
 
       - name: Build MacOSX64 Native Binary
-        run: ./gradlew :cli:linkReleaseExecutableMacosArm64
+        run: ./gradlew :cli:core:linkReleaseExecutableMacosArm64

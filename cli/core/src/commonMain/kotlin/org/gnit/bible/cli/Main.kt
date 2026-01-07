@@ -12,13 +12,14 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
+import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.bookNumber
 import org.gnit.bible.bookNameEnglishCapital
 import org.gnit.bible.formatHeader
 
 private fun parseVersePointerOrThrow(
-    translation: org.gnit.bible.Translation,
+    translation: Translation,
     bookTokens: List<String>,
     chapterVerse: String
 ): VersePointer {

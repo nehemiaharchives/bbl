@@ -4,9 +4,11 @@ import com.github.ajalt.clikt.testing.test
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.BookChapterVerse
+import org.gnit.bible.Books
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandPicker
 import org.gnit.bible.RandomlyShow
+import org.gnit.bible.bookNumber
 import org.gnit.bible.getPlatform
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -63,8 +65,8 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = org.gnit.bible.bookNumber(bookName.lowercase())
-        val filter = org.gnit.bible.Books.Category.fromKey("nt")!!.filter
+        val bookId = bookNumber(bookName.lowercase())
+        val filter = Books.Category.fromKey("nt")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in NT")
     }
 
@@ -84,8 +86,8 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = org.gnit.bible.bookNumber(bookName.lowercase())
-        val filter = org.gnit.bible.Books.Category.fromKey("ot")!!.filter
+        val bookId = bookNumber(bookName.lowercase())
+        val filter = Books.Category.fromKey("ot")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in OT")
     }
 
@@ -105,8 +107,8 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = org.gnit.bible.bookNumber(bookName.lowercase())
-        val filter = org.gnit.bible.Books.Category.fromKey("prophets")!!.filter
+        val bookId = bookNumber(bookName.lowercase())
+        val filter = Books.Category.fromKey("prophets")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in prophets")
     }
 
@@ -126,8 +128,8 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = org.gnit.bible.bookNumber(bookName.lowercase())
-        val filter = org.gnit.bible.Books.Category.fromKey("paul")!!.filter
+        val bookId = bookNumber(bookName.lowercase())
+        val filter = Books.Category.fromKey("paul")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in paul")
     }
 
@@ -162,7 +164,7 @@ class RandCliTest {
         fun resolve(key: String): BibleFilter {
             // We can’t reach resolveFilter directly; so we assert via Books.Category contract by checking known shapes.
             // Still helpful as guardrail.
-            return org.gnit.bible.Books.Category.fromKey(key)!!.filter
+            return Books.Category.fromKey(key)!!.filter
         }
 
         assertTrue(resolve("nt") is BibleFilter.BookRange)

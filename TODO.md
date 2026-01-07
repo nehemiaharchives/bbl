@@ -136,6 +136,8 @@ Commit criteria (each module):
 - Module builds its K/N executable.
 - Module has at least one passing test.
 
+## Phase 5.5 — :cli module have submodules :core, :packer, :search
+- [x] move cli/src to cli/core/src
 
 ## Phase 6 — Refactor packing/index building out of the main `bbl` binary
 

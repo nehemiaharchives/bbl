@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import org.gnit.bible.Bible
@@ -16,7 +17,7 @@ class RandCli(
     )
 ) : CliktCommand(name = "rand") {
 
-    override fun help(context: com.github.ajalt.clikt.core.Context) = "Display a random verse or chapter from the Bible"
+    override fun help(context: Context) = "Display a random verse or chapter from the Bible"
 
     private val narrowDown: String? by argument(
         help = "Narrow down to a category (e.g., nt, ot, prophets, paul, abraham, gospels) for the list of categories, run bbl list category"

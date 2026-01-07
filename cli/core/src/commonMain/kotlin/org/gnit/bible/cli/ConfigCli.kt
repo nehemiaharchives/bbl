@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
+import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
@@ -92,7 +93,7 @@ class ConfigCli(
     }
 }
 
-private fun generateDefaultConfig(bible: Bible): okio.Path {
+private fun generateDefaultConfig(bible: Bible): Path {
     val platform = bible.assetManager.platform
     val settings = platform.settings
 

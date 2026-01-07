@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import kotlinx.cinterop.*
+import kotlinx.cinterop.get
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix._exit
