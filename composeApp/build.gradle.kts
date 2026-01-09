@@ -64,6 +64,13 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.locale)
             implementation(libs.okio)
+            implementation(libs.lucene.kmp.core)
+            implementation(libs.lucene.kmp.analysis.common)
+            implementation(libs.lucene.kmp.analysis.morfologik)
+            implementation(libs.lucene.kmp.analysis.smartcn)
+            implementation(libs.lucene.kmp.analysis.nori)
+            implementation(libs.lucene.kmp.analysis.kuromoji)
+            implementation(libs.lucene.kmp.analysis.extra)
             implementation(projects.shared)
         }
         commonTest.dependencies {
