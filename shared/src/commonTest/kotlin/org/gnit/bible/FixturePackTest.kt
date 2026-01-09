@@ -15,9 +15,9 @@ class FixturePackTest {
         val baseDir = root / "bblpacks" / "fixture"
 
         fs.createDirectories(baseDir / "index")
-        fs.write(baseDir / "fixture.1.1.txt") { writeUtf8("1 In the beginning...") }
-        fs.write(baseDir / "index" / "fixture.index.manifest") { writeUtf8("_0.cfs\n") }
-        fs.write(baseDir / "index" / "_0.cfs") { writeByteArray(byteArrayOf(1, 2, 3)) }
+        fs.write<Unit>(baseDir / "fixture.1.1.txt") { writeUtf8("1 In the beginning...") }
+        fs.write<Unit>(baseDir / "index" / "fixture.index.manifest") { writeUtf8("_0.cfs\n") }
+        fs.write<Unit>(baseDir / "index" / "_0.cfs") { write(byteArrayOf(1, 2, 3)) }
 
         return FixturePackResourcesReader(resourcesRoot = root, fileSystem = fs)
     }
