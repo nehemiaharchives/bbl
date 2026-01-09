@@ -6,7 +6,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.ZipBibleResourcesReader
 import org.gnit.bible.getPlatform
 
-open class CliSearchTestBase(analyzerProvider: AnalyzerProvider) {
+open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) {
 
     lateinit var bible: Bible
 
@@ -20,6 +20,6 @@ open class CliSearchTestBase(analyzerProvider: AnalyzerProvider) {
 
         val am = AssetManagerImpl(platform = platform)
 
-        bible = Bible(am)
+        bible = Bible(am, analyzerProvider)
     }
 }

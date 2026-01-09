@@ -16,7 +16,6 @@ import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.downloadableTranslationCodeList
-import org.gnit.bible.downloadableTranslations
 
 class PackCli(
     private val bible: Bible
@@ -164,7 +163,7 @@ fun packTranslation(translationCode: String) {
     )
 }
 
-fun main() {
+fun mainAll() {
     println("bbl-packer: use PackCli (developer tool)")
     val currentDir = currentDir()
     println("currentDir: $currentDir")
@@ -190,4 +189,8 @@ fun main() {
         // Make CI / automation fail.
         throw IllegalStateException("Failed to pack ${failures.size} translations")
     }
+}
+
+fun main(){
+    packTranslation("krv")
 }

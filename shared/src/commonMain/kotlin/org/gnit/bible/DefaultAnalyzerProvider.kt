@@ -1,5 +1,6 @@
 package org.gnit.bible
 
+import org.gnit.bible.analisis.BibleKoreanAnalyzer
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
@@ -13,7 +14,6 @@ import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
 import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ja.JapaneseAnalyzer
-import org.gnit.lucenekmp.analysis.ko.KoreanAnalyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
 import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
 import org.gnit.lucenekmp.analysis.ne.NepaliAnalyzer
@@ -51,7 +51,7 @@ class DefaultAnalyzerProvider : AnalyzerProvider {
             "uk" -> UkrainianMorfologikAnalyzer()
             "sv" -> SwedishAnalyzer()
             "zh" -> SmartChineseAnalyzer()
-            "ko" -> KoreanAnalyzer()
+            "ko" -> BibleKoreanAnalyzer()
             "ja" -> JapaneseAnalyzer()
             "tl" -> TagalogAnalyzer()
             "id" -> IndonesianAnalyzer()

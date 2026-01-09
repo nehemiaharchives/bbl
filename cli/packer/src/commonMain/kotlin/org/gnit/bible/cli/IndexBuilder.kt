@@ -12,6 +12,7 @@ import org.gnit.bible.DefaultAnalyzerProvider
 import org.gnit.bible.SearchEngine.Companion.INDEX_MANIFEST_FILENAME_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.bookNameEnglish
+import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
 import org.gnit.lucenekmp.document.IntPoint

@@ -6,7 +6,6 @@ import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.document.IntPoint
 import org.gnit.lucenekmp.index.DirectoryReader
 import org.gnit.lucenekmp.index.StandardDirectoryReader
-import org.gnit.lucenekmp.jdkport.putIfAbsent
 import org.gnit.lucenekmp.queryparser.classic.QueryParser
 import org.gnit.lucenekmp.search.BooleanClause
 import org.gnit.lucenekmp.search.BooleanQuery
@@ -33,6 +32,7 @@ class SearchEngine(
             analyzerProvider.analyzerFor(translation.language)
         }
     }
+
 
     fun search(
         term: String,
@@ -87,7 +87,9 @@ class SearchEngine(
                     val query = buildQuery(queryTerm)
                     val hits = iSearcher.search(query, reader.maxDoc(), Sort(SortField.FIELD_DOC)).scoreDocs
                     for (hit in hits) {
-                        merged.putIfAbsent(hit.doc, hit)
+                        if (!merged.containsKey(hit.doc)) {
+                            merged[hit.doc] = hit
+                        }
                     }
                 }
                 return merged.values.toTypedArray()
