@@ -192,5 +192,5 @@ fun mainAll() {
 }
 
 fun main(){
-    packTranslation("krv")
+    packTranslation("irvhin")
 }

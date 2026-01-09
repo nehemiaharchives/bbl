@@ -5,6 +5,7 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.Platform

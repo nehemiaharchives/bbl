@@ -10,7 +10,7 @@ enum class ConfigKey(val value: String, val defaultValue: String, val descriptio
 
 class Bible(
     val assetManager: AssetManager = AssetManagerImpl(),
-    private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
+    private val analyzerProvider: AnalyzerProvider = CommonAnalyzerProvider()
 ) {
 
     private fun hasEmbeddedReader(): Boolean = this::bibleResourcesReader.isInitialized

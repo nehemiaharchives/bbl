@@ -57,7 +57,9 @@ class SearchEngine(
         iReader.use { reader ->
             val iSearcher = IndexSearcher(reader)
             val analyzer = analyzerFor(translation)
-            val requireAllTokens = term.any { it.isWhitespace() }
+            val requireAllTokens = term.any { it.isWhitespace() } ||
+                translation.language.isCJK ||
+                translation.language == Language.th
             val filterClauses = mutableListOf<Pair<Query, BooleanClause.Occur>>()
 
             /*if (includesNewTestamentOnlyPhrase(term)) {

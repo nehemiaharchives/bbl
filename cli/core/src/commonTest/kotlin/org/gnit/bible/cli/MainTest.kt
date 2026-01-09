@@ -13,6 +13,7 @@ import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.AssetManagerImpl
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import org.gnit.bible.CommonAnalyzerProvider
 import kotlin.test.AfterTest
 
 class MainTest {

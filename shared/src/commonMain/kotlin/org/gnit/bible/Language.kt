@@ -228,7 +228,7 @@ data class Language(
             nativeName = "Bahasa Indonesia",
             order = SOUTH_EAST_ASIA + 2,
             bookNamesConcat = "Kejadian|Keluaran|Imamat|Bilangan|Ulangan|Yosua|Hakim-hakim|Rut|1 Samuel|2 Samuel|1 Raja-raja|2 Raja-raja|1 Tawarikh|2 Tawarikh|Ezra|Nehemia|Ester|Ayub|Mazmur|Amsal|Pengkhotbah|Kidung Agung|Yesaya|Yeremia|Ratapan|Yehezkiel|Daniel|Hosea|Y\\\"oel|Amos|Obaja|Yunus|Mikha|Nahum|Habakuk|Zefanya|Hagai|Zakharia|Maleakhi|Matius|Markus|Lukas|Yohanes|Kisah Para Rasul|Roma|1 Korintus|2 Korintus|Galatia|Efesus|Filipi|Kolose|1 Tesalonika|2 Tesalonika|1 Timotius|2 Timotius|Titus|Filemon|Ibrani|Yakobus|1 Petrus|2 Petrus|1 Yohanes|2 Yohanes|3 Yohanes|Yudas|Wahyu",
-            searchModuleId = SearchModuleId.EXTRA
+            searchModuleId = SearchModuleId.COMMON
         )
 
         val vi = Language(
@@ -282,7 +282,7 @@ data class Language(
             nativeName = "తెలుగు",
             order = SOUTH_ASIA + 4,
             bookNamesConcat = "ఆది|నిర్గమ|లేవీ|సంఖ్యా|ద్వితీ|యెహో|న్యాయాధి|రూతు|1 సమూ|2 సమూ|1 రాజులు|2 రాజులు|1 దిన|2 దిన|ఎజ్రా|నెహెమ్యా|ఎస్తేరు|యోబు|కీర్తన|సామెత|ప్రసంగి|పరమ|యెషయా|యిర్మీయా|విలాప|యెహె|దాని|హోషే|యోవే|ఆమోసు|ఓబద్యా|యోనా|మీకా|నహూ|హబ|జెఫన్యా|హగ్గయి|జెకర్యా|మలాకీ|మత్తయి|మార్కు|లూకా|యోహాను|అపొస్తలుల కార్యములు|రోమా పత్రిక|1 కొరింతీ పత్రిక|2 కొరింతీ పత్రిక|గలతీ పత్రిక|ఎఫెసీ పత్రిక|ఫిలిప్పీ పత్రిక|కొలస్సీ పత్రిక|1 తెస్సలోనిక పత్రిక|2 తెస్సలోనిక పత్రిక|1 తిమోతి పత్రిక|2 తిమోతి పత్రిక|తీతు పత్రిక|ఫిలేమోను పత్రిక|హెబ్రీ పత్రిక|యాకోబు పత్రిక|1 పేతురు పత్రిక|2 పేతురు పత్రిక|1 యోహాను పత్రిక|2 యోహాను పత్రిక|3 యోహాను పత్రిక|యూదా పత్రిక|ప్రకటన గ్రంథం",
-            searchModuleId = SearchModuleId.EXTRA
+            searchModuleId = SearchModuleId.COMMON
         )
 
         val ta = Language(
@@ -318,7 +318,7 @@ data class Language(
             nativeName = "नेपाली",
             order = SOUTH_ASIA + 8,
             bookNamesConcat = "उत्पत्ति|प्रस्थान|लेवी|गन्ती|व्यवस्था|यहोशू|न्यायकर्ता|रूथ|१ शमूएल|२ शमूएल|१ राजा|२ राजा|१ इतिहास|२ इतिहास|एज्रा|नहेम्याह|एस्तर|अय्यूब|भजनसंग्रह|हितोपदेश|उपदेशक|श्रेष्ठगीत|यशैया|यर्मिया|विलाप|इजकिएल|दानिएल|होशे|योएल|आमोस|ओबदिया|योना|मीका|नहूम|हबकूक|सपन्याह|हाग्गै|जकरिया|मलाकी|मत्ती|मर्कूस|लूका|यूहन्ना|प्रेरित|रोमी|१ कोरिन्थी|२ कोरिन्थी|गलाती|एफिसी|फिलिप्पी|कलस्सी|१ थेसलोनिकी|२ थेसलोनिकी|१ तिमोथी|२ तिमोथी|तीतस|फिलेमोन|हिब्रू|याकूब|१ पत्रुस|२ पत्रुस|१ यूहन्ना|२ यूहन्ना|३ यूहन्ना|यहूदा|प्रकाश",
-            searchModuleId = SearchModuleId.EXTRA
+            searchModuleId = SearchModuleId.COMMON
         )
 
         val downloadableLanguages = arrayOf(hi, bn, mr, te, ta, gu, ur, vi, tl, ne, id, th, zht)

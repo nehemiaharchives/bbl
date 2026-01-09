@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
+import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.bookNumber

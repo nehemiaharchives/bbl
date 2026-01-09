@@ -12,8 +12,8 @@ import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
-import org.gnit.bible.analisis.BibleKoreanAnalyzer
 import org.gnit.lucenekmp.analysis.Analyzer
+import org.gnit.lucenekmp.analysis.ko.ct.BibleKoreanAnalyzer
 
 class NoriAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null

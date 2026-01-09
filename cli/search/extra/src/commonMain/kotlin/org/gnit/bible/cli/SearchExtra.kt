@@ -15,7 +15,6 @@ import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
 import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
-import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
 import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
@@ -31,7 +30,6 @@ private class ExtraAnalyzerProvider : AnalyzerProvider {
                 "tl" -> TagalogAnalyzer()
                 "vi" -> VietnameseAnalyzer(VietnameseConfig())
                 "mr" -> MarathiAnalyzer()
-                "te" -> TeluguAnalyzer()
                 "gu" -> GujaratiAnalyzer()
                 "ur" -> UrduAnalyzer()
                 else -> throw UnsupportedOperationException("language ${language.code} is not supported by ExtraAnalyzerProvider")

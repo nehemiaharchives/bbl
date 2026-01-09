@@ -1,5 +1,6 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.test.CliSearchTestBase

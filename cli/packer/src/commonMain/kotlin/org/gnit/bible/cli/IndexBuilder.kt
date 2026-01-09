@@ -8,11 +8,9 @@ import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
-import org.gnit.bible.DefaultAnalyzerProvider
 import org.gnit.bible.SearchEngine.Companion.INDEX_MANIFEST_FILENAME_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.bookNameEnglish
-import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
 import org.gnit.lucenekmp.document.IntPoint
@@ -24,7 +22,7 @@ import org.gnit.lucenekmp.store.FSDirectory
 
 class IndexBuilder(
     bible: Bible,
-    private val analyzerProvider: AnalyzerProvider = DefaultAnalyzerProvider()
+    private val analyzerProvider: AnalyzerProvider = PackerAnalyzerProvider()
 ) {
 
     private val logger = KotlinLogging.logger {}
