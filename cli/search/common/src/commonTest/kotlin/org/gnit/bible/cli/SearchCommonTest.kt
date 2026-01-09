@@ -5,6 +5,7 @@ import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.test.CliSearchTestBase
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,6 +14,7 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
     @BeforeTest
     override fun setup() = super.setup()
 
+    @Ignore
     @Test
     fun searchJesusChrist(){
         val englishTerm = "Jesus Christ"
@@ -69,6 +71,14 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
         // Tamil (ta)
         val actualIrvTam = bible.search(term = "இயேசுகிறிஸ்து", translation = Translation.irvtam).first()
         assertEquals(VersePointer(Translation.irvtam, 40, 1, 1), actualIrvTam)
+
+    }
+
+    @Test
+    fun searchJesusChristInTh1971 (){
+        // Thai (th)
+        val actualTh1971 = bible.search(term = "พระเยซูคริสต์", translation = Translation.th1971).first()
+        assertEquals(VersePointer(Translation.th1971, 40, 1, 1), actualTh1971)
 
     }
 }

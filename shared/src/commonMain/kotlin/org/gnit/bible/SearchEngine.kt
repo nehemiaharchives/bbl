@@ -15,7 +15,14 @@ import org.gnit.lucenekmp.search.Sort
 import org.gnit.lucenekmp.search.SortField
 import org.gnit.lucenekmp.store.ByteBuffersDirectory
 import org.gnit.lucenekmp.store.IOContext
+import org.gnit.lucenekmp.analysis.tokenattributes.CharTermAttribute
+import org.gnit.lucenekmp.analysis.tokenattributes.TermToBytesRefAttribute
 import org.gnit.lucenekmp.util.QueryBuilder
+import org.gnit.lucenekmp.index.Term
+import org.gnit.lucenekmp.index.MultiTerms
+import org.gnit.lucenekmp.analysis.standard.StandardAnalyzer
+import org.gnit.lucenekmp.index.TermsEnum
+import org.gnit.lucenekmp.util.BytesRef
 
 class SearchEngine(
     private val reader: BibleResourcesReader,
@@ -31,6 +38,90 @@ class SearchEngine(
         return languageAnalyserCache.getOrPut(translation.language.code) {
             analyzerProvider.analyzerFor(translation.language)
         }
+    }
+
+    private fun analyzeTokens(
+        analyzer: Analyzer,
+        field: String,
+        text: String,
+        maxTokens: Int = 20
+    ): List<String> {
+        val tokens = ArrayList<String>()
+        val stream = analyzer.tokenStream(field, text)
+        stream.use {
+            val termAtt = it.addAttribute(CharTermAttribute::class)
+            it.reset()
+            while (it.incrementToken() && tokens.size < maxTokens) {
+                tokens.add(termAtt.toString())
+            }
+            it.end()
+        }
+        return tokens
+    }
+
+    private fun sampleIndexTerms(reader: DirectoryReader, field: String, maxTerms: Int = 20): List<String> {
+        val terms = MultiTerms.getTerms(reader, field) ?: return emptyList()
+        val enum = terms.iterator()
+        val samples = ArrayList<String>(maxTerms)
+        while (samples.size < maxTerms) {
+            val term = enum.next() ?: break
+            samples.add(term.utf8ToString())
+        }
+        return samples
+    }
+
+    private fun sampleNonAsciiTerms(
+        reader: DirectoryReader,
+        field: String,
+        maxTerms: Int = 10,
+        maxScans: Int = 20000
+    ): List<String> {
+        val terms = MultiTerms.getTerms(reader, field) ?: return emptyList()
+        val enum = terms.iterator()
+        val samples = ArrayList<String>(maxTerms)
+        var scanned = 0
+        while (samples.size < maxTerms && scanned < maxScans) {
+            val term = enum.next() ?: break
+            val text = term.utf8ToString()
+            if (text.any { it.code > 127 }) {
+                samples.add(text)
+            }
+            scanned++
+        }
+        return samples
+    }
+
+    private fun seekCeilTerm(reader: DirectoryReader, field: String, target: String): String {
+        val terms = MultiTerms.getTerms(reader, field) ?: return "missing"
+        val enum = terms.iterator()
+        val status = enum.seekCeil(BytesRef(target))
+        val term = if (status == TermsEnum.SeekStatus.END) null else enum.term()?.utf8ToString()
+        return "$status:${term ?: "null"}"
+    }
+
+    private fun analyzeTokenExistence(
+        reader: DirectoryReader,
+        analyzer: Analyzer,
+        field: String,
+        text: String,
+        maxTokens: Int = 10
+    ): Map<String, Boolean> {
+        val terms = MultiTerms.getTerms(reader, field) ?: return emptyMap()
+        val enum = terms.iterator()
+        val results = LinkedHashMap<String, Boolean>()
+        val stream = analyzer.tokenStream(field, text)
+        stream.use {
+            val termAtt = it.addAttribute(CharTermAttribute::class)
+            val bytesAtt = it.addAttribute(TermToBytesRefAttribute::class)
+            it.reset()
+            while (it.incrementToken() && results.size < maxTokens) {
+                val token = termAtt.toString()
+                val exists = runCatching { enum.seekExact(bytesAtt.bytesRef) }.getOrDefault(false)
+                results[token] = exists
+            }
+            it.end()
+        }
+        return results
     }
 
 
@@ -83,7 +174,15 @@ class SearchEngine(
 
             fun runSearch(queryAnalyzer: Analyzer, requireAllTokens: Boolean): Array<org.gnit.lucenekmp.search.ScoreDoc> {
                 val queries = buildTermQueries(term, queryAnalyzer, requireAllTokens)
-                if (queries.isEmpty()) return emptyArray()
+                if (queries.isEmpty()) {
+                    if (translation.language.code == "hi") {
+                        val tokens = analyzeTokens(queryAnalyzer, "text", term)
+                        logger.debug {
+                            "no queries built for '$term' in ${translation.code} using ${queryAnalyzer::class.simpleName}; tokens=$tokens"
+                        }
+                    }
+                    return emptyArray()
+                }
                 val merged = LinkedHashMap<Int, org.gnit.lucenekmp.search.ScoreDoc>()
                 for (queryTerm in queries) {
                     val query = buildQuery(queryTerm)
@@ -109,6 +208,24 @@ class SearchEngine(
                 hits = runSearch(SimpleAnalyzer(), requireAllTokens)
                 if (hits.isEmpty() && requireAllTokens) {
                     hits = runSearch(SimpleAnalyzer(), requireAllTokens = false)
+                }
+            }
+            if (hits.isEmpty() && translation.language.code == "hi") {
+                val tokens = analyzeTokens(analyzer, "text", term)
+                val tokenFreqs = tokens.associateWith { token ->
+                    runCatching { reader.docFreq(Term("text", token)) }.getOrDefault(-1)
+                }
+                val sampleTerms = sampleIndexTerms(reader, "text")
+                val nonAsciiTerms = sampleNonAsciiTerms(reader, "text")
+                val seekYish = seekCeilTerm(reader, "text", "यिश")
+                val seekMasih = seekCeilTerm(reader, "text", "मसिह")
+                val seekYeeshu = seekCeilTerm(reader, "text", "यीशु")
+                val tokenExists = analyzeTokenExistence(reader, analyzer, "text", term)
+                val standardAnalyzer = StandardAnalyzer()
+                val standardTokens = analyzeTokens(standardAnalyzer, "text", term)
+                val standardExists = analyzeTokenExistence(reader, standardAnalyzer, "text", term)
+                logger.debug {
+                    "no hits for '$term' in ${translation.code} using ${analyzer::class.simpleName}; tokens=$tokens docFreqs=$tokenFreqs tokenExists=$tokenExists standardTokens=$standardTokens standardExists=$standardExists sampleTerms=$sampleTerms nonAsciiTerms=$nonAsciiTerms seekYish=$seekYish seekMasih=$seekMasih seekYeeshu=$seekYeeshu"
                 }
             }
 
