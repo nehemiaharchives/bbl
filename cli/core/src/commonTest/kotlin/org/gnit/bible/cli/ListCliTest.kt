@@ -1,16 +1,13 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
-import io.ktor.client.HttpClient
-import okio.FileSystem
-import okio.Path.Companion.toPath
 import okio.SYSTEM
-import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.Platform
+import org.gnit.bible.Translation
+import org.gnit.bible.downloadableTranslations
 import org.gnit.bible.test.ResourcesTestBase
-import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
 import kotlin.test.Ignore
@@ -21,29 +18,31 @@ import kotlin.test.assertTrue
 class ListCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
-    private lateinit var systemFileSystem: FileSystem
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
     private var originalCacheDir: String? = null
-    private var originalFileSystem: FileSystem? = null
+    private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
     fun setup(){
-        systemFileSystem = FileSystem.SYSTEM
-        val bblPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
-        systemFileSystem.createDirectories(bblPackDir.toPath())
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
         originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
-        platform.overridePlatformPackDir = bblPackDir
+        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
         platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = null
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
-        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = systemFileSystem)
-        bible = Bible(assetManager = assetManager)
 
-        Bbl(bible).test("install kttv")
+        val installed = downloadableTranslations.first { it.code == "kttv" }
+        val partialList = listOf(Translation.webus, Translation.jc, Translation("abtag", "tl", "Ang Biblia", "Ang Biblia", 1905, "Public Domain"))
+
+        bible = Bible(
+            assetManager = FakeAssetManager(
+                platform = platform,
+                downloaded = listOf(installed),
+                downloadable = partialList
+            )
+        )
     }
 
     @AfterTest
@@ -85,13 +84,6 @@ IRVURD | Indian Revised Version - Urdu              | इंडियन रि�
     @Test
     fun testBblList() {
         val bbl = Bbl(bible = bible)
-
-        val packDir = bible.assetManager.platform.packDir.toPath()
-        val packFiles = systemFileSystem.list(packDir)
-        assertEquals(1, packFiles.size)
-        assertEquals("kttv.zip", packFiles.first().name)
-        val zipPath = packDir / "kttv.zip".toPath()
-        assertTrue(systemFileSystem.exists(zipPath))
 
         arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
             assertEquals(expectedTranslationList, bbl.test(argv = argv).stdout)
@@ -146,5 +138,28 @@ IRVURD | Indian Revised Version - Urdu              | इंडियन रि�
         val command = Bbl()
         val result = command.test("list category")
         println(result.stdout)
+    }
+
+    private class FakeAssetManager(
+        override val platform: Platform,
+        private val downloaded: List<Translation>,
+        private val downloadable: List<Translation>
+    ) : org.gnit.bible.AssetManager {
+
+        override val fileSystem: okio.FileSystem = okio.FileSystem.SYSTEM
+
+        override suspend fun downloadableTranslationList(listUrl: String): List<Translation> = downloadable
+
+        override suspend fun download(baseUrl: String, fileName: String) {
+            // No-op for list-only tests.
+        }
+
+        override fun downloadedTranslationCodes(): List<String> = downloaded.map { it.code }
+
+        override fun downloadedTranslations(): List<Translation> = downloaded
+
+        override fun delete(translationCode: String) {
+            // No-op for list-only tests.
+        }
     }
 }

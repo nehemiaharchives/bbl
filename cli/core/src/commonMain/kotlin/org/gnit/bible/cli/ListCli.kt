@@ -38,13 +38,17 @@ class ListCli(
                         .onFailure { logger.debug { "ListCli failed to download latest downloadable translation list" } }
                         .getOrDefault(downloadableTranslations)
                 }
+                val mergedDownloadable = (downloadable + downloadableTranslations)
+                    .associateBy { it.code }
+                    .values
+                    .toList()
                 val downloaded = am.downloadedTranslations()
 
                 val downloadedEntries =
                     downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
                 val takenCodes = (downloaded.map { it.code }).toSet()
-                val downloadableEntries = downloadable
+                val downloadableEntries = mergedDownloadable
                     .filterNot { takenCodes.contains(it.code) }
                     .map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 

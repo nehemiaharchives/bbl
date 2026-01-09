@@ -78,7 +78,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         val command = Bbl(bible)
         val result = command.test()
-        assertEquals("${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
+        assertEquals("${TestFixtures.genesisOneWebus}\n", result.stdout)
     }
 
     @Test
@@ -86,7 +86,15 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         val command = Bbl(bible)
         val result = command.test("gen 1")
-        assertEquals("${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
+        assertEquals("${TestFixtures.genesisOneWebus}\n", result.stdout)
+    }
+
+    @Test
+    fun testBblGen2() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("gen 2")
+        assertEquals("${TestFixtures.genesisTowWebus}\n", result.stdout)
     }
 
     @Test
@@ -96,7 +104,7 @@ class MainTest {
 
         val command = Bbl(bible)
         val result = command.test("gen 1")
-        assertEquals("Genesis 1\n${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
+        assertEquals("Genesis 1\n${TestFixtures.genesisOneWebus}\n", result.stdout)
     }
 
     @Test
@@ -137,7 +145,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         val command = Bbl(bible)
         val result = command.test("in jc")
-        assertEquals("${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
+        assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
     }
 
     @Test
@@ -147,7 +155,7 @@ class MainTest {
 
         val command = Bbl(bible)
         val result = command.test("in jc")
-        assertEquals("創世記 1\n${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
+        assertEquals("創世記 1\n${TestFixtures.genesisOneJc}\n", result.stdout)
     }
 
     @Test
@@ -155,7 +163,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         val command = Bbl(bible)
         val result = command.test("gen 1 in jc")
-        assertEquals("${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
+        assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
     }
 
     @Test
@@ -163,8 +171,8 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         val command = Bbl(bible)
         val result = command.test("gen 1 in jc webus")
-        val jcVerses = Bible.splitChapterToVerses(TestFixtures.JC_GENESIS_1_1)
-        val webusVerses = Bible.splitChapterToVerses(TestFixtures.WEBUS_GENESIS_1_1)
+        val jcVerses = Bible.splitChapterToVerses(TestFixtures.genesisOneJc)
+        val webusVerses = Bible.splitChapterToVerses(TestFixtures.genesisOneWebus)
 
         val expected = buildString {
             for (verseNumber in 1..jcVerses.size) {
@@ -184,7 +192,7 @@ class MainTest {
 
         val command = Bbl(bible)
         val result = command.test("gen 1 in jc")
-        assertEquals("創世記 1\n${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
+        assertEquals("創世記 1\n${TestFixtures.genesisOneJc}\n", result.stdout)
     }
 
     @Test

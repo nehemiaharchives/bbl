@@ -22,17 +22,14 @@ class ZipBibleResourcesReader(
     }
 
     override fun getChapterText(translation: String, book: Int, chapter: Int): String {
-        val sb = StringBuilder()
-        withZipFile(translation) { zip ->
+        return withZipFile(translation) { zip ->
             val expectedFileName = "$translation.$book.$chapter.txt"
             val targetName = zip.entries
                 .firstOrNull { it.name.substringAfterLast('/') == expectedFileName }
                 ?.name
                 ?: error("No entry ending with $expectedFileName found")
-
-            zip.readTextEntry(targetName) { text, _ -> sb.append(text) }
+            readEntryBytes(zip, targetName).decodeToString()
         }
-        return sb.toString()
     }
 
     override fun listIndexFiles(translation: String): List<String> {
@@ -74,14 +71,13 @@ class ZipBibleResourcesReader(
     }
 
     fun getTranslationFromManifest(translationCode: String): Translation {
-        val manifestJson = StringBuilder()
-        withZipFile(translationCode) { zip ->
+        val json = withZipFile(translationCode) { zip ->
             val manifest = "$translationCode$MANIFEST_JSON_POSTFIX"
             val targetName = zip.entries.firstOrNull { it.name.endsWith(manifest) }?.name
                 ?: error("$manifest not found in $zip")
-            zip.readTextEntry(targetName) { text, _ -> manifestJson.append(text) }
+            readEntryBytes(zip, targetName).decodeToString()
         }
-        return Translation.fromJson(manifestJson.toString())
+        return Translation.fromJson(json)
     }
 
     private inline fun <T> withZipFile(
@@ -112,5 +108,24 @@ class ZipBibleResourcesReader(
                 error("ZipBibleResourcesReader failed to open $zipPath with error: ${fileOpenError?.message}")
             }
         }
+    }
+
+    private suspend fun readEntryBytes(zip: ZipFile, name: String): ByteArray {
+        val entry = zip.entries.firstOrNull { it.name == name }
+            ?: error("Zip entry not found: $name")
+        val chunks = ArrayList<ByteArray>(4)
+        zip.readEntry(entry) { _, content, count, _ ->
+            if (count.toInt() > 0) {
+                chunks.add(content.copyOfRange(0, count.toInt()))
+            }
+        }
+        val total = chunks.sumOf { it.size }
+        val merged = ByteArray(total)
+        var offset = 0
+        chunks.forEach { bytes ->
+            bytes.copyInto(merged, offset)
+            offset += bytes.size
+        }
+        return merged
     }
 }

@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.testing.test
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
@@ -67,7 +68,7 @@ class SettingsTest {
         val result = command.test("gen 1")
 
         // The pack fixture only contains Genesis 1:1, so `bbl gen 1` should print that only.
-        assertEquals("${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
+        assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
 
         // persisted default translation
         assertEquals("jc", bible.assetManager.platform.settings.getString(ConfigKey.TRANSLATION.value, ""))
