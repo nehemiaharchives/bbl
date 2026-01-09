@@ -34,7 +34,9 @@ class ListCliTest : ResourcesTestBase() {
         platform.overrideFileSystem = null
 
         val installed = Translation.kttv
-        val list = downloadableTranslationsCli.minus(Translation.kttv)
+        val list = Translation.embeddedTranslations
+            .plus(downloadableTranslationsCli)
+            .minus(Translation.kttv)
 
         bible = Bible(
             assetManager = FakeAssetManager(
