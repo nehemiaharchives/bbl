@@ -13,9 +13,163 @@ on:
       - '**.sh'
 
 jobs:
-  shared-test-android:
-    name: Shared Test Android
-    runs-on: ubuntu-latest
+  tests:
+    name: Test (${{ matrix.platform }}/${{ matrix.module_name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: jvm
+            module_name: shared
+            os: ubuntu-latest
+            timeout: 10
+            task: :shared:jvmTest
+          - platform: android
+            module_name: shared
+            os: ubuntu-latest
+            timeout: 15
+            task: :shared:testReleaseUnitTest
+            needs_android: true
+          - platform: ios
+            module_name: shared
+            os: macos-latest
+            timeout: 20
+            task: :shared:iosSimulatorArm64Test
+            needs_konan_cache: true
+          - platform: linux
+            module_name: shared
+            os: ubuntu-latest
+            timeout: 20
+            task: :shared:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:core:jvmTest
+          - platform: linux
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+          - platform: macos
+            module_name: cli-core
+            os: macos-latest
+            timeout: 25
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+
+          - platform: jvm
+            module_name: cli-search-common
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:common:jvmTest
+          - platform: linux
+            module_name: cli-search-common
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:common:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-search-extra
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:extra:jvmTest
+          - platform: linux
+            module_name: cli-search-extra
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:extra:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-search-kuromoji
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:kuromoji:jvmTest
+          - platform: linux
+            module_name: cli-search-kuromoji
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:kuromoji:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-search-morfologik
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:morfologik:jvmTest
+          - platform: linux
+            module_name: cli-search-morfologik
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:morfologik:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-search-nori
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:nori:jvmTest
+          - platform: linux
+            module_name: cli-search-nori
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:nori:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: cli-search-smartcn
+            os: ubuntu-latest
+            timeout: 10
+            task: :cli:search:smartcn:jvmTest
+          - platform: linux
+            module_name: cli-search-smartcn
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:smartcn:linuxX64Test
+            needs_konan_cache: true
+
+          - platform: jvm
+            module_name: composeApp
+            os: ubuntu-latest
+            timeout: 10
+            task: :composeApp:jvmTest
+          - platform: android
+            module_name: composeApp
+            os: ubuntu-latest
+            timeout: 15
+            task: :composeApp:testReleaseUnitTest
+            needs_android: true
+          - platform: ios
+            module_name: composeApp
+            os: macos-latest
+            timeout: 25
+            task: :composeApp:iosSimulatorArm64Test
+            needs_konan_cache: true
+
+          - platform: linux
+            module_name: cli-core-build
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:core:linkReleaseExecutableLinuxX64
+            needs_konan_cache: true
+          - platform: macos
+            module_name: cli-core-build
+            os: macos-latest
+            timeout: 25
+            task: :cli:core:linkReleaseExecutableMacosArm64
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -27,166 +181,20 @@ jobs:
           java-version: '24'
 
       - name: Set up Android SDK
+        if: ${{ matrix.needs_android }}
         uses: android-actions/setup-android@v3
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run Android Tests
-        run: ./gradlew :shared:testReleaseUnitTest
-
-  shared-test-ios-simulator:
-    name: Shared Test iOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run iOS Simulator Tests
-        run: ./gradlew :shared:iosSimulatorArm64Test
-
-  shared-test-jvm:
-    name: Shared Test JVM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run JVM Tests
-        run: ./gradlew :shared:jvmTest
-
-  shared-test-linux:
-    name: Shared Test Linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run Tests
-        run: ./gradlew :shared:linuxX64Test
-
-  cli-unittest-linux:
-    name: CLI Test Linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Konan Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-        
-
-      - name: Run Tests
-        run: ./gradlew :cli:core:linuxX64Test
-
-  cli-unittest-macos:
-    name: CLI Test macOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Konan Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-       
 
       - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.4'
-
-      - name: Run Tests
-        run: ./gradlew :cli:core:macosArm64Test
-
-  cli-unittest-jvm:
-    name: CLI Test JVM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run JVM Tests
-        run: ./gradlew :cli:core:jvmTest
-
-  cmp-test-ios:
-    name: CMP Test iOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
+          xcode-version: ${{ matrix.xcode_version }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Konan Cache
+        if: ${{ matrix.needs_konan_cache }}
         uses: actions/cache@v4
         with:
           path: ~/.konan
@@ -194,100 +202,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-konan-
 
-      - name: Run iOS Tests
-        run: ./gradlew :composeApp:iosSimulatorArm64Test
+      - name: Run task
+        run: ./gradlew ${{ matrix.task }}
 
-  cmp-test-android:
-    name: CMP Test Android
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run Android Unit Tests
-        run: ./gradlew :composeApp:testReleaseUnitTest
-
-  cmp-test-jvm:
-    name: CMP Test JVM Desktop
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run JVM Desktop Tests
-        run: ./gradlew :composeApp:jvmTest
-
-  cli-build-linux:
-    name: CLI Build Linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Konan Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-
-
-      - name: Build LinuxX64 Native Binary
-        run: ./gradlew :cli:core:linkReleaseExecutableLinuxX64
-
-  cli-build-macos:
-    name:  CLI Build macOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK 24
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '24'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Konan Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-       
-
-      - name: Build MacOSX64 Native Binary
-        run: ./gradlew :cli:core:linkReleaseExecutableMacosArm64
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### ${{ matrix.platform }} - ${{ matrix.module_name }} Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
