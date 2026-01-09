@@ -9,11 +9,8 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlinx.coroutines.runBlocking
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.AssetManagerImpl
-import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import kotlin.test.AfterTest
@@ -26,6 +23,7 @@ class MainTest {
     private var originalPackDir: String? = null
     private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private lateinit var bible: Bible
 
     @BeforeTest
     fun clearSavedSettings() {
@@ -38,21 +36,23 @@ class MainTest {
         platform.settings.remove(ConfigKey.TRANSLATION.value)
         platform.settings.remove(ConfigKey.HEADER.value)
 
-        runBlocking {
-            val packDirPath = platform.packDir.toPath()
+        val packDirPath = platform.packDir.toPath()
 
-            // Strong test isolation: remove all packs installed in this test pack dir.
-            platform.fileSystem.deleteRecursively(packDirPath, mustExist = false)
-            platform.fileSystem.createDirectories(packDirPath)
+        // Strong test isolation: remove all packs installed in this test pack dir.
+        platform.fileSystem.deleteRecursively(packDirPath, mustExist = false)
+        platform.fileSystem.createDirectories(packDirPath)
 
-            // Integration-like: zip packs are written to the real filesystem for ZipBibleResourcesReader.
-            val am = AssetManagerImpl(
-                httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
-                platform = platform
-            )
-            am.download(DOWNLOADABLE_BIBLE_BASE_URL, "webus.zip")
-            am.download(DOWNLOADABLE_BIBLE_BASE_URL, "jc.zip")
-        }
+        // Integration-like: write minimal zip packs directly to the real filesystem for ZipBibleResourcesReader.
+        platform.fileSystem.write(packDirPath / "webus.zip") { write(TestFixtures.webusMinimalZipBytes) }
+        platform.fileSystem.write(packDirPath / "jc.zip") { write(TestFixtures.jcMinimalZipBytes) }
+
+        bible = Bible(
+            assetManager = AssetManagerImpl(
+                platform = platform,
+                fileSystem = platform.fileSystem
+            ),
+            analyzerProvider = CommonAnalyzerProvider()
+        )
 
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
     }
@@ -68,7 +68,7 @@ class MainTest {
     @Test
     fun testBblWithVersionFlag(){
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test(listOf("-v"))
         assertContains(result.stdout, "While you are in front of your console, you are not alone. God is with you.")
     }
@@ -76,7 +76,7 @@ class MainTest {
     @Test
     fun testBblWithNoArgs() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test()
         assertEquals("${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
     }
@@ -84,7 +84,7 @@ class MainTest {
     @Test
     fun testBblGen1() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 1")
         assertEquals("${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
     }
@@ -94,7 +94,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 1")
         assertEquals("Genesis 1\n${TestFixtures.WEBUS_GENESIS_1_1}\n", result.stdout)
     }
@@ -102,7 +102,7 @@ class MainTest {
     @Test
     fun testBblJohn3v16() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:16")
         val webusJohn3v16 = TestFixtures.WEBUS_JOHN_3_16
         assertEquals("16 $webusJohn3v16\n", result.stdout)
@@ -113,7 +113,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:16")
         val webusJohn3v16 = TestFixtures.WEBUS_JOHN_3_16
         assertEquals("John 3:16\n16 $webusJohn3v16\n", result.stdout)
@@ -122,7 +122,7 @@ class MainTest {
     @Test
     fun testBblMatt28v18to20() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("matt 28:18-20")
         val expected = listOf(
             "18 ${TestFixtures.WEBUS_MATT_28_18}",
@@ -135,7 +135,7 @@ class MainTest {
     @Test
     fun testBblInJc() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("in jc")
         assertEquals("${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
     }
@@ -145,7 +145,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("in jc")
         assertEquals("創世記 1\n${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
     }
@@ -153,7 +153,7 @@ class MainTest {
     @Test
     fun testBblGen1InJc() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 1 in jc")
         assertEquals("${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
     }
@@ -161,7 +161,7 @@ class MainTest {
     @Test
     fun testBblGen1InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 1 in jc webus")
         val jcVerses = Bible.splitChapterToVerses(TestFixtures.JC_GENESIS_1_1)
         val webusVerses = Bible.splitChapterToVerses(TestFixtures.WEBUS_GENESIS_1_1)
@@ -182,7 +182,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 1 in jc")
         assertEquals("創世記 1\n${TestFixtures.JC_GENESIS_1_1}\n", result.stdout)
     }
@@ -190,7 +190,7 @@ class MainTest {
     @Test
     fun testBblJohn3v16InJc() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:16 in jc")
         val jcJohn3v16 = TestFixtures.JC_JOHN_3_16
         assertEquals("16 $jcJohn3v16\n", result.stdout)
@@ -199,7 +199,7 @@ class MainTest {
     @Test
     fun testBblJohn3v16InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:16 in jc webus")
 
         // Keep this test resilient to minor formatting changes (blank lines, headers, etc.)
@@ -212,7 +212,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:16 in jc")
 
         // Header and verse should be present; don't require exact book-name spelling.
@@ -223,7 +223,7 @@ class MainTest {
     @Test
     fun testBblMatt28v18to20InJc() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("matt 28:18-20 in jc")
         val jcMatt28v18to20 = """
             18 ${TestFixtures.JC_MATT_28_18}
@@ -236,7 +236,7 @@ class MainTest {
     @Test
     fun testBblMatt28v18to20InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("matt 28:18-20 in jc webus")
 
         // Resilient to whitespace/newline differences.
@@ -253,7 +253,7 @@ class MainTest {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
 
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("matt 28:18-20 in jc")
 
         // Header and verses should be present; don't require exact book-name spelling.
@@ -265,7 +265,7 @@ class MainTest {
 
     @Test
     fun testBblUnknownBookShowsFriendlyError() {
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("notabook 1")
         assertTrue(result.statusCode != 0, "Command should fail on unknown book name")
         assertContains(result.stderr, "Unknown book 'notabook'")
@@ -274,7 +274,7 @@ class MainTest {
 
     @Test
     fun testBblChapterOutOfRangeShowsFriendlyError() {
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("gen 51")
         assertTrue(result.statusCode != 0, "Command should fail on chapter out of range")
         assertContains(result.stderr, "Chapter 51 is out of range for Genesis")
@@ -283,14 +283,6 @@ class MainTest {
 
     @Test
     fun testBblVerseOutOfRangeShowsFriendlyError() {
-        val bible = Bible(assetManager = AssetManagerImpl(
-            httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
-            platform = platform
-        ))
-        runBlocking {
-            bible.assetManager.download(DOWNLOADABLE_BIBLE_BASE_URL, "webus.zip")
-        }
-
         val command = Bbl(bible = bible)
         val result = command.test("john 3:37")
 
@@ -300,7 +292,7 @@ class MainTest {
 
     @Test
     fun testBblInvalidVerseRangeShowsFriendlyError() {
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test("john 3:20-10")
         assertTrue(result.statusCode != 0, "Command should fail on invalid verse range")
         assertContains(result.stderr, "Invalid verse range 20-10")
@@ -309,7 +301,7 @@ class MainTest {
 
     @Test
     fun testPackSubcommandIsNotAvailable() {
-        val command = Bbl()
+        val command = Bbl(bible)
         val result = command.test(listOf("pack", "webus"))
         assertTrue(
             result.statusCode != 0,
