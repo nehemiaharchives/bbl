@@ -422,8 +422,10 @@ class SearchEngine(
             "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
         }
         val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
-        if (!term.any { it.isWhitespace() }) {
-            val phraseQuery = QueryBuilder(analyzer).createPhraseQuery("text", term)
+        val normalizedTerm = term.filterNot { it.isWhitespace() }
+        if (normalizedTerm.isNotBlank()) {
+            val phraseText = if (term.any { it.isWhitespace() }) normalizedTerm else term
+            val phraseQuery = QueryBuilder(analyzer).createPhraseQuery("text", phraseText)
             if (phraseQuery != null) {
                 val hits = runSingleQuery(
                     indexSearcher = indexSearcher,
@@ -437,15 +439,40 @@ class SearchEngine(
                 }
             }
         }
-        return runSearchPipeline(
-            indexSearcher = indexSearcher,
-            indexReader = indexSearcher.indexReader,
-            filterClauses = filterClauses,
-            analyzer = analyzer,
-            term = term,
-            requireAllTokens = true,
-            verses = verses
-        )
+        val requireAllTokens = term.any { it.isWhitespace() }
+        val primaryQuery = buildAnalyzedQuery("text", term, analyzer, requireAllTokens)
+            ?: runCatching {
+                val parser = QueryParser("text", analyzer)
+                if (requireAllTokens) {
+                    parser.setDefaultOperator(QueryParser.Operator.AND)
+                }
+                parser.parse(term)
+            }.getOrNull()
+        if (primaryQuery != null) {
+            val hits = runSingleQuery(
+                indexSearcher = indexSearcher,
+                filterClauses = filterClauses,
+                termQuery = primaryQuery,
+                maxHits = verses,
+                sortByDoc = true
+            )
+            if (hits.isNotEmpty()) {
+                return hits
+            }
+        }
+        if (requireAllTokens) {
+            val relaxedQuery = buildAnalyzedQuery("text", term, analyzer, requireAllTokens = false)
+            if (relaxedQuery != null) {
+                return runSingleQuery(
+                    indexSearcher = indexSearcher,
+                    filterClauses = filterClauses,
+                    termQuery = relaxedQuery,
+                    maxHits = verses,
+                    sortByDoc = true
+                )
+            }
+        }
+        return emptyArray()
     }
 
     private fun thaiSearchPreProcess(
