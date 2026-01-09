@@ -14,16 +14,19 @@ import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
+import org.gnit.lucenekmp.analysis.uk.UkrainianMorfologikAnalyzer
 
 class MorfologikAnalyzerProvider : AnalyzerProvider {
-    private var cached: Analyzer? = null
+    private val cache = mutableMapOf<String, Analyzer>()
 
     override fun analyzerFor(language: Language): Analyzer {
-        val existing = cached
-        if (existing != null) return existing
-        val created = MorfologikAnalyzer()
-        cached = created
-        return created
+        return cache.getOrPut(language.code) {
+            when (language.code) {
+                "pl" -> MorfologikAnalyzer()
+                "uk" -> UkrainianMorfologikAnalyzer()
+                else -> throw UnsupportedOperationException("MorfologikAnalyzerProvider only supports Polish and Ukrainian")
+            }
+        }
     }
 }
 
