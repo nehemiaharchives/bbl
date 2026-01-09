@@ -11,6 +11,7 @@ import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.BibleTestBase
 import org.gnit.bible.test.TestFixtures
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -18,26 +19,46 @@ import kotlin.test.assertTrue
 
 class CliBibleTest : BibleTestBase {
 
-    val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_cli_bible_test_dir"}"
+    private val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_cli_bible_test_dir"}"
+    private val platform = getPlatform()
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem = platform.overrideFileSystem
+
     override val bible: Bible = Bible(
         assetManager = AssetManagerImpl(
-        httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
-        platform = getPlatform().apply {
-            overridePlatformPackDir = cliBibleTestPackDir
-        }
-    )).apply {
+            httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
+            platform = platform
+        )
+    ).apply {
         // zip-only: no embedded reader
     }
 
     @BeforeTest
     fun setup(){
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overridePlatformPackDir = cliBibleTestPackDir
+        platform.overridePlatformCacheDir = null
+        platform.overrideFileSystem = null
+
         val fs = FileSystem.SYSTEM
+        // Integration-like: ZipBibleResourcesReader reads real zip files from the OS filesystem.
         fs.createDirectories(cliBibleTestPackDir.toPath())
         fs.list(cliBibleTestPackDir.toPath()).forEach { fs.delete(it) }
         runBlocking {
             bible.assetManager.download(DOWNLOADABLE_BIBLE_BASE_URL, "webus.zip")
             bible.assetManager.download(DOWNLOADABLE_BIBLE_BASE_URL, "jc.zip")
         }
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     @Test

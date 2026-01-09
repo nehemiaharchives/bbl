@@ -6,9 +6,11 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -17,20 +19,35 @@ class UninstallCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
     private lateinit var fakeFs: FakeFileSystem
+    private lateinit var platform: Platform
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
     fun setup(){
         val packDir = "/tmp/bblpack-cli-uninstall"
         fakeFs = FakeFileSystem()
         fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
-        val platform = createTestPlatform().apply {
-            overridePlatformPackDir = packDir
-            overrideFileSystem = fakeFs
-        }
+        platform = createTestPlatform()
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overridePlatformPackDir = packDir
+        platform.overridePlatformCacheDir = null
+        platform.overrideFileSystem = fakeFs
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
         Bbl(bible = bible).test("install kttv th1971")
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     @Test

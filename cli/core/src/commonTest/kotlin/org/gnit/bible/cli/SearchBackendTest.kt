@@ -7,9 +7,11 @@ import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
+import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,14 +21,32 @@ class SearchBackendTest : ResourcesTestBase() {
 
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
+    private lateinit var platform: Platform
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
     fun setup() {
         fakeFs = FakeFileSystem()
-        val platform = createTestPlatform().apply { overrideFileSystem = fakeFs }
+        platform = createTestPlatform()
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overrideFileSystem = fakeFs
+        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_search_backend_test_dir"
+        platform.overridePlatformCacheDir = null
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager, analyzerProvider = CommonAnalyzerProvider())
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     @Test

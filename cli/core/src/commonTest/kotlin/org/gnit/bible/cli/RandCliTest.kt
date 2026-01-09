@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.testing.test
+import org.gnit.bible.AssetManager
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.BookChapterVerse
@@ -8,8 +9,12 @@ import org.gnit.bible.Books
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandPicker
 import org.gnit.bible.RandomlyShow
+import org.gnit.bible.Translation
 import org.gnit.bible.bookNumber
 import org.gnit.bible.getPlatform
+import okio.FileSystem
+import okio.fakefilesystem.FakeFileSystem
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,12 +22,44 @@ import kotlin.test.assertTrue
 
 class RandCliTest {
 
+    private val platform = getPlatform()
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem = platform.overrideFileSystem
+    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_rand_test_dir"}"
+    private lateinit var fakeFs: FakeFileSystem
+    private lateinit var bible: Bible
+
     @BeforeTest
     fun enableHeaderAndVerseMode() {
-        val settings = getPlatform().settings
+        fakeFs = FakeFileSystem()
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overridePlatformPackDir = testPackDir
+        platform.overridePlatformCacheDir = null
+        platform.overrideFileSystem = fakeFs
+
+        val settings = platform.settings
         settings.remove(ConfigKey.TRANSLATION.value)
         settings.putString(ConfigKey.HEADER.value, "true")
         settings.putString(ConfigKey.RANDOMLY_SHOW.value, RandomlyShow.verse.toString())
+
+        bible = Bible(
+            assetManager = FakeAssetManager(
+                platform = platform,
+                fileSystem = fakeFs,
+                translations = listOf(Translation.webus, Translation.jc)
+            )
+        )
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     private fun stubPickerForSingleVerse(verseText: String): RandPicker {
@@ -52,7 +89,7 @@ class RandCliTest {
     fun `bbl rand nt`() {
         val picker = stubPickerForSingleVerse("For God so loved the world.")
 
-        val command = RandCli(bible = Bible(), picker = picker)
+        val command = RandCli(bible = bible, picker = picker)
         val result = command.test(listOf("nt"))
 
         assertEquals(0, result.statusCode, "Command should succeed")
@@ -74,7 +111,7 @@ class RandCliTest {
     fun `bbl rand ot`() {
         val picker = stubPickerForSingleVerse("In the beginning.")
 
-        val command = RandCli(bible = Bible(), picker = picker)
+        val command = RandCli(bible = bible, picker = picker)
         val result = command.test(listOf("ot"))
 
         assertEquals(0, result.statusCode, "Command should succeed")
@@ -95,7 +132,7 @@ class RandCliTest {
     fun `bbl rand prophets`() {
         val picker = stubPickerForSingleVerse("Isaiah prophecy.")
 
-        val command = RandCli(bible = Bible(), picker = picker)
+        val command = RandCli(bible = bible, picker = picker)
         val result = command.test(listOf("prophets"))
 
         assertEquals(0, result.statusCode, "Command should succeed")
@@ -116,7 +153,7 @@ class RandCliTest {
     fun `bbl rand paul`() {
         val picker = stubPickerForSingleVerse("Pauline intro.")
 
-        val command = RandCli(bible = Bible(), picker = picker)
+        val command = RandCli(bible = bible, picker = picker)
         val result = command.test(listOf("paul"))
 
         assertEquals(0, result.statusCode, "Command should succeed")
@@ -135,12 +172,12 @@ class RandCliTest {
 
     @Test
     fun `bbl rand abraham in jc uses Japanese header and verse`() {
-        val settings = getPlatform().settings
+        val settings = platform.settings
         settings.putString(ConfigKey.TRANSLATION.value, "jc")
 
         val picker = stubPickerForAbrahamPassage()
 
-        val command = RandCli(bible = Bible(), picker = picker)
+        val command = RandCli(bible = bible, picker = picker)
         val result = command.test(listOf("abraham"))
 
         assertEquals(0, result.statusCode, "Command should succeed")
@@ -176,5 +213,26 @@ class RandCliTest {
         assertTrue(abraham is BibleFilter.Passage)
         assertEquals(BookChapterVerse(1, 11, 27), abraham.start)
         assertEquals(BookChapterVerse(1, 25, 11), abraham.endInclusive)
+    }
+
+    private class FakeAssetManager(
+        override val platform: org.gnit.bible.Platform,
+        override val fileSystem: FileSystem,
+        private val translations: List<Translation>
+    ) : AssetManager {
+
+        override suspend fun downloadableTranslationList(listUrl: String): List<Translation> = translations
+
+        override suspend fun download(baseUrl: String, fileName: String) {
+            // No-op for these tests: they don't exercise downloads.
+        }
+
+        override fun downloadedTranslationCodes(): List<String> = translations.map { it.code }
+
+        override fun downloadedTranslations(): List<Translation> = translations
+
+        override fun delete(translationCode: String) {
+            // No-op: no real files to delete in these tests.
+        }
     }
 }

@@ -9,6 +9,7 @@ import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -19,11 +20,20 @@ class ConfigCliTest {
     lateinit var bible: Bible
     lateinit var settingsPath: Path
     lateinit var bblDir: Path
+    private val platform = getPlatform()
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem = platform.overrideFileSystem
 
     @BeforeTest
     fun setup(){
         fakeFs = FakeFileSystem()
-        val platform = getPlatform().apply { overrideFileSystem = fakeFs }
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overrideFileSystem = fakeFs
+        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_config_test_dir"
+        platform.overridePlatformCacheDir = null
         platform.settings.clear()
 
         val packDirPath = platform.packDir.toPath()
@@ -32,6 +42,14 @@ class ConfigCliTest {
 
         val am = AssetManagerImpl(platform = platform, fileSystem = fakeFs)
         bible = Bible(am)
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     @Test

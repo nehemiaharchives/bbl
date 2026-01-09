@@ -16,15 +16,25 @@ import org.gnit.bible.AssetManagerImpl
 import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import kotlin.test.AfterTest
 
 class MainTest {
 
     private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_main_test_dir"}"
 
-    private val platform = getPlatform().apply { overridePlatformPackDir = testPackDir }
+    private val platform = getPlatform()
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem = platform.overrideFileSystem
 
     @BeforeTest
     fun clearSavedSettings() {
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overridePlatformPackDir = testPackDir
+        platform.overridePlatformCacheDir = null
+        platform.overrideFileSystem = null
         platform.settings.remove(ConfigKey.TRANSLATION.value)
         platform.settings.remove(ConfigKey.HEADER.value)
 
@@ -35,6 +45,7 @@ class MainTest {
             platform.fileSystem.deleteRecursively(packDirPath, mustExist = false)
             platform.fileSystem.createDirectories(packDirPath)
 
+            // Integration-like: zip packs are written to the real filesystem for ZipBibleResourcesReader.
             val am = AssetManagerImpl(
                 httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
                 platform = platform
@@ -44,6 +55,14 @@ class MainTest {
         }
 
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     @Test

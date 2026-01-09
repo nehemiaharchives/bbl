@@ -8,9 +8,11 @@ import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
+import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,18 +22,36 @@ class ListCliTest : ResourcesTestBase() {
 
     lateinit var bible: Bible
     private lateinit var systemFileSystem: FileSystem
+    private lateinit var platform: Platform
+    private var originalPackDir: String? = null
+    private var originalCacheDir: String? = null
+    private var originalFileSystem: FileSystem? = null
 
     @BeforeTest
     fun setup(){
         systemFileSystem = FileSystem.SYSTEM
         val bblPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
         systemFileSystem.createDirectories(bblPackDir.toPath())
-        val platform = createTestPlatform().apply { overridePlatformPackDir = bblPackDir }
+        platform = createTestPlatform()
+        originalPackDir = platform.overridePlatformPackDir
+        originalCacheDir = platform.overridePlatformCacheDir
+        originalFileSystem = platform.overrideFileSystem
+        platform.overridePlatformPackDir = bblPackDir
+        platform.overridePlatformCacheDir = null
+        platform.overrideFileSystem = null
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = systemFileSystem)
         bible = Bible(assetManager = assetManager)
 
         Bbl(bible).test("install kttv")
+    }
+
+    @AfterTest
+    fun restorePlatformOverrides() {
+        platform.settings.clear()
+        platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformCacheDir = originalCacheDir
+        platform.overrideFileSystem = originalFileSystem
     }
 
     val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Available | Public Domain
