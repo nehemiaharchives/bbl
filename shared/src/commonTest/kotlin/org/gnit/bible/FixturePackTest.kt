@@ -1,6 +1,7 @@
 package org.gnit.bible.test
 
 import okio.Path.Companion.toPath
+import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.FixturePackResourcesReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,9 +10,16 @@ import kotlin.test.assertTrue
 class FixturePackTest {
 
     private fun reader(): FixturePackResourcesReader {
-        // Test harness must provide the resource root in a Kotlin-common-friendly way.
-        // For JVM tests, the working directory is the repo root in our run config.
-        return FixturePackResourcesReader(resourcesRoot = "src/commonTest/resources".toPath())
+        val fs = FakeFileSystem()
+        val root = "/fixture_resources".toPath()
+        val baseDir = root / "bblpacks" / "fixture"
+
+        fs.createDirectories(baseDir / "index")
+        fs.write(baseDir / "fixture.1.1.txt") { writeUtf8("1 In the beginning...") }
+        fs.write(baseDir / "index" / "fixture.index.manifest") { writeUtf8("_0.cfs\n") }
+        fs.write(baseDir / "index" / "_0.cfs") { writeByteArray(byteArrayOf(1, 2, 3)) }
+
+        return FixturePackResourcesReader(resourcesRoot = root, fileSystem = fs)
     }
 
     @Test
