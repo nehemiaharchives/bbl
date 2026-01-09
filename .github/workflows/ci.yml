@@ -14,7 +14,7 @@ on:
 
 jobs:
   tests:
-    name: Test (${{ matrix.platform }}/${{ matrix.module_name }})
+    name: ${{ matrix.job_type }} (${{ matrix.platform }}/${{ matrix.module_name }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
@@ -26,36 +26,42 @@ jobs:
             os: ubuntu-latest
             timeout: 10
             task: :shared:jvmTest
+            job_type: Test
           - platform: android
             module_name: shared
             os: ubuntu-latest
             timeout: 15
             task: :shared:testReleaseUnitTest
             needs_android: true
+            job_type: Test
           - platform: ios
             module_name: shared
             os: macos-latest
             timeout: 20
             task: :shared:iosSimulatorArm64Test
             needs_konan_cache: true
+            job_type: Test
           - platform: linux
             module_name: shared
             os: ubuntu-latest
             timeout: 20
             task: :shared:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-core
             os: ubuntu-latest
             timeout: 10
             task: :cli:core:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-core
             os: ubuntu-latest
             timeout: 20
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
           - platform: macos
             module_name: cli-core
             os: macos-latest
@@ -64,96 +70,112 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-common
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:common:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-common
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:common:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-extra
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:extra:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-extra
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:extra:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-kuromoji
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:kuromoji:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-kuromoji
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:kuromoji:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-morfologik
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:morfologik:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-morfologik
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:morfologik:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-nori
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:nori:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-nori
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:nori:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-smartcn
             os: ubuntu-latest
             timeout: 10
             task: :cli:search:smartcn:jvmTest
+            job_type: Test
           - platform: linux
             module_name: cli-search-smartcn
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:smartcn:linuxX64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: composeApp
             os: ubuntu-latest
             timeout: 10
             task: :composeApp:jvmTest
+            job_type: Test
           - platform: android
             module_name: composeApp
             os: ubuntu-latest
             timeout: 15
             task: :composeApp:testReleaseUnitTest
             needs_android: true
+            job_type: Test
           - platform: ios
             module_name: composeApp
             os: macos-latest
             timeout: 25
             task: :composeApp:iosSimulatorArm64Test
             needs_konan_cache: true
+            job_type: Test
 
           - platform: linux
             module_name: cli-core-build
@@ -161,6 +183,7 @@ jobs:
             timeout: 20
             task: :cli:core:linkReleaseExecutableLinuxX64
             needs_konan_cache: true
+            job_type: Build
           - platform: macos
             module_name: cli-core-build
             os: macos-latest
@@ -169,6 +192,7 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
+            job_type: Build
 
     steps:
       - name: Checkout code

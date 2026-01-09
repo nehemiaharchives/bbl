@@ -312,3 +312,8 @@ class In(
 fun main(args: Array<String>) {
     Bbl().main(args)
 }
+
+// Dedicated native entry point to avoid collisions with other CLI helpers.
+fun cliMain(args: Array<String>) {
+    main(args)
+}

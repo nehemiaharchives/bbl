@@ -69,7 +69,7 @@ kotlin {
     targets.withType<KotlinNativeTarget>().all {
         binaries {
             executable {
-                entryPoint = "org.gnit.bible.cli.main"
+                entryPoint = "org.gnit.bible.cli.cliMain"
                 baseName = "bbl"
             }
         }
