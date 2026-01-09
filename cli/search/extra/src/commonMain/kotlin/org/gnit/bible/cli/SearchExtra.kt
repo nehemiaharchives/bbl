@@ -13,19 +13,30 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
+import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
+import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
+import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
+import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
+import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
 
 private class ExtraAnalyzerProvider : AnalyzerProvider {
-    private var cached: Analyzer? = null
+
+    val cached: MutableMap<String, Analyzer> = mutableMapOf()
 
     override fun analyzerFor(language: Language): Analyzer {
-        val existing = cached
-        if (existing != null) return existing
-        // analysis-extra is a bundle; we pick a representative heavy analyzer used by extra-module languages.
-        val created = VietnameseAnalyzer(VietnameseConfig())
-        cached = created
-        return created
+        return cached.getOrPut(key =language.code){
+            when (language.code){
+                "tl" -> TagalogAnalyzer()
+                "vi" -> VietnameseAnalyzer(VietnameseConfig())
+                "mr" -> MarathiAnalyzer()
+                "te" -> TeluguAnalyzer()
+                "gu" -> GujaratiAnalyzer()
+                "ur" -> UrduAnalyzer()
+                else -> throw UnsupportedOperationException("language ${language.code} is not supported by ExtraAnalyzerProvider")
+            }
+        }
     }
 }
 

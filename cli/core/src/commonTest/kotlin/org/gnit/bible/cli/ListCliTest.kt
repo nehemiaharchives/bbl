@@ -6,7 +6,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslations
+import org.gnit.bible.downloadableTranslationsCli
 import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
@@ -33,14 +33,14 @@ class ListCliTest : ResourcesTestBase() {
         platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = null
 
-        val installed = downloadableTranslations.first { it.code == "kttv" }
-        val partialList = listOf(Translation.webus, Translation.jc, Translation("abtag", "tl", "Ang Biblia", "Ang Biblia", 1905, "Public Domain"))
+        val installed = Translation.kttv
+        val list = downloadableTranslationsCli.minus(Translation.kttv)
 
         bible = Bible(
             assetManager = FakeAssetManager(
                 platform = platform,
                 downloaded = listOf(installed),
-                downloadable = partialList
+                downloadable = list
             )
         )
     }

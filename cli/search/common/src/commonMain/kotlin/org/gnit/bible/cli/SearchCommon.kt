@@ -13,16 +13,20 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
+import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.analysis.de.GermanAnalyzer
 import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.SpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
+import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.SwedishAnalyzer
+import org.gnit.lucenekmp.analysis.ta.TamilAnalyzer
+import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 
 private class CommonHelperAnalyzerProvider : AnalyzerProvider {
     private val cache = mutableMapOf<String, Analyzer>()
@@ -42,6 +46,10 @@ private class CommonHelperAnalyzerProvider : AnalyzerProvider {
             "nl" -> DutchAnalyzer()
             "it" -> ItalianAnalyzer()
             "sv" -> SwedishAnalyzer()
+            "th" -> ThaiAnalyzer()
+            "hi" -> HindiAnalyzer()
+            "bn" -> BengaliAnalyzer()
+            "ta" -> TamilAnalyzer()
             else -> SimpleAnalyzer()
         }
     }

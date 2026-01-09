@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslationCodeList
+import org.gnit.bible.downloadableTranslationCodeListCli
 
 class PackCli(
     private val bible: Bible
@@ -170,7 +170,7 @@ fun mainAll() {
 
     val failures = mutableListOf<Pair<String, String>>()
 
-    downloadableTranslationCodeList.forEach { translationCode ->
+    downloadableTranslationCodeListCli.forEach { translationCode ->
         runCatching {
             packTranslation(translationCode)
         }.onFailure { e ->

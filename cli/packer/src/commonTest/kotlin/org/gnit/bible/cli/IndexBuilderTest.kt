@@ -8,7 +8,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.embeddedTranslations
-import org.gnit.bible.downloadableTranslations
+import org.gnit.bible.downloadableTranslationsCli
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
 import kotlin.test.Ignore
@@ -184,7 +184,7 @@ class IndexBuilderTest {
         val downloadableRoot = repoRoot / "server/src/main/resources/files/bbltexts"
 
         var checked = 0
-        downloadableTranslations.forEach { translation ->
+        downloadableTranslationsCli.forEach { translation ->
             val translationDir = downloadableRoot / translation.code
             if (!fs.exists(translationDir)) return@forEach // not shipped in this working copy
             assertIndexPresent(fs, translationDir, translation.code)

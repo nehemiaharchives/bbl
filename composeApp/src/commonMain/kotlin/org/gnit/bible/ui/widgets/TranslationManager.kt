@@ -51,7 +51,7 @@ import org.gnit.bible.TranslationEntry
 import org.gnit.bible.InstallationState
 import org.gnit.bible.assetManager
 import org.gnit.bible.bible
-import org.gnit.bible.downloadableTranslations
+import org.gnit.bible.downloadableTranslationsCmp
 import org.gnit.bible.logger
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.gnit.bible.ui.theme.BibleTheme
@@ -66,7 +66,7 @@ fun TranslationManagerScreen(
     val scope = rememberCoroutineScope()
     var downloadedCodes by remember { mutableStateOf(downloadedTranslationCodesSafe()) }
     var downloadingCodes by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var downloadableTranslations by remember { mutableStateOf<List<Translation>>(emptyList()) }
+    var downloadableTranslationsCmp by remember { mutableStateOf<List<Translation>>(emptyList()) }
     var isLoadingList by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -88,7 +88,7 @@ fun TranslationManagerScreen(
             onSuccess = { translations ->
                 translations.ifEmpty {
                     logger.debug { "TranslationManagerScreen Unable to load online list; showing embedded/cached only." }
-                    latestDownloadableTranslations.ifEmpty { org.gnit.bible.downloadableTranslations }
+                    latestDownloadableTranslationsCmp.ifEmpty { org.gnit.bible.downloadableTranslationsCmp }
                 }
             },
             onFailure = { throwable ->
@@ -98,16 +98,16 @@ fun TranslationManagerScreen(
                         else -> "TranslationManagerScreen Failed to load downloadable translations (${throwable.message ?: "unknown"})"
                     }
                 }
-                latestDownloadableTranslations.ifEmpty { org.gnit.bible.downloadableTranslations }
+                latestDownloadableTranslationsCmp.ifEmpty { org.gnit.bible.downloadableTranslationsCmp }
             }
         )
-        downloadableTranslations = listResult
-        latestDownloadableTranslations = listResult
+        downloadableTranslationsCmp = listResult
+        latestDownloadableTranslationsCmp = listResult
         isLoadingList = false
     }
 
-    val entries = remember(downloadedCodes, downloadingCodes, downloadableTranslations) {
-        buildTranslationEntries(downloadedCodes, downloadableTranslations)
+    val entries = remember(downloadedCodes, downloadingCodes, downloadableTranslationsCmp) {
+        buildTranslationEntries(downloadedCodes, downloadableTranslationsCmp)
     }
 
     Surface(
@@ -326,7 +326,7 @@ private fun buildTranslationEntries(
         runCatching { bible().obtainZipBibleResourcesReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
-    val list = downloadable.ifEmpty { latestDownloadableTranslations.ifEmpty { downloadableTranslations } }
+    val list = downloadable.ifEmpty { latestDownloadableTranslationsCmp.ifEmpty { downloadableTranslationsCmp } }
 
     val notDownloaded = list.filterNot { candidate ->
         downloadedCodes.contains(candidate.code) || Translation.embeddedTranslations.any { it.code == candidate.code }
@@ -338,7 +338,7 @@ private fun buildTranslationEntries(
 private fun downloadedTranslationCodesSafe(): List<String> =
     runCatching { assetManager().downloadedTranslationCodes() }.getOrElse { emptyList() }
 
-private var latestDownloadableTranslations = emptyList<Translation>() // the list will be provided when TranslationManagerScreen() is called
+private var latestDownloadableTranslationsCmp = emptyList<Translation>() // the list will be provided when TranslationManagerScreen() is called
 
 private const val ACTION_BAR_WIDTH = 72
 private const val ACTION_ICON_SPACER = 12

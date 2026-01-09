@@ -12,7 +12,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandomlyShow
 import org.gnit.bible.SETTINGS_FILE_NAME
-import org.gnit.bible.downloadableTranslationCodeList
+import org.gnit.bible.downloadableTranslationCodeListCli
 
 class ConfigCli(
     private val bible: Bible
@@ -78,7 +78,7 @@ class ConfigCli(
         if (configKey == ConfigKey.TRANSLATION) {
             val valid = bible.availableTranslationCodes().contains(newValue)
             if (!valid) {
-                if (downloadableTranslationCodeList.contains(newValue)) {
+                if (downloadableTranslationCodeListCli.contains(newValue)) {
                     echo("Translation '$newValue' is downloadable but not installed. Run: bbl install $newValue", err = true)
                     throw UsageError("Translation '$newValue' is not installed.")
                 }

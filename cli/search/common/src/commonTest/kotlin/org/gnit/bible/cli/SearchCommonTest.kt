@@ -52,5 +52,22 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
         // Swedish (sv)
         val actualSven = bible.search(term = "Jesu Kristi", translation = Translation.sven).first()
         assertEquals(VersePointer(Translation.sven, 40, 1, 1), actualSven)
+
+        // Thai (th)
+        val actualTh1971 = bible.search(term = "พระเยซูคริสต์", translation = Translation.th1971).first()
+        assertEquals(VersePointer(Translation.th1971, 40, 1, 1), actualTh1971)
+
+        // Hindi (hi)
+        val actualIrvHin = bible.search(term = "यीशु मसीह", translation = Translation.irvhin).first()
+        assertEquals(VersePointer(Translation.irvhin, 40, 1, 1), actualIrvHin)
+
+        // Bengali (bn)
+        val actualIrvBen = bible.search(term = "যীশু খ্রীষ্ট", translation = Translation.irvben).first()
+        assertEquals(VersePointer(Translation.irvben, 40, 1, 1), actualIrvBen)
+
+        // Tamil (ta)
+        val actualIrvTam = bible.search(term = "இயேசுகிறிஸ்து", translation = Translation.irvtam).first()
+        assertEquals(VersePointer(Translation.irvtam, 40, 1, 1), actualIrvTam)
+
     }
 }

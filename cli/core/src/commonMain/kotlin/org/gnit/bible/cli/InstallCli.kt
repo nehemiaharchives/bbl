@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
-import org.gnit.bible.downloadableTranslations
+import org.gnit.bible.downloadableTranslationsCli
 
 class InstallCli(
     private val bible: Bible
@@ -45,7 +45,7 @@ class InstallCli(
         val downloadable = runBlocking {
             runCatching { am.downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL) }
                 .onFailure { logger.debug { "InstallCli failed to download latest downloadable translation list, falling back to embedded list" } }
-                .getOrDefault(downloadableTranslations)
+                .getOrDefault(downloadableTranslationsCli)
         }
 
         val availableDownloadableCodes = downloadable.map { it.code }.toSet()
