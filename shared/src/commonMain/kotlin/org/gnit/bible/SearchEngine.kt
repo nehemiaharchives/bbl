@@ -13,6 +13,7 @@ import org.gnit.lucenekmp.search.IndexSearcher
 import org.gnit.lucenekmp.search.Query
 import org.gnit.lucenekmp.search.Sort
 import org.gnit.lucenekmp.search.SortField
+import org.gnit.lucenekmp.search.TermQuery
 import org.gnit.lucenekmp.store.ByteBuffersDirectory
 import org.gnit.lucenekmp.store.IOContext
 import org.gnit.lucenekmp.analysis.tokenattributes.CharTermAttribute
@@ -21,7 +22,9 @@ import org.gnit.lucenekmp.util.QueryBuilder
 import org.gnit.lucenekmp.index.Term
 import org.gnit.lucenekmp.index.MultiTerms
 import org.gnit.lucenekmp.analysis.standard.StandardAnalyzer
+import org.gnit.lucenekmp.index.IndexReader
 import org.gnit.lucenekmp.index.TermsEnum
+import org.gnit.lucenekmp.search.ScoreDoc
 import org.gnit.lucenekmp.util.BytesRef
 
 class SearchEngine(
@@ -59,7 +62,7 @@ class SearchEngine(
         return tokens
     }
 
-    private fun sampleIndexTerms(reader: DirectoryReader, field: String, maxTerms: Int = 20): List<String> {
+    private fun sampleIndexTerms(reader: IndexReader, field: String, maxTerms: Int = 20): List<String> {
         val terms = MultiTerms.getTerms(reader, field) ?: return emptyList()
         val enum = terms.iterator()
         val samples = ArrayList<String>(maxTerms)
@@ -71,7 +74,7 @@ class SearchEngine(
     }
 
     private fun sampleNonAsciiTerms(
-        reader: DirectoryReader,
+        reader: IndexReader,
         field: String,
         maxTerms: Int = 10,
         maxScans: Int = 20000
@@ -91,7 +94,7 @@ class SearchEngine(
         return samples
     }
 
-    private fun seekCeilTerm(reader: DirectoryReader, field: String, target: String): String {
+    private fun seekCeilTerm(reader: IndexReader, field: String, target: String): String {
         val terms = MultiTerms.getTerms(reader, field) ?: return "missing"
         val enum = terms.iterator()
         val status = enum.seekCeil(BytesRef(target))
@@ -100,7 +103,7 @@ class SearchEngine(
     }
 
     private fun analyzeTokenExistence(
-        reader: DirectoryReader,
+        reader: IndexReader,
         analyzer: Analyzer,
         field: String,
         text: String,
@@ -148,86 +151,50 @@ class SearchEngine(
         iReader.use { reader ->
             val iSearcher = IndexSearcher(reader)
             val analyzer = analyzerFor(translation)
-            val requireAllTokens = term.any { it.isWhitespace() } ||
-                translation.language.isCJK ||
-                translation.language == Language.th
-            val filterClauses = mutableListOf<Pair<Query, BooleanClause.Occur>>()
 
-            /*if (includesNewTestamentOnlyPhrase(term)) {
-                filterClauses.add(IntPoint.newRangeQuery("book", 40, 66) to BooleanClause.Occur.MUST)
-            }*/
-
-            if (bookNumber != null) {
-                filterClauses.add(IntPoint.newExactQuery("book", bookNumber) to BooleanClause.Occur.MUST)
-
-                if (startChapter != null) {
-                    filterClauses.add(chapterQuery(startChapter, endChapter) to BooleanClause.Occur.MUST)
-                }
+            val hits = when (translation.language) {
+                Language.zh, Language.ja, Language.ko -> cjkSearchPreProcess(
+                    indexSearcher = iSearcher,
+                    analyzer = analyzer,
+                    term = term,
+                    bookNumber = bookNumber,
+                    startChapter = startChapter,
+                    endChapter = endChapter,
+                    verses = verses,
+                    translation = translation
+                )
+                Language.th -> thaiSearchPreProcess(
+                    indexSearcher = iSearcher,
+                    analyzer = analyzer,
+                    term = term,
+                    bookNumber = bookNumber,
+                    startChapter = startChapter,
+                    endChapter = endChapter,
+                    verses = verses,
+                    translation = translation
+                )
+                Language.hi -> hindiSearchPreProcess(
+                    indexSearcher = iSearcher,
+                    analyzer = analyzer,
+                    term = term,
+                    bookNumber = bookNumber,
+                    startChapter = startChapter,
+                    endChapter = endChapter,
+                    verses = verses,
+                    translation = translation
+                )
+                else -> defaultSearchPreProcess(
+                    indexSearcher = iSearcher,
+                    analyzer = analyzer,
+                    term = term,
+                    bookNumber = bookNumber,
+                    startChapter = startChapter,
+                    endChapter = endChapter,
+                    verses = verses,
+                    translation = translation
+                )
             }
 
-            fun buildQuery(termQuery: Query): Query {
-                val builder = BooleanQuery.Builder()
-                filterClauses.forEach { (query, occur) -> builder.add(query, occur) }
-                builder.add(termQuery, BooleanClause.Occur.MUST)
-                return builder.build()
-            }
-
-            fun runSearch(queryAnalyzer: Analyzer, requireAllTokens: Boolean): Array<org.gnit.lucenekmp.search.ScoreDoc> {
-                val queries = buildTermQueries(term, queryAnalyzer, requireAllTokens)
-                if (queries.isEmpty()) {
-                    if (translation.language.code == "hi") {
-                        val tokens = analyzeTokens(queryAnalyzer, "text", term)
-                        logger.debug {
-                            "no queries built for '$term' in ${translation.code} using ${queryAnalyzer::class.simpleName}; tokens=$tokens"
-                        }
-                    }
-                    return emptyArray()
-                }
-                val merged = LinkedHashMap<Int, org.gnit.lucenekmp.search.ScoreDoc>()
-                for (queryTerm in queries) {
-                    val query = buildQuery(queryTerm)
-                    val hits = iSearcher.search(query, reader.maxDoc(), Sort(SortField.FIELD_DOC)).scoreDocs
-                    for (hit in hits) {
-                        if (!merged.containsKey(hit.doc)) {
-                            merged[hit.doc] = hit
-                        }
-                    }
-                }
-                return merged.values.toTypedArray()
-            }
-
-            logger.debug {
-                "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
-            }
-
-            var hits = runSearch(analyzer, requireAllTokens)
-            if (hits.isEmpty() && requireAllTokens) {
-                hits = runSearch(analyzer, requireAllTokens = false)
-            }
-            if (hits.isEmpty() && analyzer !is SimpleAnalyzer) {
-                hits = runSearch(SimpleAnalyzer(), requireAllTokens)
-                if (hits.isEmpty() && requireAllTokens) {
-                    hits = runSearch(SimpleAnalyzer(), requireAllTokens = false)
-                }
-            }
-            if (hits.isEmpty() && translation.language.code == "hi") {
-                val tokens = analyzeTokens(analyzer, "text", term)
-                val tokenFreqs = tokens.associateWith { token ->
-                    runCatching { reader.docFreq(Term("text", token)) }.getOrDefault(-1)
-                }
-                val sampleTerms = sampleIndexTerms(reader, "text")
-                val nonAsciiTerms = sampleNonAsciiTerms(reader, "text")
-                val seekYish = seekCeilTerm(reader, "text", "यिश")
-                val seekMasih = seekCeilTerm(reader, "text", "मसिह")
-                val seekYeeshu = seekCeilTerm(reader, "text", "यीशु")
-                val tokenExists = analyzeTokenExistence(reader, analyzer, "text", term)
-                val standardAnalyzer = StandardAnalyzer()
-                val standardTokens = analyzeTokens(standardAnalyzer, "text", term)
-                val standardExists = analyzeTokenExistence(reader, standardAnalyzer, "text", term)
-                logger.debug {
-                    "no hits for '$term' in ${translation.code} using ${analyzer::class.simpleName}; tokens=$tokens docFreqs=$tokenFreqs tokenExists=$tokenExists standardTokens=$standardTokens standardExists=$standardExists sampleTerms=$sampleTerms nonAsciiTerms=$nonAsciiTerms seekYish=$seekYish seekMasih=$seekMasih seekYeeshu=$seekYeeshu"
-                }
-            }
 
             data class VerseHit(
                 val book: Int,
@@ -256,6 +223,330 @@ class SearchEngine(
                     )
                 }
         }
+    }
+
+    private fun buildFilterClauses(
+        bookNumber: Int?,
+        startChapter: Int?,
+        endChapter: Int?
+    ): MutableList<Pair<Query, BooleanClause.Occur>> {
+        val filterClauses = mutableListOf<Pair<Query, BooleanClause.Occur>>()
+        if (bookNumber != null) {
+            filterClauses.add(IntPoint.newExactQuery("book", bookNumber) to BooleanClause.Occur.MUST)
+            if (startChapter != null) {
+                filterClauses.add(chapterQuery(startChapter, endChapter) to BooleanClause.Occur.MUST)
+            }
+        }
+        return filterClauses
+    }
+
+    private fun buildQuery(
+        filterClauses: List<Pair<Query, BooleanClause.Occur>>,
+        termQuery: Query
+    ): Query {
+        val builder = BooleanQuery.Builder()
+        filterClauses.forEach { (query, occur) -> builder.add(query, occur) }
+        builder.add(termQuery, BooleanClause.Occur.MUST)
+        return builder.build()
+    }
+
+    private fun runSearchQueries(
+        indexSearcher: IndexSearcher,
+        indexReader: IndexReader,
+        filterClauses: List<Pair<Query, BooleanClause.Occur>>,
+        analyzer: Analyzer,
+        term: String,
+        requireAllTokens: Boolean,
+        maxHits: Int,
+        sortByDoc: Boolean
+    ): Array<ScoreDoc> {
+        val queries = buildTermQueries(term, analyzer, requireAllTokens)
+        if (queries.isEmpty()) return emptyArray()
+        val merged = LinkedHashMap<Int, ScoreDoc>()
+        for (queryTerm in queries) {
+            val query = buildQuery(filterClauses, queryTerm)
+            val hits = if (sortByDoc) {
+                indexSearcher.search(query, maxHits, Sort(SortField.FIELD_DOC)).scoreDocs
+            } else {
+                indexSearcher.search(query, maxHits).scoreDocs
+            }
+            for (hit in hits) {
+                if (!merged.containsKey(hit.doc)) {
+                    merged[hit.doc] = hit
+                }
+            }
+        }
+        return merged.values.toTypedArray()
+    }
+
+    private fun runSingleQuery(
+        indexSearcher: IndexSearcher,
+        filterClauses: List<Pair<Query, BooleanClause.Occur>>,
+        termQuery: Query,
+        maxHits: Int,
+        sortByDoc: Boolean
+    ): Array<ScoreDoc> {
+        val query = buildQuery(filterClauses, termQuery)
+        return if (sortByDoc) {
+            indexSearcher.search(query, maxHits, Sort(SortField.FIELD_DOC)).scoreDocs
+        } else {
+            indexSearcher.search(query, maxHits).scoreDocs
+        }
+    }
+
+    private fun runSearchPipeline(
+        indexSearcher: IndexSearcher,
+        indexReader: IndexReader,
+        filterClauses: List<Pair<Query, BooleanClause.Occur>>,
+        analyzer: Analyzer,
+        term: String,
+        requireAllTokens: Boolean,
+        verses: Int,
+        allowRelaxed: Boolean = true,
+        allowSimpleAnalyzer: Boolean = true,
+        sortByDoc: Boolean = true
+    ): Array<ScoreDoc> {
+        var hits = runSearchQueries(
+            indexSearcher = indexSearcher,
+            indexReader = indexReader,
+            filterClauses = filterClauses,
+            analyzer = analyzer,
+            term = term,
+            requireAllTokens = requireAllTokens,
+            maxHits = verses,
+            sortByDoc = sortByDoc
+        )
+        if (hits.isEmpty() && allowRelaxed && requireAllTokens) {
+            hits = runSearchQueries(
+                indexSearcher = indexSearcher,
+                indexReader = indexReader,
+                filterClauses = filterClauses,
+                analyzer = analyzer,
+                term = term,
+                requireAllTokens = false,
+                maxHits = verses,
+                sortByDoc = sortByDoc
+            )
+        }
+        if (hits.isEmpty() && allowSimpleAnalyzer && analyzer !is SimpleAnalyzer) {
+            hits = runSearchQueries(
+                indexSearcher = indexSearcher,
+                indexReader = indexReader,
+                filterClauses = filterClauses,
+                analyzer = SimpleAnalyzer(),
+                term = term,
+                requireAllTokens = requireAllTokens,
+                maxHits = verses,
+                sortByDoc = sortByDoc
+            )
+            if (hits.isEmpty() && allowRelaxed && requireAllTokens) {
+                hits = runSearchQueries(
+                    indexSearcher = indexSearcher,
+                    indexReader = indexReader,
+                    filterClauses = filterClauses,
+                    analyzer = SimpleAnalyzer(),
+                    term = term,
+                    requireAllTokens = false,
+                    maxHits = verses,
+                    sortByDoc = sortByDoc
+                )
+            }
+        }
+        return hits
+    }
+
+    private fun buildRequireExistingTokenQuery(
+        reader: IndexReader,
+        analyzer: Analyzer,
+        field: String,
+        text: String,
+        maxTokens: Int = 10
+    ): Query? {
+        if (text.isBlank()) return null
+        val builder = BooleanQuery.Builder()
+        var added = 0
+        val stream = analyzer.tokenStream(field, text)
+        stream.use {
+            val bytesAtt = it.addAttribute(TermToBytesRefAttribute::class)
+            it.reset()
+            while (it.incrementToken() && added < maxTokens) {
+                val tokenTerm = Term(field, bytesAtt.bytesRef)
+                val freq = runCatching { reader.docFreq(tokenTerm) }.getOrDefault(0)
+                if (freq > 0) {
+                    builder.add(TermQuery(tokenTerm), BooleanClause.Occur.MUST)
+                    added++
+                }
+            }
+            it.end()
+        }
+        return if (added == 0) null else builder.build()
+    }
+
+    private fun defaultSearchPreProcess(
+        indexSearcher: IndexSearcher,
+        analyzer: Analyzer,
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        translation: Translation
+    ):  Array<ScoreDoc>{
+        logger.debug {
+            "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+        }
+        val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
+        val requireAllTokens = term.any { it.isWhitespace() }
+        return runSearchPipeline(
+            indexSearcher = indexSearcher,
+            indexReader = indexSearcher.indexReader,
+            filterClauses = filterClauses,
+            analyzer = analyzer,
+            term = term,
+            requireAllTokens = requireAllTokens,
+            verses = verses
+        )
+    }
+
+    private fun cjkSearchPreProcess(
+        indexSearcher: IndexSearcher,
+        analyzer: Analyzer,
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        translation: Translation
+    ):  Array<ScoreDoc>{
+        logger.debug {
+            "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+        }
+        val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
+        if (!term.any { it.isWhitespace() }) {
+            val phraseQuery = QueryBuilder(analyzer).createPhraseQuery("text", term)
+            if (phraseQuery != null) {
+                val hits = runSingleQuery(
+                    indexSearcher = indexSearcher,
+                    filterClauses = filterClauses,
+                    termQuery = phraseQuery,
+                    maxHits = verses,
+                    sortByDoc = true
+                )
+                if (hits.isNotEmpty()) {
+                    return hits
+                }
+            }
+        }
+        return runSearchPipeline(
+            indexSearcher = indexSearcher,
+            indexReader = indexSearcher.indexReader,
+            filterClauses = filterClauses,
+            analyzer = analyzer,
+            term = term,
+            requireAllTokens = true,
+            verses = verses
+        )
+    }
+
+    private fun thaiSearchPreProcess(
+        indexSearcher: IndexSearcher,
+        analyzer: Analyzer,
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        translation: Translation
+    ):  Array<ScoreDoc>{
+        logger.debug {
+            "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+        }
+        val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
+        var hits = runSearchPipeline(
+            indexSearcher = indexSearcher,
+            indexReader = indexSearcher.indexReader,
+            filterClauses = filterClauses,
+            analyzer = analyzer,
+            term = term,
+            requireAllTokens = true,
+            verses = verses,
+            allowRelaxed = false
+        )
+        if (hits.isEmpty()) {
+            val fallbackQuery = buildRequireExistingTokenQuery(
+                reader = indexSearcher.indexReader,
+                analyzer = analyzer,
+                field = "text",
+                text = term
+            )
+            if (fallbackQuery != null) {
+                hits = runSingleQuery(
+                    indexSearcher = indexSearcher,
+                    filterClauses = filterClauses,
+                    termQuery = fallbackQuery,
+                    maxHits = verses,
+                    sortByDoc = true
+                )
+            }
+        }
+        if (hits.isEmpty()) {
+            hits = runSearchPipeline(
+                indexSearcher = indexSearcher,
+                indexReader = indexSearcher.indexReader,
+                filterClauses = filterClauses,
+                analyzer = analyzer,
+                term = term,
+                requireAllTokens = false,
+                verses = verses
+            )
+        }
+        return hits
+    }
+
+
+    private fun hindiSearchPreProcess(
+        indexSearcher: IndexSearcher,
+        analyzer: Analyzer,
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        translation: Translation
+    ):  Array<ScoreDoc>{
+        logger.debug {
+            "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+        }
+        val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
+        val requireAllTokens = term.any { it.isWhitespace() }
+        val hits = runSearchPipeline(
+            indexSearcher = indexSearcher,
+            indexReader = indexSearcher.indexReader,
+            filterClauses = filterClauses,
+            analyzer = analyzer,
+            term = term,
+            requireAllTokens = requireAllTokens,
+            verses = verses
+        )
+        if (hits.isEmpty()) {
+            val tokens = analyzeTokens(analyzer, "text", term)
+            val tokenFreqs = tokens.associateWith { token ->
+                runCatching { indexSearcher.indexReader.docFreq(Term("text", token)) }.getOrDefault(-1)
+            }
+            val sampleTerms = sampleIndexTerms(indexSearcher.indexReader, "text")
+            val nonAsciiTerms = sampleNonAsciiTerms(indexSearcher.indexReader, "text")
+            val seekYish = seekCeilTerm(indexSearcher.indexReader, "text", "यिश")
+            val seekMasih = seekCeilTerm(indexSearcher.indexReader, "text", "मसिह")
+            val seekYeeshu = seekCeilTerm(indexSearcher.indexReader, "text", "यीशु")
+            val tokenExists = analyzeTokenExistence(indexSearcher.indexReader, analyzer, "text", term)
+            val standardAnalyzer = StandardAnalyzer()
+            val standardTokens = analyzeTokens(standardAnalyzer, "text", term)
+            val standardExists = analyzeTokenExistence(indexSearcher.indexReader, standardAnalyzer, "text", term)
+            logger.debug {
+                "no hits for '$term' in ${translation.code} using ${analyzer::class.simpleName}; tokens=$tokens docFreqs=$tokenFreqs tokenExists=$tokenExists standardTokens=$standardTokens standardExists=$standardExists sampleTerms=$sampleTerms nonAsciiTerms=$nonAsciiTerms seekYish=$seekYish seekMasih=$seekMasih seekYeeshu=$seekYeeshu"
+            }
+        }
+        return hits
     }
 
     private fun buildAnalyzedQuery(
