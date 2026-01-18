@@ -57,6 +57,7 @@ if (luceneKmpSiblingDir.isDirectory /*false*/) {
 }
 
 include(":composeApp")
+include(":androidApp")
 include(":server")
 include(":shared")
 include(":cli")

@@ -3,14 +3,20 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.androidLibrary)
+    //alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 }
 
 kotlin {
 
+    android {
+        namespace = "org.gnit.bible.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+    }
+
     // mobile app
     // bbl-kmp-android
-    androidTarget {
+    androidLibrary {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -109,27 +115,27 @@ kotlin {
             }
         }
 
-        val androidUnitTest by getting {
+        /*val androidUnitTest by getting {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.robolectric)
                 implementation(libs.androidx.testExt.junit)
             }
-        }
+        }*/
     }
 }
 
-android {
+/*android {
     namespace = "org.gnit.bible.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
+    *//*compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    defaultConfig {
+    }*//*
+    *//*defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    testOptions {
+    }*//*
+    *//*testOptions {
         unitTests {
             isIncludeAndroidResources = true
 
@@ -139,5 +145,5 @@ android {
                 }
             }
         }
-    }
-}
+    }*//*
+}*/

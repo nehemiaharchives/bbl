@@ -2,14 +2,20 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    //alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 }
 
 kotlin {
 
     // mobile app
     // bbl-kmp-android
-    androidTarget {
+
+    android {
+        namespace = "org.gnit.bible.test"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+    }
+    androidLibrary {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -88,7 +94,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().con
     }
 }
 
-android {
+/*android {
     namespace = "org.gnit.bible.test"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
@@ -98,4 +104,4 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
-}
+}*/

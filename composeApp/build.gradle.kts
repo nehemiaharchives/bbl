@@ -4,19 +4,27 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.androidApplication)
+    // alias(libs.plugins.androidApplication)
+    //alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-//    alias(libs.plugins.kotlinParcelize)
+    // alias(libs.plugins.kotlinParcelize)
 }
 
 kotlin {
-    androidTarget {
+
+    android {
+        namespace = "org.gnit.bible.cmp"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+    }
+
+    /*androidLibrary {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-    }
+    }*/
     
     listOf(
         iosArm64(),
@@ -84,35 +92,35 @@ kotlin {
     }
 }
 
-android {
-    namespace = "org.gnit.bible"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+//android {
+    //namespace = "org.gnit.bible"
+    //compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        applicationId = "org.gnit.bible"
+    /*defaultConfig {
+        //applicationId = "org.gnit.bible"
         minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-    }
-    packaging {
+        //targetSdk = libs.versions.android.targetSdk.get().toInt()
+        //versionCode = 1
+        //versionName = "1.0"
+    }*/
+    /*packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             // Exclude duplicate META-INF index files pulled in by logging jars (e.g., logback)
             excludes += "META-INF/INDEX.LIST"
         }
-    }
-    buildTypes {
+    }*/
+    /*buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
-    }
-    compileOptions {
+    }*/
+    /*compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
+    }*/
     // THIS IS IMPORTANT FOR ROBOLECTRIC
-    testOptions {
+    /*testOptions {
         unitTests {
             // This tells Gradle to use Robolectric for unit tests
             // that require the Android framework.
@@ -124,12 +132,12 @@ android {
             // If RobolectricTestRunner internally leverages parts of JUnit Platform,
             // it's usually handled by Robolectric itself.
         }
-    }
-}
+    }*/
+//}
 
-dependencies {
+/*dependencies {
     debugImplementation(compose.uiTooling)
-}
+}*/
 
 compose.resources {
     packageOfResClass = "org.gnit.bible.cmp"
