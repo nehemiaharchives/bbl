@@ -7,13 +7,9 @@ import org.gnit.bible.Platform
 import org.gnit.bible.getPlatform
 import org.junit.Before
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [/* e.g., Build.VERSION_CODES.P */], manifest = Config.DEFAULT_MANIFEST_NAME)
-actual abstract class ResourcesTestBase {
+@RunWith(DynamicAndroidTestRunner::class)
+actual abstract class ResourcesTestBase actual constructor() {
 
     actual fun createTestPlatform(): Platform {
         val ctx: Context = ApplicationProvider.getApplicationContext()
@@ -25,24 +21,40 @@ actual abstract class ResourcesTestBase {
         setupAndroidContextProvider()
     }
 
-    // Configures Compose's AndroidContextProvider to access resources in tests.
-    // See https://youtrack.jetbrains.com/issue/CMP-6612
+    // Initializes Compose's AndroidContextProvider when Robolectric is available (host tests).
     private fun setupAndroidContextProvider() {
+        if (hasInstrumentation()) {
+            return
+        }
         val providerClassName = "org.jetbrains.compose.resources.AndroidContextProvider"
+        val robolectricClassName = "org.robolectric.Robolectric"
         try {
             @Suppress("UNCHECKED_CAST")
-            val type = Class.forName(providerClassName) as Class<ContentProvider>
-            // Robolectric.buildContentProvider(type).create().get() might be more robust
-            // if it needs full lifecycle.
-            Robolectric.setupContentProvider(type)
+            val providerType = Class.forName(providerClassName) as Class<ContentProvider>
+            val robolectric = Class.forName(robolectricClassName)
+            val setup = robolectric.getMethod("setupContentProvider", Class::class.java)
+            setup.invoke(null, providerType)
             println("$providerClassName initialized successfully for Robolectric.")
-        } catch (e: ClassNotFoundException) {
-            println("Class not found: $providerClassName. This is expected if the test doesn't use Compose resources.")
+        } catch (_: ClassNotFoundException) {
+            // Robolectric or Compose provider not on classpath (device tests).
         } catch (e: Exception) {
             println("Error setting up $providerClassName: ${e.message}")
-            // Rethrow or handle as a test failure if this provider is essential for all tests
-            // using this base class.
             throw e
+        }
+    }
+
+    private fun hasInstrumentation(): Boolean {
+        return try {
+            val registry = Class.forName("androidx.test.platform.app.InstrumentationRegistry")
+            val method = registry.getMethod("getInstrumentation")
+            method.invoke(null)
+            true
+        } catch (_: ClassNotFoundException) {
+            false
+        } catch (_: NoSuchMethodException) {
+            false
+        } catch (_: Exception) {
+            false
         }
     }
 }

@@ -19,6 +19,10 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
     }
 
     // bbl-kmp-ios
@@ -76,8 +80,15 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.junit)
-            implementation(libs.robolectric)
             implementation(libs.androidx.testExt.junit)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.runner)
+            implementation(libs.robolectric)
+        }
+
+        named("androidHostTest") {
+            dependencies {
+            }
         }
     }
 }

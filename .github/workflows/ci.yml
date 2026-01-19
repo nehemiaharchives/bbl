@@ -31,7 +31,7 @@ jobs:
             module_name: shared
             os: ubuntu-latest
             timeout: 15
-            task: :shared:testReleaseUnitTest
+            task: :shared:testAndroidHostTest
             needs_android: true
             job_type: Test
           - platform: ios
@@ -166,7 +166,7 @@ jobs:
             module_name: composeApp
             os: ubuntu-latest
             timeout: 15
-            task: :composeApp:testReleaseUnitTest
+            task: :composeApp:testAndroidHostTest
             needs_android: true
             job_type: Test
           - platform: ios

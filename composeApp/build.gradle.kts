@@ -4,27 +4,33 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    // alias(libs.plugins.androidApplication)
-    //alias(libs.plugins.androidLibrary)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-    // alias(libs.plugins.kotlinParcelize)
 }
 
 kotlin {
 
-    android {
+    androidLibrary {
         namespace = "org.gnit.bible.cmp"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
-    }
-
-    /*androidLibrary {
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        androidResources {
+            enable = true
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-    }*/
+        withHostTestBuilder {}.configure {
+            isIncludeAndroidResources = true
+        }
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
     
     listOf(
         iosArm64(),
@@ -55,6 +61,14 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.androidx.test.core)
             implementation(libs.robolectric)
+        }
+
+        named("androidDeviceTest") {
+            dependencies {
+                implementation(libs.androidx.runner)
+                implementation(libs.androidx.testExt.junit)
+                implementation(libs.androidx.test.core)
+            }
         }
 
         commonMain.dependencies {
@@ -91,49 +105,6 @@ kotlin {
         }
     }
 }
-
-//android {
-    //namespace = "org.gnit.bible"
-    //compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    /*defaultConfig {
-        //applicationId = "org.gnit.bible"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        //targetSdk = libs.versions.android.targetSdk.get().toInt()
-        //versionCode = 1
-        //versionName = "1.0"
-    }*/
-    /*packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            // Exclude duplicate META-INF index files pulled in by logging jars (e.g., logback)
-            excludes += "META-INF/INDEX.LIST"
-        }
-    }*/
-    /*buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }*/
-    /*compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }*/
-    // THIS IS IMPORTANT FOR ROBOLECTRIC
-    /*testOptions {
-        unitTests {
-            // This tells Gradle to use Robolectric for unit tests
-            // that require the Android framework.
-            isIncludeAndroidResources = true // Essential for Robolectric to access resources
-
-            // If you were using JUnit 5 directly with Robolectric, you might add:
-            // useJUnitPlatform()
-            // However, with RobolectricTestRunner (JUnit 4 based), this isn't standard.
-            // If RobolectricTestRunner internally leverages parts of JUnit Platform,
-            // it's usually handled by Robolectric itself.
-        }
-    }*/
-//}
 
 /*dependencies {
     debugImplementation(compose.uiTooling)
