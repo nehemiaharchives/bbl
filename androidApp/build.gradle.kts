@@ -4,6 +4,14 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val composeAppProject = project(":composeApp")
+val composeAppResourcesSource = composeAppProject.layout.projectDirectory
+    .dir("src/commonMain/composeResources")
+val generatedComposeAssetsDir = layout.buildDirectory
+    .dir("generated/composeAppAssets")
+    .get()
+    .asFile
+
 android {
     namespace = "org.gnit.bible"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -31,6 +39,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    sourceSets["main"].assets.srcDir(generatedComposeAssetsDir)
     // THIS IS IMPORTANT FOR ROBOLECTRIC
     testOptions {
         unitTests {
@@ -64,6 +73,15 @@ configurations.configureEach {
                 )
             )
     }
+}
+
+val syncComposeAppResources = tasks.register<Sync>("syncComposeAppResources") {
+    from(composeAppResourcesSource)
+    into(generatedComposeAssetsDir.resolve("composeResources/org.gnit.bible.cmp"))
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(syncComposeAppResources)
 }
 
 /*target {
