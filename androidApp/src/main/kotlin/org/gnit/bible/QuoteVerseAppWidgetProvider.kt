@@ -17,7 +17,7 @@ class QuoteVerseAppWidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        logger.debug { "QuoteVerseAppWidgetProvider onReceive called with Intent: $intent" }
+        logger.debug("QuoteVerseAppWidgetProvider onReceive called with Intent: $intent")
 
         if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE ||
             intent.action == "android.appwidget.action.APPWIDGET_UPDATE"

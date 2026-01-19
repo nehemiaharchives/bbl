@@ -1,26 +1,8 @@
 plugins {
-    //alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
-
-kotlin {
-
-    android {
-        namespace = "org.gnit.bible.android"
-    }
-
-    dependencies {
-        implementation(projects.shared)
-        implementation(projects.composeApp)
-        implementation(compose.preview)
-        implementation(libs.androidx.activity.compose)
-        implementation(libs.kotlin.logging)
-        implementation(libs.slf4j.android)
-    }
-}
-
 
 android {
     namespace = "org.gnit.bible"
@@ -62,6 +44,25 @@ android {
             // If RobolectricTestRunner internally leverages parts of JUnit Platform,
             // it's usually handled by Robolectric itself.
         }
+    }
+}
+
+dependencies {
+    implementation(projects.shared)
+    implementation(projects.composeApp)
+    implementation(compose.preview)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.kotlin.logging.android)
+}
+
+configurations.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.github.oshai:kotlin-logging-android-debug"))
+            .using(
+                module(
+                    "io.github.oshai:kotlin-logging-android:${libs.versions.kotlin.logging.get()}"
+                )
+            )
     }
 }
 

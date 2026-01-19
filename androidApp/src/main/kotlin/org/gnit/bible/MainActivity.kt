@@ -11,15 +11,24 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class MainActivity : ComponentActivity() {
 
+    // Configure native Android logging once per app process.
+    private object Static {
+        init {
+            System.setProperty("kotlin-logging-to-android-native", "true")
+        }
+    }
+
+    private val static = Static
     private val logger = KotlinLogging.logger {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        static
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        logger.debug { "DEBUG MainActivity onCreate called with savedInstanceState=$savedInstanceState intent=$intent" }
+        logger.debug("DEBUG MainActivity onCreate called with savedInstanceState=$savedInstanceState intent=$intent")
 
         val initialState = parseBibleState(intent)
-        logger.debug { "DEBUG MainActivity onCreate resolved initialBibleState=$initialState" }
+        logger.debug("DEBUG MainActivity onCreate resolved initialBibleState=$initialState")
 
         setContent {
             App(
@@ -31,15 +40,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        logger.debug { "DEBUG MainActivity onNewIntent received: intent=$intent data=${intent.data}" }
+        logger.debug("DEBUG MainActivity onNewIntent received: intent=$intent data=${intent.data}")
     }
 
     private fun parseBibleState(intent: Intent?): BibleState? {
         val safeIntent = intent ?: run {
-            logger.debug { "DEBUG MainActivity parseBibleState received null intent" }
+            logger.debug("DEBUG MainActivity parseBibleState received null intent")
             return null
         }
-        logger.debug { "DEBUG MainActivity parseBibleState inspecting intent: $safeIntent" }
+        logger.debug("DEBUG MainActivity parseBibleState inspecting intent: $safeIntent")
 
         // Preferred: deep link URI.
         safeIntent.data?.let { data ->
@@ -48,11 +57,11 @@ class MainActivity : ComponentActivity() {
                     translationCode = data.getQueryParameter("translation"),
                     bookValue = data.getQueryParameter("book"),
                     chapterValue = data.getQueryParameter("chapter")
-                ).also { logger.debug { "DEBUG MainActivity Deep link state from data URI: $it" } }
+                ).also { logger.debug("DEBUG MainActivity Deep link state from data URI: $it") }
             } else {
-                logger.debug { "DEBUG MainActivity Intent data did not match expected deep link: $data" }
+                logger.debug("DEBUG MainActivity Intent data did not match expected deep link: $data")
             }
-        } ?: logger.debug { "DEBUG MainActivity Intent data URI was null" }
+        } ?: logger.debug("DEBUG MainActivity Intent data URI was null")
 
         // Fallback: some Assistant flows send parameters via extras.
         val translationExtra = safeIntent.getStringExtra("translation")
@@ -63,12 +72,12 @@ class MainActivity : ComponentActivity() {
             ?: safeIntent.getStringExtra("org.gnit.bible.chapter")
 
         if (translationExtra != null || bookExtra != null || chapterExtra != null) {
-            logger.debug { "DEBUG MainActivity Extras detected translation=$translationExtra book=$bookExtra chapter=$chapterExtra" }
+            logger.debug("DEBUG MainActivity Extras detected translation=$translationExtra book=$bookExtra chapter=$chapterExtra")
             return buildState(
                 translationCode = translationExtra,
                 bookValue = bookExtra,
                 chapterValue = chapterExtra
-            ).also { logger.debug { "DEBUG MainActivity Deep link state from extras: $it" } }
+            ).also { logger.debug("DEBUG MainActivity Deep link state from extras: $it") }
         }
 
         // Fallback: parse a free-form query string if Assistant provided one (sometimes delivered when capability match fails).
@@ -78,12 +87,12 @@ class MainActivity : ComponentActivity() {
             ?: safeIntent.extras?.getString(Intent.EXTRA_SUBJECT)
         if (!queryText.isNullOrBlank()) {
             parseFromQuery(queryText)?.let {
-                logger.debug { "DEBUG MainActivity Deep link state from free-form query: $it (query='$queryText')" }
+                logger.debug("DEBUG MainActivity Deep link state from free-form query: $it (query='$queryText')")
                 return it
             }
         }
 
-        logger.debug { "DEBUG MainActivity Deep link params NOT found; falling back to saved state" }
+        logger.debug("DEBUG MainActivity Deep link params NOT found; falling back to saved state")
         return null
     }
 
@@ -92,9 +101,7 @@ class MainActivity : ComponentActivity() {
         bookValue: String?,
         chapterValue: String?
     ): BibleState {
-        logger.debug {
-            "buildState with translationCode=$translationCode bookValue=$bookValue chapterValue=$chapterValue"
-        }
+        logger.debug("buildState with translationCode=$translationCode bookValue=$bookValue chapterValue=$chapterValue")
         val (cleanBook, chapterOverride) = splitBookAndChapter(bookValue, chapterValue)
         val translation = resolveTranslation(translationCode)
         val book = resolveBookIndex(cleanBook, translation)
@@ -105,12 +112,12 @@ class MainActivity : ComponentActivity() {
             book = book,
             chapter = chapter
         )
-        logger.debug { "DEBUG MainActivity buildState produced: $state" }
+        logger.debug("DEBUG MainActivity buildState produced: $state")
         return state
     }
 
     private fun splitBookAndChapter(bookValue: String?, chapterValue: String?): Pair<String?, String?> {
-        logger.debug { "DEBUG MainActivity splitBookAndChapter called with bookValue=$bookValue chapterValue=$chapterValue" }
+        logger.debug("DEBUG MainActivity splitBookAndChapter called with bookValue=$bookValue chapterValue=$chapterValue")
         val result = when {
             !chapterValue.isNullOrBlank() -> sanitizeBookName(bookValue) to chapterValue
             bookValue.isNullOrBlank() -> null to null
@@ -128,25 +135,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        logger.debug { "DEBUG MainActivity splitBookAndChapter returning $result" }
+        logger.debug("DEBUG MainActivity splitBookAndChapter returning $result")
         return result
     }
 
     private fun parseChapterNumber(raw: String?): Int? {
-        logger.debug { "DEBUG MainActivity parseChapterNumber called with raw=$raw" }
+        logger.debug("DEBUG MainActivity parseChapterNumber called with raw=$raw")
         if (raw.isNullOrBlank()) {
-            logger.debug { "DEBUG MainActivity parseChapterNumber returning null because raw was blank" }
+            logger.debug("DEBUG MainActivity parseChapterNumber returning null because raw was blank")
             return null
         }
         val normalized = raw.normalizeDigits()
         val match = "\\d+".toRegex().find(normalized)
         val result = match?.value?.toIntOrNull()
-        logger.debug { "DEBUG MainActivity parseChapterNumber normalized=$normalized result=$result" }
+        logger.debug("DEBUG MainActivity parseChapterNumber normalized=$normalized result=$result")
         return result
     }
 
     private fun parseFromQuery(query: String): BibleState? {
-        logger.debug { "DEBUG MainActivity parseFromQuery called with query='$query'" }
+        logger.debug("DEBUG MainActivity parseFromQuery called with query='$query'")
         val normalized = query.normalizeDigits()
 
         val tokens = normalized.split(Regex("[\\s,]+")).filter { it.isNotBlank() }
@@ -169,7 +176,7 @@ class MainActivity : ComponentActivity() {
         val chapter = parseChapterNumber(chapterCandidate)?.coerceIn(1, Books.maxChapter(bookIndex)) ?: 1
 
         val state = BibleState(mainTranslation = translation, book = bookIndex, chapter = chapter)
-        logger.debug { "DEBUG MainActivity parseFromQuery produced $state" }
+        logger.debug("DEBUG MainActivity parseFromQuery produced $state")
         return state
     }
 
@@ -180,12 +187,12 @@ class MainActivity : ComponentActivity() {
                 else -> ch
             }
         }.joinToString("")
-        logger.debug { "DEBUG MainActivity normalizeDigits input='$this' output='$normalized'" }
+        logger.debug("DEBUG MainActivity normalizeDigits input='$this' output='$normalized'")
         return normalized
     }
 
     private fun resolveTranslation(codeOrName: String?): Translation {
-        logger.debug { "DEBUG MainActivity resolveTranslation called with codeOrName=$codeOrName" }
+        logger.debug("DEBUG MainActivity resolveTranslation called with codeOrName=$codeOrName")
         val translation = when {
             codeOrName == null -> Translation.webus
             else -> {
@@ -197,12 +204,12 @@ class MainActivity : ComponentActivity() {
                     ?: Translation.webus
             }
         }
-        logger.debug { "DEBUG MainActivity resolveTranslation returning ${translation.code}" }
+        logger.debug("DEBUG MainActivity resolveTranslation returning ${translation.code}")
         return translation
     }
 
     private fun resolveBookIndex(bookValue: String?, translation: Translation): Int {
-        logger.debug { "DEBUG MainActivity resolveBookIndex called with bookValue=$bookValue translation=${translation.code}" }
+        logger.debug("DEBUG MainActivity resolveBookIndex called with bookValue=$bookValue translation=${translation.code}")
         val cleaned = sanitizeBookName(bookValue)
         val numeric = cleaned?.toIntOrNull()?.takeIf { it in 1..66 }
         val translationSpecific = translation.books().entries.firstOrNull { it.value.equals(cleaned, ignoreCase = true) }?.key
@@ -212,12 +219,12 @@ class MainActivity : ComponentActivity() {
             }
         } else null
         val result = numeric ?: translationSpecific ?: embeddedMatch ?: 1
-        logger.debug { "DEBUG MainActivity resolveBookIndex cleaned=$cleaned result=$result" }
+        logger.debug("DEBUG MainActivity resolveBookIndex cleaned=$cleaned result=$result")
         return result
     }
 
     private fun sanitizeBookName(raw: String?): String? {
-        logger.debug { "DEBUG MainActivity sanitizeBookName called with raw=$raw" }
+        logger.debug("DEBUG MainActivity sanitizeBookName called with raw=$raw")
         val sanitized = raw
             ?.normalizeDigits()
             ?.replace("’", "'")
@@ -225,13 +232,13 @@ class MainActivity : ComponentActivity() {
             ?.replace(BOOK_PREFIX_REGEX, " ")
             ?.trim()
             ?.ifBlank { null }
-        logger.debug { "DEBUG MainActivity sanitizeBookName returning $sanitized" }
+        logger.debug("DEBUG MainActivity sanitizeBookName returning $sanitized")
         return sanitized
     }
 
     private fun String.ifBlankOrNull(): String? {
         val result = if (isBlank()) null else this
-        logger.debug { "DEBUG MainActivity ifBlankOrNull evaluated '$this' to $result" }
+        logger.debug("DEBUG MainActivity ifBlankOrNull evaluated '$this' to $result")
         return result
     }
 
