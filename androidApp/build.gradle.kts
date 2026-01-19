@@ -39,7 +39,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    sourceSets["main"].assets.srcDir(generatedComposeAssetsDir)
+    sourceSets["main"].assets.directories.add(generatedComposeAssetsDir.path)
     // THIS IS IMPORTANT FOR ROBOLECTRIC
     testOptions {
         unitTests {
@@ -59,7 +59,7 @@ android {
 dependencies {
     implementation(projects.shared)
     implementation(projects.composeApp)
-    implementation(compose.preview)
+    implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlin.logging.android)
 }
