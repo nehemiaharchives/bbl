@@ -18,7 +18,7 @@ import org.gnit.bible.ReadingMode
 import org.gnit.bible.ScrollableColumn
 import org.gnit.bible.Translation
 import org.gnit.bible.ui.theme.BibleTheme
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 // serifFontFamily and sansFontFamily are in this package, no import needed
 

@@ -96,7 +96,7 @@ import org.gnit.bible.ui.widgets.TranslationManagerScreen
 import org.gnit.bible.ui.widgets.sansFontFamily
 import org.gnit.bible.ui.widgets.serifFontFamily
 import org.jetbrains.compose.resources.vectorResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

@@ -18,7 +18,7 @@ import org.gnit.bible.BibleState
 import org.gnit.bible.ScrollableColumn
 import org.gnit.bible.bible
 import org.gnit.bible.ui.theme.BibleTheme
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SingleBible(

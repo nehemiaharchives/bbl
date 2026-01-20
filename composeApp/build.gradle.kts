@@ -51,26 +51,6 @@ kotlin {
     jvm()
     
     sourceSets {
-        androidMain.dependencies {
-            implementation(libs.ui.tooling.preview)
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.slf4j.android)
-        }
-
-        androidUnitTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.androidx.test.core)
-            implementation(libs.robolectric)
-        }
-
-        named("androidDeviceTest") {
-            dependencies {
-                implementation(libs.androidx.runner)
-                implementation(libs.androidx.testExt.junit)
-                implementation(libs.androidx.test.core)
-            }
-        }
-
         commonMain.dependencies {
             implementation(libs.runtime)
             implementation(libs.foundation)
@@ -95,20 +75,43 @@ kotlin {
             implementation(libs.lucene.kmp.analysis.extra)
             implementation(projects.shared)
         }
-        commonTest.dependencies {
-            implementation(projects.testFramework)
-            implementation(libs.kotlin.test)
-            implementation(libs.ktor.clientMock)
+
+        val commonTest by getting {
+            dependencies {
+                implementation(projects.testFramework)
+                implementation(libs.kotlin.test)
+                implementation(libs.ktor.clientMock)
+            }
         }
+
+        androidMain.dependencies {
+            implementation(libs.ui.tooling.preview)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.slf4j.android)
+        }
+
+        val androidHostTest by getting {
+            //dependsOn(commonTest)
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.androidx.test.core)
+                implementation(libs.robolectric)
+            }
+        }
+
+        named("androidDeviceTest") {
+            dependencies {
+                implementation(libs.androidx.runner)
+                implementation(libs.androidx.testExt.junit)
+                implementation(libs.androidx.test.core)
+            }
+        }
+
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
         }
     }
 }
-
-/*dependencies {
-    debugImplementation(compose.uiTooling)
-}*/
 
 compose.resources {
     packageOfResClass = "org.gnit.bible.cmp"

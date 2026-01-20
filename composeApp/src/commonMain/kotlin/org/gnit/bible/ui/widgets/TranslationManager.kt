@@ -53,7 +53,7 @@ import org.gnit.bible.assetManager
 import org.gnit.bible.bible
 import org.gnit.bible.downloadableTranslationsCmp
 import org.gnit.bible.logger
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import org.gnit.bible.ui.theme.BibleTheme
 import org.gnit.bible.withTranslationVisibility
 
