@@ -194,7 +194,7 @@ var bible: Bible? = null
 
 fun bible(): Bible {
     if (bible == null) {
-        bible = Bible(assetManager())
+        bible = Bible(assetManager = assetManager(), analyzerProvider = CmpAnalyzerProvider())
         bible!!.bibleResourcesReader = ComposeBibleResourcesReader()
     }
     return bible!!

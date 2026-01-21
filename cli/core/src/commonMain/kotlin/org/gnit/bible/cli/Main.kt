@@ -128,7 +128,7 @@ private fun formatSelectedVersesFromChapterText(
 }
 
 class Bbl(
-    private val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider())
+    private val bible: Bible = Bible()
 ) : CliktCommand() {
 
     override val invokeWithoutSubcommand = true

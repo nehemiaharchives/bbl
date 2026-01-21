@@ -51,8 +51,7 @@ class MainTest {
             assetManager = AssetManagerImpl(
                 platform = platform,
                 fileSystem = platform.fileSystem
-            ),
-            analyzerProvider = CommonAnalyzerProvider()
+            )
         )
 
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")

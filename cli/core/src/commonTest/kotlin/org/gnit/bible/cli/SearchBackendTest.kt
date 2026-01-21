@@ -39,7 +39,7 @@ class SearchBackendTest : ResourcesTestBase() {
         platform.overridePlatformCacheDir = null
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
-        bible = Bible(assetManager = assetManager, analyzerProvider = CommonAnalyzerProvider())
+        bible = Bible(assetManager = assetManager)
     }
 
     @AfterTest

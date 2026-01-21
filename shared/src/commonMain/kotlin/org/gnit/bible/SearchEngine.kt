@@ -27,14 +27,27 @@ import org.gnit.lucenekmp.index.TermsEnum
 import org.gnit.lucenekmp.search.ScoreDoc
 import org.gnit.lucenekmp.util.BytesRef
 
+/**
+ * in `cli` SearchEngine is called following split binaries:
+ * 1. `bbl-search-common`
+ * 2. `bbl-search-morfologik`
+ * 3. `bbl-search-smartcn`
+ * 4. `bbl-search-nori`
+ * 5. `bbl-search-kuromoji`
+ * 6. `bbl-search-extra`
+ * Each search binary depends on corresponding analyzer library e.g. `bbl-search-common` and `lucene-kmp-analysis-common` to reduce binary size.
+ * So one `AnalyzerProvider` will be stored in `SearchEngine`
+ *
+ * in `composeApp`, SearchEngine has all analyzers and does not care about size
+ * because in KMP app, it is impossible to split and dynamically download/load components like osgi.
+ * Android can do that but iOS app does not have such things.
+ * So a single `AnalyzerProvider` can cover all languages in one place
+ *
+ */
 class SearchEngine(
     private val reader: BibleResourcesReader,
     private val analyzerProvider: AnalyzerProvider
 ) {
-
-    private val logger = KotlinLogging.logger {}
-    private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
-
     private val languageAnalyserCache: MutableMap<String, Analyzer> = mutableMapOf()
 
     private fun analyzerFor(translation: Translation): Analyzer {
@@ -42,6 +55,9 @@ class SearchEngine(
             analyzerProvider.analyzerFor(translation.language)
         }
     }
+
+    private val logger = KotlinLogging.logger {}
+    private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
 
     private fun analyzeTokens(
         analyzer: Analyzer,

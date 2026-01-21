@@ -22,18 +22,20 @@ import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
 
 private class ExtraAnalyzerProvider : AnalyzerProvider {
 
-    val cached: MutableMap<String, Analyzer> = mutableMapOf()
+    private val cache = mutableMapOf<String, Analyzer>()
 
     override fun analyzerFor(language: Language): Analyzer {
-        return cached.getOrPut(key =language.code){
-            when (language.code){
-                "tl" -> TagalogAnalyzer()
-                "vi" -> VietnameseAnalyzer(VietnameseConfig())
-                "mr" -> MarathiAnalyzer()
-                "gu" -> GujaratiAnalyzer()
-                "ur" -> UrduAnalyzer()
-                else -> throw UnsupportedOperationException("language ${language.code} is not supported by ExtraAnalyzerProvider")
-            }
+        return cache.getOrPut(language.code) { createAnalyzer(language.code) }
+    }
+
+    private fun createAnalyzer(code: String): Analyzer {
+        return when (code) {
+            "tl" -> TagalogAnalyzer()
+            "vi" -> VietnameseAnalyzer(VietnameseConfig())
+            "mr" -> MarathiAnalyzer()
+            "gu" -> GujaratiAnalyzer()
+            "ur" -> UrduAnalyzer()
+            else -> throw UnsupportedOperationException("language $code is not supported by ExtraAnalyzerProvider")
         }
     }
 }
