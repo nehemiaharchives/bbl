@@ -8,6 +8,9 @@ import org.gnit.bible.VersePointer
 import org.gnit.bible.getPlatform
 import kotlin.test.assertEquals
 
+/**
+ * When you add new downloadable bible for testing search, add bbl zip file to this dir: `composeApp/src/androidDeviceTest/assets/bblpacks`
+ */
 interface SearchTestBase {
     var bible: Bible
 
@@ -115,22 +118,29 @@ interface SearchTestBase {
     }
 
     fun searchJesusChristExtra() {
-        //TODO implement
         // Tagalog (tl)
+        val actualAbtag = bible.search(term = "Jesucristo", translation = Translation.abtag).first()
+        assertEquals(VersePointer(Translation.abtag, 40, 1, 1), actualAbtag)
 
 
         // Vietnamese (vi)
+        val actualKttv = bible.search(term = "Jêsus-Christ", translation = Translation.kttv).first()
+        assertEquals(VersePointer(Translation.kttv, 40, 1, 1), actualKttv)
 
 
         // Gujarati (gu)
+        val actualIrvGuj = bible.search(term = "ઈસુ ખ્રિસ્ત", translation = Translation.irvguj).first()
+        assertEquals(VersePointer(Translation.irvguj, 40, 1, 1), actualIrvGuj)
 
 
         // Marathi (mr)
+        val actualIrvMar = bible.search(term = "येशू ख्रिस्त", translation = Translation.irvmar).first()
+        assertEquals(VersePointer(Translation.irvmar, 40, 1, 1), actualIrvMar)
 
 
         // Urdu (ur)
-
-
+        val actualIrvUrd = bible.search(term = "ईसा मसीह", translation = Translation.irvurd).first()
+        assertEquals(VersePointer(Translation.irvurd, 40, 1, 1), actualIrvUrd)
     }
 }
 

@@ -56,4 +56,9 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     fun searchJesusChristKuromojiCmp(){
         super.searchJesusChristKuromoji()
     }
+
+    @Test
+    fun searchJesusChristExtraCmp(){
+        super.searchJesusChristExtra()
+    }
 }
