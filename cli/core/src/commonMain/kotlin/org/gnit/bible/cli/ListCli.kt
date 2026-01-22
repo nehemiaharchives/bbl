@@ -15,6 +15,47 @@ import org.gnit.bible.TranslationEntry
 import org.gnit.bible.bookNameNumberArray
 import org.gnit.bible.downloadableTranslationsCli
 
+internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {
+    val codeWidth = 7
+    val englishNameWidth = 43
+    val nativeNameWidth = 33
+    val languageWidth = 11
+    val yearWidth = 5
+    val installationWidth = 10
+
+    fun String.separator(): String = this.plus("|")
+
+    fun String.byteLength(): Int = this.encodeToByteArray().size
+
+    fun Translation.byteDiff(): Int = when (this.code) {
+        // following works on Ghostty
+        "th1971" -> -5
+        "irvhin" -> -9
+        "irvben" -> -10
+        "irvmar" -> -8
+        "irvtel" -> -13
+        "irvtam" -> -12
+        "irvguj" -> -9
+        "irvurd" -> -8
+        "npiulb" -> -3
+        else -> 0
+    }
+
+    return entries.map { entry ->
+        val t = entry.translation
+        val code = t.code.uppercase().padEnd(codeWidth).separator()
+        val englishName = t.englishName.padEnd(englishNameWidth).separator()
+        val byteDiff =
+            if (t.language.isCJK) (t.nativeName.byteLength() - t.nativeName.length) / 2 else t.byteDiff()
+        val nativeName = t.nativeName.padEnd(nativeNameWidth - byteDiff).separator()
+        val language = t.language.englishName.padEnd(languageWidth).separator()
+        val year = t.year.toString().padEnd(yearWidth).separator()
+        val installation = entry.source.description.padEnd(installationWidth).separator()
+        val copyright = t.copyright
+        "$code $englishName $nativeName $language $year $installation $copyright"
+    }
+}
+
 class ListCli(
     private val bible: Bible
 ) : CliktCommand(name = "list") {
@@ -57,59 +98,7 @@ class ListCli(
                         entry.translation.language.order
                     }
 
-                val codeWidth = 7
-                val englishNameWidth = 43
-                val nativeNameWidth = 33
-                val languageWidth = 11
-                val yearWidth = 5
-                val installationWidth = 10
-
-                /*val totalTableWidth =
-                    codeWidth + englishNameWidth + nativeNameWidth + languageWidth + yearWidth + installationWidth*/
-
-                fun String.separator(): String {
-                    return this.plus("|")
-                }
-
-                fun String.byteLength(): Int {
-                    return this.encodeToByteArray().size
-                }
-
-                fun Translation.byteDiff(): Int = when(this.code){
-                    // following works only in JetBrains IDEs Terminal
-                    /*"th1971" -> -6
-                    "irvhin" -> -2
-                    "irvben" -> -5
-                    "irvmar" -> -1
-                    "irvtel" -> -10
-                    "irvtam" -> 2
-                    "irvguj" -> -4
-                    "irvurd" -> -5*/
-
-                    // following works on Ghostty
-                    "th1971" -> -5
-                    "irvhin" -> -9
-                    "irvben" -> -10
-                    "irvmar" -> -8
-                    "irvtel" -> -13
-                    "irvtam" -> -12
-                    "irvguj" -> -9
-                    "irvurd" -> -8
-                    else -> 0
-                }
-
-                entries.forEach { entry ->
-                    val t = entry.translation
-                    val code =        t.code.uppercase()       .padEnd(codeWidth)          .separator()
-                    val englishName = t.englishName            .padEnd(englishNameWidth)   .separator()
-                    val byteDiff = if(t.language.isCJK) (t.nativeName.byteLength() - t.nativeName.length) / 2 else t.byteDiff()
-                    val nativeName =  t.nativeName             .padEnd((nativeNameWidth - byteDiff)).separator()
-                    val language =    t.language.englishName   .padEnd(languageWidth)      .separator()
-                    val year =        t.year.toString()        .padEnd(yearWidth)          .separator()
-                    val installation = entry.source.description.padEnd(installationWidth)  .separator()
-                    val copyright = t.copyright
-                    echo("$code $englishName $nativeName $language $year $installation $copyright")
-                }
+                formatTranslationEntries(entries).forEach { line -> echo(line) }
             }
 
             "book", "books" -> {
