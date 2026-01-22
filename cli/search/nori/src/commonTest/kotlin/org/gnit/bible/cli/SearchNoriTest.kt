@@ -14,12 +14,6 @@ class SearchNoriTest: CliSearchTestBase(NoriAnalyzerProvider()) {
 
     @Test
     fun searchJesusChrist() {
-        // Korean (ko)
-        var actualKrv = bible.search(term = "예수그리스도", translation = Translation.krv).first()
-        assertEquals(VersePointer(Translation.krv, 40, 1, 1), actualKrv)
-
-        // with space between Jesus Christ
-        actualKrv = bible.search(term = "예수 그리스도", translation = Translation.krv).first()
-        assertEquals(VersePointer(Translation.krv, 40, 1, 1), actualKrv)
+        super.searchJesusChristNori()
     }
 }

@@ -38,4 +38,9 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     fun searchJesusChristSmartcnCmp(){
         super.searchJesusChristSmartcn()
     }
+
+    @Test
+    fun searchJesusChristNoriCmp(){
+        super.searchJesusChristNori()
+    }
 }

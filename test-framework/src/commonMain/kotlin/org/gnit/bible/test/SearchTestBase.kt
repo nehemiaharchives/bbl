@@ -85,6 +85,16 @@ interface SearchTestBase {
         val actualCunp = bible.search(term = "耶稣基督", translation = Translation.cunp).first()
         assertEquals(VersePointer(Translation.cunp, 40, 1, 1), actualCunp)
     }
+
+    fun searchJesusChristNori() {
+        // Korean (ko)
+        var actualKrv = bible.search(term = "예수그리스도", translation = Translation.krv).first()
+        assertEquals(VersePointer(Translation.krv, 40, 1, 1), actualKrv)
+
+        // with space between Jesus Christ
+        actualKrv = bible.search(term = "예수 그리스도", translation = Translation.krv).first()
+        assertEquals(VersePointer(Translation.krv, 40, 1, 1), actualKrv)
+    }
 }
 
 open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : SearchTestBase {
