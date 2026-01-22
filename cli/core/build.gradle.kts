@@ -15,6 +15,7 @@ kotlin {
 
     compilerOptions {
         optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     sourceSets {
