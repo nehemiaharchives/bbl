@@ -72,6 +72,14 @@
         "copyright": "Public Domain"
     },
     {
+      "code": "sven",
+      "languageCode": "sv",
+      "englishName": "Svenska 1917",
+      "nativeName": "1917 års kyrkobibel",
+      "year": 1917,
+      "copyright": "Public Domain"
+    },
+    {
         "code": "ubg",
         "languageCode": "pl",
         "englishName": "Updated Gdansk Bible",
@@ -86,14 +94,6 @@
         "nativeName": "Біблія в пер. Івана Огієнка",
         "year": 1962,
         "copyright": "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society"
-    },
-    {
-        "code": "sven",
-        "languageCode": "sv",
-        "englishName": "Svenska 1917",
-        "nativeName": "1917 års kyrkobibel",
-        "year": 1917,
-        "copyright": "Public Domain"
     },
     {
         "code": "cunp",
@@ -120,20 +120,28 @@
         "copyright": "Public Domain"
     },
     {
-        "code": "abtag",
-        "languageCode": "tl",
-        "englishName": "Ang Biblia",
-        "nativeName": "Ang Biblia",
-        "year": 1905,
-        "copyright": "Public Domain"
+      "code": "ayt",
+      "languageCode": "id",
+      "englishName": "The Opened Bible",
+      "nativeName": "Alkitab Yang Terbuka",
+      "year": 2024,
+      "copyright": "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT"
     },
     {
-        "code": "ayt",
-        "languageCode": "id",
-        "englishName": "The Opened Bible",
-        "nativeName": "Alkitab Yang Terbuka",
-        "year": 2024,
-        "copyright": "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT"
+      "code": "th1971",
+      "languageCode": "th",
+      "englishName": "Thai Bible 1925",
+      "nativeName": "พระคริสตธรรมคัมภีร์ ฉบับ1971",
+      "year": 1971,
+      "copyright": "Public Domain"
+    },
+    {
+      "code": "irvhin",
+      "languageCode": "hi",
+      "englishName": "Indian Revised Version - Hindi",
+      "nativeName": "इंडियन रिवाइज्ड वर्जन (IRV) हिंदी",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
     },
     {
         "code": "irvben",
@@ -144,52 +152,36 @@
         "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
     },
     {
-        "code": "irvguj",
-        "languageCode": "gu",
-        "englishName": "Indian Revised Version - Gujarati",
-        "nativeName": "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+      "code": "irvtam",
+      "languageCode": "ta",
+      "englishName": "Indian Revised Version - Tamil",
+      "nativeName": "இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
     },
     {
-        "code": "irvhin",
-        "languageCode": "hi",
-        "englishName": "Indian Revised Version - Hindi",
-        "nativeName": "इंडियन रिवाइज्ड वर्जन (IRV) हिंदी",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+      "code": "irvtel",
+      "languageCode": "te",
+      "englishName": "Indian Revised Version - Telugu",
+      "nativeName": "ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
     },
     {
-        "code": "irvmar",
-        "languageCode": "mr",
-        "englishName": "Indian Revised Version - Marathi",
-        "nativeName": "इंडियन रीवाइज्ड वर्जन (IRV) मराठी",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+      "code": "npiulb",
+      "languageCode": "ne",
+      "englishName": "Nepali language, Unlocked Literal Bible",
+      "nativeName": "पवित्र बाइबल",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Door43 World Missions Community"
     },
     {
-        "code": "irvtam",
-        "languageCode": "ta",
-        "englishName": "Indian Revised Version - Tamil",
-        "nativeName": "இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
-    },
-    {
-        "code": "irvtel",
-        "languageCode": "te",
-        "englishName": "Indian Revised Version - Telugu",
-        "nativeName": "ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
-    },
-    {
-        "code": "irvurd",
-        "languageCode": "ur",
-        "englishName": "Indian Revised Version - Urdu",
-        "nativeName": "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू",
-        "year": 2019,
-        "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+      "code": "abtag",
+      "languageCode": "tl",
+      "englishName": "Ang Biblia",
+      "nativeName": "Ang Biblia",
+      "year": 1905,
+      "copyright": "Public Domain"
     },
     {
         "code": "kttv",
@@ -200,11 +192,28 @@
         "copyright": "Public Domain"
     },
     {
-        "code": "th1971",
-        "languageCode": "th",
-        "englishName": "Thai Bible 1925",
-        "nativeName": "พระคริสตธรรมคัมภีร์ ฉบับ1971",
-        "year": 1971,
-        "copyright": "Public Domain"
+      "code": "irvguj",
+      "languageCode": "gu",
+      "englishName": "Indian Revised Version - Gujarati",
+      "nativeName": "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+    },
+    {
+      "code": "irvmar",
+      "languageCode": "mr",
+      "englishName": "Indian Revised Version - Marathi",
+      "nativeName": "इंडियन रीवाइज्ड वर्जन (IRV) मराठी",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
+    },
+
+    {
+      "code": "irvurd",
+      "languageCode": "ur",
+      "englishName": "Indian Revised Version - Urdu",
+      "nativeName": "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू",
+      "year": 2019,
+      "copyright": "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd."
     }
 ]
