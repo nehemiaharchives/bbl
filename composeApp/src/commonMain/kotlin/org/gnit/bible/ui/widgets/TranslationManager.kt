@@ -51,7 +51,7 @@ import org.gnit.bible.TranslationEntry
 import org.gnit.bible.InstallationState
 import org.gnit.bible.assetManager
 import org.gnit.bible.bible
-import org.gnit.bible.downloadableTranslationsCmp
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
 import org.gnit.bible.logger
 import androidx.compose.ui.tooling.preview.Preview
 import org.gnit.bible.ui.theme.BibleTheme
@@ -88,7 +88,7 @@ fun TranslationManagerScreen(
             onSuccess = { translations ->
                 translations.ifEmpty {
                     logger.debug { "TranslationManagerScreen Unable to load online list; showing embedded/cached only." }
-                    latestDownloadableTranslationsCmp.ifEmpty { org.gnit.bible.downloadableTranslationsCmp }
+                    latestDownloadableTranslationsCmp.ifEmpty { Translation.downloadableTranslationsCmp }
                 }
             },
             onFailure = { throwable ->
@@ -98,7 +98,7 @@ fun TranslationManagerScreen(
                         else -> "TranslationManagerScreen Failed to load downloadable translations (${throwable.message ?: "unknown"})"
                     }
                 }
-                latestDownloadableTranslationsCmp.ifEmpty { org.gnit.bible.downloadableTranslationsCmp }
+                latestDownloadableTranslationsCmp.ifEmpty { Translation.downloadableTranslationsCmp }
             }
         )
         downloadableTranslationsCmp = listResult

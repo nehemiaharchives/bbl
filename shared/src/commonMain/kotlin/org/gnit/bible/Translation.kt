@@ -2,6 +2,7 @@ package org.gnit.bible
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.code
 
 @Serializable
 data class Translation(
@@ -109,7 +110,29 @@ data class Translation(
         // search kuromoji (embedded in cmp)
         val jc = Translation(code = "jc", languageCode = Language.ja.code, englishName = "Japanese Colloquial Bible", nativeName = "口語訳", year = 1955, copyright = "Public Domain")
 
+        val embeddedTranslationCodes = arrayOf(
+            "cunp",
+            "delut",
+            "jc",
+            "kjv",
+            "krv",
+            "lsg",
+            "rdv24",
+            "rvr09",
+            "sinod",
+            "sven",
+            "svrj",
+            "tb",
+            "ubg",
+            "ubio",
+            "webus",
+        )
+
         val embeddedTranslations = listOf(webus, kjv, rvr09, tb, delut, lsg, sinod, svrj, rdv24, ubg, ubio, sven, cunp, krv, jc)
+
+        fun hasEmbeddedTranslation(translationCode: String, readerInitialized: Boolean): Boolean {
+            return readerInitialized && Translation.embeddedTranslationCodes.contains(translationCode)
+        }
 
         // search common (downloadable in cmp)
         val ayt = Translation("ayt", "id", "The Opened Bible", "Alkitab Yang Terbuka", 2024, "CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT")
@@ -126,6 +149,28 @@ data class Translation(
         val irvguj = Translation("irvguj", "gu", "Indian Revised Version - Gujarati", "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.")
         val irvmar = Translation("irvmar", "mr", "Indian Revised Version - Marathi", "इंडियन रीवाइज्ड वर्जन (IRV) मराठी", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.")
         val irvurd = Translation("irvurd", "ur", "Indian Revised Version - Urdu", "इंडियन रिवाइज्ड वर्जन (IRV) उर्दू", 2019, "CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.")
+
+        val downloadableTranslationsCli = listOf(
+            // search common
+            Translation.ayt,
+            Translation.th1971,
+            Translation.irvhin,
+            Translation.irvben,
+            Translation.irvtam,
+            Translation.npiulb,
+
+            // search extra
+            Translation.abtag,
+            Translation.kttv,
+            Translation.irvguj,
+            Translation.irvmar,
+            Translation.irvtel,
+            Translation.irvurd
+        )
+
+        val downloadableTranslationsCmp = Translation.embeddedTranslations.plus(downloadableTranslationsCli)
+
+        val downloadableTranslationCodeListCli = downloadableTranslationsCli.map { it.code }
     }
 }
 

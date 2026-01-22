@@ -6,7 +6,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslationsCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
 import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest

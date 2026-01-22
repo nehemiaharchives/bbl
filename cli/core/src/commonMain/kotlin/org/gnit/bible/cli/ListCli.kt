@@ -13,7 +13,7 @@ import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
 import org.gnit.bible.bookNameNumberArray
-import org.gnit.bible.downloadableTranslationsCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
 
 internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {
     val codeWidth = 7

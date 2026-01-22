@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
-import org.gnit.bible.downloadableTranslationsCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
 
 class InstallCli(
     private val bible: Bible

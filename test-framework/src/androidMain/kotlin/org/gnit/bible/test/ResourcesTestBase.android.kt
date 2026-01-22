@@ -5,9 +5,9 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import okio.FileSystem
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
-import org.gnit.bible.downloadableTranslationsCmp
-import org.gnit.bible.embeddedTranslationCodes
 import org.gnit.bible.Platform
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
+import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import org.junit.Before
 import org.junit.runner.RunWith

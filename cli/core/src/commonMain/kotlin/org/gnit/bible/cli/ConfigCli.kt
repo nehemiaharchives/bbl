@@ -12,7 +12,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandomlyShow
 import org.gnit.bible.SETTINGS_FILE_NAME
-import org.gnit.bible.downloadableTranslationCodeListCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationCodeListCli
 
 class ConfigCli(
     private val bible: Bible

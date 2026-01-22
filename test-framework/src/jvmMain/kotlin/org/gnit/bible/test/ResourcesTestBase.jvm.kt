@@ -1,8 +1,8 @@
 package org.gnit.bible.test
 
 import org.gnit.bible.Platform
-import org.gnit.bible.downloadableTranslationsCmp
-import org.gnit.bible.embeddedTranslationCodes
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
+import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import java.io.File
 import java.io.InputStream

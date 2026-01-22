@@ -1,5 +1,7 @@
 package org.gnit.bible
 
+import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
+
 enum class RandomlyShow { verse, chapter }
 
 enum class ConfigKey(val value: String, val defaultValue: String, val description: String){

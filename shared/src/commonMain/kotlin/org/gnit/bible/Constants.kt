@@ -7,50 +7,6 @@ const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
 const val SETTINGS_FILE_NAME = "config.properties"
 
-fun hasEmbeddedTranslation(translationCode: String, readerInitialized: Boolean): Boolean {
-    return readerInitialized && embeddedTranslationCodes.contains(translationCode)
-}
-
-val embeddedTranslationCodes = arrayOf(
-    "cunp",
-    "delut",
-    "jc",
-    "kjv",
-    "krv",
-    "lsg",
-    "rdv24",
-    "rvr09",
-    "sinod",
-    "sven",
-    "svrj",
-    "tb",
-    "ubg",
-    "ubio",
-    "webus",
-)
-
-val downloadableTranslationsCli = listOf(
-    // search common
-    Translation.ayt,
-    Translation.th1971,
-    Translation.irvhin,
-    Translation.irvben,
-    Translation.irvtam,
-    Translation.npiulb,
-
-    // search extra
-    Translation.abtag,
-    Translation.kttv,
-    Translation.irvguj,
-    Translation.irvmar,
-    Translation.irvtel,
-    Translation.irvurd
-)
-
-val downloadableTranslationsCmp = Translation.embeddedTranslations.plus(downloadableTranslationsCli)
-
-val downloadableTranslationCodeListCli = downloadableTranslationsCli.map { it.code }
-
 val webusGenesisChapterOne = """
             1 In the beginning, God created the heavens and the earth.
             2 The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.

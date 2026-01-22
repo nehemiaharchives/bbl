@@ -7,8 +7,8 @@ import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
 import org.gnit.bible.Translation.Companion.embeddedTranslations
-import org.gnit.bible.downloadableTranslationsCli
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
 import kotlin.test.Ignore

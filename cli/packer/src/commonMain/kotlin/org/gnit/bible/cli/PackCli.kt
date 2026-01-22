@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.downloadableTranslationCodeListCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationCodeListCli
 
 class PackCli(
     private val bible: Bible
