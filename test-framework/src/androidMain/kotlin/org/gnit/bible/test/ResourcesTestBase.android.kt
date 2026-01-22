@@ -22,6 +22,10 @@ actual abstract class ResourcesTestBase actual constructor() {
         return getPlatform(ctx)
     }
 
+    actual fun seedComposePackDirIfNeeded(platform: Platform) {
+        // No-op on Android; packs are handled via assets/downloads in setup.
+    }
+
     @Before
     fun setupResourcesTestBaseForAndroidPlatform() {
         setupAndroidContextProvider()

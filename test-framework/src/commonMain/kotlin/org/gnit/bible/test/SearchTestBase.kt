@@ -80,7 +80,6 @@ interface SearchTestBase {
         // Nepali (ne)
         val actualNpiUlb = bible.search(term = "येशू ख्रीष्‍ट", translation = Translation.npiulb).first()
         assertEquals(VersePointer(Translation.npiulb, 40, 1, 1), actualNpiUlb)
-
     }
 
     fun searchJesusChristMorfologik() {

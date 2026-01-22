@@ -10,7 +10,7 @@ import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
 import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
 import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
-import org.gnit.lucenekmp.analysis.ne.NepaliAnalyzer
+import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
@@ -53,7 +53,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "ta" -> TamilAnalyzer() //common
             //"gu" -> GujaratiAnalyzer() //extra
             //"ur" -> UrduAnalyzer() //extra
-            "ne" -> NepaliAnalyzer() //common
+            "ne" -> BibleNepaliAnalyzer() //common
             else -> SimpleAnalyzer()
         }
     }

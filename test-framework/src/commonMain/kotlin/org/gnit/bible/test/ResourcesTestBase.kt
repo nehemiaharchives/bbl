@@ -4,4 +4,5 @@ import org.gnit.bible.Platform
 
 expect abstract class ResourcesTestBase() {
     fun createTestPlatform(): Platform
+    fun seedComposePackDirIfNeeded(platform: Platform)
 }

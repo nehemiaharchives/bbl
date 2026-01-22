@@ -80,6 +80,7 @@ class IndexBuilder(
             Regex("^${Regex.escape(translation.code)}\\.(\\d{1,2})\\.(\\d{1,3})\\.txt$")
 
         var totalDocs = 0
+        var failure: Throwable? = null
         try {
             val chapterFiles = fileSystem.list(translationDir)
                 .filter { path ->
@@ -123,41 +124,56 @@ class IndexBuilder(
                     totalDocs++
                 }
             }
+            iWriter.commit()
+        } catch (t: Throwable) {
+            failure = t
         } finally {
-            runCatching { iWriter.close() }.getOrNull()
-
-            runCatching {
-                val marker = indexPath.resolve("${translation.code}.index.marker")
-                if (!fileSystem.exists(marker)) {
-                    fileSystem.write(marker) { writeUtf8("ok\n") }
+            try {
+                iWriter.close()
+            } catch (t: Throwable) {
+                if (failure == null) {
+                    failure = t
+                } else {
+                    failure.addSuppressed(t)
                 }
-
-                val meta = indexPath.resolve("${translation.code}.index.meta")
-                if (!fileSystem.exists(meta)) {
-                    fileSystem.write(meta) { writeUtf8("docs=$totalDocs\n") }
-                }
-            }.getOrNull()
-
-            runCatching {
-                val lockPath = indexPath.resolve("write.lock")
-                if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)
-            }.getOrNull()
-
-            logger.debug { "creating index manifest for ${translation.code} at $indexPath" }
-            runCatching {
-                val manifestPath = indexPath.resolve("${translation.code}$INDEX_MANIFEST_FILENAME_POSTFIX")
-                val entries = fileSystem.list(indexPath)
-                    .filter { p -> fileSystem.metadata(p).isRegularFile }
-                    .map { it.name }
-                    .filter { it != manifestPath.name }
-                    .sorted()
-
-                fileSystem.write(manifestPath) {
-                    writeUtf8(entries.joinToString(separator = "\n", postfix = if (entries.isNotEmpty()) "\n" else ""))
-                }
-            }.onFailure { e ->
-                logger.error { "failed to write index manifest for ${translation.code} at $indexPath: ${e.message}" }
             }
+        }
+
+        if (failure != null) {
+            throw failure
+        }
+
+        runCatching {
+            val marker = indexPath.resolve("${translation.code}.index.marker")
+            if (!fileSystem.exists(marker)) {
+                fileSystem.write(marker) { writeUtf8("ok\n") }
+            }
+
+            val meta = indexPath.resolve("${translation.code}.index.meta")
+            if (!fileSystem.exists(meta)) {
+                fileSystem.write(meta) { writeUtf8("docs=$totalDocs\n") }
+            }
+        }.getOrNull()
+
+        runCatching {
+            val lockPath = indexPath.resolve("write.lock")
+            if (fileSystem.exists(lockPath)) fileSystem.delete(lockPath)
+        }.getOrNull()
+
+        logger.debug { "creating index manifest for ${translation.code} at $indexPath" }
+        runCatching {
+            val manifestPath = indexPath.resolve("${translation.code}$INDEX_MANIFEST_FILENAME_POSTFIX")
+            val entries = fileSystem.list(indexPath)
+                .filter { p -> fileSystem.metadata(p).isRegularFile }
+                .map { it.name }
+                .filter { it != manifestPath.name }
+                .sorted()
+
+            fileSystem.write(manifestPath) {
+                writeUtf8(entries.joinToString(separator = "\n", postfix = if (entries.isNotEmpty()) "\n" else ""))
+            }
+        }.onFailure { e ->
+            logger.error { "failed to write index manifest for ${translation.code} at $indexPath: ${e.message}" }
         }
 
         return totalDocs

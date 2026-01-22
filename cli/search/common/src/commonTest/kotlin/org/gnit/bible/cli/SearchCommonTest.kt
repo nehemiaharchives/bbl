@@ -13,5 +13,7 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
     @Test
     fun searchJesusChrist(){
         super.searchJesusChristCommonEmbedded()
+
+        super.searchJesusChristCommonDownloaded()
     }
 }
