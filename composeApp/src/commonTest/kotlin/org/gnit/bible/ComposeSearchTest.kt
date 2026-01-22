@@ -20,12 +20,17 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     }
 
     @Test
-    fun searchJesusChristEmbedded(){
+    fun searchJesusChristCommonEmbeddedCmp(){
         super.searchJesusChristCommonEmbedded()
     }
 
     @Test
-    fun searchJesusChristDownloaded(){
+    fun searchJesusChristCommonDownloadedCmp(){
         super.searchJesusChristCommonDownloaded()
+    }
+
+    @Test
+    fun searchJesusChristMorfologikCmp(){
+        super.searchJesusChristMorfologik()
     }
 }

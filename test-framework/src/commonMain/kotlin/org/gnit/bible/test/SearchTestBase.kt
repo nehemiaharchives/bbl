@@ -69,6 +69,16 @@ interface SearchTestBase {
         val actualIrvTam = bible.search(term = "இயேசுகிறிஸ்து", translation = Translation.irvtam).first()
         assertEquals(VersePointer(Translation.irvtam, 40, 1, 1), actualIrvTam)
     }
+
+    fun searchJesusChristMorfologik() {
+        // Polish (pl)
+        val actualUbg = bible.search(term = "Jezusa Chrystusa", translation = Translation.ubg).first()
+        assertEquals(VersePointer(Translation.ubg, 40, 1, 1), actualUbg)
+
+        // Ukrainian (uk)
+        val actualUbio = bible.search(term = "Ісуса Христа", translation = Translation.ubio).first()
+        assertEquals(VersePointer(Translation.ubio, 40, 1, 1), actualUbio)
+    }
 }
 
 open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : SearchTestBase {
