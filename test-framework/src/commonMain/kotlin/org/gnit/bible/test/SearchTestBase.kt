@@ -95,6 +95,12 @@ interface SearchTestBase {
         actualKrv = bible.search(term = "예수 그리스도", translation = Translation.krv).first()
         assertEquals(VersePointer(Translation.krv, 40, 1, 1), actualKrv)
     }
+
+    fun searchJesusChristKuromoji() {
+        // Japanese (ja)
+        val actualJc = bible.search(term = "イエス・キリスト", translation = Translation.jc).first()
+        assertEquals(VersePointer(Translation.jc, 40, 1, 1), actualJc)
+    }
 }
 
 open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : SearchTestBase {
