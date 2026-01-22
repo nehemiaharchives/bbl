@@ -33,4 +33,9 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     fun searchJesusChristMorfologikCmp(){
         super.searchJesusChristMorfologik()
     }
+
+    @Test
+    fun searchJesusChristSmartcnCmp(){
+        super.searchJesusChristSmartcn()
+    }
 }

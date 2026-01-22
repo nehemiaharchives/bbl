@@ -79,6 +79,12 @@ interface SearchTestBase {
         val actualUbio = bible.search(term = "Ісуса Христа", translation = Translation.ubio).first()
         assertEquals(VersePointer(Translation.ubio, 40, 1, 1), actualUbio)
     }
+
+    fun searchJesusChristSmartcn() {
+        // Chinese (zh)
+        val actualCunp = bible.search(term = "耶稣基督", translation = Translation.cunp).first()
+        assertEquals(VersePointer(Translation.cunp, 40, 1, 1), actualCunp)
+    }
 }
 
 open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : SearchTestBase {

@@ -14,8 +14,6 @@ class SearchSmartcnTest: CliSearchTestBase(SmartcnAnalyzerProvider()) {
 
     @Test
     fun searchJesusChrist() {
-        // Chinese (zh)
-        val actualCunp = bible.search(term = "耶稣基督", translation = Translation.cunp).first()
-        assertEquals(VersePointer(Translation.cunp, 40, 1, 1), actualCunp)
+        super.searchJesusChristSmartcn()
     }
 }
