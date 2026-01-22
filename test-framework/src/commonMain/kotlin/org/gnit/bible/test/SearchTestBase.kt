@@ -54,8 +54,8 @@ interface SearchTestBase {
 
     fun searchJesusChristCommonDownloaded(){
         // Indonesian (id)
-        // TODO implement
-
+        val actualAyt = bible.search(term = "Yesus Kristus", translation = Translation.ayt).first()
+        assertEquals(VersePointer(Translation.ayt, 40, 1, 1), actualAyt)
 
         // Thai (th)
         val actualTh1971 = bible.search(term = "พระเยซูคริสต์", translation = Translation.th1971).first()
@@ -70,14 +70,16 @@ interface SearchTestBase {
         assertEquals(VersePointer(Translation.irvben, 40, 1, 1), actualIrvBen)
 
         // Telugu (te)
-        // TODO implement
+        val actualIrvTel = bible.search(term = "యేసు క్రీస్తు", translation = Translation.irvtel).first()
+        assertEquals(VersePointer(Translation.irvtel, 40, 1, 1), actualIrvTel)
 
         // Tamil (ta)
         val actualIrvTam = bible.search(term = "இயேசுகிறிஸ்து", translation = Translation.irvtam).first()
         assertEquals(VersePointer(Translation.irvtam, 40, 1, 1), actualIrvTam)
 
         // Nepali (ne)
-        // TODO implement after adding Nepali bible in Translation.kt
+        val actualNpiUlb = bible.search(term = "येशू ख्रीष्‍ट", translation = Translation.npiulb).first()
+        assertEquals(VersePointer(Translation.npiulb, 40, 1, 1), actualNpiUlb)
 
     }
 
