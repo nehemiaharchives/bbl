@@ -31,10 +31,10 @@ class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
     @Test
     override fun testReadIndexFile() = super.testReadIndexFile()
 
-    @Test
+    /*@Test
     override fun searchJesusChrist() = super.searchJesusChrist()
 
-    /*@Test
+    @Test
     override fun searchJesusChristInWebusInRomans() = super.searchJesusChristInWebusInRomans()
 
     @Test
