@@ -442,17 +442,15 @@ class SearchEngine(
         if (normalizedTerm.isNotBlank()) {
             val phraseText = if (term.any { it.isWhitespace() }) normalizedTerm else term
             val phraseQuery = QueryBuilder(analyzer).createPhraseQuery("text", phraseText)
-            if (phraseQuery != null) {
-                val hits = runSingleQuery(
-                    indexSearcher = indexSearcher,
-                    filterClauses = filterClauses,
-                    termQuery = phraseQuery,
-                    maxHits = verses,
-                    sortByDoc = true
-                )
-                if (hits.isNotEmpty()) {
-                    return hits
-                }
+            val hits = runSingleQuery(
+                indexSearcher = indexSearcher,
+                filterClauses = filterClauses,
+                termQuery = phraseQuery,
+                maxHits = verses,
+                sortByDoc = true
+            )
+            if (hits.isNotEmpty()) {
+                return hits
             }
         }
         val requireAllTokens = term.any { it.isWhitespace() }

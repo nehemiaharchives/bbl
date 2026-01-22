@@ -1,14 +1,12 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.test.CliSearchTestBase
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
-class SearchExtraTest {
+class SearchExtraTest: CliSearchTestBase(ExtraAnalyzerProvider()) {
 
     @Test
     fun searchJesusChrist() {
-
-        //TODO implement
 
     }
 }

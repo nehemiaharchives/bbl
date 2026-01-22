@@ -30,32 +30,24 @@ val embeddedTranslationCodes = arrayOf(
 )
 
 val downloadableTranslationsCli = listOf(
-    Translation.abtag,
+    // search common
     Translation.ayt,
-    Translation.irvben,
-    Translation.irvguj,
+    Translation.th1971,
     Translation.irvhin,
-    Translation.irvmar,
+    Translation.irvben,
     Translation.irvtam,
-    Translation.irvtel,
-    Translation.irvurd,
+    Translation.npiulb,
+
+    // search extra
+    Translation.abtag,
     Translation.kttv,
-    Translation.th1971
+    Translation.irvguj,
+    Translation.irvmar,
+    Translation.irvtel,
+    Translation.irvurd
 )
 
-val downloadableTranslationsCmp = Translation.embeddedTranslations.plus(listOf(
-    Translation.abtag,
-    Translation.ayt,
-    Translation.irvben,
-    Translation.irvguj,
-    Translation.irvhin,
-    Translation.irvmar,
-    Translation.irvtam,
-    Translation.irvtel,
-    Translation.irvurd,
-    Translation.kttv,
-    Translation.th1971
-))
+val downloadableTranslationsCmp = Translation.embeddedTranslations.plus(downloadableTranslationsCli)
 
 val downloadableTranslationCodeListCli = downloadableTranslationsCli.map { it.code }
 

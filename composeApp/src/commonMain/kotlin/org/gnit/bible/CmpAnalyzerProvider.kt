@@ -39,32 +39,37 @@ class CmpAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(language: Language): Analyzer {
         return when (language.code) {
-            "en" -> EnglishAnalyzer() //common
-            "es" -> SpanishAnalyzer() //common
-            "pt" -> PortugueseAnalyzer() //common
-            "de" -> GermanAnalyzer() //common
-            "fr" -> FrenchAnalyzer() //common
-            "ru" -> RussianAnalyzer() //common
-            "nl" -> DutchAnalyzer() //common
-            "it" -> ItalianAnalyzer() //common
-            "pl" -> MorfologikAnalyzer() //morfologik
-            "uk" -> UkrainianMorfologikAnalyzer() //morfologik
-            "sv" -> SwedishAnalyzer() //common
-            "zh" -> SmartChineseAnalyzer() //smartcn
-            "ko" -> BibleKoreanAnalyzer() //nori
-            "ja" -> JapaneseAnalyzer() //kuromoji
-            "tl" -> TagalogAnalyzer() //extra
-            "id" -> IndonesianAnalyzer() //common
-            "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra
-            "th" -> ThaiAnalyzer() //common
-            "hi" -> HindiAnalyzer() //common
-            "bn" -> BengaliAnalyzer() //common
-            "mr" -> MarathiAnalyzer() //extra
-            "te" -> TeluguAnalyzer() //common
-            "ta" -> TamilAnalyzer() //common
-            "gu" -> GujaratiAnalyzer() //extra
-            "ur" -> UrduAnalyzer() //extra
-            "ne" -> NepaliAnalyzer() //common
+            "en" -> EnglishAnalyzer() //common (embedded in cmp)
+            "es" -> SpanishAnalyzer() //common (embedded in cmp)
+            "pt" -> PortugueseAnalyzer() //common (embedded in cmp)
+            "de" -> GermanAnalyzer() //common (embedded in cmp)
+            "fr" -> FrenchAnalyzer() //common (embedded in cmp)
+            "ru" -> RussianAnalyzer() //common (embedded in cmp)
+            "nl" -> DutchAnalyzer() //common (embedded in cmp)
+            "it" -> ItalianAnalyzer() //common (embedded in cmp)
+            "sv" -> SwedishAnalyzer() //common (embedded in cmp)
+
+            "pl" -> MorfologikAnalyzer() //morfologik (embedded in cmp)
+            "uk" -> UkrainianMorfologikAnalyzer() //morfologik (embedded in cmp)
+
+            "zh" -> SmartChineseAnalyzer() //smartcn (embedded in cmp)
+            "ko" -> BibleKoreanAnalyzer() //nori (embedded in cmp)
+            "ja" -> JapaneseAnalyzer() //kuromoji (embedded in cmp)
+
+            "id" -> IndonesianAnalyzer() //common (downloadable in cmp) ayt
+            "th" -> ThaiAnalyzer() //common (downloadable in cmp) th 1971
+            "hi" -> HindiAnalyzer() //common (downloadable in cmp) irvhin
+            "bn" -> BengaliAnalyzer() //common (downloadable in cmp) irvben
+            "ta" -> TamilAnalyzer() //common (downloadable in cmp) irvtam
+            "ne" -> NepaliAnalyzer() //common (downloadable in cmp) npiulb
+
+            "tl" -> TagalogAnalyzer() //extra (downloadable in cmp) abtag
+            "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra (downloadable in cmp) kttv
+            "gu" -> GujaratiAnalyzer() //extra (downloadable in cmp) irvguj
+            "mr" -> MarathiAnalyzer() //extra (downloadable in cmp) irvmar
+            "te" -> TeluguAnalyzer() //extra (downloadable in cmp) irvtel
+            "ur" -> UrduAnalyzer() //extra (downloadable in cmp) irvurd
+
             else -> SimpleAnalyzer()
         }
     }

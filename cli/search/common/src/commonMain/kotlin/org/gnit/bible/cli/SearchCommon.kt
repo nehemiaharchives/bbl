@@ -40,6 +40,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
+            // search common (embedded in cmp)
             "en" -> EnglishAnalyzer()
             "es" -> SpanishAnalyzer()
             "pt" -> PortugueseAnalyzer()
@@ -49,11 +50,13 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "nl" -> DutchAnalyzer()
             "it" -> ItalianAnalyzer()
             "sv" -> SwedishAnalyzer()
+
+            // search common (downloadable in cmp)
+            "id" -> IndonesianAnalyzer()
             "th" -> ThaiAnalyzer()
             "hi" -> HindiAnalyzer()
             "bn" -> BengaliAnalyzer()
             "ta" -> TamilAnalyzer()
-            "id" -> IndonesianAnalyzer()
             "te" -> TeluguAnalyzer()
             "ne" -> NepaliAnalyzer()
             else -> SimpleAnalyzer()

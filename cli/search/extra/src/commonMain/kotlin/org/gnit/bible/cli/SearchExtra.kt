@@ -20,7 +20,7 @@ import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
 
-private class ExtraAnalyzerProvider : AnalyzerProvider {
+class ExtraAnalyzerProvider : AnalyzerProvider {
 
     private val cache = mutableMapOf<String, Analyzer>()
 
@@ -32,8 +32,8 @@ private class ExtraAnalyzerProvider : AnalyzerProvider {
         return when (code) {
             "tl" -> TagalogAnalyzer()
             "vi" -> VietnameseAnalyzer(VietnameseConfig())
-            "mr" -> MarathiAnalyzer()
             "gu" -> GujaratiAnalyzer()
+            "mr" -> MarathiAnalyzer()
             "ur" -> UrduAnalyzer()
             else -> throw UnsupportedOperationException("language $code is not supported by ExtraAnalyzerProvider")
         }
