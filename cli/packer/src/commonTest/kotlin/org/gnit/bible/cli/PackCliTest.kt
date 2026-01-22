@@ -13,6 +13,7 @@ import org.gnit.bible.test.FileUtil.deleteRecursively
 import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.test.TestFixtures.tmpWorkingDirForBblPack
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -135,5 +136,15 @@ class PackCliTest {
                 fileSystem.delete(zipPath)
             }
         }
+    }
+
+    /**
+     * This is not test but walk around the problem of PackCli.main() IntelliJ Edit view execute icon not working. So usually need to put @Ignore.
+     * Run this only when creating/updating bblpack.
+     */
+    @Ignore
+    @Test
+    fun packTranslation() {
+        packTranslation("npiulb")
     }
 }
