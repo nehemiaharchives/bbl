@@ -17,6 +17,10 @@ import java.io.InputStream
 @RunWith(DynamicAndroidTestRunner::class)
 actual abstract class ResourcesTestBase actual constructor() {
 
+    init {
+        ensureResourcesSetup()
+    }
+
     actual fun createTestPlatform(): Platform {
         val ctx: Context = ApplicationProvider.getApplicationContext()
         return getPlatform(ctx)
@@ -28,7 +32,18 @@ actual abstract class ResourcesTestBase actual constructor() {
 
     @Before
     fun setupResourcesTestBaseForAndroidPlatform() {
-        setupAndroidContextProvider()
+        ensureResourcesSetup()
+    }
+
+    private fun ensureResourcesSetup() {
+        if (!resourcesPrepared) {
+            synchronized(resourcesLock) {
+                if (!resourcesPrepared) {
+                    setupAndroidContextProvider()
+                    resourcesPrepared = true
+                }
+            }
+        }
         ensureDownloadedPacks()
     }
 
@@ -76,7 +91,6 @@ actual abstract class ResourcesTestBase actual constructor() {
             (FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_composeapp_compose_bible_test_dir").toString()
         )
         val serverPackDir = findServerPackDir()
-        val canUseAssets = hasInstrumentation()
         val downloadableCodes = downloadableTranslationsCmp.map { it.code }
 
         downloadableCodes.forEach { code ->
@@ -86,19 +100,15 @@ actual abstract class ResourcesTestBase actual constructor() {
             val sourceFile = serverPackDir?.let { File(it, "$code.zip") }?.takeIf { it.isFile }
             if (sourceFile != null) {
                 packDirs.forEach { packDir ->
-                    copyZipIfMissing(sourceFile::inputStream, File(packDir, "$code.zip"))
+                    copyZipIfOutdated(sourceFile, File(packDir, "$code.zip"))
                 }
                 return@forEach
             }
-            if (canUseAssets) {
-                packDirs.forEach { packDir ->
-                    copyZipIfMissing({ openAssetZip(ctx, code) }, File(packDir, "$code.zip"))
-                }
+            packDirs.forEach { packDir ->
+                copyZipIfMissing({ openAssetZip(ctx, code) }, File(packDir, "$code.zip"))
             }
-            if (canUseAssets) {
-                packDirs.forEach { packDir ->
-                    downloadZipIfMissing(code, File(packDir, "$code.zip"))
-                }
+            packDirs.forEach { packDir ->
+                downloadZipIfMissing(code, File(packDir, "$code.zip"))
             }
         }
     }
@@ -112,6 +122,18 @@ actual abstract class ResourcesTestBase actual constructor() {
         input.use { inStream ->
             destination.outputStream().use { outStream ->
                 inStream.copyTo(outStream)
+            }
+        }
+    }
+
+    private fun copyZipIfOutdated(source: File, destination: File) {
+        if (destination.exists() && destination.length() == source.length()) {
+            return
+        }
+        destination.parentFile?.mkdirs()
+        source.inputStream().use { input ->
+            destination.outputStream().use { output ->
+                input.copyTo(output)
             }
         }
     }
@@ -165,5 +187,11 @@ actual abstract class ResourcesTestBase actual constructor() {
             val instrumentation = method.invoke(null) as? android.app.Instrumentation
             instrumentation?.context
         }.getOrNull()
+    }
+
+    private companion object {
+        @Volatile
+        private var resourcesPrepared = false
+        private val resourcesLock = Any()
     }
 }

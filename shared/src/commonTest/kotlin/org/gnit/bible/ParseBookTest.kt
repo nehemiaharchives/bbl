@@ -3,7 +3,6 @@ package org.gnit.bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class ParseBookTest {
 
@@ -26,7 +25,7 @@ class ParseBookTest {
     }
 
     @Test
-    fun `filter by book and a chapter`() {
+    fun filterByBookAndAChapter() {
 
         val term = "pray in ps 150"
         assertTrue(term.matches(".+ in ps ([1-9]|[1-9][0-9]|1[0-5][0-9])$".toRegex()))
@@ -40,7 +39,7 @@ class ParseBookTest {
     }
 
     @Test
-    fun `filter by book and a range of chapters`() {
+    fun filterByBookAndARangeOfChapters() {
         val term = "pray in ps 99-101"
         assertTrue(term.matches(".+ in ps ([1-9]|[1-9][0-9]|1[0-5][0-9])-([1-9]|[1-9][0-9]|1[0-5][0-9])$".toRegex()))
 

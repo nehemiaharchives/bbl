@@ -168,7 +168,7 @@ data class Translation(
             Translation.irvurd
         )
 
-        val downloadableTranslationsCmp = Translation.embeddedTranslations.plus(downloadableTranslationsCli)
+        val downloadableTranslationsCmp = embeddedTranslations.plus(downloadableTranslationsCli)
 
         val downloadableTranslationCodeListCli = downloadableTranslationsCli.map { it.code }
     }
