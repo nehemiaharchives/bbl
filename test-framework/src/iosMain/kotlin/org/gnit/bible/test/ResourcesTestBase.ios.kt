@@ -11,8 +11,8 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.gnit.bible.Platform
-import org.gnit.bible.downloadableTranslationsCmp
-import org.gnit.bible.embeddedTranslationCodes
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
+import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import platform.posix.PATH_MAX
 import platform.posix.getenv
