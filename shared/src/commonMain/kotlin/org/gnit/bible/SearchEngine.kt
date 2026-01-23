@@ -662,12 +662,5 @@ class SearchEngine(
         fun chapterQuery(startChapter: Int, endChapter: Int?): Query {
             return IntPoint.newRangeQuery("chapter", startChapter, endChapter ?: startChapter)
         }
-
-        fun includesNewTestamentOnlyPhrase(term: String): Boolean {
-            arrayOf("Jesus Cristo", "Иисуса Христа", "Ісуса Христа", "Jesu Kristi", "예수 그리스도").forEach { jesusChrist ->
-                if (term.contains(jesusChrist)) return true
-            }
-            return false
-        }
     }
 }
