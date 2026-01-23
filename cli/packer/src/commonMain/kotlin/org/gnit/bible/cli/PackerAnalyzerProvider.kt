@@ -17,7 +17,7 @@ import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
 import org.gnit.lucenekmp.analysis.ko.ct.BibleKoreanAnalyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
-import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
+import org.gnit.lucenekmp.analysis.mr.ct.BibleMarathiAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
@@ -61,7 +61,7 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "th" -> ThaiAnalyzer() //common
             "hi" -> HindiAnalyzer() //common
             "bn" -> BengaliAnalyzer() //common
-            "mr" -> MarathiAnalyzer() //extra
+            "mr" -> BibleMarathiAnalyzer() //extra
             "te" -> TeluguAnalyzer() //common
             "ta" -> TamilAnalyzer() //common
             "gu" -> GujaratiAnalyzer() //extra

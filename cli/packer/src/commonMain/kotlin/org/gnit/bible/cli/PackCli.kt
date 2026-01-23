@@ -13,6 +13,8 @@ import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import okio.FileSystem
+import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
@@ -174,18 +176,45 @@ class PackCli(
 
 fun packTranslation(translationCode: String) {
 
-    // update server resources
+    // update server resources index and also zip file
     PackCli(Bible()).createBblPack(
         inputPathString = "../../server/src/main/resources/files/bbltexts/$translationCode",
         outputPathString = "../../server/src/main/resources/files/bblpacks/"
     )
 
-    // update compose resources
-    PackCli(Bible()).createBblPack(
-        inputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks/$translationCode",
-        outputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks",
-        updateIndexOnly = true
-    )
+    val isEmbeddedTranslation = Translation.embeddedTranslationCodes.contains(translationCode)
+
+    if (isEmbeddedTranslation) {
+        // update compose resources index only
+        PackCli(Bible()).createBblPack(
+            inputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks/$translationCode",
+            outputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks",
+            updateIndexOnly = true
+        )
+    } else {
+        // update android test fixture zip file by copying server zip
+        val fileSystem = FileSystem.SYSTEM
+        val currentDir = currentDir()
+        val serverZip = currentDir.resolve(
+            "../../server/src/main/resources/files/bblpacks/$translationCode.zip",
+            true
+        )
+        if (!fileSystem.exists(serverZip)) {
+            throw IllegalStateException("Server zip $serverZip does not exist")
+        }
+
+        val fixtureDir = currentDir.resolve(
+            "../../composeApp/src/androidDeviceTest/assets/bblpacks",
+            true
+        )
+        fileSystem.createDirectories(fixtureDir)
+        val fixtureZip = fixtureDir.resolve("$translationCode.zip")
+        if (fileSystem.exists(fixtureZip)) {
+            fileSystem.delete(fixtureZip)
+        }
+        val bytes = fileSystem.read(serverZip) { readByteArray() }
+        fileSystem.write(fixtureZip) { write(bytes) }
+    }
 }
 
 fun mainAll() {

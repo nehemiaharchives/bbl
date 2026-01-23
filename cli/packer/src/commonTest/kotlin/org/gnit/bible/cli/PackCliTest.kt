@@ -145,6 +145,6 @@ class PackCliTest {
     /*@Ignore*/
     @Test
     fun packTranslation() {
-        packTranslation("jc")
+        packTranslation("irvmar")
     }
 }

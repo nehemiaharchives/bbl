@@ -15,7 +15,7 @@ import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
 import org.gnit.lucenekmp.analysis.ko.ct.BibleKoreanAnalyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
-import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
+import org.gnit.lucenekmp.analysis.mr.ct.BibleMarathiAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
@@ -66,7 +66,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "tl" -> TagalogAnalyzer() //extra (downloadable in cmp) abtag
             "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra (downloadable in cmp) kttv
             "gu" -> GujaratiAnalyzer() //extra (downloadable in cmp) irvguj
-            "mr" -> MarathiAnalyzer() //extra (downloadable in cmp) irvmar
+            "mr" -> BibleMarathiAnalyzer() //extra (downloadable in cmp) irvmar
             "te" -> TeluguAnalyzer() //extra (downloadable in cmp) irvtel
             "ur" -> UrduAnalyzer() //extra (downloadable in cmp) irvurd
 
