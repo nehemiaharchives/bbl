@@ -13,7 +13,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
-import org.gnit.lucenekmp.analysis.ja.JapaneseAnalyzer
+import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
 
 class KuromojiAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null
@@ -22,7 +22,7 @@ class KuromojiAnalyzerProvider : AnalyzerProvider {
         // Helper binary is module-specific. Always use the kuromoji analyzer.
         val existing = cached
         if (existing != null) return existing
-        val created = JapaneseAnalyzer()
+        val created = BibleJapaneseAnalyzer()
         cached = created
         return created
     }

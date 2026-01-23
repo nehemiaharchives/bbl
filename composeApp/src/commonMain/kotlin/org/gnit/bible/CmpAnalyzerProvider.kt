@@ -12,7 +12,7 @@ import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
 import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
 import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
-import org.gnit.lucenekmp.analysis.ja.JapaneseAnalyzer
+import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
 import org.gnit.lucenekmp.analysis.ko.ct.BibleKoreanAnalyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
 import org.gnit.lucenekmp.analysis.mr.MarathiAnalyzer
@@ -54,7 +54,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
 
             "zh" -> SmartChineseAnalyzer() //smartcn (embedded in cmp)
             "ko" -> BibleKoreanAnalyzer() //nori (embedded in cmp)
-            "ja" -> JapaneseAnalyzer() //kuromoji (embedded in cmp)
+            "ja" -> BibleJapaneseAnalyzer() //kuromoji (embedded in cmp)
 
             "id" -> IndonesianAnalyzer() //common (downloadable in cmp) ayt
             "th" -> ThaiAnalyzer() //common (downloadable in cmp) th 1971

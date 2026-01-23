@@ -23,6 +23,7 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kmpio)
                 implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlinx.serialization.json)
                 implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)

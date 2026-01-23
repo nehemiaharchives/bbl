@@ -12,6 +12,7 @@ import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
@@ -35,18 +36,18 @@ class PackCli(
             throw CliktError("Missing translation code")
         }
 
-        val inputPathString = when {
-            normalizedTarget.contains("/") || normalizedTarget.contains("\\") -> normalizedTarget
-            else -> "../server/src/main/resources/files/bbltexts/$normalizedTarget"
-        }
-
-        val outputPathString = "../server/src/main/resources/files/bblpacks"
-        createBblPack(inputPathString = inputPathString, outputPathString = outputPathString)
+        val resolvedInputPath = currentDir().resolve(normalizedTarget, true)
+        val outputPathString = resolvedInputPath.parent?.toString() ?: "."
+        createBblPack(inputPathString = normalizedTarget, outputPathString = outputPathString)
     }
 
     private val fileSystem = bible.assetManager.fileSystem
 
-    fun createBblPack(inputPathString: String, outputPathString: String = "bblpack") {
+    fun createBblPack(
+        inputPathString: String,
+        outputPathString: String = "bblpack",
+        updateIndexOnly: Boolean = false
+    ) {
         val currentDir = currentDir()
         logger.debug { "currentDir: $currentDir" }
 
@@ -77,13 +78,23 @@ class PackCli(
         // validate manifest json
         // Convention: manifest file name is '<translationCode>.0.manifest.json' (MANIFEST_JSON_POSTFIX)
         val manifestPath = inputPath.resolve("$translationCode$MANIFEST_JSON_POSTFIX")
-        if (!(fileSystem.exists(manifestPath) && fileSystem.metadata(manifestPath).isRegularFile)) {
-            val msg = when {
-                !fileSystem.exists(manifestPath) ->
-                    "Manifest path $manifestPath does not exist. Expected <translationCode>$MANIFEST_JSON_POSTFIX in $inputPath"
-                else -> "Manifest path $manifestPath is not a file"
+        if (!fileSystem.exists(manifestPath)) {
+            val translationEntry = Translation.downloadableTranslationsCmp
+                .firstOrNull { it.code == translationCode }
+                ?: Translation.embeddedTranslations.firstOrNull { it.code == translationCode }
+
+            if (translationEntry == null) {
+                throw IllegalStateException(
+                    "Manifest path $manifestPath does not exist, and no Translation entry found for $translationCode"
+                )
             }
-            throw IllegalStateException(msg)
+
+            val json = Json.encodeToString(translationEntry)
+            fileSystem.write(manifestPath) { writeUtf8(json) }
+        }
+
+        if (!fileSystem.metadata(manifestPath).isRegularFile) {
+            throw IllegalStateException("Manifest path $manifestPath is not a file")
         }
 
         val rawManifest = runCatching { fileSystem.read(manifestPath) { readUtf8() } }
@@ -103,6 +114,10 @@ class PackCli(
                 "Failed to create lucene-kmp index for ${translation.code} at $inputPath: ${e.message}",
                 e
             )
+        }
+
+        if (updateIndexOnly) {
+            return
         }
 
         // zip everything into ${translationCode}.zip
@@ -154,12 +169,22 @@ class PackCli(
             }
         }
     }
+
 }
 
 fun packTranslation(translationCode: String) {
+
+    // update server resources
     PackCli(Bible()).createBblPack(
         inputPathString = "../../server/src/main/resources/files/bbltexts/$translationCode",
         outputPathString = "../../server/src/main/resources/files/bblpacks/"
+    )
+
+    // update compose resources
+    PackCli(Bible()).createBblPack(
+        inputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks/$translationCode",
+        outputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks",
+        updateIndexOnly = true
     )
 }
 
