@@ -4,7 +4,7 @@ import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
-import org.gnit.lucenekmp.analysis.de.GermanAnalyzer
+import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
 import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.SpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
@@ -20,8 +20,8 @@ import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
-import org.gnit.lucenekmp.analysis.sv.SwedishAnalyzer
-import org.gnit.lucenekmp.analysis.ta.TamilAnalyzer
+import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
+import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
@@ -42,12 +42,12 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "en" -> EnglishAnalyzer() //common (embedded in cmp)
             "es" -> SpanishAnalyzer() //common (embedded in cmp)
             "pt" -> PortugueseAnalyzer() //common (embedded in cmp)
-            "de" -> GermanAnalyzer() //common (embedded in cmp)
+            "de" -> BibleGermanAnalyzer() //common (embedded in cmp)
             "fr" -> FrenchAnalyzer() //common (embedded in cmp)
             "ru" -> RussianAnalyzer() //common (embedded in cmp)
             "nl" -> DutchAnalyzer() //common (embedded in cmp)
             "it" -> ItalianAnalyzer() //common (embedded in cmp)
-            "sv" -> SwedishAnalyzer() //common (embedded in cmp)
+            "sv" -> BibleSwedishAnalyzer() //common (embedded in cmp)
 
             "pl" -> MorfologikAnalyzer() //morfologik (embedded in cmp)
             "uk" -> UkrainianMorfologikAnalyzer() //morfologik (embedded in cmp)
@@ -60,7 +60,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "th" -> ThaiAnalyzer() //common (downloadable in cmp) th 1971
             "hi" -> HindiAnalyzer() //common (downloadable in cmp) irvhin
             "bn" -> BengaliAnalyzer() //common (downloadable in cmp) irvben
-            "ta" -> TamilAnalyzer() //common (downloadable in cmp) irvtam
+            "ta" -> BibleTamilAnalyzer() //common (downloadable in cmp) irvtam
             "ne" -> BibleNepaliAnalyzer() //common (downloadable in cmp) npiulb
 
             "tl" -> TagalogAnalyzer() //extra (downloadable in cmp) abtag

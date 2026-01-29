@@ -15,7 +15,7 @@ import org.gnit.bible.Translation
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
-import org.gnit.lucenekmp.analysis.de.GermanAnalyzer
+import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
 import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.SpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
@@ -26,8 +26,8 @@ import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
-import org.gnit.lucenekmp.analysis.sv.SwedishAnalyzer
-import org.gnit.lucenekmp.analysis.ta.TamilAnalyzer
+import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
+import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 
@@ -44,19 +44,19 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "en" -> EnglishAnalyzer()
             "es" -> SpanishAnalyzer()
             "pt" -> PortugueseAnalyzer()
-            "de" -> GermanAnalyzer()
+            "de" -> BibleGermanAnalyzer()
             "fr" -> FrenchAnalyzer()
             "ru" -> RussianAnalyzer()
             "nl" -> DutchAnalyzer()
             "it" -> ItalianAnalyzer()
-            "sv" -> SwedishAnalyzer()
+            "sv" -> BibleSwedishAnalyzer()
 
             // search common (downloadable in cmp)
             "id" -> IndonesianAnalyzer()
             "th" -> ThaiAnalyzer()
             "hi" -> HindiAnalyzer()
             "bn" -> BengaliAnalyzer()
-            "ta" -> TamilAnalyzer()
+            "ta" -> BibleTamilAnalyzer()
             "te" -> TeluguAnalyzer()
             "ne" -> BibleNepaliAnalyzer()
             else -> SimpleAnalyzer()

@@ -38,19 +38,4 @@ class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
 
     @Test
     override fun testReadIndexFile() = super.testReadIndexFile()
-
-    /*@Test
-    override fun searchJesusChrist() = super.searchJesusChrist()
-
-    @Test
-    override fun searchJesusChristInWebusInRomans() = super.searchJesusChristInWebusInRomans()
-
-    @Test
-    override fun searchJesusChristInWebusInRomans2() = super.searchJesusChristInWebusInRomans2()
-
-    @Test
-    override fun searchJesusChristInWebusInRomans3To5() = super.searchJesusChristInWebusInRomans3To5()
-
-    @Test
-    override fun searchJesusChristInKjv() = super.searchJesusChristInKjv()*/
 }

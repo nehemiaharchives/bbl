@@ -6,7 +6,7 @@ import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
-import org.gnit.lucenekmp.analysis.de.GermanAnalyzer
+import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
 import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.SpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
@@ -22,8 +22,8 @@ import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
-import org.gnit.lucenekmp.analysis.sv.SwedishAnalyzer
-import org.gnit.lucenekmp.analysis.ta.TamilAnalyzer
+import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
+import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
@@ -44,14 +44,14 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "en" -> EnglishAnalyzer() //common
             "es" -> SpanishAnalyzer() //common
             "pt" -> PortugueseAnalyzer() //common
-            "de" -> GermanAnalyzer() //common
+            "de" -> BibleGermanAnalyzer() //common
             "fr" -> FrenchAnalyzer() //common
             "ru" -> RussianAnalyzer() //common
             "nl" -> DutchAnalyzer() //common
             "it" -> ItalianAnalyzer() //common
             "pl" -> MorfologikAnalyzer() //morfologik
             "uk" -> UkrainianMorfologikAnalyzer() //morfologik
-            "sv" -> SwedishAnalyzer() //common
+            "sv" -> BibleSwedishAnalyzer() //common
             "zh" -> SmartChineseAnalyzer() //smartcn
             "ko" -> BibleKoreanAnalyzer() //nori
             "ja" -> BibleJapaneseAnalyzer() //kuromoji
@@ -63,7 +63,7 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "bn" -> BengaliAnalyzer() //common
             "mr" -> BibleMarathiAnalyzer() //extra
             "te" -> TeluguAnalyzer() //common
-            "ta" -> TamilAnalyzer() //common
+            "ta" -> BibleTamilAnalyzer() //common
             "gu" -> GujaratiAnalyzer() //extra
             "ur" -> UrduAnalyzer() //extra
             "ne" -> BibleNepaliAnalyzer() //common
