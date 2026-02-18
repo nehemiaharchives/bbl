@@ -51,6 +51,17 @@ For example, you have changed `BookRange` of `shared/src/commonMain/kotlin/org/g
 3. If your change only affects specific module `cli` or `composeApp`, then run `bbl-kmp_cli [allTests]` or `bbl-kmp_composeApp [allTests]` instead to save time.
 4. Run `bbl-kmp [allTests]` after tests for small changes pass, or when you change code in `shared` module or `test-framework` module which is used in other modules to verify anything not broken with your change.
 
+## Git Commit Policy (GPG Signed)
+
+- When user asks to commit, always create a GPG-signed commit.
+- Use per-command unsandboxed execution (escalated command) for signing commands.
+- Run commit command in a PTY and export `GPG_TTY=$(tty)` in the same command.
+- Standard commit flow:
+1. `git add <intended files only>`
+2. `export GPG_TTY=$(tty) && git commit -S -m "<message>"`
+3. `git log --show-signature -1` and confirm `Good signature`.
+- Do not fall back to unsigned commit unless the user explicitly asks for unsigned commit.
+
 ## Internet Research Guidelines
 * Use official sources **only when needed**:
   * Kotlin: [https://kotlinlang.org/docs/](https://kotlinlang.org/docs/) and [https://github.com/JetBrains/kotlin](https://github.com/JetBrains/kotlin)
