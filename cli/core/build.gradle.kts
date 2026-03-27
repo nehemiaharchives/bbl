@@ -5,6 +5,7 @@ plugins {
 }
 
 kotlin {
+    @Suppress("DEPRECATION")
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()

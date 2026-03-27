@@ -19,4 +19,9 @@ subprojects {
     tasks.withType<KotlinNativeTest>().configureEach {
         environment("SIMCTL_CHILD_BBL_KMP_ROOT", rootProject.projectDir.absolutePath)
     }
+
+    tasks.matching { it.name in setOf("compileKotlinJvm", "compileTestKotlinJvm") }
+        .configureEach {
+            group = LifecycleBasePlugin.BUILD_GROUP // "build"
+        }
 }

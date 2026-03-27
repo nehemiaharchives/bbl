@@ -14,8 +14,7 @@ kotlin {
     android {
         namespace = "org.gnit.bible.test"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
-    }
-    androidLibrary {
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -31,6 +30,7 @@ kotlin {
     iosX64()
 
     // bbl-kmp-cli
+    @Suppress("DEPRECATION")
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()

@@ -12,11 +12,7 @@ kotlin {
     android {
         namespace = "org.gnit.bible.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
-    }
 
-    // mobile app
-    // bbl-kmp-android
-    androidLibrary {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -32,6 +28,7 @@ kotlin {
     iosX64()
 
     // bbl-kmp-cli
+    @Suppress("DEPRECATION")
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
