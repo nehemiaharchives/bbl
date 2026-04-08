@@ -1,4 +1,9 @@
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCacheApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -18,6 +23,23 @@ plugins {
 subprojects {
     tasks.withType<KotlinNativeTest>().configureEach {
         environment("SIMCTL_CHILD_BBL_KMP_ROOT", rootProject.projectDir.absolutePath)
+    }
+
+    if (path.startsWith(":cli")) {
+        plugins.withId("org.jetbrains.kotlin.multiplatform") {
+            extensions.configure<KotlinMultiplatformExtension> {
+                targets.withType<KotlinNativeTarget>().configureEach {
+                    binaries.getTest("", NativeBuildType.DEBUG).apply {
+                        @Suppress("DEPRECATION")
+                        @OptIn(KotlinNativeCacheApi::class)
+                        disableNativeCache(
+                            DisableCacheInKotlinVersion.`2_3_20`,
+                            "Clikt native caches produce duplicate symbols in cli test binaries"
+                        )
+                    }
+                }
+            }
+        }
     }
 
     tasks.matching { it.name in setOf("compileKotlinJvm", "compileTestKotlinJvm") }
