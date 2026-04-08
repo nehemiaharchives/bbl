@@ -28,7 +28,7 @@ Use **English** to communicate with me.
 ### Step 2: Code, Run, Debug
 
 1. Apply the chosen code changes. when you code be careful of writing code in platform agnostic kotlin common code. avoid expect/actual pattern as much as possible. do not mix platform specific code such as jvm code in commonMain/commonTest.
-2. Use `get_file_problems` tool of `jetbrains` MCP server to check if there are any compilation errors for each files you changed. iterate over until you solve all errors.
+2. After any code change, run JetBrains `open_file_in_editor` on the edited file, wait 2 seconds, then run `get_file_problems` on that same file and fix compilation errors immediately. iterate over until you solve all errors. 
 3. Use `get_run_configuration` tool `jetbrains` MCP server to find proper run configuration. to run specific unit test and use execute_run_configuration to run tests. if any test fail, find out root cause, iterate over until you fix all of them
 4. Perform internet search **only** if an error is unclear and you need confirmation of a fix. If you are confident in the solution, skip research and proceed.
 
