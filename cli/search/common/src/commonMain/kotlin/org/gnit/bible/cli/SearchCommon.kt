@@ -12,6 +12,8 @@ import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
+import org.gnit.bible.VersePointerJson
+import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
@@ -93,7 +95,7 @@ private class SearchHelperCli(
         )
 
         if (results.isNotEmpty()) {
-            echo(results.joinToString(separator = "\n"))
+            echo(VersePointerJson.encodeList(results))
         }
     }
 
@@ -118,6 +120,7 @@ private class SearchHelperCli(
 }
 
 fun main(args: Array<String>) {
+    suppressKotlinLoggingStartupMessage()
     val bible = Bible(analyzerProvider = CommonAnalyzerProvider())
     SearchHelperCli(bible).main(args)
 }

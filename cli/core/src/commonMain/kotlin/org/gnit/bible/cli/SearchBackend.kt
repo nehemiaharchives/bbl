@@ -7,6 +7,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
+import org.gnit.bible.VersePointerJson
 
 data class SearchRequest(
     val term: String,
@@ -37,7 +38,7 @@ class InternalSearchBackend(
             verses = request.verses,
             translation = request.translation
         )
-        return SearchOutput(results.joinToString(separator = "\n"))
+        return SearchOutput(VersePointerJson.encodeList(results))
     }
 }
 

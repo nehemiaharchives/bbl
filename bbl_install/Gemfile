@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "test-kitchen"
+gem "kitchen-dokken"
+gem "kitchen-inspec"
+gem "chefspec"
+gem "chef"

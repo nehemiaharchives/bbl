@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
@@ -51,6 +53,14 @@ kotlin {
         linuxX64Main.get().dependsOn(nativeMain)
         linuxX64Test.get().dependsOn(nativeTest)
 
+        targets.withType<KotlinNativeTarget>().all {
+            binaries {
+                executable {
+                    entryPoint = "org.gnit.bible.cli.main"
+                    baseName = "bbl-search-extra"
+                }
+            }
+        }
     }
 }
 

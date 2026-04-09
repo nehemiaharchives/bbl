@@ -1,0 +1,3 @@
+I, [2026-04-09T18:41:26.554970 #981426]  INFO -- Kitchen: -----> Starting Test Kitchen (v4.0.0)
+I, [2026-04-09T18:41:27.104266 #981426]  INFO -- Kitchen: -----> Verifying <default-ubuntu-2404>...
+I, [2026-04-09T18:42:39.722881 #981426]  INFO -- Kitchen: -----> Test Kitchen is finished. (1m13.17s)

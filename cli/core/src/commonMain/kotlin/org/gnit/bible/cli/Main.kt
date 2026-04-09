@@ -12,12 +12,12 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
-import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.bookNumber
 import org.gnit.bible.bookNameEnglishCapital
 import org.gnit.bible.formatHeader
+import org.gnit.bible.suppressKotlinLoggingStartupMessage
 
 private fun parseVersePointerOrThrow(
     translation: Translation,
@@ -101,34 +101,9 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
     }
 }
 
-private fun formatSelectedVersesFromChapterText(
-    chapterText: String,
-    startVerse: Int?,
-    endVerse: Int?
-): String {
-    if (startVerse == null) {
-        // Chapter output: keep as-is. Different packs may have different trailing newline counts.
-        return chapterText
-    }
-
-    // Packs store verse numbers in the chapter text. splitChapterToVerses removes them.
-    val verses = Bible.splitChapterToVerses(chapterText)
-
-    // Single-verse output: MainTest expects exactly the stored verse line (including the verse number)
-    // without us adding another prefix.
-    if (endVerse == null) {
-        return "${startVerse} ${verses[startVerse - 1].trimEnd()}"
-    }
-
-    // Range output: prefix verse numbers for consistent CLI output.
-    return (startVerse..endVerse)
-        .joinToString("\n") { verseNumber ->
-            "$verseNumber ${verses[verseNumber - 1].trimEnd()}"
-        }
-}
-
 class Bbl(
-    private val bible: Bible = Bible()
+    private val bible: Bible = Bible(),
+    searchBackendProvider: ((Translation) -> SearchBackend)? = null
 ) : CliktCommand() {
 
     override val invokeWithoutSubcommand = true
@@ -146,7 +121,7 @@ class Bbl(
     init {
         subcommands(
             In(bible),
-            SearchCli(bible),
+            SearchCli(bible, backendProvider = searchBackendProvider),
             RandCli(bible),
             ListCli(bible),
             InstallCli(bible),
@@ -311,6 +286,7 @@ class In(
 }
 
 fun main(args: Array<String>) {
+    suppressKotlinLoggingStartupMessage()
     Bbl().main(args)
 }
 

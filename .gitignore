@@ -17,3 +17,8 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 .logs
+
+/bbl_install/.bundle/
+/bbl_install/vendor/bundle/
+/bbl_install/files/
+!/bbl_install/files/README.md

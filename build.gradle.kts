@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.Sync
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
@@ -37,13 +38,50 @@ subprojects {
                             "Clikt native caches produce duplicate symbols in cli test binaries"
                         )
                     }
+                    binaries.withType<org.jetbrains.kotlin.gradle.plugin.mpp.Executable>().configureEach {
+                        @Suppress("DEPRECATION")
+                        @OptIn(KotlinNativeCacheApi::class)
+                        disableNativeCache(
+                            DisableCacheInKotlinVersion.`2_3_20`,
+                            "Clikt native caches produce duplicate symbols in cli executable binaries"
+                        )
+                    }
                 }
             }
         }
     }
 
-    tasks.matching { it.name in setOf("compileKotlinJvm", "compileTestKotlinJvm") }
+        tasks.matching { it.name in setOf("compileKotlinJvm", "compileTestKotlinJvm") }
         .configureEach {
             group = LifecycleBasePlugin.BUILD_GROUP // "build"
         }
+}
+
+val bblInstallFilesDir = layout.projectDirectory.dir("bbl_install/files")
+
+val stageBblInstallFixtures = tasks.register<Sync>("stageBblInstallFixtures") {
+    into(bblInstallFilesDir)
+
+    from(project(":cli:core").layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
+        include("bbl.kexe")
+        rename("bbl\\.kexe", "bbl")
+    }
+
+    listOf(
+        ":cli:search:common" to "bbl-search-common",
+        ":cli:search:extra" to "bbl-search-extra",
+        ":cli:search:kuromoji" to "bbl-search-kuromoji",
+        ":cli:search:morfologik" to "bbl-search-morfologik",
+        ":cli:search:nori" to "bbl-search-nori",
+        ":cli:search:smartcn" to "bbl-search-smartcn",
+    ).forEach { (projectPath, binaryName) ->
+        from(project(projectPath).layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
+            include("$binaryName.kexe")
+            rename("$binaryName\\.kexe", binaryName)
+        }
+    }
+
+    from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
+        include("*.zip")
+    }
 }
