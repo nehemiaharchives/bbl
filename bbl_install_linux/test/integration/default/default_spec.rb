@@ -192,10 +192,16 @@ end
 
 describe 'bbl install jc deferred dependencies' do
   before(:all) do
+    @list_before_install_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # before_install")
+    @list_before_install_stdout = @list_before_install_result.stdout.force_encoding('UTF-8')
+    @jc_line_before_install = @list_before_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_existed_before = command("test -e #{pack_dir}/jc.zip").exit_status == 0
     @helper_existed_before = command("test -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @install_result = command("#{install_env} bbl install jc")
     @install_exit_status = @install_result.exit_status
+    @list_after_install_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # after_install")
+    @list_after_install_stdout = @list_after_install_result.stdout.force_encoding('UTF-8')
+    @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
     @pack_size_after = command("stat -c %s #{pack_dir}/jc.zip").stdout.to_i
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
@@ -208,6 +214,9 @@ describe 'bbl install jc deferred dependencies' do
       .reject(&:empty?)
     @uninstall_result = command('bbl uninstall jc')
     @uninstall_exit_status = @uninstall_result.exit_status
+    @list_after_uninstall_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # after_uninstall")
+    @list_after_uninstall_stdout = @list_after_uninstall_result.stdout.force_encoding('UTF-8')
+    @jc_line_after_uninstall = @list_after_uninstall_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_missing_after_uninstall = command("test ! -e #{pack_dir}/jc.zip").exit_status == 0
     @helper_missing_after_uninstall = command("test ! -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
   end
@@ -229,9 +238,19 @@ describe 'bbl install jc deferred dependencies' do
     expect(@pack_size_after).to be > 0
   end
 
+  it 'bbl list command shows jc as available before install' do
+    expect(@jc_line_before_install).to include('JC')
+    expect(@jc_line_before_install).to include('| Available |')
+  end
+
   it 'installs the kuromoji search helper' do
     expect(@helper_exists_after).to eq(true)
     expect(@helper_executable_after).to eq(true)
+  end
+
+  it 'bbl list command shows jc as installed after install' do
+    expect(@jc_line_after_install).to include('JC')
+    expect(@jc_line_after_install).to include('| Installed |')
   end
 
   it 'returns successfully' do
@@ -256,6 +275,11 @@ describe 'bbl install jc deferred dependencies' do
 
   it 'removes the kuromoji search helper' do
     expect(@helper_missing_after_uninstall).to eq(true)
+  end
+
+  it 'bbl list command shows jc as available after uninstall' do
+    expect(@jc_line_after_uninstall).to include('JC')
+    expect(@jc_line_after_uninstall).to include('| Available |')
   end
 end
 
