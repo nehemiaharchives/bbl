@@ -236,8 +236,8 @@ jobs:
           - platform: linux
             module_name: cli-core-build
             os: ubuntu-latest
-            timeout: 20
-            task: :cli:core:linkReleaseExecutableLinuxX64
+            timeout: 60
+            task: stageBblInstallLinuxFixtures "-Pbblpacks.embed=false"
             needs_konan_cache: true
             job_type: Build
           - platform: macos
@@ -301,10 +301,84 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Upload Linux install fixtures
+        if: ${{ matrix.platform == 'linux' && matrix.module_name == 'cli-core-build' && matrix.job_type == 'Build' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbl-install-linux-files
+          path: bbl_install_linux/files/
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Build Summary
         if: always()
         run: |
           echo "### ${{ matrix.platform }} - ${{ matrix.module_name }} Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+
+  e2e-linux-cli:
+    name: E2E (linux/cli)
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download Linux install fixtures
+        uses: actions/download-artifact@v4
+        with:
+          name: bbl-install-linux-files
+          path: bbl_install_linux/files
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: bbl_install_linux
+
+      - name: Restore Dokken Docker image
+        id: cache-dokken-image
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache/dokken-ubuntu-24.04.tar
+          key: dokken-ubuntu-24.04-v1
+
+      - name: Load cached Dokken Docker image
+        if: steps.cache-dokken-image.outputs.cache-hit == 'true'
+        run: docker load --input /tmp/docker-cache/dokken-ubuntu-24.04.tar
+
+      - name: Pull Dokken Docker image
+        if: steps.cache-dokken-image.outputs.cache-hit != 'true'
+        run: docker pull dokken/ubuntu-24.04
+
+      - name: Save Dokken Docker image
+        if: steps.cache-dokken-image.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-cache
+          docker save dokken/ubuntu-24.04 --output /tmp/docker-cache/dokken-ubuntu-24.04.tar
+
+      - name: Kitchen create
+        working-directory: bbl_install_linux
+        run: bundle exec kitchen create default-ubuntu-2404
+
+      - name: Kitchen converge
+        working-directory: bbl_install_linux
+        run: bundle exec kitchen converge default-ubuntu-2404
+
+      - name: Kitchen verify
+        working-directory: bbl_install_linux
+        run: bundle exec kitchen verify default-ubuntu-2404
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### E2E (linux/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
