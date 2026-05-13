@@ -20,17 +20,14 @@ class ListCliTest : ResourcesTestBase() {
     lateinit var bible: Bible
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
     fun setup(){
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
-        platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = null
 
         val installed = Translation.kttv
@@ -51,7 +48,6 @@ class ListCliTest : ResourcesTestBase() {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

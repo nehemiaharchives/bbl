@@ -24,7 +24,6 @@ class SearchBackendTest : ResourcesTestBase() {
     private lateinit var bible: Bible
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
@@ -32,11 +31,9 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs = FakeFileSystem()
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overrideFileSystem = fakeFs
         platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_search_backend_test_dir"
-        platform.overridePlatformCacheDir = null
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
@@ -46,7 +43,6 @@ class SearchBackendTest : ResourcesTestBase() {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

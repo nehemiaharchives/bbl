@@ -14,8 +14,6 @@ class MockAssetManager() : AssetManager {
             get() = "Mock Platform"
         override val platformPackDir: String
             get() = TODO("Not yet implemented")
-        override val platformCacheDir: String
-            get() = (FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_mock_cache").toString()
         override val settings: Settings
             get() = TODO("Not yet implemented")
     }

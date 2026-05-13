@@ -34,10 +34,6 @@ class MingwPlatform : Platform() {
         (windowsDataRoot() / bblDir / packBaseDir).toString()
     }
 
-    override val platformCacheDir: String by lazy {
-        (windowsDataRoot() / bblDir / cacheBaseDir).toString()
-    }
-
     override val settings: Settings by lazy {
         CommonFileSettings(fileSystem = fileSystem, path = windowsDataRoot() / bblDir / SETTINGS_FILE_NAME)
     }

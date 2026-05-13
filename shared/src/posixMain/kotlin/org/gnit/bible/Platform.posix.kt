@@ -27,12 +27,6 @@ class PosixPlatform : Platform() {
         "$home/$bblDir/$packBaseDir"
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    override val platformCacheDir: String by lazy {
-        val home = getenv("HOME")?.toKString() ?: error("HOME environment variable not defined")
-        "$home/$bblDir/$cacheBaseDir"
-    }
-
     override val settings: Settings by lazy {
         val home = homeDir()
         val settingsPath = home / "$bblDir/$SETTINGS_FILE_NAME"

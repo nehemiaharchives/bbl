@@ -24,7 +24,6 @@ class RandCliTest {
 
     private val platform = getPlatform()
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_rand_test_dir"}"
     private lateinit var fakeFs: FakeFileSystem
@@ -34,10 +33,8 @@ class RandCliTest {
     fun enableHeaderAndVerseMode() {
         fakeFs = FakeFileSystem()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overridePlatformPackDir = testPackDir
-        platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = fakeFs
 
         val settings = platform.settings
@@ -58,7 +55,6 @@ class RandCliTest {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

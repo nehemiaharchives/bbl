@@ -22,7 +22,6 @@ class CliBibleTest : BibleTestBase {
     private val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_cli_bible_test_dir"}"
     private val platform = getPlatform()
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
 
     override val bible: Bible = Bible(
@@ -37,10 +36,8 @@ class CliBibleTest : BibleTestBase {
     @BeforeTest
     fun setup(){
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overridePlatformPackDir = cliBibleTestPackDir
-        platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = null
 
         val fs = FileSystem.SYSTEM
@@ -57,7 +54,6 @@ class CliBibleTest : BibleTestBase {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

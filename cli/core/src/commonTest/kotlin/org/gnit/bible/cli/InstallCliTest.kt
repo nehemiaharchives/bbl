@@ -22,7 +22,6 @@ class InstallCliTest : ResourcesTestBase() {
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
@@ -31,11 +30,9 @@ class InstallCliTest : ResourcesTestBase() {
         fakeFs = FakeFileSystem()
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overrideFileSystem = fakeFs
         platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_install_test_dir"
-        platform.overridePlatformCacheDir = null
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
@@ -45,7 +42,6 @@ class InstallCliTest : ResourcesTestBase() {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

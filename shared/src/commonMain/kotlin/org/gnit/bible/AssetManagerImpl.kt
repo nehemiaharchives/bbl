@@ -58,43 +58,17 @@ class AssetManagerImpl(
     private val logger = KotlinLogging.logger {}
 
     override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
-        val cacheFileName = "downloadable_translations_cache.json"
-        val cachePath = platform.cacheDir.toPath() / cacheFileName
-
-        fun readCachedTranslations(): List<Translation>? = runCatching {
-            if (!fileSystem.exists(cachePath)) return null
-            val json = fileSystem.source(cachePath).buffer().use { it.readUtf8() }
-            Json.decodeFromString<List<Translation>>(json)
-        }.onFailure { error ->
-            logger.error { "AssetManagerImpl failed to read cached translation list: ${error.message}" }
-        }.getOrNull()
-
-        fun writeCachedTranslations(translations: List<Translation>) {
-            runCatching {
-                fileSystem.createDirectories(cachePath.parent!!)
-                val tmpPath = cachePath.parent!! / "$cacheFileName.part"
-                fileSystem.sink(tmpPath).buffer().use { it.writeUtf8(Json.encodeToString(translations)) }
-                runCatching { fileSystem.delete(cachePath) }
-                fileSystem.atomicMove(tmpPath, cachePath)
-            }.onFailure { error ->
-                logger.error { "AssetManagerImpl failed to write cached translation list: ${error.message}" }
-            }
-        }
-
         return runCatching {
             val httpResponse = httpClient.get(listUrl) {
                 timeout { requestTimeoutMillis = 15_000 }
             }
             if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
             val translations: List<Translation> = Json.decodeFromString(httpResponse.bodyAsText())
-            writeCachedTranslations(translations)
             logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
             translations
         }.getOrElse { error ->
             logger.debug { "AssetManagerImpl failed to fetch downloadable translation list: ${error.message}" }
-            val cached = readCachedTranslations()
-            if (cached != null) logger.debug { "AssetManagerImpl served cached translation list (${cached.size})" }
-            cached ?: emptyList()
+            emptyList()
         }
     }
 

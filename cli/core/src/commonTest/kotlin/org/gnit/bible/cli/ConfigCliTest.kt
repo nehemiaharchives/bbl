@@ -22,18 +22,15 @@ class ConfigCliTest {
     lateinit var bblDir: Path
     private val platform = getPlatform()
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
 
     @BeforeTest
     fun setup(){
         fakeFs = FakeFileSystem()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overrideFileSystem = fakeFs
         platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_config_test_dir"
-        platform.overridePlatformCacheDir = null
         platform.settings.clear()
 
         val packDirPath = platform.packDir.toPath()
@@ -48,7 +45,6 @@ class ConfigCliTest {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

@@ -21,7 +21,6 @@ class UninstallCliTest : ResourcesTestBase() {
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
 
     @BeforeTest
@@ -31,10 +30,8 @@ class UninstallCliTest : ResourcesTestBase() {
         fakeFs.createDirectories(packDir.toPath(), mustCreate = false)
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overridePlatformPackDir = packDir
-        platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = fakeFs
         val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
@@ -46,7 +43,6 @@ class UninstallCliTest : ResourcesTestBase() {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

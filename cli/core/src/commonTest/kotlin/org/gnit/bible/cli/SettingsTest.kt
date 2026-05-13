@@ -24,19 +24,16 @@ class SettingsTest {
     private lateinit var settingsPath: Path
     private val platform = getPlatform()
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
 
     @BeforeTest
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         // Integration-like: ZipBibleResourcesReader reads real zip files from the OS filesystem.
         systemFs = FileSystem.SYSTEM
         platform.overrideFileSystem = null
         platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_settings_test_dir"
-        platform.overridePlatformCacheDir = null
 
         // compute settings path using the same layout as Platform implementations
         val packDirPath = platform.packDir.toPath()
@@ -58,7 +55,6 @@ class SettingsTest {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 

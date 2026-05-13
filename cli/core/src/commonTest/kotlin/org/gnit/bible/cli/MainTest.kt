@@ -22,17 +22,14 @@ class MainTest {
 
     private val platform = getPlatform()
     private var originalPackDir: String? = null
-    private var originalCacheDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private lateinit var bible: Bible
 
     @BeforeTest
     fun clearSavedSettings() {
         originalPackDir = platform.overridePlatformPackDir
-        originalCacheDir = platform.overridePlatformCacheDir
         originalFileSystem = platform.overrideFileSystem
         platform.overridePlatformPackDir = testPackDir
-        platform.overridePlatformCacheDir = null
         platform.overrideFileSystem = null
         platform.settings.remove(ConfigKey.TRANSLATION.value)
         platform.settings.remove(ConfigKey.HEADER.value)
@@ -61,7 +58,6 @@ class MainTest {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
-        platform.overridePlatformCacheDir = originalCacheDir
         platform.overrideFileSystem = originalFileSystem
     }
 
