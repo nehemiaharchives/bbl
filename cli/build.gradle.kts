@@ -20,3 +20,18 @@ tasks.register("linkReleaseExecutableLinuxX64") {
 
     finalizedBy(stageBblInstallFixtures)
 }
+
+tasks.register("linkReleaseExecutableMingwX64") {
+    group = "build"
+    description = "Build all Windows release CLI executables."
+
+    dependsOn(
+        ":cli:core:linkReleaseExecutableMingwX64",
+        ":cli:search:common:linkReleaseExecutableMingwX64",
+        ":cli:search:extra:linkReleaseExecutableMingwX64",
+        ":cli:search:kuromoji:linkReleaseExecutableMingwX64",
+        ":cli:search:morfologik:linkReleaseExecutableMingwX64",
+        ":cli:search:nori:linkReleaseExecutableMingwX64",
+        ":cli:search:smartcn:linkReleaseExecutableMingwX64",
+    )
+}

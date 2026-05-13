@@ -107,7 +107,8 @@ class SearchBackendSelector(
         return if (language.searchModuleId == SearchModuleId.COMMON) {
             InternalSearchBackend(bible)
         } else {
-            val binaryName = "bbl-search-${language.searchModuleId.name.lowercase()}"
+            val executableSuffix = if (bible.assetManager.platform.name == "Windows") ".exe" else ""
+            val binaryName = "bbl-search-${language.searchModuleId.name.lowercase()}$executableSuffix"
             val binaryPath = binDirProvider() / binaryName
             ExternalSearchBackend(processRunner, fileSystem, binaryPath, language.searchModuleId)
         }

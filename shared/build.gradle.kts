@@ -32,7 +32,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    //mingwX64()
+    mingwX64() // windows native
 
     // desktop app (and windows jvm cli if windows native development has too much problem)
     jvm()
@@ -71,7 +71,7 @@ kotlin {
         val macosX64Main by getting { dependsOn(posixMain) }
         val macosArm64Main by getting { dependsOn(posixMain) }
         val linuxX64Main by getting { dependsOn(posixMain) }
-        //val mingwX64Main by getting { dependsOn(nativeMain) }
+        val mingwX64Main by getting { dependsOn(nativeMain) }
 
         // (Tests) hook them to nativeTest if/when created
         val iosTest by creating { dependsOn(nativeTest) }
@@ -88,7 +88,7 @@ kotlin {
         val macosX64Test by getting { dependsOn(posixTest) }
         val macosArm64Test by getting { dependsOn(posixTest) }
         val linuxX64Test by getting { dependsOn(posixTest) }
-        //val mingwX64Test by getting { dependsOn(nativeTest) }
+        val mingwX64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
             // put your Multiplatform dependencies here
@@ -99,7 +99,6 @@ kotlin {
             implementation(libs.ktor.clientCore)
             implementation(libs.ktor.clientCio)
             implementation(libs.okio)
-            implementation(libs.kmpio)
             implementation(libs.multiplatform.settings)
             implementation(libs.kotlin.logging)
         }

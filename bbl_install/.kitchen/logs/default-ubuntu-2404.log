@@ -1,4 +1,0 @@
-I, [2026-04-09T18:41:27.104330 #981426]  INFO -- default-ubuntu-2404: -----> Verifying <default-ubuntu-2404>...
-W, [2026-04-09T18:41:27.645630 #981426]  WARN -- default-ubuntu-2404: kitchen-inspec: skipping `plugin_config` which requires InSpec version 4.26.2 or higher. Your version: 4.24.32
-I, [2026-04-09T18:41:27.785013 #981426]  INFO -- default-ubuntu-2404: Loaded tests from {:path=>".home.joel.code.bbl-lucene.bbl-kmp.bbl_install.test.integration.default"} 
-I, [2026-04-09T18:42:39.722768 #981426]  INFO -- default-ubuntu-2404: Finished verifying <default-ubuntu-2404> (1m12.62s).

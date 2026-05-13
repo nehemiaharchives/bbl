@@ -1,9 +1,7 @@
 package org.gnit.bible
 
-import com.oldguy.common.io.File
-import com.oldguy.common.io.TextFile
-import kotlinx.coroutines.runBlocking
-import okio.SYSTEM
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -19,9 +17,7 @@ class ZipTest {
         if(platform.isIos()) return // iOS resources are not accessible via path
 
         val path = "src/commonTest/resources/data/test.txt"
-        val file = File(path)
-        val textFile = TextFile(file)
-        val content = runBlocking{ textFile.readLine() }
+        val content = FileSystem.SYSTEM.read(path.toPath()) { readUtf8Line() }
 
         assertNotNull(content)
         assertEquals("test", content)

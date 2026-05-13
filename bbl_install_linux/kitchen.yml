@@ -1,0 +1,28 @@
+---
+driver:
+  name: dokken
+  chef_version: latest
+
+transport:
+  name: dokken
+
+provisioner:
+  name: dokken
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-24.04
+    driver:
+      image: dokken/ubuntu-24.04
+      privileged: true
+      pid_one_command: /bin/systemd
+
+#  - name: ubuntu-25.10
+#  - name: ubuntu-26.04
+
+suites:
+  - name: default
+    run_list:
+      - recipe[bbl_install_linux::default]

@@ -18,7 +18,12 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 .logs
 
-/bbl_install/.bundle/
-/bbl_install/vendor/bundle/
-/bbl_install/files/
-!/bbl_install/files/README.md
+/bbl_install_linux/.bundle/
+/bbl_install_linux/vendor/bundle/
+/bbl_install_linux/files/*
+!/bbl_install_linux/files/README.md
+
+/bbl_install_windows/.bundle/
+/bbl_install_windows/vendor/bundle/
+/bbl_install_windows/files/*
+!/bbl_install_windows/files/README.md

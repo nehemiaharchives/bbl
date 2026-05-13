@@ -9,7 +9,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    // windows, good to have, and build later, but for now commenting out
+    mingwX64() // windows native
     jvm() // primarily for testing purposes,
     // in case windows native implementation has too much problems
     jvmToolchain(24)
@@ -24,7 +24,6 @@ kotlin {
                 implementation(projects.shared)
                 implementation(libs.clikt)
                 implementation(libs.okio)
-                implementation(libs.kmpio)
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
@@ -52,6 +51,9 @@ kotlin {
 
         linuxX64Main.get().dependsOn(nativeMain)
         linuxX64Test.get().dependsOn(nativeTest)
+
+        mingwX64Main.get().dependsOn(nativeMain)
+        mingwX64Test.get().dependsOn(nativeTest)
 
         targets.withType<KotlinNativeTarget>().all {
             binaries {

@@ -67,7 +67,7 @@ class SearchBackendTest : ResourcesTestBase() {
     fun externalBackendBuildsCommand() {
         val binDir = "/tmp/bbl/bin".toPath()
         fakeFs.createDirectories(binDir)
-        val binaryPath = binDir / "bbl-search-kuromoji"
+        val binaryPath = binDir / searchHelperName("kuromoji")
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner(ProcessResult(0, "ok", ""))
@@ -105,7 +105,7 @@ class SearchBackendTest : ResourcesTestBase() {
     fun externalBackendErrorIncludesModuleIdAndStderr() {
         val binDir = "/tmp/bbl/bin".toPath()
         fakeFs.createDirectories(binDir)
-        val binaryPath = binDir / "bbl-search-kuromoji"
+        val binaryPath = binDir / searchHelperName("kuromoji")
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner(ProcessResult(2, "", "boom"))
@@ -144,5 +144,10 @@ class SearchBackendTest : ResourcesTestBase() {
             lastCommand = command
             return result
         }
+    }
+
+    private fun searchHelperName(moduleId: String): String {
+        val executableSuffix = if (platform.name == "Windows") ".exe" else ""
+        return "bbl-search-$moduleId$executableSuffix"
     }
 }

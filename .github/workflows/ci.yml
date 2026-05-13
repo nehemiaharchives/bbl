@@ -48,6 +48,13 @@ jobs:
             task: :shared:linuxX64Test
             needs_konan_cache: true
             job_type: Test
+          - platform: mingw
+            module_name: shared
+            os: windows-latest
+            timeout: 25
+            task: :shared:mingwX64Test
+            needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-core
@@ -71,6 +78,13 @@ jobs:
             needs_xcode: true
             xcode_version: '16.4'
             job_type: Test
+          - platform: mingw
+            module_name: cli-core
+            os: windows-latest
+            timeout: 30
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-common
@@ -83,6 +97,13 @@ jobs:
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:common:linuxX64Test
+            needs_konan_cache: true
+            job_type: Test
+          - platform: mingw
+            module_name: cli-search-common
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:common:mingwX64Test
             needs_konan_cache: true
             job_type: Test
 
@@ -99,6 +120,13 @@ jobs:
             task: :cli:search:extra:linuxX64Test
             needs_konan_cache: true
             job_type: Test
+          - platform: mingw
+            module_name: cli-search-extra
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:extra:mingwX64Test
+            needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-kuromoji
@@ -111,6 +139,13 @@ jobs:
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:kuromoji:linuxX64Test
+            needs_konan_cache: true
+            job_type: Test
+          - platform: mingw
+            module_name: cli-search-kuromoji
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:kuromoji:mingwX64Test
             needs_konan_cache: true
             job_type: Test
 
@@ -127,6 +162,13 @@ jobs:
             task: :cli:search:morfologik:linuxX64Test
             needs_konan_cache: true
             job_type: Test
+          - platform: mingw
+            module_name: cli-search-morfologik
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:morfologik:mingwX64Test
+            needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-nori
@@ -141,6 +183,13 @@ jobs:
             task: :cli:search:nori:linuxX64Test
             needs_konan_cache: true
             job_type: Test
+          - platform: mingw
+            module_name: cli-search-nori
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:nori:mingwX64Test
+            needs_konan_cache: true
+            job_type: Test
 
           - platform: jvm
             module_name: cli-search-smartcn
@@ -153,6 +202,13 @@ jobs:
             os: ubuntu-latest
             timeout: 20
             task: :cli:search:smartcn:linuxX64Test
+            needs_konan_cache: true
+            job_type: Test
+          - platform: mingw
+            module_name: cli-search-smartcn
+            os: windows-latest
+            timeout: 25
+            task: :cli:search:smartcn:mingwX64Test
             needs_konan_cache: true
             job_type: Test
 
@@ -193,6 +249,13 @@ jobs:
             needs_xcode: true
             xcode_version: '16.4'
             job_type: Build
+          - platform: mingw
+            module_name: cli-core-build
+            os: windows-latest
+            timeout: 45
+            task: stageBblInstallWindowsFixtures "-Pbblpacks.embed=false"
+            needs_konan_cache: true
+            job_type: Build
 
     steps:
       - name: Checkout code
@@ -229,10 +292,63 @@ jobs:
       - name: Run task
         run: ./gradlew ${{ matrix.task }}
 
+      - name: Upload Windows install fixtures
+        if: ${{ matrix.platform == 'mingw' && matrix.module_name == 'cli-core-build' && matrix.job_type == 'Build' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbl-install-windows-files
+          path: bbl_install_windows/files/
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Build Summary
         if: always()
         run: |
           echo "### ${{ matrix.platform }} - ${{ matrix.module_name }} Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+
+  e2e-mingw-cli:
+    name: E2E (mingw/cli)
+    needs: tests
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download Windows install fixtures
+        uses: actions/download-artifact@v4
+        with:
+          name: bbl-install-windows-files
+          path: bbl_install_windows/files
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: bbl_install_windows
+
+      - name: Kitchen converge
+        working-directory: bbl_install_windows
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen converge default-windows-local
+
+      - name: Kitchen verify
+        working-directory: bbl_install_windows
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen verify default-windows-local
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### E2E (mingw/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY

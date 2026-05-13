@@ -1,4 +1,4 @@
-import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.Copy
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
@@ -30,21 +30,23 @@ subprojects {
         plugins.withId("org.jetbrains.kotlin.multiplatform") {
             extensions.configure<KotlinMultiplatformExtension> {
                 targets.withType<KotlinNativeTarget>().configureEach {
-                    binaries.getTest("", NativeBuildType.DEBUG).apply {
-                        @Suppress("DEPRECATION")
-                        @OptIn(KotlinNativeCacheApi::class)
-                        disableNativeCache(
-                            DisableCacheInKotlinVersion.`2_3_20`,
-                            "Clikt native caches produce duplicate symbols in cli test binaries"
-                        )
-                    }
-                    binaries.withType<org.jetbrains.kotlin.gradle.plugin.mpp.Executable>().configureEach {
-                        @Suppress("DEPRECATION")
-                        @OptIn(KotlinNativeCacheApi::class)
-                        disableNativeCache(
-                            DisableCacheInKotlinVersion.`2_3_20`,
-                            "Clikt native caches produce duplicate symbols in cli executable binaries"
-                        )
+                    if (name != "mingwX64") {
+                        binaries.getTest("", NativeBuildType.DEBUG).apply {
+                            @Suppress("DEPRECATION")
+                            @OptIn(KotlinNativeCacheApi::class)
+                            disableNativeCache(
+                                DisableCacheInKotlinVersion.`2_3_20`,
+                                "Clikt native caches produce duplicate symbols in cli test binaries"
+                            )
+                        }
+                        binaries.withType<org.jetbrains.kotlin.gradle.plugin.mpp.Executable>().configureEach {
+                            @Suppress("DEPRECATION")
+                            @OptIn(KotlinNativeCacheApi::class)
+                            disableNativeCache(
+                                DisableCacheInKotlinVersion.`2_3_20`,
+                                "Clikt native caches produce duplicate symbols in cli executable binaries"
+                            )
+                        }
                     }
                 }
             }
@@ -57,11 +59,13 @@ subprojects {
         }
 }
 
-val bblInstallFilesDir = layout.projectDirectory.dir("bbl_install/files")
+val bblInstallLinuxFilesPath = "bbl_install_linux/files"
+val bblInstallWindowsFilesPath = "bbl_install_windows/files"
 
-val stageBblInstallFixtures = tasks.register<Sync>("stageBblInstallFixtures") {
-    into(bblInstallFilesDir)
+val stageBblInstallLinuxFixtures = tasks.register<Copy>("stageBblInstallLinuxFixtures") {
+    dependsOn(":cli:linkReleaseExecutableLinuxX64")
 
+    into(layout.projectDirectory.dir(bblInstallLinuxFilesPath))
     from(project(":cli:core").layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
         include("bbl.kexe")
         rename("bbl\\.kexe", "bbl")
@@ -84,4 +88,35 @@ val stageBblInstallFixtures = tasks.register<Sync>("stageBblInstallFixtures") {
     from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
         include("*.zip")
     }
+}
+
+val stageBblInstallWindowsFixtures = tasks.register<Copy>("stageBblInstallWindowsFixtures") {
+    dependsOn(":cli:linkReleaseExecutableMingwX64")
+
+    into(layout.projectDirectory.dir(bblInstallWindowsFilesPath))
+
+    from(project(":cli:core").layout.buildDirectory.dir("bin/mingwX64/releaseExecutable")) {
+        include("bbl.exe")
+    }
+
+    listOf(
+        ":cli:search:common" to "bbl-search-common",
+        ":cli:search:extra" to "bbl-search-extra",
+        ":cli:search:kuromoji" to "bbl-search-kuromoji",
+        ":cli:search:morfologik" to "bbl-search-morfologik",
+        ":cli:search:nori" to "bbl-search-nori",
+        ":cli:search:smartcn" to "bbl-search-smartcn",
+    ).forEach { (projectPath, binaryName) ->
+        from(project(projectPath).layout.buildDirectory.dir("bin/mingwX64/releaseExecutable")) {
+            include("$binaryName.exe")
+        }
+    }
+
+    from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
+        include("*.zip")
+    }
+}
+
+val stageBblInstallFixtures = tasks.register("stageBblInstallFixtures") {
+    dependsOn(stageBblInstallLinuxFixtures, stageBblInstallWindowsFixtures)
 }

@@ -1,10 +1,13 @@
 package org.gnit.bible
 
-import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
+import okio.Buffer
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.Inflater
+import okio.InflaterSource
+import okio.buffer
+import okio.use
 
 class ZipBibleResourcesReader(
     val platform: Platform,
@@ -24,18 +27,16 @@ class ZipBibleResourcesReader(
     override fun getChapterText(translation: String, book: Int, chapter: Int): String {
         return withZipFile(translation) { zip ->
             val expectedFileName = "$translation.$book.$chapter.txt"
-            val targetName = zip.entries
-                .firstOrNull { it.name.substringAfterLast('/') == expectedFileName }
-                ?.name
+            val targetName = zip.entryNames()
+                .firstOrNull { it.substringAfterLast('/') == expectedFileName }
                 ?: error("No entry ending with $expectedFileName found")
-            readEntryBytes(zip, targetName).decodeToString()
+            zip.readEntryBytes(targetName).decodeToString()
         }
     }
 
     override fun listIndexFiles(translation: String): List<String> {
         return withZipFile(translation) { zip ->
-            zip.entries
-                .map { it.name }
+            zip.entryNames()
                 .filter { it.startsWith("index/") && !it.endsWith("/") }
                 .map { it.removePrefix("index/") }
                 .toList()
@@ -50,82 +51,142 @@ class ZipBibleResourcesReader(
 
         val target = "index/$name"
         return withZipFile(translation) { zip ->
-            val entry = zip.entries.firstOrNull { it.name == target }
+            val entry = zip.entryNames().firstOrNull { it == target }
                 ?: error("Index file not found in zip: $target")
-            val chunks = ArrayList<ByteArray>(4)
-            zip.readEntry(entry) { _, content, count, last ->
-                if (count.toInt() > 0) {
-                    chunks.add(content.copyOfRange(0, count.toInt()))
-                }
-                // `last` is intentionally unused; we just buffer all chunks and merge at the end.
-            }
-            val total = chunks.sumOf { it.size }
-            val merged = ByteArray(total)
-            var offset = 0
-            chunks.forEach { bytes ->
-                bytes.copyInto(merged, offset)
-                offset += bytes.size
-            }
-            merged
+            zip.readEntryBytes(entry)
         }
     }
 
     fun getTranslationFromManifest(translationCode: String): Translation {
         val json = withZipFile(translationCode) { zip ->
             val manifest = "$translationCode$MANIFEST_JSON_POSTFIX"
-            val targetName = zip.entries.firstOrNull { it.name.endsWith(manifest) }?.name
+            val targetName = zip.entryNames().firstOrNull { it.endsWith(manifest) }
                 ?: error("$manifest not found in $zip")
-            readEntryBytes(zip, targetName).decodeToString()
+            zip.readEntryBytes(targetName).decodeToString()
         }
         return Translation.fromJson(json)
     }
 
     private inline fun <T> withZipFile(
         translationCode: String,
-        crossinline block: suspend (ZipFile) -> T
+        block: (SimpleZip) -> T
     ): T {
         val zipPath = platform.packDir.toPath() / "$translationCode.zip"
         require(fileSystem.exists(zipPath)) { "ZipBibleResourcesReader Zip file not found at $zipPath" }
-        val file = com.oldguy.common.io.File(zipPath.toString())
-
-        return runBlocking {
-            var zipFile: ZipFile? = null
-
-            var fileOpenError: Throwable? = null
-
-            runCatching { zipFile = ZipFile(file) }
-                .onSuccess { logger.debug { "ZipBibleResourcesReader successfully found and opened $zipPath" } }
-                .onFailure { fileOpenError = it }
-
-            if (zipFile != null) {
-                try {
-                    zipFile.open()
-                    block(zipFile)
-                } finally {
-                    runCatching { zipFile.close() }.getOrNull()
-                }
-            } else {
-                error("ZipBibleResourcesReader failed to open $zipPath with error: ${fileOpenError?.message}")
-            }
-        }
+        val zipBytes = fileSystem.read(zipPath) { readByteArray() }
+        val zipFileSystem = SimpleZip(zipBytes)
+        logger.debug { "ZipBibleResourcesReader successfully found and opened $zipPath" }
+        return block(zipFileSystem)
     }
 
-    private suspend fun readEntryBytes(zip: ZipFile, name: String): ByteArray {
-        val entry = zip.entries.firstOrNull { it.name == name }
-            ?: error("Zip entry not found: $name")
-        val chunks = ArrayList<ByteArray>(4)
-        zip.readEntry(entry) { _, content, count, _ ->
-            if (count.toInt() > 0) {
-                chunks.add(content.copyOfRange(0, count.toInt()))
+    private class SimpleZip(private val bytes: ByteArray) {
+        private val entries: Map<String, Entry> = parseEntries()
+
+        fun entryNames(): List<String> = entries.keys.toList()
+
+        fun readEntryBytes(name: String): ByteArray {
+            val entry = entries[name] ?: error("Zip entry not found: $name")
+            val localHeaderOffset = entry.localHeaderOffset.toInt()
+            require(readIntLe(localHeaderOffset) == LOCAL_FILE_HEADER_SIGNATURE) {
+                "Bad zip local header for $name"
+            }
+            val nameLength = readShortLe(localHeaderOffset + 26)
+            val extraLength = readShortLe(localHeaderOffset + 28)
+            val dataOffset = localHeaderOffset + 30 + nameLength + extraLength
+            val compressed = bytes.copyOfRange(dataOffset, dataOffset + entry.compressedSize.toInt())
+
+            return when (entry.compressionMethod) {
+                COMPRESSION_METHOD_STORED -> compressed
+                COMPRESSION_METHOD_DEFLATED -> inflate(compressed, entry.size)
+                else -> error("Unsupported zip compression method ${entry.compressionMethod} for $name")
             }
         }
-        val total = chunks.sumOf { it.size }
-        val merged = ByteArray(total)
-        var offset = 0
-        chunks.forEach { bytes ->
-            bytes.copyInto(merged, offset)
-            offset += bytes.size
+
+        private fun parseEntries(): Map<String, Entry> {
+            val eocdOffset = findEndOfCentralDirectory()
+            val entryCount = readShortLe(eocdOffset + 10)
+            val centralDirectoryOffset = readUIntLe(eocdOffset + 16).toInt()
+            var offset = centralDirectoryOffset
+            val parsed = linkedMapOf<String, Entry>()
+
+            repeat(entryCount) {
+                require(readIntLe(offset) == CENTRAL_FILE_HEADER_SIGNATURE) {
+                    "Bad zip central directory header at $offset"
+                }
+                val flags = readShortLe(offset + 8)
+                require(flags and BIT_FLAG_ENCRYPTED == 0) { "Encrypted zip entries are not supported" }
+                val compressionMethod = readShortLe(offset + 10)
+                val compressedSize = readUIntLe(offset + 20)
+                val size = readUIntLe(offset + 24)
+                val nameLength = readShortLe(offset + 28)
+                val extraLength = readShortLe(offset + 30)
+                val commentLength = readShortLe(offset + 32)
+                val localHeaderOffset = readUIntLe(offset + 42)
+                val nameStart = offset + 46
+                val name = bytes.copyOfRange(nameStart, nameStart + nameLength).decodeToString()
+
+                if (!name.endsWith("/")) {
+                    parsed[name] = Entry(
+                        name = name,
+                        compressionMethod = compressionMethod,
+                        compressedSize = compressedSize,
+                        size = size,
+                        localHeaderOffset = localHeaderOffset,
+                    )
+                }
+
+                offset = nameStart + nameLength + extraLength + commentLength
+            }
+
+            return parsed
         }
-        return merged
+
+        private fun findEndOfCentralDirectory(): Int {
+            val minimumOffset = 0.coerceAtLeast(bytes.size - MAX_EOCD_SEARCH)
+            for (offset in bytes.size - EOCD_MIN_SIZE downTo minimumOffset) {
+                if (readIntLe(offset) == END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
+                    return offset
+                }
+            }
+            error("End of central directory not found")
+        }
+
+        private fun inflate(compressed: ByteArray, expectedSize: Long): ByteArray {
+            val source = Buffer().write(compressed)
+            return InflaterSource(source, Inflater(true)).use { inflater ->
+                inflater.buffer().readByteArray(expectedSize)
+            }
+        }
+
+        private fun readShortLe(offset: Int): Int =
+            (bytes[offset].toInt() and 0xff) or
+                ((bytes[offset + 1].toInt() and 0xff) shl 8)
+
+        private fun readIntLe(offset: Int): Int =
+            (bytes[offset].toInt() and 0xff) or
+                ((bytes[offset + 1].toInt() and 0xff) shl 8) or
+                ((bytes[offset + 2].toInt() and 0xff) shl 16) or
+                ((bytes[offset + 3].toInt() and 0xff) shl 24)
+
+        private fun readUIntLe(offset: Int): Long = readIntLe(offset).toLong() and 0xffffffffL
+
+        private data class Entry(
+            val name: String,
+            val compressionMethod: Int,
+            val compressedSize: Long,
+            val size: Long,
+            val localHeaderOffset: Long,
+        )
+    }
+
+    private companion object {
+        const val LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50
+        const val CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50
+        const val END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50
+        const val COMPRESSION_METHOD_STORED = 0
+        const val COMPRESSION_METHOD_DEFLATED = 8
+        const val BIT_FLAG_ENCRYPTED = 1
+        const val EOCD_MIN_SIZE = 22
+        const val MAX_EOCD_SEARCH = EOCD_MIN_SIZE + 65_536
     }
 }

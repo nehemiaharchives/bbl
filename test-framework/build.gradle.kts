@@ -34,7 +34,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    //mingwX64()
+    mingwX64() // windows native
 
     // desktop app (and windows jvm cli if windows native development has too much problem)
     jvm()
@@ -53,10 +53,13 @@ kotlin {
         val macosX64Main by getting { dependsOn(posixMain) }
         val macosArm64Main by getting { dependsOn(posixMain) }
         val linuxX64Main by getting { dependsOn(posixMain) }
+        val mingwX64Main by getting { dependsOn(nativeMain) }
 
         // ---- Tests ----
         val commonTest by getting
         val jvmTest by getting
+        val nativeTest by creating { dependsOn(commonTest) }
+        val mingwX64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
             implementation(projects.shared)

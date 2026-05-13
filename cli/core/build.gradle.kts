@@ -9,7 +9,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    // windows, good to have, and build later, but for now commenting out
+    mingwX64() // windows native
     jvm() // primarily for testing purposes,
     // in case windows native implementation has too much problems
     jvmToolchain(24)
@@ -26,7 +26,6 @@ kotlin {
                 implementation(projects.cli.search.common)
                 implementation(libs.clikt)
                 implementation(libs.okio)
-                implementation(libs.kmpio)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.multiplatform.settings)
@@ -47,14 +46,20 @@ kotlin {
         val nativeMain by creating { dependsOn(commonMain) }
         val nativeTest by creating { dependsOn(commonTest) }
 
-        macosX64Main.get().dependsOn(nativeMain)
-        macosX64Test.get().dependsOn(nativeTest)
+        val posixMain by creating { dependsOn(nativeMain) }
+        val posixTest by creating { dependsOn(nativeTest) }
 
-        macosArm64Main.get().dependsOn(nativeMain)
-        macosArm64Test.get().dependsOn(nativeTest)
+        macosX64Main.get().dependsOn(posixMain)
+        macosX64Test.get().dependsOn(posixTest)
 
-        linuxX64Main.get().dependsOn(nativeMain)
-        linuxX64Test.get().dependsOn(nativeTest)
+        macosArm64Main.get().dependsOn(posixMain)
+        macosArm64Test.get().dependsOn(posixTest)
+
+        linuxX64Main.get().dependsOn(posixMain)
+        linuxX64Test.get().dependsOn(posixTest)
+
+        mingwX64Main.get().dependsOn(nativeMain)
+        mingwX64Test.get().dependsOn(nativeTest)
 
         // Keep JVM resource wiring (used by some JVM tests/tools).
         jvmMain.get().resources.srcDir(

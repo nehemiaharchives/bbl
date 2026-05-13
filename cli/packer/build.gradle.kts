@@ -7,7 +7,7 @@ kotlin {
     macosX64() // intel mac
     macosArm64() // m1/2/3/4 mac
     linuxX64()
-    // windows, good to have, and build later, but for now commenting out
+    // PackCli uses kzip for writing bblpack archives; kzip does not publish mingwX64 artifacts.
     jvm() // primarily for testing purposes,
     // in case windows native implementation has too much problems
     jvmToolchain(24)

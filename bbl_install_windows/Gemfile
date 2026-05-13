@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "test-kitchen"
+gem "kitchen-local", "0.0.1"
+gem "kitchen-omnibus-chef"
+gem "kitchen-inspec"
+gem "chefspec"
+gem "chef", "18.10.17"
+gem "rake"
+gem "rdoc", "6.5.1.1"
