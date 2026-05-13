@@ -2,11 +2,9 @@ plugins {
     base
 }
 
-val stageBblInstallFixtures = rootProject.tasks.named("stageBblInstallFixtures")
-
 tasks.register("linkReleaseExecutableLinuxX64") {
     group = "build"
-    description = "Build all Linux release CLI executables and stage install fixtures."
+    description = "Build all Linux release CLI executables."
 
     dependsOn(
         ":cli:core:linkReleaseExecutableLinuxX64",
@@ -18,7 +16,6 @@ tasks.register("linkReleaseExecutableLinuxX64") {
         ":cli:search:smartcn:linkReleaseExecutableLinuxX64",
     )
 
-    finalizedBy(stageBblInstallFixtures)
 }
 
 tasks.register("linkReleaseExecutableMingwX64") {

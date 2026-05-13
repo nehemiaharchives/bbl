@@ -63,7 +63,15 @@ val bblInstallLinuxFilesPath = "bbl_install_linux/files"
 val bblInstallWindowsFilesPath = "bbl_install_windows/files"
 
 val stageBblInstallLinuxFixtures = tasks.register<Copy>("stageBblInstallLinuxFixtures") {
-    dependsOn(":cli:linkReleaseExecutableLinuxX64")
+    dependsOn(
+        ":cli:core:linkReleaseExecutableLinuxX64",
+        ":cli:search:common:linkReleaseExecutableLinuxX64",
+        ":cli:search:extra:linkReleaseExecutableLinuxX64",
+        ":cli:search:kuromoji:linkReleaseExecutableLinuxX64",
+        ":cli:search:morfologik:linkReleaseExecutableLinuxX64",
+        ":cli:search:nori:linkReleaseExecutableLinuxX64",
+        ":cli:search:smartcn:linkReleaseExecutableLinuxX64",
+    )
 
     into(layout.projectDirectory.dir(bblInstallLinuxFilesPath))
     from(project(":cli:core").layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
@@ -91,7 +99,15 @@ val stageBblInstallLinuxFixtures = tasks.register<Copy>("stageBblInstallLinuxFix
 }
 
 val stageBblInstallWindowsFixtures = tasks.register<Copy>("stageBblInstallWindowsFixtures") {
-    dependsOn(":cli:linkReleaseExecutableMingwX64")
+    dependsOn(
+        ":cli:core:linkReleaseExecutableMingwX64",
+        ":cli:search:common:linkReleaseExecutableMingwX64",
+        ":cli:search:extra:linkReleaseExecutableMingwX64",
+        ":cli:search:kuromoji:linkReleaseExecutableMingwX64",
+        ":cli:search:morfologik:linkReleaseExecutableMingwX64",
+        ":cli:search:nori:linkReleaseExecutableMingwX64",
+        ":cli:search:smartcn:linkReleaseExecutableMingwX64",
+    )
 
     into(layout.projectDirectory.dir(bblInstallWindowsFilesPath))
 
