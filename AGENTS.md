@@ -51,6 +51,16 @@ For example, you have changed `BookRange` of `shared/src/commonMain/kotlin/org/g
 3. If your change only affects specific module `cli` or `composeApp`, then run `bbl-kmp_cli [allTests]` or `bbl-kmp_composeApp [allTests]` instead to save time.
 4. Run `bbl-kmp [allTests]` after tests for small changes pass, or when you change code in `shared` module or `test-framework` module which is used in other modules to verify anything not broken with your change.
 
+### Test workflow
+
+When you run a Gradle test command, do not rely only on your own quick reading of the output.
+
+After the test command finishes, spawn `test_result_reviewer` and give it the complete command, exit code, and relevant stdout/stderr. Wait for its report. Then tell the user:
+
+- whether the test passed or failed
+- the failing Gradle task, test class, or exception if any
+- the next recommended action
+
 ## Git Commit Policy (GPG Signed)
 
 - When user asks to commit, always create a GPG-signed commit.
