@@ -10,10 +10,16 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
+import org.gnit.bible.SearchModuleId
+import org.gnit.bible.Translation
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
+import okio.Path.Companion.toPath
 
 class InstallCli(
-    private val bible: Bible
+    private val bible: Bible,
+    private val packBaseUrl: String = environmentVariable("BBL_PACK_BASE_URL") ?: DOWNLOADABLE_BIBLE_BASE_URL,
+    private val searchBinaryBaseUrl: String = environmentVariable("BBL_SEARCH_BINARY_BASE_URL")
+        ?: "https://github.com/nehemiaharchives/bbl-kmp/releases/latest/download"
 ) : CliktCommand(name = "install") {
     private val logger = KotlinLogging.logger {}
 
@@ -45,10 +51,11 @@ class InstallCli(
         val downloadable = runBlocking {
             runCatching { am.downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL) }
                 .onFailure { logger.debug { "InstallCli failed to download latest downloadable translation list, falling back to embedded list" } }
-                .getOrDefault(downloadableTranslationsCli)
+                .getOrDefault(downloadableTranslationsCmp)
         }
 
-        val availableDownloadableCodes = downloadable.map { it.code }.toSet()
+        val downloadableByCode = downloadable.associateBy { it.code }
+        val availableDownloadableCodes = downloadableByCode.keys
         val unknownCodes = toInstall.filterNot { it in availableDownloadableCodes }
         if (unknownCodes.isNotEmpty()) {
             throw CliktError(
@@ -62,9 +69,10 @@ class InstallCli(
             .forEach { echo("$it already installed, skipping download") }
 
         for (translationCode in toInstall) {
+            val translation = downloadableByCode.getValue(translationCode)
             logger.debug { "InstallCli downloading $translationCode" }
             val downloadResult = runBlocking {
-                runCatching { am.download(DOWNLOADABLE_BIBLE_BASE_URL, "${translationCode}.zip") }
+                runCatching { am.download(packBaseUrl, "${translationCode}.zip") }
             }
 
             downloadResult.onFailure { error ->
@@ -79,6 +87,36 @@ class InstallCli(
             }
 
             echo("Installed $translationCode")
+            installSearchBinaryIfNeeded(translation)
         }
+    }
+
+    private fun installSearchBinaryIfNeeded(translation: Translation) {
+        val moduleId = translation.language.searchModuleId
+        if (moduleId == SearchModuleId.COMMON) return
+
+        val am = bible.assetManager
+        val binDir = am.platform.packDir.toPath().parent!! / "bin"
+        val binaryName = "bbl-search-${moduleId.name.lowercase()}${if (am.platform.name == "Windows") ".exe" else ""}"
+        val binaryPath = binDir / binaryName
+        if (am.fileSystem.exists(binaryPath)) {
+            echo("$binaryName already installed, skipping download")
+            return
+        }
+
+        logger.debug { "InstallCli downloading search helper $binaryName" }
+        val downloadResult = runBlocking {
+            runCatching { am.downloadTo(searchBinaryBaseUrl, binaryName, binDir.toString()) }
+        }
+
+        downloadResult.onFailure { error ->
+            throw CliktError("Installing $binaryName failed: ${error.message}")
+        }
+
+        if (!am.fileSystem.exists(binaryPath)) {
+            throw CliktError("Installing $binaryName failed: file was not found after download")
+        }
+        markExecutable(binaryPath)
+        echo("Installed $binaryName")
     }
 }

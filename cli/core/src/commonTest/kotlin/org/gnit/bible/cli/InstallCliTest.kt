@@ -48,23 +48,56 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallKttv() {
         val result = Bbl(bible = bible).test("install kttv").output
-        assertInstallResult(result, listOf("kttv"))
+        assertInstallResult(result, listOf("kttv"), listOf("bbl-search-extra"))
     }
 
     @Test
     fun testBblAliasGetKttv(){
         val result = Bbl(bible = bible).test("get kttv").output
-        assertInstallResult(result, listOf("kttv"))
+        assertInstallResult(result, listOf("kttv"), listOf("bbl-search-extra"))
     }
 
     @Test
     fun testBblInstallMultipleTranslations() {
         val result = Bbl(bible = bible).test("install kttv th1971").output
-        assertInstallResult(result, listOf("kttv", "th1971"))
+        assertInstallResult(
+            result = result,
+            expectedCodes = listOf("kttv", "th1971"),
+            expectedSearchBinaries = listOf("bbl-search-extra"),
+            expectedOutputLines = listOf("Installed kttv", "Installed bbl-search-extra", "Installed th1971")
+        )
     }
 
-    private fun assertInstallResult(result: String, expectedCodes: List<String>){
-        val expectedOutput = expectedCodes.joinToString(separator = "") { "Installed $it\n" }
+    @Test
+    fun testBblInstallJcInstallsKuromojiSearchBinary() {
+        val result = Bbl(bible = bible).test("install jc").output.replace("\r\n", "\n")
+
+        assertEquals("Installed jc\nInstalled bbl-search-kuromoji\n", result)
+        assertInstalledPack("jc")
+        assertInstalledSearchBinary("bbl-search-kuromoji")
+    }
+
+    @Test
+    fun testBblInstallSkipsExistingSharedSearchBinaryDependency() {
+        val first = Bbl(bible = bible).test("install ubio").output.replace("\r\n", "\n")
+        assertEquals("Installed ubio\nInstalled bbl-search-morfologik\n", first)
+        assertInstalledPack("ubio")
+        assertInstalledSearchBinary("bbl-search-morfologik")
+
+        val second = Bbl(bible = bible).test("install ubg").output.replace("\r\n", "\n")
+        assertEquals("Installed ubg\nbbl-search-morfologik already installed, skipping download\n", second)
+        assertInstalledPack("ubg")
+        assertInstalledSearchBinary("bbl-search-morfologik")
+    }
+
+    private fun assertInstallResult(
+        result: String,
+        expectedCodes: List<String>,
+        expectedSearchBinaries: List<String> = emptyList(),
+        expectedOutputLines: List<String> = expectedCodes.map { "Installed $it" } +
+                expectedSearchBinaries.map { "Installed $it" }
+    ){
+        val expectedOutput = expectedOutputLines.joinToString(separator = "\n", postfix = "\n")
         assertEquals(expectedOutput, result.replace("\r\n", "\n"))
 
         val packDir = bible.assetManager.platform.packDir.toPath()
@@ -75,12 +108,28 @@ class InstallCliTest : ResourcesTestBase() {
         assertEquals(expectedNames, actualNames)
 
         expectedCodes.forEach { code ->
-            val zipPath = packDir / "$code.zip".toPath()
-            assertTrue(fakeFs.exists(zipPath))
-            fakeFs.metadata(zipPath).also { metadata ->
-                assertTrue(metadata.isRegularFile)
-                assertTrue((metadata.size ?: 0L) > 0L)
-            }
+            assertInstalledPack(code)
+        }
+        expectedSearchBinaries.forEach { name ->
+            assertInstalledSearchBinary(name)
+        }
+    }
+
+    private fun assertInstalledPack(code: String) {
+        val zipPath = bible.assetManager.platform.packDir.toPath() / "$code.zip".toPath()
+        assertTrue(fakeFs.exists(zipPath))
+        fakeFs.metadata(zipPath).also { metadata ->
+            assertTrue(metadata.isRegularFile)
+            assertTrue((metadata.size ?: 0L) > 0L)
+        }
+    }
+
+    private fun assertInstalledSearchBinary(name: String) {
+        val binPath = bible.assetManager.platform.packDir.toPath().parent!! / "bin".toPath() / name
+        assertTrue(fakeFs.exists(binPath))
+        fakeFs.metadata(binPath).also { metadata ->
+            assertTrue(metadata.isRegularFile)
+            assertTrue((metadata.size ?: 0L) > 0L)
         }
     }
 

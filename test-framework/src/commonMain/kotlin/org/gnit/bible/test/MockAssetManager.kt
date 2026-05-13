@@ -27,6 +27,10 @@ class MockAssetManager() : AssetManager {
         TODO("Not yet implemented")
     }
 
+    override suspend fun downloadTo(baseUrl: String, fileName: String, destinationDir: String) {
+        TODO("Not yet implemented")
+    }
+
     override fun downloadedTranslationCodes(): List<String> {
         return listOf("kttv")
     }

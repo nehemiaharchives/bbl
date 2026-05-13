@@ -43,6 +43,7 @@ interface AssetManager {
      * @param fileName "${translationCode}.zip" e.g. "kttv.zip"
      */
     suspend fun download(baseUrl: String, fileName: String)
+    suspend fun downloadTo(baseUrl: String, fileName: String, destinationDir: String)
     fun downloadedTranslationCodes(): List<String>
 
     fun downloadedTranslations(): List<Translation>
@@ -76,11 +77,34 @@ class AssetManagerImpl(
         baseUrl: String,
         fileName: String
     ) {
+        downloadTo(baseUrl, fileName, platform.packDir)
+    }
+
+    override suspend fun downloadTo(
+        baseUrl: String,
+        fileName: String,
+        destinationDir: String
+    ) {
         val url = "${baseUrl.trimEnd('/')}/$fileName"
-        val packDir = platform.packDir
-        val destinationPath = packDir.toPath() / fileName
+        val destinationPath = destinationDir.toPath() / fileName
         val tempPath = destinationPath.parent!! / "${fileName}.part"
         fileSystem.createDirectories(destinationPath.parent!!)
+
+        if (baseUrl.startsWith("file://")) {
+            val sourcePath = baseUrl.removePrefix("file://").trimEnd('/').toPath() / fileName
+            runCatching { fileSystem.delete(tempPath) }
+            fileSystem.source(sourcePath).buffer().use { source ->
+                fileSystem.sink(tempPath).buffer().use { sink ->
+                    sink.writeAll(source)
+                }
+            }
+            val size = fileSystem.metadata(tempPath).size ?: 0
+            if (size == 0L) error("Empty download for $fileName")
+            runCatching { fileSystem.delete(destinationPath) }
+            fileSystem.atomicMove(tempPath, destinationPath)
+            logger.debug { "AssetManagerImpl copied $fileName to destination: $destinationPath (${size} bytes)" }
+            return
+        }
 
         val existingSize = runCatching { fileSystem.metadata(tempPath).size ?: 0L }.getOrDefault(0L)
 

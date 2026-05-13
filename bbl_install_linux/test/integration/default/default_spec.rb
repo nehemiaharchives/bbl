@@ -2,6 +2,8 @@ home_dir = '/root'
 install_root = "#{home_dir}/.bbl"
 pack_dir = "#{install_root}/packs"
 bin_dir = "#{install_root}/bin"
+install_source_dir = '/tmp/bbl-install-downloads'
+install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
 
 RSpec.shared_context 'search helpers' do
   def search_stdout(command_text)
@@ -44,12 +46,6 @@ describe file("#{pack_dir}/kjv.zip") do
   its('size') { should be > 0 }
 end
 
-describe file("#{pack_dir}/jc.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
 describe file("#{pack_dir}/krv.zip") do
   it { should exist }
   it { should be_file }
@@ -81,12 +77,6 @@ describe file("#{bin_dir}/bbl-search-common") do
 end
 
 describe file("#{bin_dir}/bbl-search-extra") do
-  it { should exist }
-  it { should be_file }
-  it { should be_executable }
-end
-
-describe file("#{bin_dir}/bbl-search-kuromoji") do
   it { should exist }
   it { should be_file }
   it { should be_executable }
@@ -197,6 +187,41 @@ describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
 
   it 'returns multiple hits in the requested kjv chapter range' do
     expect(results.length).to be > 1
+  end
+end
+
+describe 'bbl install jc deferred dependencies' do
+  before(:all) do
+    @pack_existed_before = command("test -e #{pack_dir}/jc.zip").exit_status == 0
+    @helper_existed_before = command("test -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+    @install_result = command("#{install_env} bbl install jc")
+    @install_exit_status = @install_result.exit_status
+    @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
+    @pack_size_after = command("stat -c %s #{pack_dir}/jc.zip").stdout.to_i
+    @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+    @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+  end
+
+  it 'does not have jc installed before install' do
+    expect(@pack_existed_before).to eq(false)
+  end
+
+  it 'does not have the kuromoji search helper installed before install' do
+    expect(@helper_existed_before).to eq(false)
+  end
+
+  it 'installs jc successfully' do
+    expect(@install_exit_status).to eq(0)
+  end
+
+  it 'installs jc.zip' do
+    expect(@pack_exists_after).to eq(true)
+    expect(@pack_size_after).to be > 0
+  end
+
+  it 'installs the kuromoji search helper' do
+    expect(@helper_exists_after).to eq(true)
+    expect(@helper_executable_after).to eq(true)
   end
 end
 

@@ -153,6 +153,10 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
             // No-op for list-only tests.
         }
 
+        override suspend fun downloadTo(baseUrl: String, fileName: String, destinationDir: String) {
+            // No-op for list-only tests.
+        }
+
         override fun downloadedTranslationCodes(): List<String> = downloaded.map { it.code }
 
         override fun downloadedTranslations(): List<Translation> = downloaded

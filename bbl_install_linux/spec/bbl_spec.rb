@@ -5,10 +5,15 @@ describe 'bbl_install_linux::default' do
     %w[
       bbl-search-common
       bbl-search-extra
-      bbl-search-kuromoji
       bbl-search-morfologik
       bbl-search-nori
       bbl-search-smartcn
+    ]
+  end
+
+  let(:deferred_helper_bin_names) do
+    %w[
+      bbl-search-kuromoji
     ]
   end
 
@@ -17,17 +22,24 @@ describe 'bbl_install_linux::default' do
       cunp.zip
       webus.zip
       kjv.zip
-      jc.zip
       krv.zip
       kttv.zip
       ubg.zip
     ]
   end
 
+  let(:deferred_pack_names) do
+    %w[
+      jc.zip
+    ]
+  end
+
   let(:chef_run) do
     ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '24.04') do |node|
       node.normal['bbl_install_linux']['helper_bin_names'] = helper_bin_names
+      node.normal['bbl_install_linux']['deferred_helper_bin_names'] = deferred_helper_bin_names
       node.normal['bbl_install_linux']['pack_names'] = pack_names
+      node.normal['bbl_install_linux']['deferred_pack_names'] = deferred_pack_names
     end.converge(described_recipe)
   end
 
@@ -39,6 +51,11 @@ describe 'bbl_install_linux::default' do
         mode: '0755'
       )
       expect(chef_run).to create_directory('/root/.bbl/packs').with(
+        owner: 'root',
+        group: 'root',
+        mode: '0755'
+      )
+      expect(chef_run).to create_directory('/tmp/bbl-install-downloads').with(
         owner: 'root',
         group: 'root',
         mode: '0755'
@@ -65,9 +82,31 @@ describe 'bbl_install_linux::default' do
       end
     end
 
+    it 'copies deferred search helpers to the install source directory' do
+      deferred_helper_bin_names.each do |bin_name|
+        expect(chef_run).to create_cookbook_file("/tmp/bbl-install-downloads/#{bin_name}").with(
+          source: bin_name,
+          owner: 'root',
+          group: 'root',
+          mode: '0755'
+        )
+      end
+    end
+
     it 'copies the pack fixture zips' do
       pack_names.each do |pack_name|
         expect(chef_run).to create_cookbook_file("/root/.bbl/packs/#{pack_name}").with(
+          source: pack_name,
+          owner: 'root',
+          group: 'root',
+          mode: '0644'
+        )
+      end
+    end
+
+    it 'copies deferred pack fixture zips to the install source directory' do
+      deferred_pack_names.each do |pack_name|
+        expect(chef_run).to create_cookbook_file("/tmp/bbl-install-downloads/#{pack_name}").with(
           source: pack_name,
           owner: 'root',
           group: 'root',

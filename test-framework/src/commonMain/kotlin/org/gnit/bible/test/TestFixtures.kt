@@ -302,6 +302,8 @@ object TestFixtures {
 
     private val webusManifestJson = Translation.webus.toJson()
     private val jcManifestJson = Translation.jc.toJson()
+    private val ubgManifestJson = Translation.ubg.toJson()
+    private val ubioManifestJson = Translation.ubio.toJson()
 
     val kttvDownloadingMockEngine = MockEngine { _ ->
         val bytes = ZipUtil.buildMinimalZip(
@@ -589,6 +591,20 @@ object TestFixtures {
 
                 "jc" -> jcMinimalZipBytes
 
+                "ubg" -> ZipUtil.buildMinimalZip(
+                    listOf(
+                        "ubg.1.1.txt" to "1 test",
+                        "ubg${MANIFEST_JSON_POSTFIX}" to ubgManifestJson
+                    )
+                )
+
+                "ubio" -> ZipUtil.buildMinimalZip(
+                    listOf(
+                        "ubio.1.1.txt" to "1 test",
+                        "ubio${MANIFEST_JSON_POSTFIX}" to ubioManifestJson
+                    )
+                )
+
                 else -> error("Unexpected translation code: $translationCode")
             }
 
@@ -639,6 +655,61 @@ object TestFixtures {
                     content = bytes,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/ubg.zip" -> {
+                val bytes = packBytes("ubg")
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            "/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks/ubio.zip" -> {
+                val bytes = packBytes("ubio")
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-kuromoji" -> {
+                val bytes = "kuromoji helper".encodeToByteArray()
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/octet-stream"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-extra" -> {
+                val bytes = "extra helper".encodeToByteArray()
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/octet-stream"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-morfologik" -> {
+                val bytes = "morfologik helper".encodeToByteArray()
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/octet-stream"),
                         "Content-Length" to listOf(bytes.size.toString())
                     )
                 )

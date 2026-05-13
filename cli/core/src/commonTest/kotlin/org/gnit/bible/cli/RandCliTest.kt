@@ -223,6 +223,10 @@ class RandCliTest {
             // No-op for these tests: they don't exercise downloads.
         }
 
+        override suspend fun downloadTo(baseUrl: String, fileName: String, destinationDir: String) {
+            // No-op for these tests: they don't exercise downloads.
+        }
+
         override fun downloadedTranslationCodes(): List<String> = translations.map { it.code }
 
         override fun downloadedTranslations(): List<Translation> = translations
