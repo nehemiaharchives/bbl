@@ -200,6 +200,16 @@ describe 'bbl install jc deferred dependencies' do
     @pack_size_after = command("stat -c %s #{pack_dir}/jc.zip").stdout.to_i
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+    @search_result = command('bbl search イエス キリスト in jc')
+    @search_stdout = @search_result.stdout.force_encoding('UTF-8')
+    @search_results = @search_stdout
+      .split("\n\n")
+      .map(&:strip)
+      .reject(&:empty?)
+    @uninstall_result = command('bbl uninstall jc')
+    @uninstall_exit_status = @uninstall_result.exit_status
+    @pack_missing_after_uninstall = command("test ! -e #{pack_dir}/jc.zip").exit_status == 0
+    @helper_missing_after_uninstall = command("test ! -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
   end
 
   it 'does not have jc installed before install' do
@@ -223,24 +233,29 @@ describe 'bbl install jc deferred dependencies' do
     expect(@helper_exists_after).to eq(true)
     expect(@helper_executable_after).to eq(true)
   end
-end
-
-describe 'bbl search イエス キリスト in jc exact output' do
-  include_context 'search helpers'
-  let(:command_text) { 'bbl search イエス キリスト in jc' }
-  let(:result) { command(command_text) }
-  subject(:results) { search_results('bbl search イエス キリスト in jc') }
 
   it 'returns successfully' do
-    expect(result.exit_status).to eq(0)
+    expect(@search_result.exit_status).to eq(0)
   end
 
   it 'includes the expected kuromoji phrase' do
-    expect(search_stdout(command_text)).to include('イエス・キリストの系図。')
+    expect(@search_stdout).to include('イエス・キリストの系図。')
   end
 
   it 'starts with the expected kuromoji verse text' do
-    expect(results.first).to eq('マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。')
+    expect(@search_results.first).to eq('マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。')
+  end
+
+  it 'uninstalls jc successfully' do
+    expect(@uninstall_exit_status).to eq(0)
+  end
+
+  it 'removes jc.zip' do
+    expect(@pack_missing_after_uninstall).to eq(true)
+  end
+
+  it 'removes the kuromoji search helper' do
+    expect(@helper_missing_after_uninstall).to eq(true)
   end
 end
 

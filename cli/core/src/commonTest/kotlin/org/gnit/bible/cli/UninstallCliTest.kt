@@ -73,14 +73,28 @@ class UninstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblUninstallMultipleTranslations() {
         val result = Bbl(bible = bible).test("uninstall kttv th1971").stdout
-        assertEquals("Uninstalled kttv\nUninstalled th1971\n", result)
+        assertEquals("Uninstalled kttv\nUninstalled bbl-search-extra\nUninstalled th1971\n", result)
         assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/kttv.zip".toPath()))
         assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/th1971.zip".toPath()))
+        assertFalse(fakeFs.exists("/tmp/bin/bbl-search-extra".toPath()))
+    }
+
+    @Test
+    fun testBblUninstallKeepsSearchBinaryStillNeededByAnotherPack() {
+        Bbl(bible = bible).test("install ubio ubg")
+
+        val result = Bbl(bible = bible).test("uninstall ubio").stdout
+
+        assertEquals("Uninstalled ubio\n", result)
+        assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/ubio.zip".toPath()))
+        assertEquals(true, fakeFs.exists("/tmp/bblpack-cli-uninstall/ubg.zip".toPath()))
+        assertEquals(true, fakeFs.exists("/tmp/bin/bbl-search-morfologik".toPath()))
     }
 
     fun assertResult(result: String){
-        assertEquals("Uninstalled kttv\n", result)
+        assertEquals("Uninstalled kttv\nUninstalled bbl-search-extra\n", result)
         val zipPath = "/tmp/bblpack-cli-uninstall/kttv.zip".toPath()
         assertFalse(fakeFs.exists(zipPath))
+        assertFalse(fakeFs.exists("/tmp/bin/bbl-search-extra".toPath()))
     }
 }
