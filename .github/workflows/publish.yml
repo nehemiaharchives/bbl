@@ -1,0 +1,245 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example v0.1.0'
+        required: true
+        type: string
+      ref:
+        description: 'Branch, tag, or commit SHA to build'
+        required: true
+        default: master
+        type: string
+      draft:
+        description: 'Create a draft release'
+        required: true
+        default: true
+        type: boolean
+      prerelease:
+        description: 'Mark the release as a prerelease'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli-assets:
+    name: Build CLI asset (${{ matrix.asset }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - asset: linux-x64
+            os: ubuntu-latest
+            timeout: 45
+            konan_cache_key: linux
+            gradle_command: ./gradlew
+            gradle_target: LinuxX64
+            bin_target: linuxX64
+            executable_extension: .kexe
+            archive_extension: tar.gz
+          - asset: macos-arm64
+            os: macos-latest
+            timeout: 45
+            konan_cache_key: macos
+            gradle_command: ./gradlew
+            gradle_target: MacosArm64
+            bin_target: macosArm64
+            executable_extension: .kexe
+            archive_extension: tar.gz
+            xcode_version: '16.4'
+          - asset: windows-x64
+            os: windows-latest
+            timeout: 60
+            konan_cache_key: windows
+            gradle_command: ./gradlew.bat
+            gradle_target: MingwX64
+            bin_target: mingwX64
+            executable_extension: .exe
+            archive_extension: zip
+
+    steps:
+      - name: Resolve release tag
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.release.outputs.ref }}
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ runner.os == 'macOS' }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Konan Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key }}-konan-
+
+      - name: Build release executables
+        shell: bash
+        run: |
+          ${{ matrix.gradle_command }} \
+            :cli:core:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:common:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:extra:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:kuromoji:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:morfologik:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:nori:linkReleaseExecutable${{ matrix.gradle_target }} \
+            :cli:search:smartcn:linkReleaseExecutable${{ matrix.gradle_target }} \
+            "-Pbblpacks.embed=false"
+
+      - name: Package Unix CLI asset
+        if: ${{ runner.os != 'Windows' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ steps.release.outputs.tag }}"
+          asset="${{ matrix.asset }}"
+          target="${{ matrix.bin_target }}"
+          ext="${{ matrix.executable_extension }}"
+          package_dir="build/release/bbl-${tag}-${asset}"
+
+          rm -rf build/release dist
+          mkdir -p "$package_dir" dist
+
+          cp "cli/core/build/bin/${target}/releaseExecutable/bbl${ext}" "$package_dir/bbl"
+          cp "cli/search/common/build/bin/${target}/releaseExecutable/bbl-search-common${ext}" "$package_dir/bbl-search-common"
+          cp "cli/search/extra/build/bin/${target}/releaseExecutable/bbl-search-extra${ext}" "$package_dir/bbl-search-extra"
+          cp "cli/search/kuromoji/build/bin/${target}/releaseExecutable/bbl-search-kuromoji${ext}" "$package_dir/bbl-search-kuromoji"
+          cp "cli/search/morfologik/build/bin/${target}/releaseExecutable/bbl-search-morfologik${ext}" "$package_dir/bbl-search-morfologik"
+          cp "cli/search/nori/build/bin/${target}/releaseExecutable/bbl-search-nori${ext}" "$package_dir/bbl-search-nori"
+          cp "cli/search/smartcn/build/bin/${target}/releaseExecutable/bbl-search-smartcn${ext}" "$package_dir/bbl-search-smartcn"
+          cp server/src/main/resources/files/bblpacks/*.zip "$package_dir/"
+          chmod +x "$package_dir"/bbl "$package_dir"/bbl-search-*
+
+          tar -C build/release -czf "dist/bbl-${tag}-${asset}.tar.gz" "bbl-${tag}-${asset}"
+
+      - name: Package Windows CLI asset
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = '${{ steps.release.outputs.tag }}'
+          $asset = '${{ matrix.asset }}'
+          $target = '${{ matrix.bin_target }}'
+          $packageDir = "build/release/bbl-$tag-$asset"
+
+          Remove-Item -Recurse -Force build/release, dist -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force $packageDir, dist | Out-Null
+
+          Copy-Item "cli/core/build/bin/$target/releaseExecutable/bbl.exe" "$packageDir/bbl.exe"
+          Copy-Item "cli/search/common/build/bin/$target/releaseExecutable/bbl-search-common.exe" "$packageDir/bbl-search-common.exe"
+          Copy-Item "cli/search/extra/build/bin/$target/releaseExecutable/bbl-search-extra.exe" "$packageDir/bbl-search-extra.exe"
+          Copy-Item "cli/search/kuromoji/build/bin/$target/releaseExecutable/bbl-search-kuromoji.exe" "$packageDir/bbl-search-kuromoji.exe"
+          Copy-Item "cli/search/morfologik/build/bin/$target/releaseExecutable/bbl-search-morfologik.exe" "$packageDir/bbl-search-morfologik.exe"
+          Copy-Item "cli/search/nori/build/bin/$target/releaseExecutable/bbl-search-nori.exe" "$packageDir/bbl-search-nori.exe"
+          Copy-Item "cli/search/smartcn/build/bin/$target/releaseExecutable/bbl-search-smartcn.exe" "$packageDir/bbl-search-smartcn.exe"
+          Copy-Item "server/src/main/resources/files/bblpacks/*.zip" "$packageDir/"
+
+          Compress-Archive -Path "$packageDir" -DestinationPath "dist/bbl-$tag-$asset.zip" -Force
+
+      - name: Upload CLI asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.asset }}
+          path: dist/*.${{ matrix.archive_extension }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-cli-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Resolve release options
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "target=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+            echo "draft=${{ inputs.draft }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ inputs.prerelease }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "target=" >> "$GITHUB_OUTPUT"
+            echo "draft=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download CLI assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create or update release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_TARGET: ${{ steps.release.outputs.target }}
+          RELEASE_DRAFT: ${{ steps.release.outputs.draft }}
+          RELEASE_PRERELEASE: ${{ steps.release.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+            exit 0
+          fi
+
+          args=(--title "$RELEASE_TAG" --generate-notes)
+          if [ -n "$RELEASE_TARGET" ]; then
+            args+=(--target "$RELEASE_TARGET")
+          fi
+          if [ "$RELEASE_DRAFT" = "true" ]; then
+            args+=(--draft)
+          fi
+          if [ "$RELEASE_PRERELEASE" = "true" ]; then
+            args+=(--prerelease)
+          fi
+
+          gh release create "$RELEASE_TAG" dist/* "${args[@]}"
