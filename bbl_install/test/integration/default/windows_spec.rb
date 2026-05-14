@@ -21,7 +21,9 @@ end
 
 WINDOWS_BBL_COMMAND = lambda { |args| WINDOWS_EXECUTABLE_COMMAND.call(BBL_BIN, args) }
 
-def zip_manifest_bbl_version(zip_content, manifest_name)
+zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
+  return nil if zip_content.nil? || zip_content.empty?
+
   Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
     while (entry = zip.get_next_entry)
       return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
@@ -169,7 +171,7 @@ end
 installed_pack_codes.each do |pack_code|
   describe "#{pack_code}.zip manifest bblVersion" do
     subject(:bbl_version) do
-      zip_manifest_bbl_version(file("#{pack_dir}\\#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
+      zip_manifest_bbl_version.call(file("#{pack_dir}\\#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
     end
 
     it { should eq(expected_bbl_version) }

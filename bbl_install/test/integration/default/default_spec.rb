@@ -23,7 +23,9 @@ installed_search_helpers = %w[
   bbl-search-smartcn
 ]
 
-def zip_manifest_bbl_version(zip_content, manifest_name)
+zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
+  return nil if zip_content.nil? || zip_content.empty?
+
   Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
     while (entry = zip.get_next_entry)
       return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
@@ -154,7 +156,7 @@ end
 installed_pack_codes.each do |pack_code|
   describe "#{pack_code}.zip manifest bblVersion" do
     subject(:bbl_version) do
-      zip_manifest_bbl_version(file("#{pack_dir}/#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
+      zip_manifest_bbl_version.call(file("#{pack_dir}/#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
     end
 
     it { should eq(expected_bbl_version) }
@@ -275,7 +277,7 @@ describe 'bbl install jc deferred dependencies' do
     @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
     @pack_size_after = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
-    @pack_version_after = zip_manifest_bbl_version(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
+    @pack_version_after = zip_manifest_bbl_version.call(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_version_after = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')

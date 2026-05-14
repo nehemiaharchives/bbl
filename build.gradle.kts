@@ -156,7 +156,7 @@ val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") 
 val bblInstallVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/version.txt")
 val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Stage the expected bbl version file for bbl_install Kitchen tests."
+    description = "Stage the expected bbl version file for bbl_install Kitchen tests and local cookbook runs."
 
     inputs.property("bblCliVersion", bblCliVersionProvider)
     outputs.file(bblInstallVersionFixtureFile)
@@ -165,6 +165,10 @@ val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixtur
         val versionFile = bblInstallVersionFixtureFile.get().asFile
         versionFile.parentFile.mkdirs()
         versionFile.writeText("${bblCliVersionProvider.get()}\n")
+
+        val cookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt").asFile
+        cookbookVersionFile.parentFile.mkdirs()
+        cookbookVersionFile.writeText(versionFile.readText())
     }
 }
 

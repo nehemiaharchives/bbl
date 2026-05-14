@@ -85,9 +85,14 @@ method as a packer entry point:
   ```shell
   ./gradlew verifyServerBblPackVersions
   ```
+- write the shared Kitchen version fixture into both `build/bblInstallFixtures/common/version.txt` and `bbl_install/files/version.txt`:
+  ```shell
+  ./gradlew stageBblInstallVersionFixture
+  ```
 
 JetBrains run configurations are committed for the same three commands:
-`packBblTranslation sven`, `packBblAllTranslations`, and `verifyServerBblPackVersions`.
+`packBblTranslation sven`, `packBblAllTranslations`, `verifyServerBblPackVersions`,
+and `stageBblInstallVersionFixture`.
 Change the `bblpack.translation` value in the first configuration when working on another language.
 
 ### Build and Run iOS Application

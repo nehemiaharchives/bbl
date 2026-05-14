@@ -88,6 +88,52 @@ class InstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblInstallUsesBuiltInCatalogWhenFetchedListOmitsEmbeddedTranslation() {
+        val remoteListWithoutJc = "[]"
+        val httpClient = HttpClient(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json" -> respond(
+                    content = remoteListWithoutJc,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/json"),
+                        "Content-Length" to listOf(remoteListWithoutJc.encodeToByteArray().size.toString())
+                    )
+                )
+
+                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks/jc.zip" -> respond(
+                    content = TestFixtures.jcMinimalZipBytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(TestFixtures.jcMinimalZipBytes.size.toString())
+                    )
+                )
+
+                "/nehemiaharchives/bbl-kmp/releases/download/$bblCliVersion/${searchHelperName("kuromoji")}" -> {
+                    val bytes = "kuromoji helper".encodeToByteArray()
+                    respond(
+                        content = bytes,
+                        headers = headersOf(
+                            "Content-Type" to listOf("application/octet-stream"),
+                            "Content-Length" to listOf(bytes.size.toString())
+                        )
+                    )
+                }
+
+                else -> error("Unexpected request for path: ${request.url.encodedPath}")
+            }
+        })
+        val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
+        val versionedBible = Bible(assetManager = assetManager)
+        val result = Bbl(bible = versionedBible).test("install jc").output.replace("\r\n", "\n")
+
+        assertEquals("Installed jc\nInstalled ${searchHelperName("kuromoji")}\n", result)
+        val packPath = versionedBible.assetManager.platform.packDir.toPath() / "jc.zip"
+        val helperPath = versionedBible.assetManager.platform.packDir.toPath().parent!! / "bin" / searchHelperName("kuromoji")
+        assertTrue(fakeFs.exists(packPath))
+        assertTrue(fakeFs.exists(helperPath))
+    }
+
+    @Test
     fun testDefaultSearchBinaryBaseUrlPinnedToBblCliVersion() {
         assertEquals(
             "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblCliVersion",

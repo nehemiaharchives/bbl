@@ -65,7 +65,8 @@ class InstallCli(
                 .getOrDefault(downloadableTranslationsCmp)
         }
 
-        val downloadableByCode = downloadable.associateBy { it.code }
+        val downloadableByCode = (downloadable + downloadableTranslationsCmp)
+            .associateBy { it.code }
         val availableDownloadableCodes = downloadableByCode.keys
         val unknownCodes = toInstall.filterNot { it in availableDownloadableCodes }
         if (unknownCodes.isNotEmpty()) {
