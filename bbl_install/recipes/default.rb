@@ -12,6 +12,8 @@ macos = platform_family?('mac_os_x')
 posix_owner = macos ? (ENV['SUDO_USER'] || ENV['USER'] || Etc.getlogin) : 'root'
 posix_group = macos ? Etc.getgrgid(Etc.getpwnam(posix_owner).gid).name : 'root'
 system_group = macos ? 'wheel' : 'root'
+system_owner = macos ? posix_owner : 'root'
+install_group = macos ? posix_group : system_group
 
 def install_windows_cookbook_file(path, source_name)
   ruby_block "copy #{source_name} to #{path}" do
@@ -55,8 +57,8 @@ end
 
 if install_source_dir
   directory install_source_dir do
-    owner 'root'
-    group system_group
+    owner system_owner
+    group install_group
     mode '0755'
   end
 end
@@ -66,8 +68,8 @@ if windows
 else
   cookbook_file bbl_bin_path do
     source node['bbl_install']['bbl_binary_name']
-    owner 'root'
-    group system_group
+    owner system_owner
+    group install_group
     mode '0755'
   end
 end
@@ -103,8 +105,8 @@ end
 node['bbl_install']['deferred_helper_bin_names'].each do |bin_name|
   cookbook_file ::File.join(install_source_dir, bin_name) do
     source bin_name
-    owner 'root'
-    group system_group
+    owner system_owner
+    group install_group
     mode '0755'
   end
 end
@@ -112,8 +114,8 @@ end
 node['bbl_install']['deferred_pack_names'].each do |pack_name|
   cookbook_file ::File.join(install_source_dir, pack_name) do
     source pack_name
-    owner 'root'
-    group system_group
+    owner system_owner
+    group install_group
     mode '0644'
   end
 end

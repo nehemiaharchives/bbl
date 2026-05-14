@@ -61,13 +61,17 @@ platforms:
       name: exec
     lifecycle:
       post_destroy:
-        - local: sudo sh support/cleanup-macos-local.sh
+        - local: sh support/cleanup-macos-local.sh
     provisioner:
       name: chef_infra
-      sudo: true
+      command_prefix: PATH=/usr/local/opt/ruby/bin:/opt/homebrew/opt/ruby/bin:$PATH
+      sudo: false
       require_chef_omnibus: false
       chef_license: accept-no-persist
       chef_client_path: <%= File.expand_path("support/chef-client-rubygem.rb", __dir__) %>
+    verifier:
+      command_prefix: PATH=/usr/local/opt/ruby/bin:/opt/homebrew/opt/ruby/bin:$PATH
+      sudo: false
 
 suites:
   - name: default

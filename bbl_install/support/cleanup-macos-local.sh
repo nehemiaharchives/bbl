@@ -9,15 +9,7 @@ else
 fi
 
 install_root="$target_home/.bbl"
-bbl_binary="/usr/local/bin/bbl"
 install_source_dir="/tmp/bbl-install-downloads"
-
-if [ -e "$bbl_binary" ] || [ -L "$bbl_binary" ]; then
-  rm -f "$bbl_binary"
-  echo "Removed $bbl_binary"
-else
-  echo "$bbl_binary does not exist"
-fi
 
 if [ -d "$install_root" ]; then
   rm -rf "$install_root"

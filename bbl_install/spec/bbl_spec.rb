@@ -195,6 +195,7 @@ describe 'bbl_install::default' do
     let(:install_root) { ::File.join(home_dir, '.bbl') }
     let(:bin_dir) { ::File.join(install_root, 'bin') }
     let(:pack_dir) { ::File.join(install_root, 'packs') }
+    let(:install_source_dir) { '/tmp/bbl-install-downloads' }
     let(:current_user) { 'runner' }
     let(:current_group) { 'staff' }
 
@@ -222,18 +223,18 @@ describe 'bbl_install::default' do
         group: current_group,
         mode: '0755'
       )
-      expect(chef_run).to create_directory('/tmp/bbl-install-downloads').with(
-        owner: 'root',
-        group: 'wheel',
+      expect(chef_run).to create_directory(install_source_dir).with(
+        owner: current_user,
+        group: current_group,
         mode: '0755'
       )
     end
 
-    it 'copies the native bbl binary to /usr/local/bin' do
-      expect(chef_run).to create_cookbook_file('/usr/local/bin/bbl').with(
+    it 'copies the native bbl binary under the local home directory' do
+      expect(chef_run).to create_cookbook_file(::File.join(bin_dir, 'bbl')).with(
         source: 'bbl',
-        owner: 'root',
-        group: 'wheel',
+        owner: current_user,
+        group: current_group,
         mode: '0755'
       )
     end

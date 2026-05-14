@@ -1,8 +1,10 @@
-macos = os.name == 'darwin'
+macos = %w[darwin mac_os_x].include?(os.name.to_s)
 home_dir = macos ? os_env('HOME').content : '/root'
 install_root = "#{home_dir}/.bbl"
 pack_dir = "#{install_root}/packs"
 bin_dir = "#{install_root}/bin"
+bbl_bin_path = macos ? "#{bin_dir}/bbl" : '/usr/bin/bbl'
+bbl_command = lambda { |args| "#{bbl_bin_path} #{args}" }
 install_source_dir = '/tmp/bbl-install-downloads'
 install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
 stat_size_command = macos ? 'stat -f %z' : 'stat -c %s'
@@ -30,13 +32,13 @@ end
 
 unless os.windows?
 
-describe file('/usr/bin/bbl') do
+describe file(bbl_bin_path) do
   it { should exist }
   it { should be_file }
   it { should be_executable }
 end
 
-describe command 'bbl -v' do
+describe command(bbl_command.call('-v')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/bbl version 4\.0/) }
 end
@@ -112,14 +114,14 @@ describe file("#{bin_dir}/bbl-search-smartcn") do
   it { should be_executable }
 end
 
-describe command('bbl search Jesus Christ') do
+describe command(bbl_command.call('search Jesus Christ')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
 end
 
 describe 'bbl list translations output' do
   include_context 'search helpers'
-  subject(:translations) { translation_list_lines('bbl list translations') }
+  subject(:translations) { translation_list_lines(bbl_command.call('list translations')) }
 
   it 'lists the full translation catalog' do
     expect(translations.length).to eq(27)
@@ -128,7 +130,7 @@ end
 
 describe 'bbl search Jesus Christ exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results('bbl search Jesus Christ') }
+  subject(:results) { search_results(bbl_command.call('search Jesus Christ')) }
 
   it 'starts with the expected webus verse text' do
     expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
@@ -139,14 +141,14 @@ describe 'bbl search Jesus Christ exact output' do
   end
 end
 
-describe command('bbl search Jesus Christ in kjv') do
+describe command(bbl_command.call('search Jesus Christ in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the generation of Jesus Christ/) }
 end
 
 describe 'bbl search Jesus Christ in kjv exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results('bbl search Jesus Christ in kjv') }
+  subject(:results) { search_results(bbl_command.call('search Jesus Christ in kjv')) }
 
   it 'starts with the expected kjv verse text' do
     expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
@@ -157,14 +159,14 @@ describe 'bbl search Jesus Christ in kjv exact output' do
   end
 end
 
-describe command('bbl search Jesus Christ in romans') do
+describe command(bbl_command.call('search Jesus Christ in romans')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
 end
 
 describe 'bbl search Jesus Christ in romans exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results('bbl search Jesus Christ in romans') }
+  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans')) }
 
   it 'starts with the expected romans webus verse text' do
     expect(results.first).to eq('Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,')
@@ -175,14 +177,14 @@ describe 'bbl search Jesus Christ in romans exact output' do
   end
 end
 
-describe command('bbl search Jesus Christ in romans 5-12') do
+describe command(bbl_command.call('search Jesus Christ in romans 5-12')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Being therefore justified by faith/) }
 end
 
 describe 'bbl search Jesus Christ in romans 5-12 exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results('bbl search Jesus Christ in romans 5-12') }
+  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans 5-12')) }
 
   it 'starts with the expected romans chapter-range webus verse text' do
     expect(results.first).to eq('Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;')
@@ -193,14 +195,14 @@ describe 'bbl search Jesus Christ in romans 5-12 exact output' do
   end
 end
 
-describe command('bbl search Jesus Christ in romans 5-12 in kjv') do
+describe command(bbl_command.call('search Jesus Christ in romans 5-12 in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Therefore being justified by faith/) }
 end
 
 describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results('bbl search Jesus Christ in romans 5-12 in kjv') }
+  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans 5-12 in kjv')) }
 
   it 'starts with the expected romans chapter-range kjv verse text' do
     expect(results.first).to eq('Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:')
@@ -213,30 +215,30 @@ end
 
 describe 'bbl install jc deferred dependencies' do
   before(:all) do
-    @cleanup_result = command("#{install_env} sh -lc 'bbl uninstall jc >/dev/null 2>&1 || true; rm -f #{pack_dir}/jc.zip #{bin_dir}/bbl-search-kuromoji'")
-    @list_before_install_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # before_install")
+    @cleanup_result = command("#{install_env} sh -lc '#{bbl_command.call('uninstall jc')} >/dev/null 2>&1 || true; rm -f #{pack_dir}/jc.zip #{bin_dir}/bbl-search-kuromoji'")
+    @list_before_install_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # before_install")
     @list_before_install_stdout = @list_before_install_result.stdout.force_encoding('UTF-8')
     @jc_line_before_install = @list_before_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_existed_before = command("test -e #{pack_dir}/jc.zip").exit_status == 0
     @helper_existed_before = command("test -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-    @install_result = command("#{install_env} bbl install jc")
+    @install_result = command("#{install_env} #{bbl_command.call('install jc')}")
     @install_exit_status = @install_result.exit_status
-    @list_after_install_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # after_install")
+    @list_after_install_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # after_install")
     @list_after_install_stdout = @list_after_install_result.stdout.force_encoding('UTF-8')
     @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
     @pack_size_after = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-    @search_result = command('bbl search イエス キリスト in jc')
+    @search_result = command(bbl_command.call('search イエス キリスト in jc'))
     @search_stdout = @search_result.stdout.force_encoding('UTF-8')
     @search_results = @search_stdout
       .split("\n\n")
       .map(&:strip)
       .reject(&:empty?)
-    @uninstall_result = command('bbl uninstall jc')
+    @uninstall_result = command(bbl_command.call('uninstall jc'))
     @uninstall_exit_status = @uninstall_result.exit_status
-    @list_after_uninstall_result = command("sh -lc 'bbl list translations | grep \"^JC\"' # after_uninstall")
+    @list_after_uninstall_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # after_uninstall")
     @list_after_uninstall_stdout = @list_after_uninstall_result.stdout.force_encoding('UTF-8')
     @jc_line_after_uninstall = @list_after_uninstall_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_missing_after_uninstall = command("test ! -e #{pack_dir}/jc.zip").exit_status == 0
@@ -307,9 +309,9 @@ end
 
 describe 'bbl search 예수 그리스도 in krv exact output' do
   include_context 'search helpers'
-  let(:command_text) { 'bbl search 예수 그리스도 in krv' }
+  let(:command_text) { bbl_command.call('search 예수 그리스도 in krv') }
   let(:result) { command(command_text) }
-  subject(:results) { search_results('bbl search 예수 그리스도 in krv') }
+  subject(:results) { search_results(bbl_command.call('search 예수 그리스도 in krv')) }
 
   it 'returns successfully' do
     expect(result.exit_status).to eq(0)
@@ -326,9 +328,9 @@ end
 
 describe 'bbl search 耶稣基督 in cunp exact output' do
   include_context 'search helpers'
-  let(:command_text) { 'bbl search 耶稣基督 in cunp' }
+  let(:command_text) { bbl_command.call('search 耶稣基督 in cunp') }
   let(:result) { command(command_text) }
-  subject(:results) { search_results('bbl search 耶稣基督 in cunp') }
+  subject(:results) { search_results(bbl_command.call('search 耶稣基督 in cunp')) }
 
   it 'returns successfully' do
     expect(result.exit_status).to eq(0)
@@ -345,9 +347,9 @@ end
 
 describe 'bbl search Jezusa Chrystusa in ubg exact output' do
   include_context 'search helpers'
-  let(:command_text) { 'bbl search Jezusa Chrystusa in ubg' }
+  let(:command_text) { bbl_command.call('search Jezusa Chrystusa in ubg') }
   let(:result) { command(command_text) }
-  subject(:results) { search_results('bbl search Jezusa Chrystusa in ubg') }
+  subject(:results) { search_results(bbl_command.call('search Jezusa Chrystusa in ubg')) }
 
   it 'returns successfully' do
     expect(result.exit_status).to eq(0)
@@ -364,9 +366,9 @@ end
 
 describe 'bbl search Jêsus Christ in kttv exact output' do
   include_context 'search helpers'
-  let(:command_text) { 'bbl search Jêsus Christ in kttv' }
+  let(:command_text) { bbl_command.call('search Jêsus Christ in kttv') }
   let(:result) { command(command_text) }
-  subject(:results) { search_results('bbl search Jêsus Christ in kttv') }
+  subject(:results) { search_results(bbl_command.call('search Jêsus Christ in kttv')) }
 
   it 'returns successfully' do
     expect(result.exit_status).to eq(0)

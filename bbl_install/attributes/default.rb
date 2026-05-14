@@ -37,7 +37,7 @@ default['bbl_install']['pack_dir'] = pack_dir
 default['bbl_install']['bbl_binary_path'] = if windows
                                              ::File.join(bin_dir, 'bbl.exe')
                                            elsif macos
-                                             '/usr/local/bin/bbl'
+                                             ::File.join(bin_dir, 'bbl')
                                            else
                                              '/usr/bin/bbl'
                                            end
