@@ -63,7 +63,7 @@ describe 'bbl_install_linux::default' do
     end
 
     it 'copies the native bbl binary' do
-      expect(chef_run).to create_cookbook_file('/usr/local/bin/bbl').with(
+      expect(chef_run).to create_cookbook_file('/usr/bin/bbl').with(
         source: 'bbl',
         owner: 'root',
         group: 'root',

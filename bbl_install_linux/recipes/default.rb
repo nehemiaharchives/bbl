@@ -2,7 +2,7 @@ install_root = '/root/.bbl'
 bin_dir = "#{install_root}/bin"
 pack_dir = "#{install_root}/packs"
 install_source_dir = '/tmp/bbl-install-downloads'
-bbl_bin_path = '/usr/local/bin/bbl'
+bbl_bin_path = '/usr/bin/bbl'
 
 directory install_root do
   owner 'root'

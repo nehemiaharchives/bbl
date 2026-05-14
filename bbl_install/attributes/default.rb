@@ -24,7 +24,13 @@ pack_dir = ::File.join(install_root, 'packs')
 default['bbl_install']['install_root'] = install_root
 default['bbl_install']['bin_dir'] = bin_dir
 default['bbl_install']['pack_dir'] = pack_dir
-default['bbl_install']['bbl_binary_path'] = windows ? ::File.join(bin_dir, 'bbl.exe') : '/usr/local/bin/bbl'
+default['bbl_install']['bbl_binary_path'] = if windows
+                                             ::File.join(bin_dir, 'bbl.exe')
+                                           elsif macos
+                                             '/usr/local/bin/bbl'
+                                           else
+                                             '/usr/bin/bbl'
+                                           end
 default['bbl_install']['install_source_dir'] = windows ? nil : '/tmp/bbl-install-downloads'
 default['bbl_install']['bbl_binary_name'] = windows ? 'bbl.exe' : 'bbl'
 

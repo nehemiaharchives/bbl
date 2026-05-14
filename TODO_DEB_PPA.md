@@ -7,10 +7,11 @@ Recommended Path
    I’d use:
 
    /usr/bin/bbl
-   /usr/lib/bbl/bbl-search-*
-   /usr/share/bbl/packs/*.zip
+   $HOME/.bbl/bin/bbl-search-*
+   $HOME/.bbl/packs/*.zip
 
-   Then adjust the CLI if it currently assumes helpers or packs live beside the binary or under ~/.bbl. The .deb should not install into /usr/local or /root.
+   The .deb should not install into /usr/local or /root. It should install only the core bbl binary into /usr/bin and let bbl manage user-scoped helpers and packs under
+   $HOME/.bbl.
 
 3. Add a Debian packaging directory.
    Add something like:
@@ -90,7 +91,7 @@ time.
 
 • Yes. I would add .deb install E2E as a separate Linux job, not inside the existing Dokken cookbook job.
 
-The existing E2E (linux/cli) validates the Chef cookbook path: bbl_install_linux::default copies staged binaries into /usr/local/bin and /root/.bbl. A .deb E2E should validate
+The existing E2E (linux/cli) validates the Chef cookbook path: bbl_install_linux::default copies staged binaries into /usr/bin and /root/.bbl. A .deb E2E should validate
 the Debian package contract instead: package metadata, apt/dpkg installability, installed file layout, uninstall behavior, and then the same real CLI/search behavior.
 
 Step by step:

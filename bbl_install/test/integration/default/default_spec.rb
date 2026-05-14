@@ -22,7 +22,7 @@ end
 
 unless os.windows?
 
-describe file('/usr/local/bin/bbl') do
+describe file('/usr/bin/bbl') do
   it { should exist }
   it { should be_file }
   it { should be_executable }
