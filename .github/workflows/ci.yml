@@ -412,6 +412,8 @@ jobs:
     needs: tests
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      CHEF_LICENSE: accept-no-persist
 
     steps:
       - name: Checkout code
@@ -462,15 +464,15 @@ jobs:
 
       - name: Kitchen create
         working-directory: bbl_install
-        run: bundle exec kitchen create default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
+        run: bundle exec kitchen create 'default-ubuntu-(2604|2510|2404|2204)'
 
       - name: Kitchen converge
         working-directory: bbl_install
-        run: bundle exec kitchen converge default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
+        run: bundle exec kitchen converge 'default-ubuntu-(2604|2510|2404|2204)'
 
       - name: Kitchen verify
         working-directory: bbl_install
-        run: bundle exec kitchen verify default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
+        run: bundle exec kitchen verify 'default-ubuntu-(2604|2510|2404|2204)'
 
       - name: Build Summary
         if: always()

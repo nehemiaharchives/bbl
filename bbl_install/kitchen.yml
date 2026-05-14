@@ -8,6 +8,7 @@ transport:
 
 provisioner:
   name: dokken
+  chef_license: accept-no-persist
 
 verifier:
   name: inspec
@@ -17,25 +18,25 @@ platforms:
     driver:
       image: dokken/ubuntu-26.04
       privileged: true
-      pid_one_command: /bin/systemd
+      pid_one_command: /lib/systemd/systemd
 
   - name: ubuntu-25.10
     driver:
       image: dokken/ubuntu-25.10
       privileged: true
-      pid_one_command: /bin/systemd
+      pid_one_command: /lib/systemd/systemd
 
   - name: ubuntu-24.04
     driver:
       image: dokken/ubuntu-24.04
       privileged: true
-      pid_one_command: /bin/systemd
+      pid_one_command: /lib/systemd/systemd
 
   - name: ubuntu-22.04
     driver:
       image: dokken/ubuntu-22.04
       privileged: true
-      pid_one_command: /bin/systemd
+      pid_one_command: /lib/systemd/systemd
 
   - name: windows-local
     driver:
