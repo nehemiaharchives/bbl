@@ -43,6 +43,9 @@ platforms:
       name: local
     transport:
       name: exec
+    lifecycle:
+      post_destroy:
+        - local: powershell -NoProfile -ExecutionPolicy Bypass -File support/cleanup-windows-local.ps1
     provisioner:
       name: chef_infra
       require_chef_omnibus: false
@@ -56,6 +59,9 @@ platforms:
       name: local
     transport:
       name: exec
+    lifecycle:
+      post_destroy:
+        - local: sudo sh support/cleanup-macos-local.sh
     provisioner:
       name: chef_infra
       sudo: true
