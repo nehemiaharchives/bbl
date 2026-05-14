@@ -51,6 +51,7 @@ GEM
     base64 (0.3.0)
     bcrypt_pbkdf (1.1.2)
     bcrypt_pbkdf (1.1.2-arm64-darwin)
+    bcrypt_pbkdf (1.1.2-x64-mingw-ucrt)
     bcrypt_pbkdf (1.1.2-x86_64-darwin)
     benchmark (0.5.0)
     bigdecimal (4.1.2)
@@ -90,6 +91,53 @@ GEM
       uri (~> 1.0.4)
       uuidtools (>= 2.1.5, < 3.0)
       vault (~> 0.18.2)
+    chef (18.10.17-universal-mingw-ucrt)
+      addressable
+      aws-sdk-s3 (~> 1.91)
+      aws-sdk-secretsmanager (~> 1.46)
+      chef-config (= 18.10.17)
+      chef-powershell (~> 18.6.0)
+      chef-utils (= 18.10.17)
+      chef-vault
+      chef-zero (>= 15.0.21, < 15.2)
+      corefoundation (~> 0.3.4)
+      diff-lcs (>= 1.2.4, < 1.6.0, != 1.4.0)
+      erubis (~> 2.7)
+      ffi (>= 1.15.5, <= 1.16.3)
+      ffi-libarchive (~> 1.0, >= 1.0.3)
+      ffi-yajl (~> 2.2)
+      iniparse (~> 1.4)
+      inspec-core (>= 5, < 6)
+      iso8601 (>= 0.12.1, < 0.14)
+      license-acceptance (>= 1.0.5, < 3)
+      mixlib-archive (>= 0.4, < 2.0)
+      mixlib-authentication (>= 2.1, < 4)
+      mixlib-cli (>= 2.1.1, < 3.0)
+      mixlib-log (>= 2.0.3, < 3.2)
+      mixlib-shellout (>= 3.1.1, < 4.0)
+      net-ftp
+      net-sftp (>= 2.1.2, < 5.0)
+      ohai (~> 18.0)
+      plist (~> 3.2)
+      proxifier2 (~> 1.1)
+      syslog-logger (~> 1.6)
+      train-core (~> 3.13, >= 3.13.4)
+      train-rest (>= 0.4.1)
+      train-winrm (~> 0.4.0)
+      unf_ext (~> 0.0.8.2)
+      uri (~> 1.0.4)
+      uuidtools (>= 2.1.5, < 3.0)
+      vault (~> 0.18.2)
+      win32-api (~> 1.10.0)
+      win32-certstore (~> 0.6.15)
+      win32-event (~> 0.6.1)
+      win32-eventlog (= 0.6.3)
+      win32-mmap (~> 0.4.1)
+      win32-mutex (~> 0.4.2)
+      win32-process (~> 0.9)
+      win32-service (>= 2.1.5, < 3.0)
+      win32-taskscheduler (~> 2.0)
+      wmi-lite (~> 1.0)
     chef-cli (5.6.23)
       addressable (>= 2.3.5, < 2.9)
       chef (~> 18.0)
@@ -112,6 +160,9 @@ GEM
     chef-gyoku (1.5.0)
       builder (>= 2.1.2)
       rexml (~> 3.4)
+    chef-powershell (18.6.6)
+      ffi (~> 1.15)
+      ffi-yajl (~> 2.4)
     chef-telemetry (1.1.1)
       chef-config
       concurrent-ruby (~> 1.0)
@@ -212,9 +263,15 @@ GEM
       net-ssh
       ohai (>= 13.0)
     ffi (1.16.3)
+    ffi (1.16.3-x64-mingw-ucrt)
     ffi-libarchive (1.1.14)
       ffi (~> 1.0)
+    ffi-win32-extensions (1.0.4)
+      ffi
     ffi-yajl (2.7.7)
+      libyajl2 (>= 2.1)
+      yajl
+    ffi-yajl (2.7.7-universal-mingw-ucrt)
       libyajl2 (>= 2.1)
       yajl
     fuzzyurl (0.9.0)
@@ -290,6 +347,7 @@ GEM
       prism (>= 1.3.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
+    iso8601 (0.13.0)
     jmespath (1.6.2)
     json (2.19.5)
     jwt (2.10.2)
@@ -346,6 +404,11 @@ GEM
       ffi (< 1.17.0)
     mixlib-shellout (3.3.9)
       chef-utils
+    mixlib-shellout (3.3.9-x64-mingw-ucrt)
+      chef-utils
+      ffi-win32-extensions (~> 1.0.3)
+      win32-process (~> 0.9)
+      wmi-lite (~> 1.0)
     mixlib-versioning (1.2.12)
     molinillo (0.8.0)
     ms_rest (0.7.6)
@@ -487,6 +550,7 @@ GEM
       unicode-display_width (>= 1.5, < 3.0)
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
+    structured_warnings (0.5.0)
     syslog (0.4.0)
       logger
     syslog-logger (1.6.8)
@@ -580,6 +644,28 @@ GEM
     vault (0.18.2)
       aws-sigv4
     webrick (1.9.2)
+    win32-api (1.10.1-universal-mingw32)
+    win32-certstore (0.6.16)
+      chef-powershell
+      ffi
+    win32-event (0.6.3)
+      win32-ipc (>= 0.6.0)
+    win32-eventlog (0.6.3)
+      ffi
+    win32-ipc (0.7.0)
+      ffi
+    win32-mmap (0.4.2)
+      ffi
+    win32-mutex (0.4.3)
+      win32-ipc (>= 0.6.0)
+    win32-process (0.10.0)
+      ffi (>= 1.0.0)
+    win32-service (2.3.2)
+      ffi
+      ffi-win32-extensions
+    win32-taskscheduler (2.0.4)
+      ffi
+      structured_warnings
     wisper (2.0.1)
     wmi-lite (1.0.7)
     yajl (0.3.4)
@@ -591,6 +677,7 @@ PLATFORMS
   arm-linux-musl
   arm64-darwin
   ruby
+  x64-mingw-ucrt
   x86-linux-gnu
   x86-linux-musl
   x86_64-darwin
@@ -626,14 +713,18 @@ CHECKSUMS
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bcrypt_pbkdf (1.1.2) sha256=c2414c23ce66869b3eb9f643d6a3374d8322dfb5078125c82792304c10b94cf6
   bcrypt_pbkdf (1.1.2-arm64-darwin) sha256=afdd6feb6ed5a97b8e44caacb3f2d641b98af78e6a516d4a3520b69af5cf9fea
+  bcrypt_pbkdf (1.1.2-x64-mingw-ucrt) sha256=8d84326d1a922d71b90a1522333299e1d0c5fea4513e54cd2ca8c13cfeb34911
   bcrypt_pbkdf (1.1.2-x86_64-darwin) sha256=35f5639d0058e6c2cc2f856f9c0b14080543268d3047abe6bc81c513093caa0e
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
   bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
+  bundler (4.0.11) sha256=5bcec0fb78302e48d02ee46f10ee6e6942be647ba5b44a6d1ddfda9a240ce785
   chef (18.10.17) sha256=788579b42eea05697401fd7a14bc40f70534f69331c559dacbaac807bf572bfc
+  chef (18.10.17-universal-mingw-ucrt) sha256=334166ed389177a0a275d2a82bfd8910c8dfccd9bcbdca435bb06b07fd1d026d
   chef-cli (5.6.23) sha256=2f072ee833b27e67d080059c2b6f215bfaf32c6367feebd22f5ffff91fd3a757
   chef-config (18.10.17) sha256=ec684ffc82a762add030474e2f43f225925e0cbf071dd93aa21a4d1e63697022
   chef-gyoku (1.5.0) sha256=7354a3cff8243cc9bbf9ac136e63ecfbf4a7b6f07622f5a092a0f7626fcff836
+  chef-powershell (18.6.6) sha256=f25767322eeac14882bdd6745c366e99f588005065f02208f98066374679e290
   chef-telemetry (1.1.1) sha256=bd004fd20cd0677936d3ada881b1d318185a76186e1774634542366707633151
   chef-utils (18.10.17) sha256=ddabcd5487027c887f195f1b3fe94039319c59fde7944fb0908e1871a350dd42
   chef-vault (4.2.9) sha256=fff06a6e2215e1e3c034bc439ec9a7fccdb39c067f7b6697440a14f389ad634b
@@ -675,8 +766,11 @@ CHECKSUMS
   faraday-retry (1.0.4) sha256=dc659233777fabf96c69c2ffe56c0a5d2c102af90321a42cc6c90157bcd716aa
   fauxhai-chef (9.4.20) sha256=58803e5cfafa395cf3391c1c863328c2f9d3fe4dd4f768f0f4ad49484e0db7a6
   ffi (1.16.3) sha256=6d3242ff10c87271b0675c58d68d3f10148fabc2ad6da52a18123f06078871fb
+  ffi (1.16.3-x64-mingw-ucrt) sha256=ee2e15324f0bfc91927cda3314109495ad97299e9c0fd5c7074d058338837e7e
   ffi-libarchive (1.1.14) sha256=a3e4ca9484ee4ad754ad04fcc14a12686d48d1463c264173d6f8ff0a4df816a6
+  ffi-win32-extensions (1.0.4) sha256=9d01a511a7ea957d8f73a06892f3ccfa49dcb32be95c4edb86b5ba3103edea00
   ffi-yajl (2.7.7) sha256=0628764711c0eadf00df04512bb6af5ae800275556f1fcc312fcc1739760a812
+  ffi-yajl (2.7.7-universal-mingw-ucrt) sha256=0366fd8018ed7ad76478117fba2dcea713d09fdc46b883ef29af7ef27a492706
   fuzzyurl (0.9.0) sha256=542efa80f2bcaadbdc402c2f0b572f2e335a1d53e375aecad68bbb3d86860c0f
   google-apis-admin_directory_v1 (0.46.0) sha256=bd91d9a3fb6be2afff2d916e69ab888c9e8d296f9dc33df46e3f2c421f2717a6
   google-apis-cloudkms_v1 (0.41.0) sha256=7c492f1ab4f4d015bd9d937d6ce75179ec3843e28acfba9726e8c2b27f8b5aea
@@ -699,6 +793,7 @@ CHECKSUMS
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
   ipaddress (0.8.3) sha256=85640c4f9194c26937afc8c78e3074a8e7c97d5d1210358d1440f01034d006f5
   irb (1.17.0) sha256=168c4ddb93d8a361a045c41d92b2952c7a118fa73f23fe14e55609eb7a863aae
+  iso8601 (0.13.0) sha256=298c2b15b7be5fa95a1372813d36a2257656cd8e906dfbc1f5cb409851425aa2
   jmespath (1.6.2) sha256=238d774a58723d6c090494c8879b5e9918c19485f7e840f2c1c7532cf84ebcb1
   json (2.19.5) sha256=218a18553e4801d579ca7e0f5bc72bafd776d7397238a1fb4e74db5b0a812c59
   jwt (2.10.2) sha256=31e1ee46f7359883d5e622446969fe9c118c3da87a0b1dca765ce269c3a0c4f4
@@ -727,6 +822,7 @@ CHECKSUMS
   mixlib-install (3.16.0) sha256=821e0a84df4a200c7b9fc926e54305d0ac905f537eb9fdc53893fc1cbe36f873
   mixlib-log (3.1.2.1) sha256=497c681e4b8cfe6d6e5c9d286ff856f122053f706a27e69861a8dfe1a49b9069
   mixlib-shellout (3.3.9) sha256=0edf5ee3b07526de8eb5219af051752fb8df2691dc030ce233e248dedf4fd388
+  mixlib-shellout (3.3.9-x64-mingw-ucrt) sha256=0169db7b7dc6304903c7205588ca1194b3d3aab722c1f0090c2a8f42f67a6c57
   mixlib-versioning (1.2.12) sha256=798775c5e02ec2e3932cac3447ba51aabc096fbd310cc5a1ac9d77c11fcb1e33
   molinillo (0.8.0) sha256=efbff2716324e2a30bccd3eba1ff3a735f4d5d53ffddbc6a2f32c0ca9433045d
   ms_rest (0.7.6) sha256=272a1d592594c5c25edd2f3378c17ac9d840a29991572fb1bc7616d5565030ca
@@ -789,6 +885,7 @@ CHECKSUMS
   stringio (3.2.0) sha256=c37cb2e58b4ffbd33fe5cd948c05934af997b36e0b6ca6fdf43afa234cf222e1
   strings (0.2.1) sha256=933293b3c95cf85b81eb44b3cf673e3087661ba739bbadfeadf442083158d6fb
   strings-ansi (0.2.0) sha256=90262d760ea4a94cc2ae8d58205277a343409c288cbe7c29416b1826bd511c88
+  structured_warnings (0.5.0) sha256=864aca5a4d6b63cd3a948f9dcd7f5498af1cf42bcf4fd75e2c315b7d77a30583
   syslog (0.4.0) sha256=c4c38ae982fe72903ec41094b5e5f2dcbbc66f510d0225c9702e5e980d827472
   syslog-logger (1.6.8) sha256=7541f34681c7d10ed63e8ee82733b0a60f79264a6ef3f489a20dce80e105c293
   test-kitchen (4.0.0) sha256=24017be5f7a8867d1b77eee3fc64409be6f1fb0815c1a4e12a32ef885d3afe48
@@ -819,9 +916,19 @@ CHECKSUMS
   uuidtools (2.2.0) sha256=c4aed168141746d2357ce907626b83998084aeb3c6ac16670ae902a462191069
   vault (0.18.2) sha256=29346c2d8364c19effb548b7a8952bf187545b99b70d1ddde76bd6c69046d27c
   webrick (1.9.2) sha256=beb4a15fc474defed24a3bda4ffd88a490d517c9e4e6118c3edce59e45864131
+  win32-api (1.10.1-universal-mingw32) sha256=3cc7515d833e9cd61bec5e784d8c92c9f2468350660db0ecfb61c7fb59bec180
+  win32-certstore (0.6.16) sha256=7ef0681c07a2089546d36d11a6d0b38a095951a7b76f1a3cf176d7ed8a45b357
+  win32-event (0.6.3) sha256=cbc99c9f2ecc8b164af3c1f755f658cb6ade373ee1cf303cc5198a95d04455d5
+  win32-eventlog (0.6.3) sha256=18d7d6e6738fd3c37bfdeec3c4e97094a674934297609f803f1a0d2097e4056b
+  win32-ipc (0.7.0) sha256=d202d3ac371172b70316f4a4a77aa4a4a6a98f3d1fec2c1944783bbc457eb7a0
+  win32-mmap (0.4.2) sha256=5789e2aeb0d05ce3cfdae2af5b9b7d478f85b1c889a4527461bd8bb544e50151
+  win32-mutex (0.4.3) sha256=f75550a88609778f31fd1aa0212d6ed24898520adb11de63b27a477dd9af0c16
+  win32-process (0.10.0) sha256=ad2d401c62f56f922f3fabb7a55fd2b65ea85becbad3b5d9093ffe59c386f542
+  win32-service (2.3.2) sha256=7325861587aa19d5052279e0c18436ca82a160f11b40be3284614ca0475d281c
+  win32-taskscheduler (2.0.4) sha256=889c94843c11065251fb08642bce620495b5a60dac5bb30a45086ab80efcbddf
   wisper (2.0.1) sha256=ce17bc5c3a166f241a2e6613848b025c8146fce2defba505920c1d1f3f88fae6
   wmi-lite (1.0.7) sha256=116ef5bb470dbe60f58c2db9047af3064c16245d6562c646bc0d90877e27ddda
   yajl (0.3.4) sha256=0d718473ec261a817e18eb79648bb68d050baf2624783306a2d4dad5a50431e4
 
 BUNDLED WITH
-  4.0.10
+  4.0.11
