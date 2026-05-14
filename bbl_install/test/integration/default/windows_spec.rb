@@ -1,3 +1,7 @@
+require 'json'
+require 'stringio'
+require 'zip'
+
 if os.windows?
 
 local_app_data = os_env('LOCALAPPDATA').content
@@ -6,12 +10,36 @@ install_root = "#{user_profile}\\.bbl"
 pack_dir = "#{install_root}\\packs"
 bin_dir = "#{local_app_data}\\Programs\\bbl"
 helper_bin_dir = "#{install_root}\\bin"
+version_file_path = "#{install_root}\\version.txt"
+expected_bbl_version = file(version_file_path).content.to_s.strip
 BBL_BIN = "#{bin_dir}\\bbl.exe"
 
-WINDOWS_BBL_COMMAND = lambda do |args|
-  escaped_bbl = BBL_BIN.gsub("'", "''")
-  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& '#{escaped_bbl}' #{args}\""
+WINDOWS_EXECUTABLE_COMMAND = lambda do |path, args|
+  escaped_path = path.gsub("'", "''")
+  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& '#{escaped_path}' #{args}\""
 end
+
+WINDOWS_BBL_COMMAND = lambda { |args| WINDOWS_EXECUTABLE_COMMAND.call(BBL_BIN, args) }
+
+def zip_manifest_bbl_version(zip_content, manifest_name)
+  Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
+    while (entry = zip.get_next_entry)
+      return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
+    end
+  end
+
+  nil
+end
+
+installed_pack_codes = %w[webus kjv jc krv cunp ubg kttv]
+installed_search_helpers = %w[
+  bbl-search-common.exe
+  bbl-search-extra.exe
+  bbl-search-kuromoji.exe
+  bbl-search-morfologik.exe
+  bbl-search-nori.exe
+  bbl-search-smartcn.exe
+]
 
 RSpec.shared_context 'windows search helpers' do
   def bbl_command(args)
@@ -43,9 +71,15 @@ describe file(BBL_BIN) do
   it { should be_file }
 end
 
+describe file(version_file_path) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
 describe command(WINDOWS_BBL_COMMAND.call('-v')) do
   its('exit_status') { should eq 0 }
-  its('stdout') { should match(/bbl version 4\.0/) }
+  its('stdout') { should include("bbl version #{expected_bbl_version}") }
 end
 
 describe file(pack_dir) do
@@ -123,6 +157,23 @@ end
 describe file("#{helper_bin_dir}\\bbl-search-smartcn.exe") do
   it { should exist }
   it { should be_file }
+end
+
+installed_search_helpers.each do |helper_name|
+  describe command(WINDOWS_EXECUTABLE_COMMAND.call("#{helper_bin_dir}\\#{helper_name}", '--version')) do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should include("#{helper_name.delete_suffix('.exe')} version #{expected_bbl_version}") }
+  end
+end
+
+installed_pack_codes.each do |pack_code|
+  describe "#{pack_code}.zip manifest bblVersion" do
+    subject(:bbl_version) do
+      zip_manifest_bbl_version(file("#{pack_dir}\\#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
+    end
+
+    it { should eq(expected_bbl_version) }
+  end
 end
 
 describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ')) do

@@ -3,11 +3,11 @@ name: Publish
 on:
   push:
     tags:
-      - 'v*'
+      - '[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag, for example v0.1.0'
+        description: 'Release tag, for example 4.0.0'
         required: true
         type: string
       ref:
@@ -120,6 +120,11 @@ jobs:
             :cli:search:nori:linkReleaseExecutable${{ matrix.gradle_target }} \
             :cli:search:smartcn:linkReleaseExecutable${{ matrix.gradle_target }} \
             "-Pbblpacks.embed=false"
+
+      - name: Verify bundled bblpack versions
+        shell: bash
+        run: |
+          ${{ matrix.gradle_command }} verifyServerBblPackVersions "-Pbblpacks.embed=false"
 
       - name: Package Unix CLI asset
         if: ${{ runner.os != 'Windows' }}

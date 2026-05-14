@@ -71,3 +71,32 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().con
         )
     }
 }
+
+val jvmRuntimeClasspath by configurations.getting
+
+fun org.gradle.api.tasks.JavaExec.configurePackBblExec() {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    mainClass.set("org.gnit.bible.cli.PackCliKt")
+    classpath = files(
+        layout.buildDirectory.dir("classes/kotlin/jvm/main"),
+        layout.buildDirectory.dir("processedResources/jvm/main"),
+        jvmRuntimeClasspath
+    )
+    workingDir = layout.projectDirectory.asFile
+    dependsOn(tasks.named("jvmMainClasses"))
+}
+
+tasks.register<JavaExec>("packBblTranslation") {
+    configurePackBblExec()
+    description = "Regenerate one server bblpack. Use -Pbblpack.translation=<code>, for example sven."
+    val translationCode = providers.gradleProperty("bblpack.translation").orElse("sven")
+    doFirst {
+        args(translationCode.get())
+    }
+}
+
+tasks.register<JavaExec>("packBblAllTranslations") {
+    configurePackBblExec()
+    description = "Regenerate every downloadable server bblpack."
+    args("--all")
+}

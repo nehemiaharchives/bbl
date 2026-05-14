@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
@@ -32,11 +33,14 @@ class MorfologikAnalyzerProvider : AnalyzerProvider {
     }
 }
 
+private const val searchHelperBinaryName = "bbl-search-morfologik"
+
 private class SearchHelperCli(
     private val bible: Bible
-) : CliktCommand(name = "bbl-search-morfologik") {
+) : CliktCommand(name = searchHelperBinaryName) {
 
     private val termParts by argument(help = "search term").multiple()
+    private val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
     private val translationCode by option("-t", "--translation", help = "translation code")
     private val bookNumber by option("--book", help = "book number").convert { it.toInt() }
     private val startChapter by option("--chapter", help = "chapter number").convert { it.toInt() }
@@ -44,6 +48,11 @@ private class SearchHelperCli(
     private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }.default(100)
 
     override fun run() {
+        if (versionFlag) {
+            echo(bblSearchHelperVersionLine(searchHelperBinaryName))
+            return
+        }
+
         val term = termParts.joinToString(separator = " ").trim()
         if (term.isBlank()) throw UsageError("Missing search term")
 

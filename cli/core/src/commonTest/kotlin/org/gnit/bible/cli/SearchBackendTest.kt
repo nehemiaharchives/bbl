@@ -5,7 +5,6 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.Platform
@@ -66,7 +65,13 @@ class SearchBackendTest : ResourcesTestBase() {
         val binaryPath = binDir / searchHelperName("kuromoji")
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
-        val runner = FakeProcessRunner(ProcessResult(0, "ok", ""))
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--version") {
+                ProcessResult(0, bblSearchHelperVersionLine(searchHelperName("kuromoji")), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
         val selector = SearchBackendSelector(
             bible = bible,
             processRunner = runner,
@@ -104,7 +109,13 @@ class SearchBackendTest : ResourcesTestBase() {
         val binaryPath = binDir / searchHelperName("kuromoji")
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
-        val runner = FakeProcessRunner(ProcessResult(2, "", "boom"))
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--version") {
+                ProcessResult(0, bblSearchHelperVersionLine(searchHelperName("kuromoji")), "")
+            } else {
+                ProcessResult(2, "", "boom")
+            }
+        }
         val selector = SearchBackendSelector(
             bible = bible,
             processRunner = runner,
@@ -131,14 +142,54 @@ class SearchBackendTest : ResourcesTestBase() {
         assertTrue(message.contains("boom"))
     }
 
+    @Test
+    fun externalBackendRejectsMismatchedHelperVersion() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("kuromoji")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--version") {
+                ProcessResult(0, "bbl-search-kuromoji version 0.0.1", "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+
+        val backend = selector.backendFor(Language.ja)
+        val request = SearchRequest(
+            term = "grace",
+            translation = Translation.jc,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5
+        )
+
+        val error = assertFailsWith<SearchBackendException> {
+            backend.search(request)
+        }
+
+        val message = error.message ?: ""
+        assertTrue(message.contains("version mismatch"))
+        assertTrue(message.contains(bblCliVersion))
+    }
+
     private class FakeProcessRunner(
-        private val result: ProcessResult = ProcessResult(0, "", "")
+        private val resultProvider: (List<String>) -> ProcessResult = { ProcessResult(0, "", "") }
     ) : ProcessRunner {
         var lastCommand: List<String>? = null
 
         override fun run(command: List<String>): ProcessResult {
             lastCommand = command
-            return result
+            return resultProvider(command)
         }
     }
 

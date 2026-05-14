@@ -80,7 +80,7 @@ class AssetManagerTest : ResourcesTestBase() {
     fun testDownloadableTranslationList() {
         val httpClient = HttpClient(TestFixtures.downloadableTranslationsListMockEngine)
         val am = AssetManagerImpl(httpClient, platform)
-        val listUrl = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json"
+        val listUrl = DOWNLOADABLE_BIBLE_LIST_URL
         val result = runBlocking { am.downloadableTranslationList(listUrl) }
 
         val abtag = result.firstOrNull { it.code == "abtag" }

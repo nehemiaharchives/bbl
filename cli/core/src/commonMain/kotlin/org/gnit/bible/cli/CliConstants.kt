@@ -1,6 +1,5 @@
 package org.gnit.bible.cli
 
-const val bblCliVersion = 4.0
 
 val versionOutput = """
     bbl version $bblCliVersion

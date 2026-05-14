@@ -13,13 +13,14 @@ import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
+import org.gnit.bible.ZipBibleResourcesReader
 import okio.Path.Companion.toPath
 
 class InstallCli(
     private val bible: Bible,
     private val packBaseUrl: String = environmentVariable("BBL_PACK_BASE_URL") ?: DOWNLOADABLE_BIBLE_BASE_URL,
     private val searchBinaryBaseUrl: String = environmentVariable("BBL_SEARCH_BINARY_BASE_URL")
-        ?: "https://github.com/nehemiaharchives/bbl-kmp/releases/latest/download"
+        ?: bblReleaseDownloadBaseUrl
 ) : CliktCommand(name = "install") {
     private val logger = KotlinLogging.logger {}
 
@@ -38,10 +39,20 @@ class InstallCli(
             .map { it.lowercase() }
             .distinct()
 
-        val installedCodes = runCatching { am.downloadedTranslationCodes() }
+        val installedCodesBeforeValidation = runCatching { am.downloadedTranslationCodes() }
             .getOrDefault(emptyList())
             .toSet()
+        val incompatibleInstalledCodes = requestedCodes
+            .filter { it in installedCodesBeforeValidation }
+            .filterNot { isInstalledPackCompatible(it) }
+            .toSet()
 
+        incompatibleInstalledCodes.forEach {
+            echo("$it installed pack is incompatible with bbl $bblCliVersion, reinstalling")
+            runCatching { am.delete(it) }
+        }
+
+        val installedCodes = installedCodesBeforeValidation - incompatibleInstalledCodes
         val toInstall = requestedCodes.filterNot { it in installedCodes }
         if (toInstall.isEmpty()) {
             requestedCodes.forEach { echo("$it already installed, skipping download") }
@@ -86,9 +97,38 @@ class InstallCli(
                 throw CliktError("Installing $translationCode failed: file was not found after download")
             }
 
+            validateInstalledPackVersion(translationCode)
+
             echo("Installed $translationCode")
             installSearchBinaryIfNeeded(translation)
         }
+    }
+
+    private fun validateInstalledPackVersion(translationCode: String) {
+        val am = bible.assetManager
+        val manifestJson = runCatching {
+            ZipBibleResourcesReader(platform = am.platform, fileSystem = am.fileSystem).getManifestJson(translationCode)
+        }.getOrElse { error ->
+            runCatching { am.delete(translationCode) }
+            throw CliktError("Installing $translationCode failed: unable to read pack manifest: ${error.message}")
+        }
+
+        val packVersion = packManifestBblVersionOrNull(manifestJson)
+        if (packVersion != bblCliVersion) {
+            runCatching { am.delete(translationCode) }
+            val actual = packVersion ?: "<missing>"
+            throw CliktError(
+                "Installing $translationCode failed: pack manifest bblVersion $actual is incompatible with bbl $bblCliVersion"
+            )
+        }
+    }
+
+    private fun isInstalledPackCompatible(translationCode: String): Boolean {
+        val am = bible.assetManager
+        val manifestJson = runCatching {
+            ZipBibleResourcesReader(platform = am.platform, fileSystem = am.fileSystem).getManifestJson(translationCode)
+        }.getOrNull() ?: return false
+        return packManifestBblVersionOrNull(manifestJson) == bblCliVersion
     }
 
     private fun installSearchBinaryIfNeeded(translation: Translation) {

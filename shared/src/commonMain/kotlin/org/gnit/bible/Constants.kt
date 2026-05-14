@@ -1,8 +1,10 @@
 package org.gnit.bible
 
+import org.gnit.bible.cli.bblCliVersion
+
 const val SERVER_PORT = 8081
-const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bbllist.json"
-const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/refs/heads/master/server/src/main/resources/files/bblpacks"
+const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json"
+const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks"
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
 const val SETTINGS_FILE_NAME = "config.properties"
@@ -137,4 +139,3 @@ val jcGenesisChapterOne = """
             30 また地のすべての獣、空のすべての鳥、地を這うすべてのもの、すなわち命あるものには、食物としてすべての青草を与える」。そのようになった。
             31 神が造ったすべての物を見られたところ、それは、はなはだ良かった。夕となり、また朝となった。第六日である。
         """.trimIndent()
-

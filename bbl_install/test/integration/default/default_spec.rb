@@ -1,13 +1,37 @@
+require 'json'
+require 'stringio'
+require 'zip'
+
 macos = %w[darwin mac_os_x].include?(os.name.to_s)
 home_dir = macos ? os_env('HOME').content : '/root'
 install_root = "#{home_dir}/.bbl"
 pack_dir = "#{install_root}/packs"
 bin_dir = "#{install_root}/bin"
+version_file_path = "#{install_root}/version.txt"
+expected_bbl_version = file(version_file_path).content.to_s.strip
 bbl_bin_path = macos ? "#{bin_dir}/bbl" : '/usr/bin/bbl'
 bbl_command = lambda { |args| "#{bbl_bin_path} #{args}" }
 install_source_dir = '/tmp/bbl-install-downloads'
 install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
 stat_size_command = macos ? 'stat -f %z' : 'stat -c %s'
+installed_pack_codes = %w[webus kjv krv cunp ubg kttv]
+installed_search_helpers = %w[
+  bbl-search-common
+  bbl-search-extra
+  bbl-search-morfologik
+  bbl-search-nori
+  bbl-search-smartcn
+]
+
+def zip_manifest_bbl_version(zip_content, manifest_name)
+  Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
+    while (entry = zip.get_next_entry)
+      return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
+    end
+  end
+
+  nil
+end
 
 RSpec.shared_context 'search helpers' do
   def search_stdout(command_text)
@@ -38,9 +62,15 @@ describe file(bbl_bin_path) do
   it { should be_executable }
 end
 
+describe file(version_file_path) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
 describe command(bbl_command.call('-v')) do
   its('exit_status') { should eq 0 }
-  its('stdout') { should match(/bbl version 4\.0/) }
+  its('stdout') { should include("bbl version #{expected_bbl_version}") }
 end
 
 describe file(pack_dir) do
@@ -112,6 +142,23 @@ describe file("#{bin_dir}/bbl-search-smartcn") do
   it { should exist }
   it { should be_file }
   it { should be_executable }
+end
+
+installed_search_helpers.each do |helper_name|
+  describe command("#{bin_dir}/#{helper_name} --version") do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should include("#{helper_name} version #{expected_bbl_version}") }
+  end
+end
+
+installed_pack_codes.each do |pack_code|
+  describe "#{pack_code}.zip manifest bblVersion" do
+    subject(:bbl_version) do
+      zip_manifest_bbl_version(file("#{pack_dir}/#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
+    end
+
+    it { should eq(expected_bbl_version) }
+  end
 end
 
 describe command(bbl_command.call('search Jesus Christ')) do
@@ -228,8 +275,10 @@ describe 'bbl install jc deferred dependencies' do
     @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
     @pack_size_after = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
+    @pack_version_after = zip_manifest_bbl_version(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+    @helper_version_after = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')
     @search_result = command(bbl_command.call('search イエス キリスト in jc'))
     @search_stdout = @search_result.stdout.force_encoding('UTF-8')
     @search_results = @search_stdout
@@ -262,6 +311,10 @@ describe 'bbl install jc deferred dependencies' do
     expect(@pack_size_after).to be > 0
   end
 
+  it 'installs jc.zip with the expected bblVersion' do
+    expect(@pack_version_after).to eq(expected_bbl_version)
+  end
+
   it 'bbl list command shows jc as available before install' do
     expect(@jc_line_before_install).to include('JC')
     expect(@jc_line_before_install).to include('| Available |')
@@ -270,6 +323,10 @@ describe 'bbl install jc deferred dependencies' do
   it 'installs the kuromoji search helper' do
     expect(@helper_exists_after).to eq(true)
     expect(@helper_executable_after).to eq(true)
+  end
+
+  it 'installs the kuromoji search helper with the expected version' do
+    expect(@helper_version_after).to include("bbl-search-kuromoji version #{expected_bbl_version}")
   end
 
   it 'bbl list command shows jc as installed after install' do

@@ -12,13 +12,11 @@ import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.Translation.Companion.downloadableTranslationCodeListCli
 
 class PackCli(
     private val bible: Bible
@@ -91,7 +89,7 @@ class PackCli(
                 )
             }
 
-            val json = Json.encodeToString(translationEntry)
+            val json = translationEntry.toJson()
             fileSystem.write(manifestPath) { writeUtf8(json) }
         }
 
@@ -106,7 +104,9 @@ class PackCli(
             Translation.fromJson(rawManifest)
         } catch (e: Throwable) {
             throw IllegalStateException("Error while parsing manifest $manifestPath: ${e.message}", e)
-        }
+        }.copy(bblVersion = bblCliVersion)
+
+        fileSystem.write(manifestPath) { writeUtf8(translation.toJson()) }
 
         val indexBuilder = IndexBuilder(bible)
         runCatching {
@@ -224,7 +224,10 @@ fun mainAll() {
 
     val failures = mutableListOf<Pair<String, String>>()
 
-    downloadableTranslationCodeListCli.forEach { translationCode ->
+    Translation.downloadableTranslationsCmp
+        .map { it.code }
+        .distinct()
+        .forEach { translationCode ->
         runCatching {
             packTranslation(translationCode)
         }.onFailure { e ->
@@ -245,6 +248,10 @@ fun mainAll() {
     }
 }
 
-fun main(){
-    packTranslation("npiulb")
+fun main(args: Array<String>) {
+    when {
+        args.size == 1 && args.single() == "--all" -> mainAll()
+        args.size == 1 -> packTranslation(args.single().trim().lowercase())
+        else -> println("Usage: packer <translation-code>|--all")
+    }
 }

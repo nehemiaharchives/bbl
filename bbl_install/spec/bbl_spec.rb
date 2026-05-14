@@ -71,6 +71,15 @@ describe 'bbl_install::default' do
       )
     end
 
+    it 'copies the expected bbl version file' do
+      expect(chef_run).to create_cookbook_file('/root/.bbl/version.txt').with(
+        source: 'version.txt',
+        owner: 'root',
+        group: 'root',
+        mode: '0644'
+      )
+    end
+
     it 'copies the search helpers' do
       linux_helper_bin_names.each do |bin_name|
         expect(chef_run).to create_cookbook_file("/root/.bbl/bin/#{bin_name}").with(
@@ -157,6 +166,7 @@ describe 'bbl_install::default' do
         node.normal['bbl_install']['bin_dir'] = bin_dir
         node.normal['bbl_install']['helper_bin_dir'] = helper_bin_dir
         node.normal['bbl_install']['pack_dir'] = pack_dir
+        node.normal['bbl_install']['version_file_path'] = ::File.join(install_root, 'version.txt')
         node.normal['bbl_install']['bbl_binary_path'] = ::File.join(bin_dir, 'bbl.exe')
         node.normal['bbl_install']['bbl_binary_name'] = 'bbl.exe'
       end.converge(described_recipe)
@@ -171,6 +181,10 @@ describe 'bbl_install::default' do
 
     it 'copies the native bbl binary' do
       expect(chef_run).to run_ruby_block("copy bbl.exe to #{::File.join(bin_dir, 'bbl.exe')}")
+    end
+
+    it 'copies the expected bbl version file' do
+      expect(chef_run).to run_ruby_block("copy version.txt to #{::File.join(install_root, 'version.txt')}")
     end
 
     it 'copies the search helpers' do
@@ -236,6 +250,15 @@ describe 'bbl_install::default' do
         owner: current_user,
         group: current_group,
         mode: '0755'
+      )
+    end
+
+    it 'copies the expected bbl version file under the local home directory' do
+      expect(chef_run).to create_cookbook_file(::File.join(install_root, 'version.txt')).with(
+        source: 'version.txt',
+        owner: current_user,
+        group: current_group,
+        mode: '0644'
       )
     end
 

@@ -394,7 +394,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.fixture_artifact_name }}
-          path: ${{ matrix.fixture_path || 'bbl_install/files/' }}
+          path: |
+            ${{ matrix.fixture_path || 'bbl_install/files/' }}
+            build/bblInstallFixtures/common/version.txt
           if-no-files-found: error
           retention-days: 1
 

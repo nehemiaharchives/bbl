@@ -93,6 +93,81 @@ val bblInstallBinaries = listOf(
     BblInstallBinary("cli-search-smartcn", "CliSearchSmartcn", ":cli:search:smartcn", "bbl-search-smartcn"),
 )
 
+val bblCliVersionProvider = providers.fileContents(
+    layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt")
+).asText.map { source ->
+    Regex("""const val bblCliVersion = "([^"]+)"""")
+        .find(source)
+        ?.groupValues
+        ?.get(1)
+        ?: error("Unable to read bblCliVersion from BblVersion.kt")
+}
+
+val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Verify server bblpack zip manifests match bblCliVersion."
+
+    inputs.file(layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt"))
+    inputs.files(fileTree(layout.projectDirectory.dir("server/src/main/resources/files/bblpacks")) {
+        include("*.zip")
+    })
+
+    doLast {
+        val expectedVersion = bblCliVersionProvider.get()
+        val packDir = layout.projectDirectory.dir("server/src/main/resources/files/bblpacks").asFile
+        val zipFiles = packDir.listFiles { file -> file.isFile && file.extension == "zip" }
+            ?.sortedBy { it.name }
+            .orEmpty()
+
+        require(zipFiles.isNotEmpty()) {
+            "No server bblpack zips found in ${packDir.absolutePath}"
+        }
+
+        val versionRegex = Regex(""""bblVersion"\s*:\s*"([^"]+)"""")
+        val failures = mutableListOf<String>()
+
+        zipFiles.forEach { zipFile ->
+            java.util.zip.ZipFile(zipFile).use { zip ->
+                val manifestEntry = zip.entries().asSequence()
+                    .firstOrNull { it.name.endsWith(".0.manifest.json") }
+                if (manifestEntry == null) {
+                    failures += "${zipFile.name}: missing .0.manifest.json"
+                    return@use
+                }
+
+                val manifestJson = zip.getInputStream(manifestEntry).bufferedReader().use { it.readText() }
+                val actualVersion = versionRegex.find(manifestJson)?.groupValues?.get(1)
+                if (actualVersion != expectedVersion) {
+                    failures += "${zipFile.name}: bblVersion ${actualVersion ?: "<missing>"} != $expectedVersion"
+                }
+            }
+        }
+
+        if (failures.isNotEmpty()) {
+            throw GradleException(
+                "Server bblpack versions are not compatible with bbl $expectedVersion:\n" +
+                    failures.joinToString(separator = "\n") { " - $it" } +
+                    "\nRegenerate packs with bbl pack before staging fixtures or publishing."
+            )
+        }
+    }
+}
+
+val bblInstallVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/version.txt")
+val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the expected bbl version file for bbl_install Kitchen tests."
+
+    inputs.property("bblCliVersion", bblCliVersionProvider)
+    outputs.file(bblInstallVersionFixtureFile)
+
+    doLast {
+        val versionFile = bblInstallVersionFixtureFile.get().asFile
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText("${bblCliVersionProvider.get()}\n")
+    }
+}
+
 val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
     bblInstallBinaries.map { binary ->
         val taskName = "stageBblInstall${platform.taskNamePart}${binary.taskNamePart}Fixture"
@@ -102,6 +177,7 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
             description = "Stage ${binary.id} ${platform.id} fixture files for bbl_install Kitchen tests."
 
             dependsOn("${binary.projectPath}:linkReleaseExecutable${platform.linkTaskSuffix}")
+            dependsOn(stageBblInstallVersionFixture)
 
             into(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}/${binary.id}"))
             from(project(binary.projectPath).layout.buildDirectory.dir("bin/${platform.nativeTargetName}/releaseExecutable")) {
@@ -110,6 +186,7 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
             }
 
             if (binary.includePacks) {
+                dependsOn(verifyServerBblPackVersions)
                 from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
                     include("*.zip")
                 }
@@ -127,9 +204,11 @@ val stageBblInstallLinuxFixtures = tasks.register("stageBblInstallLinuxFixtures"
 fun Copy.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     val platformFixtureTasks = stageBblInstallFixtureTasks.filter { it.name.contains(platform.taskNamePart) }
     dependsOn(platformFixtureTasks)
+    dependsOn(stageBblInstallVersionFixture)
 
     into(layout.projectDirectory.dir("bbl_install/files"))
     from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") })
+    from(bblInstallVersionFixtureFile)
     include("**/*")
     eachFile {
         relativePath = RelativePath(true, name)

@@ -57,14 +57,17 @@ class ZipBibleResourcesReader(
         }
     }
 
-    fun getTranslationFromManifest(translationCode: String): Translation {
-        val json = withZipFile(translationCode) { zip ->
+    fun getManifestJson(translationCode: String): String {
+        return withZipFile(translationCode) { zip ->
             val manifest = "$translationCode$MANIFEST_JSON_POSTFIX"
             val targetName = zip.entryNames().firstOrNull { it.endsWith(manifest) }
                 ?: error("$manifest not found in $zip")
             zip.readEntryBytes(targetName).decodeToString()
         }
-        return Translation.fromJson(json)
+    }
+
+    fun getTranslationFromManifest(translationCode: String): Translation {
+        return Translation.fromJson(getManifestJson(translationCode))
     }
 
     private inline fun <T> withZipFile(

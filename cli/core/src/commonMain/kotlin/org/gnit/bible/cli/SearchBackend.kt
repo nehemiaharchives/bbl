@@ -48,6 +48,7 @@ class ExternalSearchBackend(
     private val binaryPath: Path,
     private val moduleId: SearchModuleId
 ) : SearchBackend {
+    private var helperVersionValidated = false
 
     override fun search(request: SearchRequest): SearchOutput {
         if (!fileSystem.exists(binaryPath)) {
@@ -56,6 +57,8 @@ class ExternalSearchBackend(
                     "Run `bbl install ${request.translation.code}` to install it."
             )
         }
+
+        ensureCompatibleHelperVersion()
 
         val command = buildCommand(request)
         val result = processRunner.run(command)
@@ -67,6 +70,30 @@ class ExternalSearchBackend(
         }
 
         return SearchOutput(result.stdout.trimEnd())
+    }
+
+    private fun ensureCompatibleHelperVersion() {
+        if (helperVersionValidated) return
+
+        val versionCommand = listOf(binaryPath.toString(), "--version")
+        val result = processRunner.run(versionCommand)
+        if (result.exitCode != 0) {
+            val detail = result.stderr.ifBlank { result.stdout }.ifBlank { "unknown error" }
+            throw SearchBackendException(
+                "Search helper ${moduleId.name.lowercase()} failed version check (exit ${result.exitCode}): $detail"
+            )
+        }
+
+        val expected = bblSearchHelperVersionLine(binaryPath.name.removeSuffix(".exe"))
+        val actual = result.stdout.trim()
+        if (actual != expected) {
+            val actualDisplay = actual.ifBlank { "<blank>" }
+            throw SearchBackendException(
+                "Search helper ${moduleId.name.lowercase()} version mismatch: expected '$expected' but got '$actualDisplay'"
+            )
+        }
+
+        helperVersionValidated = true
     }
 
     private fun buildCommand(request: SearchRequest): List<String> {

@@ -64,6 +64,32 @@ in your IDE’s toolbar or run it directly from the terminal:
   .\gradlew.bat :server:run
   ```
 
+### Regenerate bbl Packs
+
+`server/src/main/resources/files/bbltexts/` is the source content for downloadable bbl packs.
+`server/src/main/resources/files/bblpacks/*.zip` is the canonical pack fixture and release payload used by
+`bbl install`, Chef/Inspec fixture staging, and CLI release archives.
+
+When lucene-kmp index format or analyzer behavior changes, regenerate packs explicitly instead of using a test
+method as a packer entry point:
+
+- one translation while iterating on an analyzer:
+  ```shell
+  ./gradlew packBblTranslation -Pbblpack.translation=sven
+  ```
+- every downloadable translation before publishing or after an index compatibility change:
+  ```shell
+  ./gradlew packBblAllTranslations
+  ```
+- verify committed server zips match the current bbl version:
+  ```shell
+  ./gradlew verifyServerBblPackVersions
+  ```
+
+JetBrains run configurations are committed for the same three commands:
+`packBblTranslation sven`, `packBblAllTranslations`, and `verifyServerBblPackVersions`.
+Change the `bblpack.translation` value in the first configuration when working on another language.
+
 ### Build and Run iOS Application
 
 To build and run the development version of the iOS app, use the run configuration from the run widget

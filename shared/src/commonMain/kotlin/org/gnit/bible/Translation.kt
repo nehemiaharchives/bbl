@@ -1,8 +1,13 @@
 package org.gnit.bible
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlin.code
+import org.gnit.bible.cli.bblCliVersion
+
+private val translationJson = Json {
+    ignoreUnknownKeys = true
+}
 
 @Serializable
 data class Translation(
@@ -42,6 +47,12 @@ data class Translation(
     val copyright: String,
 
     /**
+     * Version constraint shared by bbl CLI, search helper binaries, and downloadable pack manifests.
+     */
+    @EncodeDefault
+    val bblVersion: String = bblCliVersion,
+
+    /**
      * In some language, name of the books are translated differently according to the translation.
      * For example, in `jc` (Japanese, Colloquial 1955) the book of ecclesiastes is translated as "伝道の書",
      * while others translate to "コヘレトの言葉" or "伝道者の書".
@@ -76,13 +87,13 @@ data class Translation(
     }
 
     fun toJson(): String {
-        return Json.encodeToString( this)
+        return translationJson.encodeToString(this)
     }
 
     companion object {
 
         fun fromJson(json: String): Translation {
-            return Json.decodeFromString(json)
+            return translationJson.decodeFromString(json)
         }
 
         // search common (embedded in cmp)
@@ -175,5 +186,5 @@ data class Translation(
 }
 
 fun List<Translation>.toJson(): String {
-    return Json.encodeToString(this)
+    return translationJson.encodeToString(this)
 }
