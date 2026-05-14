@@ -78,7 +78,8 @@ data class BblInstallBinary(
 
 val bblInstallPlatforms = listOf(
     BblInstallPlatform("linux", "Linux", "linuxX64", "LinuxX64", ".kexe"),
-    BblInstallPlatform("macos", "Macos", "macosArm64", "MacosArm64", ".kexe"),
+    BblInstallPlatform("macosArm64", "MacosArm64", "macosArm64", "MacosArm64", ".kexe"),
+    BblInstallPlatform("macosX64", "MacosX64", "macosX64", "MacosX64", ".kexe"),
     BblInstallPlatform("windows", "Windows", "mingwX64", "MingwX64", ".exe"),
 )
 
@@ -170,10 +171,17 @@ val stageBblInstallMacosFixtures = tasks.register("stageBblInstallMacosFixtures"
 }
 
 // before test kitchen, run this task in local dev macos (arm64)
-tasks.register<Copy>("stageBblInstallMacosCliAllFixture") {
+tasks.register<Copy>("stageBblInstallMacosArm64CliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Stage all macOS CLI fixture files for bbl_install Kitchen tests."
-    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macos" })
+    description = "Stage all macOS Arm64 CLI fixture files for bbl_install Kitchen tests."
+    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosArm64" })
+}
+
+// before test kitchen, run this task in local dev macos (x64)
+tasks.register<Copy>("stageBblInstallMacosX64CliAllFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage all macOS X64 CLI fixture files for bbl_install Kitchen tests."
+    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosX64" })
 }
 
 tasks.register("stageBblInstallFixtures") {

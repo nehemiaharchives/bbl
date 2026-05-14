@@ -4,7 +4,8 @@ For local Kitchen runs, prepare this directory with the platform-specific Gradle
 ```sh
 ./gradlew stageBblInstallWindowsCliAllFixture
 ./gradlew stageBblInstallLinuxCliAllFixture
-./gradlew stageBblInstallMacosCliAllFixture
+./gradlew stageBblInstallMacosArm64CliAllFixture
+./gradlew stageBblInstallMacosX64CliAllFixture
 ```
 
 The per-binary fixture tasks still write isolated outputs under `build/bblInstallFixtures/`.
