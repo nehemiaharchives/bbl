@@ -1,3 +1,4 @@
+import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Copy
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -122,11 +123,31 @@ val stageBblInstallLinuxFixtures = tasks.register("stageBblInstallLinuxFixtures"
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Linux") })
 }
 
+fun Copy.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
+    val platformFixtureTasks = stageBblInstallFixtureTasks.filter { it.name.contains(platform.taskNamePart) }
+    dependsOn(platformFixtureTasks)
+
+    into(layout.projectDirectory.dir("bbl_install/files"))
+    from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") })
+    include("**/*")
+    eachFile {
+        relativePath = RelativePath(true, name)
+    }
+    includeEmptyDirs = false
+    outputs.upToDateWhen { false }
+
+    doFirst {
+        delete(fileTree(layout.projectDirectory.dir("bbl_install/files")) {
+            exclude("README.md")
+        })
+    }
+}
+
 // before test kitchen, run this task in local dev linux
-tasks.register("stageBblInstallLinuxCliAllFixture") {
+tasks.register<Copy>("stageBblInstallLinuxCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Linux CLI fixture files for bbl_install Kitchen tests."
-    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Linux") })
+    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "linux" })
 }
 
 val stageBblInstallWindowsFixtures = tasks.register("stageBblInstallWindowsFixtures") {
@@ -136,10 +157,10 @@ val stageBblInstallWindowsFixtures = tasks.register("stageBblInstallWindowsFixtu
 }
 
 // before test kitchen, run this task in local dev windows
-tasks.register("stageBblInstallWindowsCliAllFixture") {
+tasks.register<Copy>("stageBblInstallWindowsCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows CLI fixture files for bbl_install Kitchen tests."
-    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Windows") })
+    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
 }
 
 val stageBblInstallMacosFixtures = tasks.register("stageBblInstallMacosFixtures") {
@@ -149,10 +170,10 @@ val stageBblInstallMacosFixtures = tasks.register("stageBblInstallMacosFixtures"
 }
 
 // before test kitchen, run this task in local dev macos (arm64)
-tasks.register("stageBblInstallMacosCliAllFixture") {
+tasks.register<Copy>("stageBblInstallMacosCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS CLI fixture files for bbl_install Kitchen tests."
-    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Macos") })
+    prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macos" })
 }
 
 tasks.register("stageBblInstallFixtures") {

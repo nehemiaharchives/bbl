@@ -24,18 +24,15 @@ private fun windowsHomeDir(): Path {
     error("Could not determine home directory (USERPROFILE/HOMEDRIVE/HOMEPATH not set)")
 }
 
-private fun windowsDataRoot(): Path =
-    env("LOCALAPPDATA")?.toPath() ?: windowsHomeDir()
-
 class MingwPlatform : Platform() {
     override val name: String = "Windows"
 
     override val platformPackDir: String by lazy {
-        (windowsDataRoot() / bblDir / packBaseDir).toString()
+        (windowsHomeDir() / bblDir / packBaseDir).toString()
     }
 
     override val settings: Settings by lazy {
-        CommonFileSettings(fileSystem = fileSystem, path = windowsDataRoot() / bblDir / SETTINGS_FILE_NAME)
+        CommonFileSettings(fileSystem = fileSystem, path = windowsHomeDir() / bblDir / SETTINGS_FILE_NAME)
     }
 }
 

@@ -1,17 +1,23 @@
 if os.windows?
 
 local_app_data = os_env('LOCALAPPDATA').content
-install_root = "#{local_app_data}\\.bbl"
+user_profile = os_env('USERPROFILE').content
+install_root = "#{user_profile}\\.bbl"
 pack_dir = "#{install_root}\\packs"
-bin_dir = "#{install_root}\\bin"
+bin_dir = "#{local_app_data}\\Programs\\bbl"
+helper_bin_dir = "#{install_root}\\bin"
 BBL_BIN = "#{bin_dir}\\bbl.exe"
 
-def bbl_command(args)
+WINDOWS_BBL_COMMAND = lambda do |args|
   escaped_bbl = BBL_BIN.gsub("'", "''")
   "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& '#{escaped_bbl}' #{args}\""
 end
 
-RSpec.shared_context 'search helpers' do
+RSpec.shared_context 'windows search helpers' do
+  def bbl_command(args)
+    WINDOWS_BBL_COMMAND.call(args)
+  end
+
   def search_stdout(command_text)
     command(command_text).stdout.force_encoding('UTF-8')
   end
@@ -29,7 +35,7 @@ describe file(BBL_BIN) do
   it { should be_file }
 end
 
-describe command(bbl_command('-v')) do
+describe command(WINDOWS_BBL_COMMAND.call('-v')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/bbl version 4\.0/) }
 end
@@ -81,43 +87,43 @@ describe file("#{pack_dir}\\kttv.zip") do
   its('size') { should be > 0 }
 end
 
-describe file("#{bin_dir}\\bbl-search-common.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-common.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe file("#{bin_dir}\\bbl-search-extra.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-extra.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe file("#{bin_dir}\\bbl-search-kuromoji.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-kuromoji.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe file("#{bin_dir}\\bbl-search-morfologik.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-morfologik.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe file("#{bin_dir}\\bbl-search-nori.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-nori.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe file("#{bin_dir}\\bbl-search-smartcn.exe") do
+describe file("#{helper_bin_dir}\\bbl-search-smartcn.exe") do
   it { should exist }
   it { should be_file }
 end
 
-describe command(bbl_command('search Jesus Christ')) do
+describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
 end
 
 describe 'bbl search Jesus Christ exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   subject(:results) { search_results(bbl_command('search Jesus Christ')) }
 
   it 'starts with the expected webus verse text' do
@@ -129,13 +135,13 @@ describe 'bbl search Jesus Christ exact output' do
   end
 end
 
-describe command(bbl_command('search Jesus Christ in kjv')) do
+describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the generation of Jesus Christ/) }
 end
 
 describe 'bbl search Jesus Christ in kjv exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   subject(:results) { search_results(bbl_command('search Jesus Christ in kjv')) }
 
   it 'starts with the expected kjv verse text' do
@@ -147,13 +153,13 @@ describe 'bbl search Jesus Christ in kjv exact output' do
   end
 end
 
-describe command(bbl_command('search Jesus Christ in romans')) do
+describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ in romans')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
 end
 
 describe 'bbl search Jesus Christ in romans exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   subject(:results) { search_results(bbl_command('search Jesus Christ in romans')) }
 
   it 'starts with the expected romans webus verse text' do
@@ -165,13 +171,13 @@ describe 'bbl search Jesus Christ in romans exact output' do
   end
 end
 
-describe command(bbl_command('search Jesus Christ in romans 5-12')) do
+describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ in romans 5-12')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Being therefore justified by faith/) }
 end
 
 describe 'bbl search Jesus Christ in romans 5-12 exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   subject(:results) { search_results(bbl_command('search Jesus Christ in romans 5-12')) }
 
   it 'starts with the expected romans chapter-range webus verse text' do
@@ -183,13 +189,13 @@ describe 'bbl search Jesus Christ in romans 5-12 exact output' do
   end
 end
 
-describe command(bbl_command('search Jesus Christ in romans 5-12 in kjv')) do
+describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ in romans 5-12 in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Therefore being justified by faith/) }
 end
 
 describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   subject(:results) { search_results(bbl_command('search Jesus Christ in romans 5-12 in kjv')) }
 
   it 'starts with the expected romans chapter-range kjv verse text' do
@@ -202,7 +208,7 @@ describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
 end
 
 describe 'bbl search Japanese term in jc exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   let(:query) { "\u{30A4}\u{30A8}\u{30B9} \u{30AD}\u{30EA}\u{30B9}\u{30C8}" }
   let(:command_text) { bbl_command("search #{query} in jc") }
   let(:result) { command(command_text) }
@@ -214,7 +220,7 @@ describe 'bbl search Japanese term in jc exact output' do
 end
 
 describe 'bbl search Korean term in krv exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   let(:query) { "\u{C608}\u{C218} \u{ADF8}\u{B9AC}\u{C2A4}\u{B3C4}" }
   let(:command_text) { bbl_command("search #{query} in krv") }
   let(:result) { command(command_text) }
@@ -227,7 +233,7 @@ end
 
 
 describe 'bbl search Chinese term in cunp exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   let(:query) { "\u{8036}\u{7A23}\u{57FA}\u{7763}" }
   let(:command_text) { bbl_command("search #{query} in cunp") }
   let(:result) { command(command_text) }
@@ -239,7 +245,7 @@ describe 'bbl search Chinese term in cunp exact output' do
 end
 
 describe 'bbl search Jezusa Chrystusa in ubg exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   let(:command_text) { bbl_command('search Jezusa Chrystusa in ubg') }
   let(:result) { command(command_text) }
   subject(:results) { search_results(command_text) }
@@ -258,7 +264,7 @@ describe 'bbl search Jezusa Chrystusa in ubg exact output' do
 end
 
 describe 'bbl search Vietnamese term in kttv exact output' do
-  include_context 'search helpers'
+  include_context 'windows search helpers'
   let(:query) { "J\u{00EA}sus Christ" }
   let(:command_text) { bbl_command("search #{query} in kttv") }
   let(:result) { command(command_text) }

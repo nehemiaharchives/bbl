@@ -12,17 +12,27 @@ home_dir = if macos && ENV['SUDO_USER']
            end
 local_app_data = windows ? (ENV['LOCALAPPDATA'] || ::File.join(user_profile, 'AppData', 'Local')) : '/root'
 install_root = if windows
-                 ::File.join(local_app_data, '.bbl')
+                 ::File.join(user_profile, '.bbl')
                elsif macos
                  ::File.join(home_dir, '.bbl')
                else
                  '/root/.bbl'
                end
-bin_dir = ::File.join(install_root, 'bin')
+bin_dir = if windows
+            ::File.join(local_app_data, 'Programs', 'bbl')
+          else
+            ::File.join(install_root, 'bin')
+          end
+helper_bin_dir = if windows
+                   ::File.join(install_root, 'bin')
+                 else
+                   bin_dir
+                 end
 pack_dir = ::File.join(install_root, 'packs')
 
 default['bbl_install']['install_root'] = install_root
 default['bbl_install']['bin_dir'] = bin_dir
+default['bbl_install']['helper_bin_dir'] = helper_bin_dir
 default['bbl_install']['pack_dir'] = pack_dir
 default['bbl_install']['bbl_binary_path'] = if windows
                                              ::File.join(bin_dir, 'bbl.exe')

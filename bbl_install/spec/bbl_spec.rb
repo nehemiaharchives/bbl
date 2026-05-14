@@ -118,8 +118,10 @@ describe 'bbl_install::default' do
 
   context 'on windows' do
     let(:local_app_data) { 'C:\\Users\\runneradmin\\AppData\\Local' }
-    let(:install_root) { ::File.join(local_app_data, '.bbl') }
-    let(:bin_dir) { ::File.join(install_root, 'bin') }
+    let(:user_profile) { 'C:\\Users\\runneradmin' }
+    let(:install_root) { ::File.join(user_profile, '.bbl') }
+    let(:bin_dir) { ::File.join(local_app_data, 'Programs', 'bbl') }
+    let(:helper_bin_dir) { ::File.join(install_root, 'bin') }
     let(:pack_dir) { ::File.join(install_root, 'packs') }
 
     let(:windows_helper_bin_names) do
@@ -146,13 +148,14 @@ describe 'bbl_install::default' do
     end
 
     let(:chef_run) do
-      stub_const('ENV', ENV.to_hash.merge('LOCALAPPDATA' => local_app_data))
+      stub_const('ENV', ENV.to_hash.merge('LOCALAPPDATA' => local_app_data, 'USERPROFILE' => user_profile))
 
       ChefSpec::SoloRunner.new(platform: 'windows', version: '2022') do |node|
         node.normal['bbl_install']['helper_bin_names'] = windows_helper_bin_names
         node.normal['bbl_install']['pack_names'] = windows_pack_names
         node.normal['bbl_install']['install_root'] = install_root
         node.normal['bbl_install']['bin_dir'] = bin_dir
+        node.normal['bbl_install']['helper_bin_dir'] = helper_bin_dir
         node.normal['bbl_install']['pack_dir'] = pack_dir
         node.normal['bbl_install']['bbl_binary_path'] = ::File.join(bin_dir, 'bbl.exe')
         node.normal['bbl_install']['bbl_binary_name'] = 'bbl.exe'
@@ -162,33 +165,28 @@ describe 'bbl_install::default' do
     it 'creates the native bin and pack directories' do
       expect(chef_run).to create_directory(install_root).with(recursive: true)
       expect(chef_run).to create_directory(bin_dir).with(recursive: true)
+      expect(chef_run).to create_directory(helper_bin_dir).with(recursive: true)
       expect(chef_run).to create_directory(pack_dir).with(recursive: true)
     end
 
     it 'copies the native bbl binary' do
-      expect(chef_run).to create_cookbook_file(::File.join(bin_dir, 'bbl.exe')).with(
-        source: 'bbl.exe'
-      )
+      expect(chef_run).to run_ruby_block("copy bbl.exe to #{::File.join(bin_dir, 'bbl.exe')}")
     end
 
     it 'copies the search helpers' do
       windows_helper_bin_names.each do |bin_name|
-        expect(chef_run).to create_cookbook_file(::File.join(bin_dir, bin_name)).with(
-          source: bin_name
-        )
+        expect(chef_run).to run_ruby_block("copy #{bin_name} to #{::File.join(helper_bin_dir, bin_name)}")
       end
     end
 
     it 'copies the pack fixture zips' do
       windows_pack_names.each do |pack_name|
-        expect(chef_run).to create_cookbook_file(::File.join(pack_dir, pack_name)).with(
-          source: pack_name
-        )
+        expect(chef_run).to run_ruby_block("copy #{pack_name} to #{::File.join(pack_dir, pack_name)}")
       end
     end
 
     it 'adds the bbl bin directory to PATH' do
-      expect(chef_run).to run_ruby_block("add #{bin_dir} to user PATH")
+      expect(chef_run).to run_ruby_block('add bbl install directories to user PATH')
     end
   end
 
