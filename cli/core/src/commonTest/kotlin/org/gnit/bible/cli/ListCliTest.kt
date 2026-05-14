@@ -60,7 +60,7 @@ LSG    | Louis Segond                               | Bible Segond              
 SINOD  | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876 | Available | Public Domain
 SVRJ   | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Available | Public Domain
 RDV24  | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924 | Available | Public Domain
-UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Available | © 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted.
+UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Available | © 2017 Fundacja Wrota Nadziei (Non-commercial & unaltered text)
 UBIO   | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Available | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society
 SVEN   | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917 | Available | Public Domain
 CUNP   | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919 | Available | Public Domain

@@ -98,7 +98,7 @@ data class Translation(
         val sven = Translation(code = "sven", languageCode = Language.sv.code, englishName = "Svenska 1917", nativeName = "1917 års kyrkobibel", year = 1917, copyright = "Public Domain")
 
         // search morfologik (embedded in cmp)
-        val ubg = Translation(code = "ubg", languageCode = Language.pl.code, englishName = "Updated Gdansk Bible", nativeName = "Uwspółcześniona Biblia gdańska", year = 2017, copyright = "© 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted.")
+        val ubg = Translation(code = "ubg", languageCode = Language.pl.code, englishName = "Updated Gdansk Bible", nativeName = "Uwspółcześniona Biblia gdańska", year = 2017, copyright = "© 2017 Fundacja Wrota Nadziei (Non-commercial & unaltered text)")
         val ubio = Translation(code = "ubio", languageCode = Language.uk.code, englishName = "Ukrainian Bible, Ivan Ogienko", nativeName = "Біблія в пер. Івана Огієнка", year = 1962, copyright = "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society")
 
         // search smartcn (embedded in cmp)
