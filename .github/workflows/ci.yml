@@ -435,34 +435,42 @@ jobs:
         id: cache-dokken-image
         uses: actions/cache@v4
         with:
-          path: /tmp/docker-cache/dokken-ubuntu-24.04.tar
-          key: dokken-ubuntu-24.04-v1
+          path: /tmp/docker-cache/dokken-ubuntu
+          key: dokken-ubuntu-26.04-25.10-24.04-22.04-v1
 
       - name: Load cached Dokken Docker image
         if: steps.cache-dokken-image.outputs.cache-hit == 'true'
-        run: docker load --input /tmp/docker-cache/dokken-ubuntu-24.04.tar
+        run: |
+          for version in 26.04 25.10 24.04 22.04; do
+            docker load --input "/tmp/docker-cache/dokken-ubuntu/${version}.tar"
+          done
 
       - name: Pull Dokken Docker image
         if: steps.cache-dokken-image.outputs.cache-hit != 'true'
-        run: docker pull dokken/ubuntu-24.04
+        run: |
+          for version in 26.04 25.10 24.04 22.04; do
+            docker pull "dokken/ubuntu-${version}"
+          done
 
       - name: Save Dokken Docker image
         if: steps.cache-dokken-image.outputs.cache-hit != 'true'
         run: |
-          mkdir -p /tmp/docker-cache
-          docker save dokken/ubuntu-24.04 --output /tmp/docker-cache/dokken-ubuntu-24.04.tar
+          mkdir -p /tmp/docker-cache/dokken-ubuntu
+          for version in 26.04 25.10 24.04 22.04; do
+            docker save "dokken/ubuntu-${version}" --output "/tmp/docker-cache/dokken-ubuntu/${version}.tar"
+          done
 
       - name: Kitchen create
         working-directory: bbl_install
-        run: bundle exec kitchen create default-ubuntu-2404
+        run: bundle exec kitchen create default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
 
       - name: Kitchen converge
         working-directory: bbl_install
-        run: bundle exec kitchen converge default-ubuntu-2404
+        run: bundle exec kitchen converge default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
 
       - name: Kitchen verify
         working-directory: bbl_install
-        run: bundle exec kitchen verify default-ubuntu-2404
+        run: bundle exec kitchen verify default-ubuntu-2604 default-ubuntu-2510 default-ubuntu-2404 default-ubuntu-2204
 
       - name: Build Summary
         if: always()
