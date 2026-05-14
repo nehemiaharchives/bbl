@@ -1,11 +1,13 @@
 *.iml
 .kotlin
 .gradle
+gradle/gradle-daemon-jvm.properties
 **/build/
 xcuserdata
 !src/**/build/
 local.properties
 .idea
+.run
 .DS_Store
 captures
 .externalNativeBuild

@@ -682,7 +682,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-kuromoji" -> {
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-kuromoji",
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-kuromoji.exe" -> {
                 val bytes = "kuromoji helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -693,7 +694,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-extra" -> {
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-extra",
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-extra.exe" -> {
                 val bytes = "extra helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -704,7 +706,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-morfologik" -> {
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-morfologik",
+            "/nehemiaharchives/bbl-kmp/releases/latest/download/bbl-search-morfologik.exe" -> {
                 val bytes = "morfologik helper".encodeToByteArray()
                 respond(
                     content = bytes,

@@ -48,46 +48,49 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallKttv() {
         val result = Bbl(bible = bible).test("install kttv").output
-        assertInstallResult(result, listOf("kttv"), listOf("bbl-search-extra"))
+        assertInstallResult(result, listOf("kttv"), listOf(searchHelperName("extra")))
     }
 
     @Test
     fun testBblAliasGetKttv(){
         val result = Bbl(bible = bible).test("get kttv").output
-        assertInstallResult(result, listOf("kttv"), listOf("bbl-search-extra"))
+        assertInstallResult(result, listOf("kttv"), listOf(searchHelperName("extra")))
     }
 
     @Test
     fun testBblInstallMultipleTranslations() {
+        val searchHelperName = searchHelperName("extra")
         val result = Bbl(bible = bible).test("install kttv th1971").output
         assertInstallResult(
             result = result,
             expectedCodes = listOf("kttv", "th1971"),
-            expectedSearchBinaries = listOf("bbl-search-extra"),
-            expectedOutputLines = listOf("Installed kttv", "Installed bbl-search-extra", "Installed th1971")
+            expectedSearchBinaries = listOf(searchHelperName),
+            expectedOutputLines = listOf("Installed kttv", "Installed $searchHelperName", "Installed th1971")
         )
     }
 
     @Test
     fun testBblInstallJcInstallsKuromojiSearchBinary() {
+        val searchHelperName = searchHelperName("kuromoji")
         val result = Bbl(bible = bible).test("install jc").output.replace("\r\n", "\n")
 
-        assertEquals("Installed jc\nInstalled bbl-search-kuromoji\n", result)
+        assertEquals("Installed jc\nInstalled $searchHelperName\n", result)
         assertInstalledPack("jc")
-        assertInstalledSearchBinary("bbl-search-kuromoji")
+        assertInstalledSearchBinary(searchHelperName)
     }
 
     @Test
     fun testBblInstallSkipsExistingSharedSearchBinaryDependency() {
+        val searchHelperName = searchHelperName("morfologik")
         val first = Bbl(bible = bible).test("install ubio").output.replace("\r\n", "\n")
-        assertEquals("Installed ubio\nInstalled bbl-search-morfologik\n", first)
+        assertEquals("Installed ubio\nInstalled $searchHelperName\n", first)
         assertInstalledPack("ubio")
-        assertInstalledSearchBinary("bbl-search-morfologik")
+        assertInstalledSearchBinary(searchHelperName)
 
         val second = Bbl(bible = bible).test("install ubg").output.replace("\r\n", "\n")
-        assertEquals("Installed ubg\nbbl-search-morfologik already installed, skipping download\n", second)
+        assertEquals("Installed ubg\n$searchHelperName already installed, skipping download\n", second)
         assertInstalledPack("ubg")
-        assertInstalledSearchBinary("bbl-search-morfologik")
+        assertInstalledSearchBinary(searchHelperName)
     }
 
     private fun assertInstallResult(
@@ -131,6 +134,11 @@ class InstallCliTest : ResourcesTestBase() {
             assertTrue(metadata.isRegularFile)
             assertTrue((metadata.size ?: 0L) > 0L)
         }
+    }
+
+    private fun searchHelperName(moduleId: String): String {
+        val executableSuffix = if (platform.name == "Windows") ".exe" else ""
+        return "bbl-search-$moduleId$executableSuffix"
     }
 
     @Ignore //Integration test: touches real ~/.bbl/packs and uses network
