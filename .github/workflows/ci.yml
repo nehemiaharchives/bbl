@@ -237,7 +237,7 @@ jobs:
             module_name: cli-core-build
             os: ubuntu-latest
             timeout: 60
-            task: stageBblInstallLinuxFixtures "-Pbblpacks.embed=false"
+            task: stageBblInstallCommonFixtures "-Pbblpacks.embed=false"
             needs_konan_cache: true
             job_type: Build
           - platform: macos
@@ -301,12 +301,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload Linux install fixtures
+      - name: Upload shared install fixtures
         if: ${{ matrix.platform == 'linux' && matrix.module_name == 'cli-core-build' && matrix.job_type == 'Build' }}
         uses: actions/upload-artifact@v4
         with:
-          name: bbl-install-linux-files
-          path: bbl_install_linux/files/
+          name: bbl-install-files
+          path: bbl_install/files/
           if-no-files-found: error
           retention-days: 1
 
@@ -329,18 +329,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Download Linux install fixtures
+      - name: Download shared install fixtures
         uses: actions/download-artifact@v4
         with:
-          name: bbl-install-linux-files
-          path: bbl_install_linux/files
+          name: bbl-install-files
+          path: bbl_install/files
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
-          working-directory: bbl_install_linux
+          working-directory: bbl_install
 
       - name: Restore Dokken Docker image
         id: cache-dokken-image
@@ -364,15 +364,15 @@ jobs:
           docker save dokken/ubuntu-24.04 --output /tmp/docker-cache/dokken-ubuntu-24.04.tar
 
       - name: Kitchen create
-        working-directory: bbl_install_linux
+        working-directory: bbl_install
         run: bundle exec kitchen create default-ubuntu-2404
 
       - name: Kitchen converge
-        working-directory: bbl_install_linux
+        working-directory: bbl_install
         run: bundle exec kitchen converge default-ubuntu-2404
 
       - name: Kitchen verify
-        working-directory: bbl_install_linux
+        working-directory: bbl_install
         run: bundle exec kitchen verify default-ubuntu-2404
 
       - name: Build Summary
@@ -394,27 +394,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Download Windows install fixtures
+      - name: Download shared install fixtures
         uses: actions/download-artifact@v4
         with:
-          name: bbl-install-windows-files
-          path: bbl_install_windows/files
+          name: bbl-install-files
+          path: bbl_install/files
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
-          working-directory: bbl_install_windows
+          working-directory: bbl_install
 
       - name: Kitchen converge
-        working-directory: bbl_install_windows
+        working-directory: bbl_install
         run: |
           $env:RUBY_EXE = (Get-Command ruby).Source
           bundle exec kitchen converge default-windows-local
 
       - name: Kitchen verify
-        working-directory: bbl_install_windows
+        working-directory: bbl_install
         run: |
           $env:RUBY_EXE = (Get-Command ruby).Source
           bundle exec kitchen verify default-windows-local

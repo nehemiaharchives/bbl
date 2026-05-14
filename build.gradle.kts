@@ -61,6 +61,7 @@ subprojects {
 
 val bblInstallLinuxFilesPath = "bbl_install_linux/files"
 val bblInstallWindowsFilesPath = "bbl_install_windows/files"
+val bblInstallFilesPath = "bbl_install/files"
 
 val stageBblInstallLinuxFixtures = tasks.register<Copy>("stageBblInstallLinuxFixtures") {
     dependsOn(
@@ -135,4 +136,54 @@ val stageBblInstallWindowsFixtures = tasks.register<Copy>("stageBblInstallWindow
 
 val stageBblInstallFixtures = tasks.register("stageBblInstallFixtures") {
     dependsOn(stageBblInstallLinuxFixtures, stageBblInstallWindowsFixtures)
+}
+
+val stageBblInstallCommonFixtures = tasks.register<Copy>("stageBblInstallCommonFixtures") {
+    dependsOn(
+        ":cli:core:linkReleaseExecutableLinuxX64",
+        ":cli:core:linkReleaseExecutableMingwX64",
+        ":cli:search:common:linkReleaseExecutableLinuxX64",
+        ":cli:search:common:linkReleaseExecutableMingwX64",
+        ":cli:search:extra:linkReleaseExecutableLinuxX64",
+        ":cli:search:extra:linkReleaseExecutableMingwX64",
+        ":cli:search:kuromoji:linkReleaseExecutableLinuxX64",
+        ":cli:search:kuromoji:linkReleaseExecutableMingwX64",
+        ":cli:search:morfologik:linkReleaseExecutableLinuxX64",
+        ":cli:search:morfologik:linkReleaseExecutableMingwX64",
+        ":cli:search:nori:linkReleaseExecutableLinuxX64",
+        ":cli:search:nori:linkReleaseExecutableMingwX64",
+        ":cli:search:smartcn:linkReleaseExecutableLinuxX64",
+        ":cli:search:smartcn:linkReleaseExecutableMingwX64",
+    )
+
+    into(layout.projectDirectory.dir(bblInstallFilesPath))
+
+    from(project(":cli:core").layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
+        include("bbl.kexe")
+        rename("bbl\\.kexe", "bbl")
+    }
+    from(project(":cli:core").layout.buildDirectory.dir("bin/mingwX64/releaseExecutable")) {
+        include("bbl.exe")
+    }
+
+    listOf(
+        ":cli:search:common" to "bbl-search-common",
+        ":cli:search:extra" to "bbl-search-extra",
+        ":cli:search:kuromoji" to "bbl-search-kuromoji",
+        ":cli:search:morfologik" to "bbl-search-morfologik",
+        ":cli:search:nori" to "bbl-search-nori",
+        ":cli:search:smartcn" to "bbl-search-smartcn",
+    ).forEach { (projectPath, binaryName) ->
+        from(project(projectPath).layout.buildDirectory.dir("bin/linuxX64/releaseExecutable")) {
+            include("$binaryName.kexe")
+            rename("$binaryName\\.kexe", binaryName)
+        }
+        from(project(projectPath).layout.buildDirectory.dir("bin/mingwX64/releaseExecutable")) {
+            include("$binaryName.exe")
+        }
+    }
+
+    from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
+        include("*.zip")
+    }
 }
