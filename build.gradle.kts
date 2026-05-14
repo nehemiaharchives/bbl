@@ -134,8 +134,44 @@ val stageBblInstallWindowsFixtures = tasks.register<Copy>("stageBblInstallWindow
     }
 }
 
+val stageBblInstallMacosFixtures = tasks.register<Copy>("stageBblInstallMacosFixtures") {
+    dependsOn(
+        ":cli:core:linkReleaseExecutableMacosArm64",
+        ":cli:search:common:linkReleaseExecutableMacosArm64",
+        ":cli:search:extra:linkReleaseExecutableMacosArm64",
+        ":cli:search:kuromoji:linkReleaseExecutableMacosArm64",
+        ":cli:search:morfologik:linkReleaseExecutableMacosArm64",
+        ":cli:search:nori:linkReleaseExecutableMacosArm64",
+        ":cli:search:smartcn:linkReleaseExecutableMacosArm64",
+    )
+
+    into(layout.projectDirectory.dir(bblInstallFilesPath))
+    from(project(":cli:core").layout.buildDirectory.dir("bin/macosArm64/releaseExecutable")) {
+        include("bbl.kexe")
+        rename("bbl\\.kexe", "bbl")
+    }
+
+    listOf(
+        ":cli:search:common" to "bbl-search-common",
+        ":cli:search:extra" to "bbl-search-extra",
+        ":cli:search:kuromoji" to "bbl-search-kuromoji",
+        ":cli:search:morfologik" to "bbl-search-morfologik",
+        ":cli:search:nori" to "bbl-search-nori",
+        ":cli:search:smartcn" to "bbl-search-smartcn",
+    ).forEach { (projectPath, binaryName) ->
+        from(project(projectPath).layout.buildDirectory.dir("bin/macosArm64/releaseExecutable")) {
+            include("$binaryName.kexe")
+            rename("$binaryName\\.kexe", binaryName)
+        }
+    }
+
+    from(project(":server").layout.projectDirectory.dir("src/main/resources/files/bblpacks")) {
+        include("*.zip")
+    }
+}
+
 val stageBblInstallFixtures = tasks.register("stageBblInstallFixtures") {
-    dependsOn(stageBblInstallLinuxFixtures, stageBblInstallWindowsFixtures)
+    dependsOn(stageBblInstallLinuxFixtures, stageBblInstallWindowsFixtures, stageBblInstallMacosFixtures)
 }
 
 val stageBblInstallCommonFixtures = tasks.register<Copy>("stageBblInstallCommonFixtures") {
