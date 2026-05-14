@@ -22,6 +22,14 @@ RSpec.shared_context 'windows search helpers' do
     command(command_text).stdout.force_encoding('UTF-8')
   end
 
+  def translation_list_lines(command_text)
+    search_stdout(command_text)
+      .lines
+      .map(&:strip)
+      .reject(&:empty?)
+      .select { |line| line.match?(/^[A-Z0-9]+\s+\|/) }
+  end
+
   def search_results(command_text)
     search_stdout(command_text)
       .split(/\r?\n\r?\n/)
@@ -120,6 +128,15 @@ end
 describe command(WINDOWS_BBL_COMMAND.call('search Jesus Christ')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
+end
+
+describe 'bbl list translations output' do
+  include_context 'windows search helpers'
+  subject(:translations) { translation_list_lines(bbl_command('list translations')) }
+
+  it 'lists the full translation catalog' do
+    expect(translations.length).to eq(27)
+  end
 end
 
 describe 'bbl search Jesus Christ exact output' do

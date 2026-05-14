@@ -13,7 +13,7 @@ import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
 import org.gnit.bible.bookNameNumberArray
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
+import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
 
 internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {
     val codeWidth = 7
@@ -76,10 +76,10 @@ class ListCli(
                 val am = bible.assetManager
                 val downloadable = runBlocking {
                     runCatching { am.downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL) }
-                        .onFailure { logger.debug { "ListCli failed to download latest downloadable translation list" } }
-                        .getOrDefault(downloadableTranslationsCli)
+                        .onFailure { logger.debug { "ListCli failed to download latest downloadable translation list, falling back to built-in translation catalog" } }
+                        .getOrDefault(downloadableTranslationsCmp)
                 }
-                val mergedDownloadable = (downloadable + downloadableTranslationsCli)
+                val mergedDownloadable = (downloadable + downloadableTranslationsCmp)
                     .associateBy { it.code }
                     .values
                     .toList()

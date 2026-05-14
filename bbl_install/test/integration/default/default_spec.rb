@@ -12,6 +12,14 @@ RSpec.shared_context 'search helpers' do
     command(command_text).stdout.force_encoding('UTF-8')
   end
 
+  def translation_list_lines(command_text)
+    search_stdout(command_text)
+      .lines
+      .map(&:strip)
+      .reject(&:empty?)
+      .select { |line| line.match?(/^[A-Z0-9]+\s+\|/) }
+  end
+
   def search_results(command_text)
     search_stdout(command_text)
       .split("\n\n")
@@ -107,6 +115,15 @@ end
 describe command('bbl search Jesus Christ') do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
+end
+
+describe 'bbl list translations output' do
+  include_context 'search helpers'
+  subject(:translations) { translation_list_lines('bbl list translations') }
+
+  it 'lists the full translation catalog' do
+    expect(translations.length).to eq(27)
+  end
 end
 
 describe 'bbl search Jesus Christ exact output' do

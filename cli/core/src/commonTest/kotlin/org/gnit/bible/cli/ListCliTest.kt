@@ -90,6 +90,21 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     }
 
     @Test
+    fun testBblListFallsBackToBuiltInCatalogWhenOnlineListIsEmpty() {
+        val bbl = Bbl(
+            bible = Bible(
+                assetManager = FakeAssetManager(
+                    platform = platform,
+                    downloaded = listOf(Translation.kttv),
+                    downloadable = emptyList()
+                )
+            )
+        )
+
+        assertEquals(expectedTranslationList, bbl.test(argv = "list").stdout)
+    }
+
+    @Test
     fun testBblListBooks(){
         val bbl = Bbl(bible = bible)
 
