@@ -122,15 +122,36 @@ val stageBblInstallLinuxFixtures = tasks.register("stageBblInstallLinuxFixtures"
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Linux") })
 }
 
+// before test kitchen, run this task in local dev linux
+tasks.register("stageBblInstallLinuxCliAllFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage all Linux CLI fixture files for bbl_install Kitchen tests."
+    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Linux") })
+}
+
 val stageBblInstallWindowsFixtures = tasks.register("stageBblInstallWindowsFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows fixture files for bbl_install Kitchen tests."
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Windows") })
 }
 
+// before test kitchen, run this task in local dev windows
+tasks.register("stageBblInstallWindowsCliAllFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage all Windows CLI fixture files for bbl_install Kitchen tests."
+    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Windows") })
+}
+
 val stageBblInstallMacosFixtures = tasks.register("stageBblInstallMacosFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS fixture files for bbl_install Kitchen tests."
+    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Macos") })
+}
+
+// before test kitchen, run this task in local dev macos (arm64)
+tasks.register("stageBblInstallMacosCliAllFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage all macOS CLI fixture files for bbl_install Kitchen tests."
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Macos") })
 }
 
