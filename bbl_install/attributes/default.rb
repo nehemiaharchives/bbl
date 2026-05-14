@@ -1,9 +1,23 @@
+require 'etc'
+
 platform_family = node['platform_family']
 windows = platform_family == 'windows'
+macos = platform_family == 'mac_os_x'
 
 user_profile = ENV['USERPROFILE'] || '/root'
+home_dir = if macos && ENV['SUDO_USER']
+             Etc.getpwnam(ENV['SUDO_USER']).dir
+           else
+             ENV['HOME'] || '/root'
+           end
 local_app_data = windows ? (ENV['LOCALAPPDATA'] || ::File.join(user_profile, 'AppData', 'Local')) : '/root'
-install_root = windows ? ::File.join(local_app_data, '.bbl') : '/root/.bbl'
+install_root = if windows
+                 ::File.join(local_app_data, '.bbl')
+               elsif macos
+                 ::File.join(home_dir, '.bbl')
+               else
+                 '/root/.bbl'
+               end
 bin_dir = ::File.join(install_root, 'bin')
 pack_dir = ::File.join(install_root, 'packs')
 

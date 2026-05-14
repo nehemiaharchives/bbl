@@ -191,4 +191,75 @@ describe 'bbl_install::default' do
       expect(chef_run).to run_ruby_block("add #{bin_dir} to user PATH")
     end
   end
+
+  context 'on macos' do
+    let(:home_dir) { '/Users/runner' }
+    let(:install_root) { ::File.join(home_dir, '.bbl') }
+    let(:bin_dir) { ::File.join(install_root, 'bin') }
+    let(:pack_dir) { ::File.join(install_root, 'packs') }
+    let(:current_user) { 'runner' }
+    let(:current_group) { 'staff' }
+
+    let(:chef_run) do
+      stub_const('ENV', ENV.to_hash.merge('HOME' => '/var/root', 'SUDO_USER' => current_user, 'USER' => 'root'))
+      allow(Etc).to receive(:getpwnam).with(current_user).and_return(double(dir: home_dir, gid: 20))
+      allow(Etc).to receive(:getgrgid).with(20).and_return(double(name: current_group))
+
+      ChefSpec::SoloRunner.new(platform: 'mac_os_x', version: '12') do |node|
+        node.normal['bbl_install']['helper_bin_names'] = linux_helper_bin_names
+        node.normal['bbl_install']['deferred_helper_bin_names'] = linux_deferred_helper_bin_names
+        node.normal['bbl_install']['pack_names'] = linux_pack_names
+        node.normal['bbl_install']['deferred_pack_names'] = linux_deferred_pack_names
+      end.converge(described_recipe)
+    end
+
+    it 'creates the native bin and pack directories under the local home directory' do
+      expect(chef_run).to create_directory(bin_dir).with(
+        owner: current_user,
+        group: current_group,
+        mode: '0755'
+      )
+      expect(chef_run).to create_directory(pack_dir).with(
+        owner: current_user,
+        group: current_group,
+        mode: '0755'
+      )
+      expect(chef_run).to create_directory('/tmp/bbl-install-downloads').with(
+        owner: 'root',
+        group: 'wheel',
+        mode: '0755'
+      )
+    end
+
+    it 'copies the native bbl binary to /usr/local/bin' do
+      expect(chef_run).to create_cookbook_file('/usr/local/bin/bbl').with(
+        source: 'bbl',
+        owner: 'root',
+        group: 'wheel',
+        mode: '0755'
+      )
+    end
+
+    it 'copies the search helpers under the local home directory' do
+      linux_helper_bin_names.each do |bin_name|
+        expect(chef_run).to create_cookbook_file(::File.join(bin_dir, bin_name)).with(
+          source: bin_name,
+          owner: current_user,
+          group: current_group,
+          mode: '0755'
+        )
+      end
+    end
+
+    it 'copies the pack fixture zips under the local home directory' do
+      linux_pack_names.each do |pack_name|
+        expect(chef_run).to create_cookbook_file(::File.join(pack_dir, pack_name)).with(
+          source: pack_name,
+          owner: current_user,
+          group: current_group,
+          mode: '0644'
+        )
+      end
+    end
+  end
 end

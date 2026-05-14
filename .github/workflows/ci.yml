@@ -68,11 +68,9 @@ jobs:
             timeout: 60
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:core:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliCoreFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-core-files
-            fixture_binary_path: cli/core/build/bin/linuxX64/releaseExecutable/bbl.kexe
-            fixture_output_name: bbl
-            fixture_include_packs: true
+            fixture_path: build/bblInstallFixtures/linux/cli-core
             job_type: Test
           - platform: macos
             module_name: cli-core
@@ -82,9 +80,9 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
-            fixture_task: stageBblInstallMacosFixtures "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-macos-files
-            fixture_staged: true
+            fixture_task: stageBblInstallMacosCliCoreFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-core-files
+            fixture_path: build/bblInstallFixtures/macos/cli-core
             job_type: Test
           - platform: mingw
             module_name: cli-core
@@ -92,11 +90,9 @@ jobs:
             timeout: 75
             task: :cli:core:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:core:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliCoreFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-core-files
-            fixture_binary_path: cli/core/build/bin/mingwX64/releaseExecutable/bbl.exe
-            fixture_output_name: bbl.exe
-            fixture_include_packs: true
+            fixture_path: build/bblInstallFixtures/windows/cli-core
             job_type: Test
 
           - platform: jvm
@@ -111,10 +107,21 @@ jobs:
             timeout: 20
             task: :cli:search:common:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:common:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchCommonFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-common-files
-            fixture_binary_path: cli/search/common/build/bin/linuxX64/releaseExecutable/bbl-search-common.kexe
-            fixture_output_name: bbl-search-common
+            fixture_path: build/bblInstallFixtures/linux/cli-search-common
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-common
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:common:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchCommonFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-common-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-common
             job_type: Test
           - platform: mingw
             module_name: cli-search-common
@@ -122,10 +129,9 @@ jobs:
             timeout: 25
             task: :cli:search:common:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:common:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchCommonFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-common-files
-            fixture_binary_path: cli/search/common/build/bin/mingwX64/releaseExecutable/bbl-search-common.exe
-            fixture_output_name: bbl-search-common.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-common
             job_type: Test
 
           - platform: jvm
@@ -140,10 +146,21 @@ jobs:
             timeout: 20
             task: :cli:search:extra:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:extra:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchExtraFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-extra-files
-            fixture_binary_path: cli/search/extra/build/bin/linuxX64/releaseExecutable/bbl-search-extra.kexe
-            fixture_output_name: bbl-search-extra
+            fixture_path: build/bblInstallFixtures/linux/cli-search-extra
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-extra
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:extra:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchExtraFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-extra-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-extra
             job_type: Test
           - platform: mingw
             module_name: cli-search-extra
@@ -151,10 +168,9 @@ jobs:
             timeout: 25
             task: :cli:search:extra:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:extra:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchExtraFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-extra-files
-            fixture_binary_path: cli/search/extra/build/bin/mingwX64/releaseExecutable/bbl-search-extra.exe
-            fixture_output_name: bbl-search-extra.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-extra
             job_type: Test
 
           - platform: jvm
@@ -169,10 +185,21 @@ jobs:
             timeout: 20
             task: :cli:search:kuromoji:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:kuromoji:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchKuromojiFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-kuromoji-files
-            fixture_binary_path: cli/search/kuromoji/build/bin/linuxX64/releaseExecutable/bbl-search-kuromoji.kexe
-            fixture_output_name: bbl-search-kuromoji
+            fixture_path: build/bblInstallFixtures/linux/cli-search-kuromoji
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-kuromoji
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:kuromoji:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchKuromojiFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-kuromoji-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-kuromoji
             job_type: Test
           - platform: mingw
             module_name: cli-search-kuromoji
@@ -180,10 +207,9 @@ jobs:
             timeout: 25
             task: :cli:search:kuromoji:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:kuromoji:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchKuromojiFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-kuromoji-files
-            fixture_binary_path: cli/search/kuromoji/build/bin/mingwX64/releaseExecutable/bbl-search-kuromoji.exe
-            fixture_output_name: bbl-search-kuromoji.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-kuromoji
             job_type: Test
 
           - platform: jvm
@@ -198,10 +224,21 @@ jobs:
             timeout: 20
             task: :cli:search:morfologik:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:morfologik:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchMorfologikFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-morfologik-files
-            fixture_binary_path: cli/search/morfologik/build/bin/linuxX64/releaseExecutable/bbl-search-morfologik.kexe
-            fixture_output_name: bbl-search-morfologik
+            fixture_path: build/bblInstallFixtures/linux/cli-search-morfologik
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-morfologik
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:morfologik:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchMorfologikFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-morfologik-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-morfologik
             job_type: Test
           - platform: mingw
             module_name: cli-search-morfologik
@@ -209,10 +246,9 @@ jobs:
             timeout: 25
             task: :cli:search:morfologik:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:morfologik:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchMorfologikFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-morfologik-files
-            fixture_binary_path: cli/search/morfologik/build/bin/mingwX64/releaseExecutable/bbl-search-morfologik.exe
-            fixture_output_name: bbl-search-morfologik.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-morfologik
             job_type: Test
 
           - platform: jvm
@@ -227,10 +263,21 @@ jobs:
             timeout: 20
             task: :cli:search:nori:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:nori:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchNoriFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-nori-files
-            fixture_binary_path: cli/search/nori/build/bin/linuxX64/releaseExecutable/bbl-search-nori.kexe
-            fixture_output_name: bbl-search-nori
+            fixture_path: build/bblInstallFixtures/linux/cli-search-nori
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-nori
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:nori:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchNoriFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-nori-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-nori
             job_type: Test
           - platform: mingw
             module_name: cli-search-nori
@@ -238,10 +285,9 @@ jobs:
             timeout: 25
             task: :cli:search:nori:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:nori:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchNoriFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-nori-files
-            fixture_binary_path: cli/search/nori/build/bin/mingwX64/releaseExecutable/bbl-search-nori.exe
-            fixture_output_name: bbl-search-nori.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-nori
             job_type: Test
 
           - platform: jvm
@@ -256,10 +302,21 @@ jobs:
             timeout: 20
             task: :cli:search:smartcn:linuxX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:smartcn:linkReleaseExecutableLinuxX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliSearchSmartcnFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-smartcn-files
-            fixture_binary_path: cli/search/smartcn/build/bin/linuxX64/releaseExecutable/bbl-search-smartcn.kexe
-            fixture_output_name: bbl-search-smartcn
+            fixture_path: build/bblInstallFixtures/linux/cli-search-smartcn
+            job_type: Test
+          - platform: macos
+            module_name: cli-search-smartcn
+            os: macos-latest
+            timeout: 20
+            task: :cli:search:smartcn:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosCliSearchSmartcnFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-cli-search-smartcn-files
+            fixture_path: build/bblInstallFixtures/macos/cli-search-smartcn
             job_type: Test
           - platform: mingw
             module_name: cli-search-smartcn
@@ -267,10 +324,9 @@ jobs:
             timeout: 25
             task: :cli:search:smartcn:mingwX64Test
             needs_konan_cache: true
-            fixture_task: :cli:search:smartcn:linkReleaseExecutableMingwX64 "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliSearchSmartcnFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-smartcn-files
-            fixture_binary_path: cli/search/smartcn/build/bin/mingwX64/releaseExecutable/bbl-search-smartcn.exe
-            fixture_output_name: bbl-search-smartcn.exe
+            fixture_path: build/bblInstallFixtures/windows/cli-search-smartcn
             job_type: Test
 
           - platform: jvm
@@ -333,22 +389,12 @@ jobs:
         if: ${{ matrix.fixture_task }}
         run: ./gradlew ${{ matrix.fixture_task }}
 
-      - name: Stage fixture artifact
-        if: ${{ matrix.fixture_task && !matrix.fixture_staged }}
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force bbl_install/files | Out-Null
-          Copy-Item -Path "${{ matrix.fixture_binary_path }}" -Destination "bbl_install/files/${{ matrix.fixture_output_name }}" -Force
-          if ("${{ matrix.fixture_include_packs }}" -eq "true") {
-            Copy-Item -Path "server/src/main/resources/files/bblpacks/*.zip" -Destination "bbl_install/files" -Force
-          }
-
       - name: Upload fixture artifact
         if: ${{ matrix.fixture_artifact_name }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.fixture_artifact_name }}
-          path: bbl_install/files/
+          path: ${{ matrix.fixture_path || 'bbl_install/files/' }}
           if-no-files-found: error
           retention-days: 1
 
@@ -467,6 +513,47 @@ jobs:
         if: always()
         run: |
           echo "### E2E (mingw/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+
+  e2e-macos-cli:
+    name: E2E (macos/cli)
+    needs: tests
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download shared install fixtures
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bbl-install-macos-*-files
+          path: bbl_install/files
+          merge-multiple: true
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: bbl_install
+
+      - name: Kitchen converge
+        working-directory: bbl_install
+        run: bundle exec kitchen converge default-macos-local
+
+      - name: Kitchen verify
+        working-directory: bbl_install
+        run: bundle exec kitchen verify default-macos-local
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### E2E (macos/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY

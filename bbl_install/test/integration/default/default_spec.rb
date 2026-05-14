@@ -1,9 +1,11 @@
-home_dir = '/root'
+macos = os.name == 'darwin'
+home_dir = macos ? os_env('HOME').content : '/root'
 install_root = "#{home_dir}/.bbl"
 pack_dir = "#{install_root}/packs"
 bin_dir = "#{install_root}/bin"
 install_source_dir = '/tmp/bbl-install-downloads'
 install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
+stat_size_command = macos ? 'stat -f %z' : 'stat -c %s'
 
 RSpec.shared_context 'search helpers' do
   def search_stdout(command_text)
@@ -206,7 +208,7 @@ describe 'bbl install jc deferred dependencies' do
     @list_after_install_stdout = @list_after_install_result.stdout.force_encoding('UTF-8')
     @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
     @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
-    @pack_size_after = command("stat -c %s #{pack_dir}/jc.zip").stdout.to_i
+    @pack_size_after = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @search_result = command('bbl search イエス キリスト in jc')

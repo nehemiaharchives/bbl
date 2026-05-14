@@ -1,35 +1,41 @@
+require 'etc'
+
 install_root = node['bbl_install']['install_root']
 bin_dir = node['bbl_install']['bin_dir']
 pack_dir = node['bbl_install']['pack_dir']
 install_source_dir = node['bbl_install']['install_source_dir']
 bbl_bin_path = node['bbl_install']['bbl_binary_path']
 windows = platform_family?('windows')
+macos = platform_family?('mac_os_x')
+posix_owner = macos ? (ENV['SUDO_USER'] || ENV['USER'] || Etc.getlogin) : 'root'
+posix_group = macos ? Etc.getgrgid(Etc.getpwnam(posix_owner).gid).name : 'root'
+system_group = macos ? 'wheel' : 'root'
 
 directory install_root do
   recursive windows
-  owner 'root' unless windows
-  group 'root' unless windows
+  owner posix_owner unless windows
+  group posix_group unless windows
   mode '0755' unless windows
 end
 
 directory bin_dir do
   recursive windows
-  owner 'root' unless windows
-  group 'root' unless windows
+  owner posix_owner unless windows
+  group posix_group unless windows
   mode '0755' unless windows
 end
 
 directory pack_dir do
   recursive windows
-  owner 'root' unless windows
-  group 'root' unless windows
+  owner posix_owner unless windows
+  group posix_group unless windows
   mode '0755' unless windows
 end
 
 if install_source_dir
   directory install_source_dir do
     owner 'root'
-    group 'root'
+    group system_group
     mode '0755'
   end
 end
@@ -37,15 +43,15 @@ end
 cookbook_file bbl_bin_path do
   source node['bbl_install']['bbl_binary_name']
   owner 'root' unless windows
-  group 'root' unless windows
+  group system_group unless windows
   mode '0755' unless windows
 end
 
 node['bbl_install']['helper_bin_names'].each do |bin_name|
   cookbook_file ::File.join(bin_dir, bin_name) do
     source bin_name
-    owner 'root' unless windows
-    group 'root' unless windows
+    owner posix_owner unless windows
+    group posix_group unless windows
     mode '0755' unless windows
   end
 end
@@ -53,8 +59,8 @@ end
 node['bbl_install']['pack_names'].each do |pack_name|
   cookbook_file ::File.join(pack_dir, pack_name) do
     source pack_name
-    owner 'root' unless windows
-    group 'root' unless windows
+    owner posix_owner unless windows
+    group posix_group unless windows
     mode '0644' unless windows
   end
 end
@@ -63,7 +69,7 @@ node['bbl_install']['deferred_helper_bin_names'].each do |bin_name|
   cookbook_file ::File.join(install_source_dir, bin_name) do
     source bin_name
     owner 'root'
-    group 'root'
+    group system_group
     mode '0755'
   end
 end
@@ -72,7 +78,7 @@ node['bbl_install']['deferred_pack_names'].each do |pack_name|
   cookbook_file ::File.join(install_source_dir, pack_name) do
     source pack_name
     owner 'root'
-    group 'root'
+    group system_group
     mode '0644'
   end
 end
