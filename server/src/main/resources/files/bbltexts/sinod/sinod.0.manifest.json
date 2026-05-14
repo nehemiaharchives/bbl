@@ -1,10 +1,1 @@
-{
-  "copyright": "Public Domain",
-  "year": 1876,
-  "nativeName": "Синодальный перевод",
-  "englishName": "Russian Synodal Bible",
-  "languageCode": "ru",
-  "code": "sinod"
-}
-
-
+{"code":"sinod","languageCode":"ru","englishName":"Russian Synodal Bible","nativeName":"Синодальный перевод","year":1876,"copyright":"Public Domain","bblVersion":"4.0.0"}

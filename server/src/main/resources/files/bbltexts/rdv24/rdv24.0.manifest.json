@@ -1,9 +1,1 @@
-{
-  "code": "rdv24",
-  "languageCode": "it",
-  "englishName": "Revised Diodati Version",
-  "nativeName": "Versione Diodati Riveduta",
-  "year": 1924,
-  "copyright": "Public Domain"
-}
-
+{"code":"rdv24","languageCode":"it","englishName":"Revised Diodati Version","nativeName":"Versione Diodati Riveduta","year":1924,"copyright":"Public Domain","bblVersion":"4.0.0"}
