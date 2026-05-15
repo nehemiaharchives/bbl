@@ -67,7 +67,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, bblSearchHelperVersionLine(searchHelperName("kuromoji")), "")
+                ProcessResult(0, bblSearchHelperVersionLine("bbl-search-kuromoji"), "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -111,7 +111,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, bblSearchHelperVersionLine(searchHelperName("kuromoji")), "")
+                ProcessResult(0, bblSearchHelperVersionLine("bbl-search-kuromoji"), "")
             } else {
                 ProcessResult(2, "", "boom")
             }
