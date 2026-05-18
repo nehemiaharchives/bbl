@@ -10,6 +10,9 @@ import kotlinx.serialization.json.jsonPrimitive
  */
 const val bblCliVersion = "4.0.0"
 
+const val bblDownloadRepository = "nehemiaharchives/bbl"
+const val bblLegacyDownloadRepository = "nehemiaharchives/bbl-kmp"
+
 /**
  * The lucene-kmp generated index version number. This string will be used to determine compatibility between the bbl search helper and the generated index files.
  * This version constrains
@@ -22,11 +25,16 @@ const val bblCliVersion = "4.0.0"
  */
 const val bblArtifactCompatibilityVersion = "1.0"
 
-const val bblReleaseDownloadBaseUrl = "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion"
+const val bblReleaseDownloadBaseUrl = "https://github.com/$bblDownloadRepository/releases/download/$bblArtifactCompatibilityVersion"
 
 fun bblSearchHelperVersionLine(binaryName: String): String = "$binaryName version $bblCliVersion"
 
 fun bblSearchHelperArtifactCompatibilityVersionLine(): String = bblArtifactCompatibilityVersion
+
+fun downloadUrlCandidates(url: String): List<String> {
+    val fallbackUrl = url.replace("/$bblDownloadRepository/", "/$bblLegacyDownloadRepository/")
+    return if (fallbackUrl == url) listOf(url) else listOf(url, fallbackUrl)
+}
 
 fun packManifestArtifactCompatibilityVersionOrNull(manifestJson: String): String? {
     return runCatching {

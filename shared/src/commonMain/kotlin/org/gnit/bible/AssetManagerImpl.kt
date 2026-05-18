@@ -16,6 +16,7 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
+import org.gnit.bible.cli.downloadUrlCandidates
 
 enum class InstallationState(val description: String) {
     EMBEDDED("Embedded"),
@@ -59,18 +60,27 @@ class AssetManagerImpl(
     private val logger = KotlinLogging.logger {}
 
     override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
-        return runCatching {
-            val httpResponse = httpClient.get(listUrl) {
-                timeout { requestTimeoutMillis = 15_000 }
+        downloadUrlCandidates(listUrl).forEachIndexed { index, candidate ->
+            val translations = runCatching {
+                val httpResponse = httpClient.get(candidate) {
+                    timeout { requestTimeoutMillis = 15_000 }
+                }
+                if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
+                Json.decodeFromString<List<Translation>>(httpResponse.bodyAsText())
+            }.getOrElse { error ->
+                logger.debug {
+                    "AssetManagerImpl failed to fetch downloadable translation list from $candidate: ${error.message}"
+                }
+                return@forEachIndexed
             }
-            if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
-            val translations: List<Translation> = Json.decodeFromString(httpResponse.bodyAsText())
-            logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
-            translations
-        }.getOrElse { error ->
-            logger.debug { "AssetManagerImpl failed to fetch downloadable translation list: ${error.message}" }
-            emptyList()
+            if (index > 0) {
+                logger.debug { "AssetManagerImpl fetched downloadable translation list from fallback $candidate (${translations.size})" }
+            } else {
+                logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
+            }
+            return translations
         }
+        return emptyList()
     }
 
     override suspend fun download(
@@ -85,68 +95,81 @@ class AssetManagerImpl(
         fileName: String,
         destinationDir: String
     ) {
-        val url = "${baseUrl.trimEnd('/')}/$fileName"
-        val destinationPath = destinationDir.toPath() / fileName
-        val tempPath = destinationPath.parent!! / "${fileName}.part"
-        fileSystem.createDirectories(destinationPath.parent!!)
+        var lastFailure: Throwable? = null
+        for (candidateBaseUrl in downloadUrlCandidates(baseUrl)) {
+            val result = runCatching {
+                val url = "${candidateBaseUrl.trimEnd('/')}/$fileName"
+                val destinationPath = destinationDir.toPath() / fileName
+                val tempPath = destinationPath.parent!! / "${fileName}.part"
+                fileSystem.createDirectories(destinationPath.parent!!)
 
-        if (baseUrl.startsWith("file://")) {
-            val sourcePath = baseUrl.removePrefix("file://").trimEnd('/').toPath() / fileName
-            runCatching { fileSystem.delete(tempPath) }
-            fileSystem.source(sourcePath).buffer().use { source ->
-                fileSystem.sink(tempPath).buffer().use { sink ->
-                    sink.writeAll(source)
+                if (candidateBaseUrl.startsWith("file://")) {
+                    val sourcePath = candidateBaseUrl.removePrefix("file://").trimEnd('/').toPath() / fileName
+                    runCatching { fileSystem.delete(tempPath) }
+                    fileSystem.source(sourcePath).buffer().use { source ->
+                        fileSystem.sink(tempPath).buffer().use { sink ->
+                            sink.writeAll(source)
+                        }
+                    }
+                    val size = fileSystem.metadata(tempPath).size ?: 0
+                    if (size == 0L) error("Empty download for $fileName")
+                    runCatching { fileSystem.delete(destinationPath) }
+                    fileSystem.atomicMove(tempPath, destinationPath)
+                    logger.debug { "AssetManagerImpl copied $fileName to destination: $destinationPath (${size} bytes)" }
+                    return@runCatching
+                }
+
+                val existingSize = runCatching { fileSystem.metadata(tempPath).size ?: 0L }.getOrDefault(0L)
+
+                val httpResponse = httpClient.get(url) {
+                    if (existingSize > 0) {
+                        header("Range", "bytes=$existingSize-")
+                    }
+                    timeout { requestTimeoutMillis = 30_000 }
+                }
+
+                val append = existingSize > 0 && httpResponse.status.value == 206
+                if (existingSize > 0 && !append) {
+                    // server did not honor range; restart fresh
+                    runCatching { fileSystem.delete(tempPath) }
+                }
+
+                if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
+
+                val byteChannel: ByteReadChannel = httpResponse.body()
+                runCatching {
+                    if (!append) runCatching { fileSystem.delete(tempPath) }
+                    val sink = if (append) fileSystem.appendingSink(tempPath) else fileSystem.sink(tempPath)
+                    sink.buffer().use { buffered ->
+                        while (!byteChannel.isClosedForRead) {
+                            val packet = byteChannel.readRemaining()
+                            val bytes = packet.readByteArray()
+                            buffered.write(bytes)
+                        }
+                        buffered.flush()
+                    }
+                    // basic integrity: ensure file is not empty
+                    val size = fileSystem.metadata(tempPath).size ?: 0
+                    if (size == 0L) error("Empty download for $fileName")
+                    // atomic move into place
+                    runCatching { fileSystem.delete(destinationPath) }
+                    fileSystem.atomicMove(tempPath, destinationPath)
+                    logger.debug { "AssetManagerImpl downloaded $fileName to destination: $destinationPath (${size} bytes)" }
+                }.onFailure {
+                    logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
+                    runCatching { fileSystem.delete(tempPath) }
+                    throw it
                 }
             }
-            val size = fileSystem.metadata(tempPath).size ?: 0
-            if (size == 0L) error("Empty download for $fileName")
-            runCatching { fileSystem.delete(destinationPath) }
-            fileSystem.atomicMove(tempPath, destinationPath)
-            logger.debug { "AssetManagerImpl copied $fileName to destination: $destinationPath (${size} bytes)" }
-            return
-        }
-
-        val existingSize = runCatching { fileSystem.metadata(tempPath).size ?: 0L }.getOrDefault(0L)
-
-        val httpResponse = httpClient.get(url) {
-            if (existingSize > 0) {
-                header("Range", "bytes=$existingSize-")
-            }
-            timeout { requestTimeoutMillis = 30_000 }
-        }
-
-        val append = existingSize > 0 && httpResponse.status.value == 206
-        if (existingSize > 0 && !append) {
-            // server did not honor range; restart fresh
-            runCatching { fileSystem.delete(tempPath) }
-        }
-
-        if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
-
-        val byteChannel: ByteReadChannel = httpResponse.body()
-        runCatching {
-            if (!append) runCatching { fileSystem.delete(tempPath) }
-            val sink = if (append) fileSystem.appendingSink(tempPath) else fileSystem.sink(tempPath)
-            sink.buffer().use { buffered ->
-                while (!byteChannel.isClosedForRead) {
-                    val packet = byteChannel.readRemaining()
-                    val bytes = packet.readByteArray()
-                    buffered.write(bytes)
+            if (result.isSuccess) {
+                if (candidateBaseUrl != baseUrl) {
+                    logger.debug { "AssetManagerImpl downloaded $fileName using fallback base URL $candidateBaseUrl" }
                 }
-                buffered.flush()
+                return
             }
-            // basic integrity: ensure file is not empty
-            val size = fileSystem.metadata(tempPath).size ?: 0
-            if (size == 0L) error("Empty download for $fileName")
-            // atomic move into place
-            runCatching { fileSystem.delete(destinationPath) }
-            fileSystem.atomicMove(tempPath, destinationPath)
-            logger.debug { "AssetManagerImpl downloaded $fileName to destination: $destinationPath (${size} bytes)" }
-        }.onFailure {
-            logger.error { "AssetManagerImpl failed to download $fileName: ${it.message}" }
-            runCatching { fileSystem.delete(tempPath) }
-            throw it
+            lastFailure = result.exceptionOrNull()
         }
+        throw lastFailure ?: error("Unable to download $fileName")
     }
 
     override fun downloadedTranslationCodes(): List<String> {

@@ -37,11 +37,11 @@ class BblVersionTest {
     @Test
     fun downloadablePackUrlsUsePinnedServerResourcesTag() {
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json",
+            "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json",
             DOWNLOADABLE_BIBLE_LIST_URL
         )
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks",
+            "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks",
             DOWNLOADABLE_BIBLE_BASE_URL
         )
     }
@@ -49,7 +49,7 @@ class BblVersionTest {
     @Test
     fun searchHelperUrlUsesPinnedReleaseTag() {
         assertEquals(
-            "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion",
+            "https://github.com/$bblDownloadRepository/releases/download/$bblArtifactCompatibilityVersion",
             bblReleaseDownloadBaseUrl
         )
     }

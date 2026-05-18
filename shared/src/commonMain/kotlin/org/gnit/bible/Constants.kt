@@ -1,10 +1,11 @@
 package org.gnit.bible
 
 import org.gnit.bible.cli.bblArtifactCompatibilityVersion
+import org.gnit.bible.cli.bblDownloadRepository
 
 const val SERVER_PORT = 8081
-const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json"
-const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks"
+const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json"
+const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks"
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
 const val SETTINGS_FILE_NAME = "config.properties"

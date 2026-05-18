@@ -610,14 +610,14 @@ object TestFixtures {
             }
 
         when(request.url.encodedPath){
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json" -> respond(
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json" -> respond(
                 content = downloadableTranslationsListJson, headers = headersOf(
                     "Content-Type" to listOf("application/json"),
                     "Content-Length" to listOf(downloadableTranslationsListJson.encodeToByteArray().size.toString())
                 )
             )
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/kttv.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/kttv.zip" -> {
                 val bytes = packBytes("kttv")
                 respond(
                     content = bytes,
@@ -628,7 +628,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/th1971.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/th1971.zip" -> {
                 val bytes = packBytes("th1971")
                 respond(
                     content = bytes,
@@ -639,7 +639,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/webus.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/webus.zip" -> {
                 val bytes = packBytes("webus")
                 respond(
                     content = bytes,
@@ -650,7 +650,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/jc.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/jc.zip" -> {
                 val bytes = packBytes("jc")
                 respond(
                     content = bytes,
@@ -661,7 +661,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/ubg.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/ubg.zip" -> {
                 val bytes = packBytes("ubg")
                 respond(
                     content = bytes,
@@ -672,7 +672,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/ubio.zip" -> {
+            "/nehemiaharchives/bbl/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/ubio.zip" -> {
                 val bytes = packBytes("ubio")
                 respond(
                     content = bytes,
@@ -683,8 +683,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-kuromoji",
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-kuromoji.exe" -> {
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-kuromoji",
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-kuromoji.exe" -> {
                 val bytes = "kuromoji helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -695,8 +695,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-extra",
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-extra.exe" -> {
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-extra",
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-extra.exe" -> {
                 val bytes = "extra helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -707,8 +707,8 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-morfologik",
-            "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/bbl-search-morfologik.exe" -> {
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-morfologik",
+            "/nehemiaharchives/bbl/releases/download/$bblArtifactCompatibilityVersion/bbl-search-morfologik.exe" -> {
                 val bytes = "morfologik helper".encodeToByteArray()
                 respond(
                     content = bytes,
