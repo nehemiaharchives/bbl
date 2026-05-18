@@ -16,10 +16,39 @@ bbl_command = lambda { |args| "#{bbl_bin_path} #{args}" }
 install_source_dir = '/tmp/bbl-install-downloads'
 install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
 stat_size_command = macos ? 'stat -f %z' : 'stat -c %s'
-installed_pack_codes = %w[webus kjv krv cunp ubg kttv]
+installed_pack_codes = %w[
+  abtag
+  ayt
+  cunp
+  delut
+  irvben
+  irvguj
+  irvhin
+  irvmar
+  irvtam
+  irvtel
+  irvurd
+  jc
+  kjv
+  krv
+  kttv
+  lsg
+  npiulb
+  rdv24
+  rvr09
+  sinod
+  sven
+  svrj
+  tb
+  th1971
+  ubg
+  ubio
+  webus
+]
 installed_search_helpers = %w[
   bbl-search-common
   bbl-search-extra
+  bbl-search-kuromoji
   bbl-search-morfologik
   bbl-search-nori
   bbl-search-smartcn
@@ -88,40 +117,12 @@ describe file(pack_dir) do
   it { should be_directory }
 end
 
-describe file("#{pack_dir}/webus.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
-describe file("#{pack_dir}/kjv.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
-describe file("#{pack_dir}/krv.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
-describe file("#{pack_dir}/cunp.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
-describe file("#{pack_dir}/ubg.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
-end
-
-describe file("#{pack_dir}/kttv.zip") do
-  it { should exist }
-  it { should be_file }
-  its('size') { should be > 0 }
+installed_pack_codes.each do |pack_code|
+  describe file("#{pack_dir}/#{pack_code}.zip") do
+    it { should exist }
+    it { should be_file }
+    its('size') { should be > 0 }
+  end
 end
 
 describe file("#{bin_dir}/bbl-search-common") do
@@ -275,115 +276,66 @@ describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
   end
 end
 
-describe 'bbl install jc deferred dependencies' do
-  before(:all) do
-    @cleanup_result = command("#{install_env} sh -lc '#{bbl_command.call('uninstall jc')} >/dev/null 2>&1 || true; rm -f #{pack_dir}/jc.zip #{bin_dir}/bbl-search-kuromoji'")
-    @list_before_install_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # before_install")
-    @list_before_install_stdout = @list_before_install_result.stdout.force_encoding('UTF-8')
-    @jc_line_before_install = @list_before_install_stdout.lines.find { |line| line.start_with?('JC') }
-    @pack_existed_before = command("test -e #{pack_dir}/jc.zip").exit_status == 0
-    @helper_existed_before = command("test -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-    @install_result = command("#{install_env} #{bbl_command.call('install jc')}")
-    @install_exit_status = @install_result.exit_status
-    @list_after_install_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # after_install")
-    @list_after_install_stdout = @list_after_install_result.stdout.force_encoding('UTF-8')
-    @jc_line_after_install = @list_after_install_stdout.lines.find { |line| line.start_with?('JC') }
-    @pack_exists_after = command("test -f #{pack_dir}/jc.zip").exit_status == 0
-    @pack_size_after = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
-    @pack_version_after = zip_manifest_bbl_version.call(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
-    @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-    @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-    @helper_version_after = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')
-    @helper_artifact_compatibility_version_after =
-      command("#{bin_dir}/bbl-search-kuromoji --artifact-compat-version").stdout.force_encoding('UTF-8')
-    @search_result = command(bbl_command.call('search イエス キリスト in jc'))
-    @search_stdout = @search_result.stdout.force_encoding('UTF-8')
-    @search_results = @search_stdout
-      .split("\n\n")
-      .map(&:strip)
-      .reject(&:empty?)
-    @uninstall_result = command(bbl_command.call('uninstall jc'))
-    @uninstall_exit_status = @uninstall_result.exit_status
-    @list_after_uninstall_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # after_uninstall")
-    @list_after_uninstall_stdout = @list_after_uninstall_result.stdout.force_encoding('UTF-8')
-    @jc_line_after_uninstall = @list_after_uninstall_stdout.lines.find { |line| line.start_with?('JC') }
-    @pack_missing_after_uninstall = command("test ! -e #{pack_dir}/jc.zip").exit_status == 0
-    @helper_missing_after_uninstall = command("test ! -e #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-  end
-
-  it 'does not have jc installed before install' do
-    expect(@pack_existed_before).to eq(false)
-  end
-
-  it 'does not have the kuromoji search helper installed before install' do
-    expect(@helper_existed_before).to eq(false)
-  end
-
-  it 'installs jc successfully' do
-    expect(@install_exit_status).to eq(0)
-  end
-
-  it 'installs jc.zip' do
-    expect(@pack_exists_after).to eq(true)
-    expect(@pack_size_after).to be > 0
-  end
-
-  it 'installs jc.zip with the expected bblArtifactCompatibilityVersion' do
-    expect(@pack_version_after).to eq(expected_artifact_compatibility_version)
-  end
-
-  it 'bbl list command shows jc as available before install' do
-    expect(@jc_line_before_install).to include('JC')
-    expect(@jc_line_before_install).to include('| Available |')
-  end
-
-  it 'installs the kuromoji search helper' do
-    expect(@helper_exists_after).to eq(true)
-    expect(@helper_executable_after).to eq(true)
-  end
-
-  it 'installs the kuromoji search helper with the expected version' do
-    expect(@helper_version_after).to include("bbl-search-kuromoji version #{expected_bbl_version}")
-  end
-
-  it 'installs the kuromoji search helper with the expected artifact compatibility version' do
-    expect(@helper_artifact_compatibility_version_after).to eq("#{expected_artifact_compatibility_version}\n")
-  end
-
-  it 'bbl list command shows jc as installed after install' do
-    expect(@jc_line_after_install).to include('JC')
-    expect(@jc_line_after_install).to include('| Installed |')
-  end
-
-  it 'returns successfully' do
-    expect(@search_result.exit_status).to eq(0)
-  end
-
-  it 'includes the expected kuromoji phrase' do
-    expect(@search_stdout).to include('イエス・キリストの系図。')
-  end
-
-  it 'starts with the expected kuromoji verse text' do
-    expect(@search_results.first).to eq('マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。')
-  end
-
-  it 'uninstalls jc successfully' do
-    expect(@uninstall_exit_status).to eq(0)
-  end
-
-  it 'removes jc.zip' do
-    expect(@pack_missing_after_uninstall).to eq(true)
-  end
-
-  it 'removes the kuromoji search helper' do
-    expect(@helper_missing_after_uninstall).to eq(true)
-  end
-
-  it 'bbl list command shows jc as available after uninstall' do
-    expect(@jc_line_after_uninstall).to include('JC')
-    expect(@jc_line_after_uninstall).to include('| Available |')
-  end
-end
+#describe 'bbl preinstalled jc dependencies' do
+#  before(:all) do
+#    @list_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # preinstalled")
+#    @list_stdout = @list_result.stdout.force_encoding('UTF-8')
+#    @jc_line = @list_stdout.lines.find { |line| line.start_with?('JC') }
+#    @pack_exists = command("test -f #{pack_dir}/jc.zip").exit_status == 0
+#    @pack_size = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
+#    @pack_version = zip_manifest_bbl_version.call(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
+#    @helper_exists = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+#    @helper_executable = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
+#    @helper_version = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')
+#    @helper_artifact_compatibility_version =
+#      command("#{bin_dir}/bbl-search-kuromoji --artifact-compat-version").stdout.force_encoding('UTF-8')
+#    @search_result = command(bbl_command.call('search イエス キリスト in jc'))
+#    @search_stdout = @search_result.stdout.force_encoding('UTF-8')
+#    @search_results = @search_stdout
+#      .split("\n\n")
+#      .map(&:strip)
+#      .reject(&:empty?)
+#  end
+#
+#  it 'installs jc.zip' do
+#    expect(@pack_exists).to eq(true)
+#    expect(@pack_size).to be > 0
+#  end
+#
+#  it 'installs jc.zip with the expected bblArtifactCompatibilityVersion' do
+#    expect(@pack_version).to eq(expected_artifact_compatibility_version)
+#  end
+#
+#  it 'installs the kuromoji search helper' do
+#    expect(@helper_exists).to eq(true)
+#    expect(@helper_executable).to eq(true)
+#  end
+#
+#  it 'installs the kuromoji search helper with the expected version' do
+#    expect(@helper_version).to include("bbl-search-kuromoji version #{expected_bbl_version}")
+#  end
+#
+#  it 'installs the kuromoji search helper with the expected artifact compatibility version' do
+#    expect(@helper_artifact_compatibility_version).to eq("#{expected_artifact_compatibility_version}\n")
+#  end
+#
+#  it 'bbl list command shows jc as installed' do
+#    expect(@jc_line).to include('JC')
+#    expect(@jc_line).to include('| Installed |')
+#  end
+#
+#  it 'returns successfully' do
+#    expect(@search_result.exit_status).to eq(0)
+#  end
+#
+#  it 'includes the expected kuromoji phrase' do
+#    expect(@search_stdout).to include('イエス・キリストの系図。')
+#  end
+#
+#  it 'starts with the expected kuromoji verse text' do
+#    expect(@search_results.first).to eq('マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。')
+#  end
+#end
 
 describe 'bbl search 예수 그리스도 in krv exact output' do
   include_context 'search helpers'

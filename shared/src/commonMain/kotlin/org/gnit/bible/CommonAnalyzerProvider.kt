@@ -16,7 +16,7 @@ import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
-import org.gnit.lucenekmp.analysis.te.TeluguAnalyzer
+import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 
 class CommonAnalyzerProvider : AnalyzerProvider {
@@ -49,7 +49,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "hi" -> HindiAnalyzer() //common
             "bn" -> BengaliAnalyzer() //common
             //"mr" -> MarathiAnalyzer() //extra
-            "te" -> TeluguAnalyzer() //common
+            "te" -> BibleTeluguAnalyzer() //common
             "ta" -> BibleTamilAnalyzer() //common
             //"gu" -> GujaratiAnalyzer() //extra
             //"ur" -> UrduAnalyzer() //extra

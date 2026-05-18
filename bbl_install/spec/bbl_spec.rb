@@ -5,34 +5,48 @@ describe 'bbl_install::default' do
     %w[
       bbl-search-common
       bbl-search-extra
+      bbl-search-kuromoji
       bbl-search-morfologik
       bbl-search-nori
       bbl-search-smartcn
     ]
   end
 
-  let(:linux_deferred_helper_bin_names) do
-    %w[
-      bbl-search-kuromoji
-    ]
-  end
+  let(:linux_deferred_helper_bin_names) { [] }
 
   let(:linux_pack_names) do
     %w[
+      abtag.zip
+      ayt.zip
       cunp.zip
-      webus.zip
+      delut.zip
+      irvben.zip
+      irvguj.zip
+      irvhin.zip
+      irvmar.zip
+      irvtam.zip
+      irvtel.zip
+      irvurd.zip
+      jc.zip
       kjv.zip
       krv.zip
       kttv.zip
+      lsg.zip
+      npiulb.zip
+      rdv24.zip
+      rvr09.zip
+      sinod.zip
+      sven.zip
+      svrj.zip
+      tb.zip
+      th1971.zip
       ubg.zip
+      ubio.zip
+      webus.zip
     ]
   end
 
-  let(:linux_deferred_pack_names) do
-    %w[
-      jc.zip
-    ]
-  end
+  let(:linux_deferred_pack_names) { [] }
 
   context 'on linux' do
     let(:chef_run) do
@@ -155,13 +169,33 @@ describe 'bbl_install::default' do
 
     let(:windows_pack_names) do
       %w[
+        abtag.zip
+        ayt.zip
         cunp.zip
-        webus.zip
+        delut.zip
+        irvben.zip
+        irvguj.zip
+        irvhin.zip
+        irvmar.zip
+        irvtam.zip
+        irvtel.zip
+        irvurd.zip
         kjv.zip
         jc.zip
         krv.zip
         kttv.zip
+        lsg.zip
+        npiulb.zip
+        rdv24.zip
+        rvr09.zip
+        sinod.zip
+        sven.zip
+        svrj.zip
+        tb.zip
+        th1971.zip
         ubg.zip
+        ubio.zip
+        webus.zip
       ]
     end
 

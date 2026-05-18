@@ -45,6 +45,7 @@ default['bbl_install']['bbl_binary_path'] = if windows
                                            end
 default['bbl_install']['install_source_dir'] = windows ? nil : '/tmp/bbl-install-downloads'
 default['bbl_install']['bbl_binary_name'] = windows ? 'bbl.exe' : 'bbl'
+pack_names = ::Dir.glob(::File.expand_path('../files/*.zip', __dir__)).map { |path| ::File.basename(path) }.sort
 
 if windows
   default['bbl_install']['helper_bin_names'] = %w[
@@ -57,39 +58,20 @@ if windows
   ]
 
   default['bbl_install']['deferred_helper_bin_names'] = []
-  default['bbl_install']['pack_names'] = %w[
-    cunp.zip
-    webus.zip
-    kjv.zip
-    jc.zip
-    krv.zip
-    kttv.zip
-    ubg.zip
-  ]
+  default['bbl_install']['pack_names'] = pack_names
   default['bbl_install']['deferred_pack_names'] = []
 else
   default['bbl_install']['helper_bin_names'] = %w[
     bbl-search-common
     bbl-search-extra
+    bbl-search-kuromoji
     bbl-search-morfologik
     bbl-search-nori
     bbl-search-smartcn
   ]
 
-  default['bbl_install']['deferred_helper_bin_names'] = %w[
-    bbl-search-kuromoji
-  ]
+  default['bbl_install']['deferred_helper_bin_names'] = []
 
-  default['bbl_install']['pack_names'] = %w[
-    cunp.zip
-    webus.zip
-    kjv.zip
-    krv.zip
-    kttv.zip
-    ubg.zip
-  ]
-
-  default['bbl_install']['deferred_pack_names'] = %w[
-    jc.zip
-  ]
+  default['bbl_install']['pack_names'] = pack_names
+  default['bbl_install']['deferred_pack_names'] = []
 end

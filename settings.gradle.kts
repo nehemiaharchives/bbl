@@ -37,7 +37,13 @@ plugins {
 // checkout of lucene-kmp. When that sibling exists, use it for fast iteration.
 // When it doesn't (e.g. cloned standalone / CI), fall back to published artifacts.
 val luceneKmpSiblingDir = file("../lucene-kmp")
-if (/*luceneKmpSiblingDir.isDirectory*/ false) { // disabled for now for dev speed because lucene-kmp is at least seems stable.
+
+// When we develop bbl-kmp feature other than search, we can make following switch to "false" to speed up build.
+// When we encounter poor, incorrect or unexpected search result, we switch back to overwriting it by local lucene-kmp so the lucene-kmp changes are reflected in bbl-kmp just by compiling dependent modules without needing to publish lucene-kmp to maven local and updating bbl-kmp's lucene-kmp version.
+if (
+    luceneKmpSiblingDir.isDirectory
+    //false // now we work on bbl-kmp and lucene-kmp side by side.
+    ) {
 
     logger.lifecycle("Found sibling lucene-kmp at ${luceneKmpSiblingDir.absolutePath} substituting maven published lucene-kmp dependency with local development version")
 
