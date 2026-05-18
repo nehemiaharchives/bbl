@@ -428,6 +428,17 @@ jobs:
           path: bbl_install/files
           merge-multiple: true
 
+      - name: Prepare Kitchen cookbook files
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          find bbl_install/files/linux -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
+          test -f bbl_install/files/version.txt
+          test -f bbl_install/files/bbl
+          test -f bbl_install/files/bbl-search-common
+          test -f bbl_install/files/kjv.zip
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -502,6 +513,17 @@ jobs:
           path: bbl_install/files
           merge-multiple: true
 
+      - name: Prepare Kitchen cookbook files
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Copy-Item bbl_install\files\common\version.txt bbl_install\files\version.txt -Force
+          Get-ChildItem bbl_install\files\windows -File -Recurse | Copy-Item -Destination bbl_install\files -Force
+          if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+          if (-not (Test-Path bbl_install\files\bbl.exe)) { throw 'Missing bbl_install\files\bbl.exe' }
+          if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
+          if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -546,6 +568,21 @@ jobs:
           pattern: bbl-install-macos-*-files
           path: bbl_install/files
           merge-multiple: true
+
+      - name: Prepare Kitchen cookbook files
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          for fixture_dir in bbl_install/files/macosArm64 bbl_install/files/macosX64; do
+            if [ -d "$fixture_dir" ]; then
+              find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
+            fi
+          done
+          test -f bbl_install/files/version.txt
+          test -f bbl_install/files/bbl
+          test -f bbl_install/files/bbl-search-common
+          test -f bbl_install/files/kjv.zip
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
