@@ -23,6 +23,25 @@ plugins {
 }
 
 subprojects {
+    val kotlinDataDir = System.getProperty("kotlin.data.dir") ?: ""
+    val duplicateKlibStrategyArg = "-Xklib-duplicated-unique-name-strategy=allow-first-with-warning"
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile>().configureEach {
+        inputs.property("kotlinDataDir", kotlinDataDir)
+    }
+
+    plugins.withId("org.jetbrains.kotlin.multiplatform") {
+        extensions.configure<KotlinMultiplatformExtension> {
+            targets.withType<KotlinNativeTarget>().configureEach {
+                compilations.configureEach {
+                    compileTaskProvider.configure {
+                        compilerOptions.freeCompilerArgs.add(duplicateKlibStrategyArg)
+                    }
+                }
+            }
+        }
+    }
+
     tasks.withType<KotlinNativeTest>().configureEach {
         environment("SIMCTL_CHILD_BBL_KMP_ROOT", rootProject.projectDir.absolutePath)
     }

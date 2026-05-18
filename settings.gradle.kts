@@ -1,3 +1,13 @@
+val sharedKotlinDataDir = File(System.getProperty("user.home"), ".konan").absolutePath
+val configuredKotlinDataDir = System.getProperty("kotlin.data.dir")
+if (configuredKotlinDataDir != sharedKotlinDataDir) {
+    logger.lifecycle(
+        "Using kotlin.data.dir=$sharedKotlinDataDir for bbl-kmp composite native builds"
+            + (configuredKotlinDataDir?.let { " instead of $it" } ?: "")
+    )
+    System.setProperty("kotlin.data.dir", sharedKotlinDataDir)
+}
+
 rootProject.name = "Bible"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
