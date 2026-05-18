@@ -8,6 +8,8 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.Platform
+import org.gnit.bible.bblArtifactCompatibilityVersion
+import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest

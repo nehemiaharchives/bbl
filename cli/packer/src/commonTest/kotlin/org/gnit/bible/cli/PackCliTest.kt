@@ -8,6 +8,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.ZipBibleResourcesReader
+import org.gnit.bible.bblArtifactCompatibilityVersion
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
 import org.gnit.bible.test.TestFixtures

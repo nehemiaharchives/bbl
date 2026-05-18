@@ -93,8 +93,10 @@ val bblInstallBinaries = listOf(
     BblInstallBinary("cli-search-smartcn", "CliSearchSmartcn", ":cli:search:smartcn", "bbl-search-smartcn"),
 )
 
+val bblVersionFile = layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/BblVersion.kt")
+
 val bblCliVersionProvider = providers.fileContents(
-    layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt")
+    bblVersionFile
 ).asText.map { source ->
     Regex("""const val bblCliVersion = "([^"]+)"""")
         .find(source)
@@ -104,7 +106,7 @@ val bblCliVersionProvider = providers.fileContents(
 }
 
 val bblArtifactCompatibilityVersionProvider = providers.fileContents(
-    layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt")
+    bblVersionFile
 ).asText.map { source ->
     Regex("""const val bblArtifactCompatibilityVersion = "([^"]+)"""")
         .find(source)
@@ -117,7 +119,7 @@ val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") 
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Verify server bblpack zip manifests match bblArtifactCompatibilityVersion."
 
-    inputs.file(layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt"))
+    inputs.file(bblVersionFile)
     inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
     inputs.files(fileTree(layout.projectDirectory.dir("server/src/main/resources/files/bblpacks")) {
         include("*.zip")

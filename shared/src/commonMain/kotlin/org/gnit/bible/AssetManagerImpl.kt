@@ -16,7 +16,6 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
-import org.gnit.bible.cli.downloadUrlCandidates
 
 enum class InstallationState(val description: String) {
     EMBEDDED("Embedded"),

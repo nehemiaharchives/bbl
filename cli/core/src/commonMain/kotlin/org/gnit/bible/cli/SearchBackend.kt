@@ -8,6 +8,7 @@ import org.gnit.bible.Language
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
+import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
 
 data class SearchRequest(
     val term: String,

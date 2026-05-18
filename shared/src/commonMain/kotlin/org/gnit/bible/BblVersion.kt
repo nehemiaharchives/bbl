@@ -1,4 +1,4 @@
-package org.gnit.bible.cli
+package org.gnit.bible
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull

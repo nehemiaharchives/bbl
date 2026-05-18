@@ -1,8 +1,5 @@
 package org.gnit.bible
 
-import org.gnit.bible.cli.bblArtifactCompatibilityVersion
-import org.gnit.bible.cli.bblDownloadRepository
-
 const val SERVER_PORT = 8081
 const val DOWNLOADABLE_BIBLE_LIST_URL = "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json"
 const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks"

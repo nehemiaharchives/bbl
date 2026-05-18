@@ -15,6 +15,9 @@ import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
 import org.gnit.bible.ZipBibleResourcesReader
 import okio.Path.Companion.toPath
+import org.gnit.bible.bblArtifactCompatibilityVersion
+import org.gnit.bible.bblReleaseDownloadBaseUrl
+import org.gnit.bible.packManifestArtifactCompatibilityVersionOrNull
 
 class InstallCli(
     private val bible: Bible,
@@ -48,7 +51,7 @@ class InstallCli(
             .toSet()
 
         incompatibleInstalledCodes.forEach {
-            echo("$it installed pack is incompatible with bbl $bblArtifactCompatibilityVersion, reinstalling")
+            echo("$it installed pack is incompatible with bbl ${bblArtifactCompatibilityVersion}, reinstalling")
             runCatching { am.delete(it) }
         }
 
@@ -119,7 +122,7 @@ class InstallCli(
             runCatching { am.delete(translationCode) }
             val actual = packVersion ?: "<missing>"
             throw CliktError(
-                "Installing $translationCode failed: pack manifest bblArtifactCompatibilityVersion $actual is incompatible with bbl $bblArtifactCompatibilityVersion"
+                "Installing $translationCode failed: pack manifest bblArtifactCompatibilityVersion $actual is incompatible with bbl ${bblArtifactCompatibilityVersion}"
             )
         }
     }

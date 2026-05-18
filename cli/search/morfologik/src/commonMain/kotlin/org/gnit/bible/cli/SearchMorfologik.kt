@@ -14,6 +14,8 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
+import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
+import org.gnit.bible.bblSearchHelperVersionLine
 import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer

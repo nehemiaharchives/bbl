@@ -1,10 +1,8 @@
-package org.gnit.bible.cli
+package org.gnit.bible
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
-import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 
 class BblVersionTest {
 
@@ -21,7 +19,7 @@ class BblVersionTest {
     @Test
     fun searchHelperVersionLineUsesCliVersion() {
         assertEquals(
-            "bbl-search-kuromoji version $bblCliVersion",
+            "bbl-search-kuromoji version ${bblCliVersion}",
             bblSearchHelperVersionLine("bbl-search-kuromoji")
         )
     }
@@ -37,11 +35,11 @@ class BblVersionTest {
     @Test
     fun downloadablePackUrlsUsePinnedServerResourcesTag() {
         assertEquals(
-            "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json",
+            "https://raw.githubusercontent.com/${bblDownloadRepository}/${bblArtifactCompatibilityVersion}/server/src/main/resources/files/bbllist.json",
             DOWNLOADABLE_BIBLE_LIST_URL
         )
         assertEquals(
-            "https://raw.githubusercontent.com/$bblDownloadRepository/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks",
+            "https://raw.githubusercontent.com/${bblDownloadRepository}/${bblArtifactCompatibilityVersion}/server/src/main/resources/files/bblpacks",
             DOWNLOADABLE_BIBLE_BASE_URL
         )
     }
@@ -49,7 +47,7 @@ class BblVersionTest {
     @Test
     fun searchHelperUrlUsesPinnedReleaseTag() {
         assertEquals(
-            "https://github.com/$bblDownloadRepository/releases/download/$bblArtifactCompatibilityVersion",
+            "https://github.com/${bblDownloadRepository}/releases/download/${bblArtifactCompatibilityVersion}",
             bblReleaseDownloadBaseUrl
         )
     }

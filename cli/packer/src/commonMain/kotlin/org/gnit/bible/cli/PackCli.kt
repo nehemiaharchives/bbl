@@ -17,6 +17,7 @@ import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
+import org.gnit.bible.bblArtifactCompatibilityVersion
 
 class PackCli(
     private val bible: Bible

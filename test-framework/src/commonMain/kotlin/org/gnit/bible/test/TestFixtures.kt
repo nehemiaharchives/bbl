@@ -5,7 +5,7 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.http.headersOf
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.cli.bblArtifactCompatibilityVersion
+import org.gnit.bible.bblArtifactCompatibilityVersion
 
 object TestFixtures {
 
