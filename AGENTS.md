@@ -10,6 +10,7 @@ The tech stack is Kotlin Multiplatform and both cli and composeApp depends on [b
 [lucene-kmp] core functions are ported but many components should still need to be ported from Java version. 
 So [bbl-kmp/cli] is the world first user of [lucene-kmp] and aiming to heavily dogfood, debug and make it working.
 [bbl-kmp] development proceeds at the same time [lucene-kmp] whenever you find bug, you need to create github issue using github mcp server in [lucene-kmp] github repo.
+We develop bbl-kmp together with [lucene-kmp]. [bbl-kmp] dogfood [lucene-kmp] as primary user project. This means whenever poor, incorrect or unexpected search result appears, we will fix [lucene-kmp]. So remember that whenever we see poor analyzer behavior, stem problem, certain words/stemming etc not recognized, and other problem which could be fixed by [lucene-kmp], we will always go back to [lucene-kmp] to fix them to improve [lucene-kmp] search quality. So we never compromise test assertions in [bbl-kmp] but always fix [lucene-kmp].
 
 ## Language
 
