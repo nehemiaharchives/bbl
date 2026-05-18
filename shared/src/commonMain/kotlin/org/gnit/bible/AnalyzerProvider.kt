@@ -5,6 +5,8 @@ import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 
 interface AnalyzerProvider {
     fun analyzerFor(language: Language): Analyzer
+
+    fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> = emptyList()
 }
 
 class SimpleAnalyzerProvider : AnalyzerProvider {

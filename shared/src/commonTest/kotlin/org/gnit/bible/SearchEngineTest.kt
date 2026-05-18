@@ -51,26 +51,76 @@ class SearchEngineTest {
         assertTrue(results.isNotEmpty(), "Expected fallback search result for stop-word query")
     }
 
-    private fun buildIndexDirectory(): ByteBuffersDirectory {
+    @Test
+    fun searchAppliesBibleFiltersFromAnalyzerProvider() {
+        val directory = buildIndexDirectory(
+            IndexedVerse(book = 4, chapter = 14, verse = 30, text = "jesus"),
+            IndexedVerse(book = 40, chapter = 1, verse = 1, text = "jesus")
+        )
+        val reader = DirectoryBibleResourcesReader(directory)
+        val provider = object : AnalyzerProvider {
+            override fun analyzerFor(language: Language): Analyzer = SimpleAnalyzer()
+
+            override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
+                return listOf(Books.Category.NEW_TESTAMENT.filter)
+            }
+        }
+
+        val engine = SearchEngine(reader, provider)
+        val results = engine.search(term = "jesus", translation = Translation.webus)
+
+        assertEquals(VersePointer(Translation.webus, 40, 1, 1), results.first())
+    }
+
+    @Test
+    fun searchReturnsCanonicalOrderWithoutBibleFilter() {
+        val directory = buildIndexDirectory(
+            IndexedVerse(book = 4, chapter = 14, verse = 30, text = "jesus"),
+            IndexedVerse(book = 40, chapter = 1, verse = 1, text = "jesus")
+        )
+        val reader = DirectoryBibleResourcesReader(directory)
+        val provider = object : AnalyzerProvider {
+            override fun analyzerFor(language: Language): Analyzer = SimpleAnalyzer()
+        }
+
+        val engine = SearchEngine(reader, provider)
+        val results = engine.search(term = "jesus", translation = Translation.webus)
+
+        assertEquals(VersePointer(Translation.webus, 4, 14, 30), results.first())
+    }
+
+    private fun buildIndexDirectory(vararg verses: IndexedVerse): ByteBuffersDirectory {
         val directory = ByteBuffersDirectory()
         val config = IndexWriterConfig(SimpleAnalyzer())
+        val indexVerses = verses.toList().ifEmpty {
+            listOf(IndexedVerse(book = 1, chapter = 1, verse = 1, text = "the quick brown fox"))
+        }
         IndexWriter(directory, config).use { writer ->
-            val doc = Document().apply {
-                add(IntPoint("book", 1))
-                add(StoredField("book", 1))
+            indexVerses.forEach { indexedVerse ->
+                val doc = Document().apply {
+                    add(IntPoint("book", indexedVerse.book))
+                    add(StoredField("book", indexedVerse.book))
 
-                add(IntPoint("chapter", 1))
-                add(StoredField("chapter", 1))
+                    add(IntPoint("chapter", indexedVerse.chapter))
+                    add(StoredField("chapter", indexedVerse.chapter))
 
-                add(IntPoint("verse", 1))
-                add(StoredField("verse", 1))
+                    add(IntPoint("verse", indexedVerse.verse))
+                    add(StoredField("verse", indexedVerse.verse))
 
-                add(Field("text", "the quick brown fox", TextField.TYPE_STORED))
+                    add(Field("text", indexedVerse.text, TextField.TYPE_STORED))
+                }
+                writer.addDocument(doc)
             }
-            writer.addDocument(doc)
         }
         return directory
     }
+
+    private data class IndexedVerse(
+        val book: Int,
+        val chapter: Int,
+        val verse: Int,
+        val text: String
+    )
 
     private class DirectoryBibleResourcesReader(
         private val directory: ByteBuffersDirectory

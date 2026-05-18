@@ -13,7 +13,7 @@ import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.ct.BiblePortugueseAnalyzer
-import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
+import org.gnit.lucenekmp.analysis.ru.ct.BibleRussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
@@ -26,6 +26,14 @@ class CommonAnalyzerProvider : AnalyzerProvider {
         return cache.getOrPut(language.code) { createAnalyzer(language.code) }
     }
 
+    override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
+        return when {
+            language == Language.ru && BibleRussianAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            else -> emptyList()
+        }
+    }
+
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
             "en" -> EnglishAnalyzer() //common
@@ -33,7 +41,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "pt" -> BiblePortugueseAnalyzer() //common
             "de" -> BibleGermanAnalyzer() //common
             "fr" -> FrenchAnalyzer() //common
-            "ru" -> RussianAnalyzer() //common
+            "ru" -> BibleRussianAnalyzer() //common
             "nl" -> DutchAnalyzer() //common
             "it" -> ItalianAnalyzer() //common
             //"pl" -> MorfologikAnalyzer() //morfologik

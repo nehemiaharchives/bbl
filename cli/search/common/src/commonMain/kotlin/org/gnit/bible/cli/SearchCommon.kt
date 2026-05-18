@@ -11,6 +11,8 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
+import org.gnit.bible.BibleFilter
+import org.gnit.bible.Books
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
@@ -30,7 +32,7 @@ import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.ct.BiblePortugueseAnalyzer
-import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
+import org.gnit.lucenekmp.analysis.ru.ct.BibleRussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
@@ -43,6 +45,14 @@ class CommonAnalyzerProvider : AnalyzerProvider {
         return cache.getOrPut(language.code) { createAnalyzer(language.code) }
     }
 
+    override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
+        return when {
+            language == Language.ru && BibleRussianAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            else -> emptyList()
+        }
+    }
+
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
             // search common (embedded in cmp)
@@ -51,7 +61,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "pt" -> BiblePortugueseAnalyzer()
             "de" -> BibleGermanAnalyzer()
             "fr" -> FrenchAnalyzer()
-            "ru" -> RussianAnalyzer()
+            "ru" -> BibleRussianAnalyzer()
             "nl" -> DutchAnalyzer()
             "it" -> ItalianAnalyzer()
             "sv" -> BibleSwedishAnalyzer()

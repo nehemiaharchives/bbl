@@ -10,6 +10,7 @@ import org.gnit.lucenekmp.queryparser.classic.QueryParser
 import org.gnit.lucenekmp.search.BooleanClause
 import org.gnit.lucenekmp.search.BooleanQuery
 import org.gnit.lucenekmp.search.IndexSearcher
+import org.gnit.lucenekmp.search.MatchAllDocsQuery
 import org.gnit.lucenekmp.search.Query
 import org.gnit.lucenekmp.search.Sort
 import org.gnit.lucenekmp.search.SortField
@@ -266,6 +267,29 @@ class SearchEngine(
         return builder.build()
     }
 
+    private fun filterQuery(filter: BibleFilter): Query {
+        return when (filter) {
+            BibleFilter.All -> MatchAllDocsQuery()
+            is BibleFilter.BookRange -> {
+                val range = filter.range
+                IntPoint.newRangeQuery("book", range.first, range.last)
+            }
+            is BibleFilter.BookSet -> IntPoint.newSetQuery("book", filter.books.toMutableList())
+            is BibleFilter.Passage -> IntPoint.newRangeQuery(
+                "book",
+                filter.start.book,
+                filter.endInclusive.book
+            )
+            is BibleFilter.Union -> {
+                val builder = BooleanQuery.Builder()
+                filter.filters.forEach { child ->
+                    builder.add(filterQuery(child), BooleanClause.Occur.SHOULD)
+                }
+                builder.build()
+            }
+        }
+    }
+
     private fun runSearchQueries(
         indexSearcher: IndexSearcher,
         indexReader: IndexReader,
@@ -412,6 +436,11 @@ class SearchEngine(
             "searching $term ${if (bookNumber != null) "in ${bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
         }
         val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
+        if (bookNumber == null) {
+            analyzerProvider.bibleFiltersFor(translation.language, term).forEach { filter ->
+                filterClauses.add(filterQuery(filter) to BooleanClause.Occur.MUST)
+            }
+        }
         val requireAllTokens = term.any { it.isWhitespace() }
         return runSearchPipeline(
             indexSearcher = indexSearcher,

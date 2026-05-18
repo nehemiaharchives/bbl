@@ -19,7 +19,7 @@ import org.gnit.lucenekmp.analysis.mr.ct.BibleMarathiAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
 import org.gnit.lucenekmp.analysis.pt.ct.BiblePortugueseAnalyzer
-import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
+import org.gnit.lucenekmp.analysis.ru.ct.BibleRussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
@@ -37,6 +37,14 @@ class CmpAnalyzerProvider : AnalyzerProvider {
         return cache.getOrPut(language.code) { createAnalyzer(language) }
     }
 
+    override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
+        return when {
+            language == Language.ru && BibleRussianAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            else -> emptyList()
+        }
+    }
+
     private fun createAnalyzer(language: Language): Analyzer {
         return when (language.code) {
             "en" -> EnglishAnalyzer() //common (embedded in cmp)
@@ -44,7 +52,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "pt" -> BiblePortugueseAnalyzer() //common (embedded in cmp)
             "de" -> BibleGermanAnalyzer() //common (embedded in cmp)
             "fr" -> FrenchAnalyzer() //common (embedded in cmp)
-            "ru" -> RussianAnalyzer() //common (embedded in cmp)
+            "ru" -> BibleRussianAnalyzer() //common (embedded in cmp)
             "nl" -> DutchAnalyzer() //common (embedded in cmp)
             "it" -> ItalianAnalyzer() //common (embedded in cmp)
             "sv" -> BibleSwedishAnalyzer() //common (embedded in cmp)
