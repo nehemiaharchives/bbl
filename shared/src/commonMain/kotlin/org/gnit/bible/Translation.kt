@@ -3,7 +3,7 @@ package org.gnit.bible
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.gnit.bible.cli.bblCliVersion
+import org.gnit.bible.cli.bblArtifactCompatibilityVersion as currentBblArtifactCompatibilityVersion
 
 private val translationJson = Json {
     ignoreUnknownKeys = true
@@ -50,7 +50,7 @@ data class Translation(
      * Version constraint shared by bbl CLI, search helper binaries, and downloadable pack manifests.
      */
     @EncodeDefault
-    val bblVersion: String = bblCliVersion,
+    val bblArtifactCompatibilityVersion: String = currentBblArtifactCompatibilityVersion,
 
     /**
      * In some language, name of the books are translated differently according to the translation.

@@ -103,17 +103,28 @@ val bblCliVersionProvider = providers.fileContents(
         ?: error("Unable to read bblCliVersion from BblVersion.kt")
 }
 
+val bblArtifactCompatibilityVersionProvider = providers.fileContents(
+    layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt")
+).asText.map { source ->
+    Regex("""const val bblArtifactCompatibilityVersion = "([^"]+)"""")
+        .find(source)
+        ?.groupValues
+        ?.get(1)
+        ?: error("Unable to read bblArtifactCompatibilityVersion from BblVersion.kt")
+}
+
 val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Verify server bblpack zip manifests match bblCliVersion."
+    description = "Verify server bblpack zip manifests match bblArtifactCompatibilityVersion."
 
     inputs.file(layout.projectDirectory.file("shared/src/commonMain/kotlin/org/gnit/bible/cli/BblVersion.kt"))
+    inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
     inputs.files(fileTree(layout.projectDirectory.dir("server/src/main/resources/files/bblpacks")) {
         include("*.zip")
     })
 
     doLast {
-        val expectedVersion = bblCliVersionProvider.get()
+        val expectedVersion = bblArtifactCompatibilityVersionProvider.get()
         val packDir = layout.projectDirectory.dir("server/src/main/resources/files/bblpacks").asFile
         val zipFiles = packDir.listFiles { file -> file.isFile && file.extension == "zip" }
             ?.sortedBy { it.name }
@@ -123,7 +134,7 @@ val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") 
             "No server bblpack zips found in ${packDir.absolutePath}"
         }
 
-        val versionRegex = Regex(""""bblVersion"\s*:\s*"([^"]+)"""")
+        val versionRegex = Regex(""""bblArtifactCompatibilityVersion"\s*:\s*"([^"]+)"""")
         val failures = mutableListOf<String>()
 
         zipFiles.forEach { zipFile ->
@@ -131,21 +142,21 @@ val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") 
                 val manifestEntry = zip.entries().asSequence()
                     .firstOrNull { it.name.endsWith(".0.manifest.json") }
                 if (manifestEntry == null) {
-                    failures += "${zipFile.name}: missing .0.manifest.json"
+                    failures.add("${zipFile.name}: missing .0.manifest.json")
                     return@use
                 }
 
                 val manifestJson = zip.getInputStream(manifestEntry).bufferedReader().use { it.readText() }
                 val actualVersion = versionRegex.find(manifestJson)?.groupValues?.get(1)
                 if (actualVersion != expectedVersion) {
-                    failures += "${zipFile.name}: bblVersion ${actualVersion ?: "<missing>"} != $expectedVersion"
+                    failures.add("${zipFile.name}: bblArtifactCompatibilityVersion ${actualVersion ?: "<missing>"} != $expectedVersion")
                 }
             }
         }
 
         if (failures.isNotEmpty()) {
             throw GradleException(
-                "Server bblpack versions are not compatible with bbl $expectedVersion:\n" +
+                "Server bblpack versions are not compatible with bbl artifact compatibility version $expectedVersion:\n" +
                     failures.joinToString(separator = "\n") { " - $it" } +
                     "\nRegenerate packs with bbl pack before staging fixtures or publishing."
             )
@@ -153,22 +164,35 @@ val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") 
     }
 }
 
-val bblInstallVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/version.txt")
+val bblInstallCommonFixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/common")
+val bblInstallVersionFixtureFile = bblInstallCommonFixtureDirectory.map { it.file("version.txt") }
+val bblInstallArtifactCompatibilityVersionFixtureFile =
+    bblInstallCommonFixtureDirectory.map { it.file("artifact_compatibility_version.txt") }
 val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Stage the expected bbl version file for bbl_install Kitchen tests and local cookbook runs."
+    description = "Stage expected bbl version files for bbl_install Kitchen tests and local cookbook runs."
 
     inputs.property("bblCliVersion", bblCliVersionProvider)
-    outputs.file(bblInstallVersionFixtureFile)
+    inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
+    outputs.files(bblInstallVersionFixtureFile, bblInstallArtifactCompatibilityVersionFixtureFile)
 
     doLast {
         val versionFile = bblInstallVersionFixtureFile.get().asFile
         versionFile.parentFile.mkdirs()
         versionFile.writeText("${bblCliVersionProvider.get()}\n")
 
+        val artifactCompatibilityVersionFile = bblInstallArtifactCompatibilityVersionFixtureFile.get().asFile
+        artifactCompatibilityVersionFile.parentFile.mkdirs()
+        artifactCompatibilityVersionFile.writeText("${bblArtifactCompatibilityVersionProvider.get()}\n")
+
         val cookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt").asFile
         cookbookVersionFile.parentFile.mkdirs()
         cookbookVersionFile.writeText(versionFile.readText())
+
+        val cookbookArtifactCompatibilityVersionFile =
+            layout.projectDirectory.file("bbl_install/files/artifact_compatibility_version.txt").asFile
+        cookbookArtifactCompatibilityVersionFile.parentFile.mkdirs()
+        cookbookArtifactCompatibilityVersionFile.writeText(artifactCompatibilityVersionFile.readText())
     }
 }
 
@@ -212,7 +236,7 @@ fun Copy.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
 
     into(layout.projectDirectory.dir("bbl_install/files"))
     from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") })
-    from(bblInstallVersionFixtureFile)
+    from(bblInstallCommonFixtureDirectory)
     include("**/*")
     eachFile {
         relativePath = RelativePath(true, name)

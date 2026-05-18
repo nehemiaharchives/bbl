@@ -92,7 +92,7 @@ class InstallCliTest : ResourcesTestBase() {
         val remoteListWithoutJc = "[]"
         val httpClient = HttpClient(MockEngine { request ->
             when (request.url.encodedPath) {
-                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json" -> respond(
+                "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json" -> respond(
                     content = remoteListWithoutJc,
                     headers = headersOf(
                         "Content-Type" to listOf("application/json"),
@@ -100,7 +100,7 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks/jc.zip" -> respond(
+                "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/jc.zip" -> respond(
                     content = TestFixtures.jcMinimalZipBytes,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
@@ -108,7 +108,7 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                "/nehemiaharchives/bbl-kmp/releases/download/$bblCliVersion/${searchHelperName("kuromoji")}" -> {
+                "/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion/${searchHelperName("kuromoji")}" -> {
                     val bytes = "kuromoji helper".encodeToByteArray()
                     respond(
                         content = bytes,
@@ -136,7 +136,7 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testDefaultSearchBinaryBaseUrlPinnedToBblCliVersion() {
         assertEquals(
-            "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblCliVersion",
+            "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion",
             bblReleaseDownloadBaseUrl
         )
     }
@@ -144,11 +144,11 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testDefaultPackUrlsPinnedToBblCliVersion() {
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json",
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json",
             DOWNLOADABLE_BIBLE_LIST_URL
         )
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks",
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks",
             DOWNLOADABLE_BIBLE_BASE_URL
         )
     }
@@ -158,14 +158,14 @@ class InstallCliTest : ResourcesTestBase() {
         val packDir = bible.assetManager.platform.packDir.toPath()
         fakeFs.createDirectories(packDir)
         val wrongVersionZip = ZipUtil.buildMinimalZip(
-            listOf("kttv$MANIFEST_JSON_POSTFIX" to Translation.kttv.copy(bblVersion = "0.0.1").toJson())
+            listOf("kttv$MANIFEST_JSON_POSTFIX" to Translation.kttv.copy(bblArtifactCompatibilityVersion = "0.0.1").toJson())
         )
         fakeFs.write(packDir / "kttv.zip") { write(wrongVersionZip) }
 
         val result = Bbl(bible = bible).test("install kttv").output.replace("\r\n", "\n")
 
         assertEquals(
-            "kttv installed pack is incompatible with bbl $bblCliVersion, reinstalling\n" +
+            "kttv installed pack is incompatible with bbl $bblArtifactCompatibilityVersion, reinstalling\n" +
                 "Installed kttv\n" +
                 "Installed ${searchHelperName("extra")}\n",
             result
@@ -187,7 +187,7 @@ class InstallCliTest : ResourcesTestBase() {
               }
             ]
         """.trimIndent()
-        val wrongVersionManifest = Translation.jc.copy(bblVersion = "0.0.1").toJson()
+        val wrongVersionManifest = Translation.jc.copy(bblArtifactCompatibilityVersion = "0.0.1").toJson()
         val wrongVersionZip = ZipUtil.buildMinimalZip(
             listOf(
                 "jc.1.1.txt" to TestFixtures.JC_GENESIS_1_1,
@@ -200,7 +200,7 @@ class InstallCliTest : ResourcesTestBase() {
         )
         val httpClient = HttpClient(MockEngine { request ->
             when (request.url.encodedPath) {
-                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json" -> respond(
+                "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json" -> respond(
                     content = downloadableTranslationsJson,
                     headers = headersOf(
                         "Content-Type" to listOf("application/json"),
@@ -208,7 +208,7 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                "/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks/jc.zip" -> respond(
+                "/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks/jc.zip" -> respond(
                     content = wrongVersionZip,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
@@ -225,7 +225,7 @@ class InstallCliTest : ResourcesTestBase() {
         val result = Bbl(bible = versionedBible).test("install jc")
 
         assertTrue(result.statusCode != 0)
-        assertTrue(result.output.contains("pack manifest bblVersion 0.0.1 is incompatible with bbl $bblCliVersion"))
+        assertTrue(result.output.contains("pack manifest bblArtifactCompatibilityVersion 0.0.1 is incompatible with bbl $bblArtifactCompatibilityVersion"))
         val zipPath = versionedBible.assetManager.platform.packDir.toPath() / "jc.zip"
         assertTrue(!fakeFs.exists(zipPath))
     }

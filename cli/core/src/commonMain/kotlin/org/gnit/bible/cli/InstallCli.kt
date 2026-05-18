@@ -48,7 +48,7 @@ class InstallCli(
             .toSet()
 
         incompatibleInstalledCodes.forEach {
-            echo("$it installed pack is incompatible with bbl $bblCliVersion, reinstalling")
+            echo("$it installed pack is incompatible with bbl $bblArtifactCompatibilityVersion, reinstalling")
             runCatching { am.delete(it) }
         }
 
@@ -114,12 +114,12 @@ class InstallCli(
             throw CliktError("Installing $translationCode failed: unable to read pack manifest: ${error.message}")
         }
 
-        val packVersion = packManifestBblVersionOrNull(manifestJson)
-        if (packVersion != bblCliVersion) {
+        val packVersion = packManifestArtifactCompatibilityVersionOrNull(manifestJson)
+        if (packVersion != bblArtifactCompatibilityVersion) {
             runCatching { am.delete(translationCode) }
             val actual = packVersion ?: "<missing>"
             throw CliktError(
-                "Installing $translationCode failed: pack manifest bblVersion $actual is incompatible with bbl $bblCliVersion"
+                "Installing $translationCode failed: pack manifest bblArtifactCompatibilityVersion $actual is incompatible with bbl $bblArtifactCompatibilityVersion"
             )
         }
     }
@@ -129,7 +129,7 @@ class InstallCli(
         val manifestJson = runCatching {
             ZipBibleResourcesReader(platform = am.platform, fileSystem = am.fileSystem).getManifestJson(translationCode)
         }.getOrNull() ?: return false
-        return packManifestBblVersionOrNull(manifestJson) == bblCliVersion
+        return packManifestArtifactCompatibilityVersionOrNull(manifestJson) == bblArtifactCompatibilityVersion
     }
 
     private fun installSearchBinaryIfNeeded(translation: Translation) {

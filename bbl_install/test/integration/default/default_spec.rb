@@ -8,7 +8,9 @@ install_root = "#{home_dir}/.bbl"
 pack_dir = "#{install_root}/packs"
 bin_dir = "#{install_root}/bin"
 version_file_path = "#{install_root}/version.txt"
+artifact_compatibility_version_file_path = "#{install_root}/artifact_compatibility_version.txt"
 expected_bbl_version = file(version_file_path).content.to_s.strip
+expected_artifact_compatibility_version = file(artifact_compatibility_version_file_path).content.to_s.strip
 bbl_bin_path = macos ? "#{bin_dir}/bbl" : '/usr/bin/bbl'
 bbl_command = lambda { |args| "#{bbl_bin_path} #{args}" }
 install_source_dir = '/tmp/bbl-install-downloads'
@@ -28,7 +30,7 @@ zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
 
   Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
     while (entry = zip.get_next_entry)
-      return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
+      return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
     end
   end
 
@@ -68,6 +70,12 @@ describe file(version_file_path) do
   it { should exist }
   it { should be_file }
   its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
+describe file(artifact_compatibility_version_file_path) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\s*\z/) }
 end
 
 describe command(bbl_command.call('-v')) do
@@ -151,15 +159,20 @@ installed_search_helpers.each do |helper_name|
     its('exit_status') { should eq 0 }
     its('stdout') { should include("#{helper_name} version #{expected_bbl_version}") }
   end
+
+  describe command("#{bin_dir}/#{helper_name} --artifact-compat-version") do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should eq("#{expected_artifact_compatibility_version}\n") }
+  end
 end
 
 installed_pack_codes.each do |pack_code|
-  describe "#{pack_code}.zip manifest bblVersion" do
+  describe "#{pack_code}.zip manifest bblArtifactCompatibilityVersion" do
     subject(:bbl_version) do
       zip_manifest_bbl_version.call(file("#{pack_dir}/#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
     end
 
-    it { should eq(expected_bbl_version) }
+    it { should eq(expected_artifact_compatibility_version) }
   end
 end
 
@@ -281,6 +294,8 @@ describe 'bbl install jc deferred dependencies' do
     @helper_exists_after = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_executable_after = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
     @helper_version_after = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')
+    @helper_artifact_compatibility_version_after =
+      command("#{bin_dir}/bbl-search-kuromoji --artifact-compat-version").stdout.force_encoding('UTF-8')
     @search_result = command(bbl_command.call('search イエス キリスト in jc'))
     @search_stdout = @search_result.stdout.force_encoding('UTF-8')
     @search_results = @search_stdout
@@ -313,8 +328,8 @@ describe 'bbl install jc deferred dependencies' do
     expect(@pack_size_after).to be > 0
   end
 
-  it 'installs jc.zip with the expected bblVersion' do
-    expect(@pack_version_after).to eq(expected_bbl_version)
+  it 'installs jc.zip with the expected bblArtifactCompatibilityVersion' do
+    expect(@pack_version_after).to eq(expected_artifact_compatibility_version)
   end
 
   it 'bbl list command shows jc as available before install' do
@@ -329,6 +344,10 @@ describe 'bbl install jc deferred dependencies' do
 
   it 'installs the kuromoji search helper with the expected version' do
     expect(@helper_version_after).to include("bbl-search-kuromoji version #{expected_bbl_version}")
+  end
+
+  it 'installs the kuromoji search helper with the expected artifact compatibility version' do
+    expect(@helper_artifact_compatibility_version_after).to eq("#{expected_artifact_compatibility_version}\n")
   end
 
   it 'bbl list command shows jc as installed after install' do

@@ -48,7 +48,7 @@ If a release already exists for the tag, the workflow replaces assets with the s
 ## Notes
 
 - The release tag should use the `X.Y.Z` format, without a `v` prefix.
-- The workflow verifies `server/src/main/resources/files/bblpacks/*.zip` manifests before packaging, so regenerate packs with `bbl pack` before publishing a version that changes `bblCliVersion` or lucene-kmp index compatibility.
+- The workflow verifies `server/src/main/resources/files/bblpacks/*.zip` manifests before packaging, so regenerate packs with `bbl pack` before publishing a version that changes `bblArtifactCompatibilityVersion` or lucene-kmp index compatibility.
 - The workflow does not sign binaries yet.
 - Windows distribution is currently ZIP-first and suitable for Scoop packaging.
 - Run normal CI before publishing from a tag. The publish workflow builds release binaries, but it is not intended to replace PR and branch validation.

@@ -14,13 +14,34 @@ class BblVersionTest {
     }
 
     @Test
+    fun bblArtifactCompatibilityVersionUsesBareNumericTag() {
+        assertFalse(bblArtifactCompatibilityVersion.startsWith("v"))
+    }
+
+    @Test
+    fun searchHelperVersionLineUsesCliVersion() {
+        assertEquals(
+            "bbl-search-kuromoji version $bblCliVersion",
+            bblSearchHelperVersionLine("bbl-search-kuromoji")
+        )
+    }
+
+    @Test
+    fun searchHelperArtifactCompatibilityVersionLineIsMachineReadable() {
+        assertEquals(
+            bblArtifactCompatibilityVersion,
+            bblSearchHelperArtifactCompatibilityVersionLine()
+        )
+    }
+
+    @Test
     fun downloadablePackUrlsUsePinnedServerResourcesTag() {
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bbllist.json",
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bbllist.json",
             DOWNLOADABLE_BIBLE_LIST_URL
         )
         assertEquals(
-            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblCliVersion/server/src/main/resources/files/bblpacks",
+            "https://raw.githubusercontent.com/nehemiaharchives/bbl-kmp/$bblArtifactCompatibilityVersion/server/src/main/resources/files/bblpacks",
             DOWNLOADABLE_BIBLE_BASE_URL
         )
     }
@@ -28,7 +49,7 @@ class BblVersionTest {
     @Test
     fun searchHelperUrlUsesPinnedReleaseTag() {
         assertEquals(
-            "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblCliVersion",
+            "https://github.com/nehemiaharchives/bbl-kmp/releases/download/$bblArtifactCompatibilityVersion",
             bblReleaseDownloadBaseUrl
         )
     }

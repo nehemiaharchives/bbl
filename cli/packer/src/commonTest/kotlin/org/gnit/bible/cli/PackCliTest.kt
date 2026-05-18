@@ -104,7 +104,7 @@ class PackCliTest {
 
             val manifestTranslation = zipBibleResourcesReader.getTranslationFromManifest("webus")
             assertEquals("webus", manifestTranslation.code)
-            assertEquals(bblCliVersion, manifestTranslation.bblVersion)
+            assertEquals(bblArtifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
 
             // Verify lucene-kmp index files are included in the zip (and lock is not).
             val zipEntries = mutableListOf<String>()
@@ -145,7 +145,7 @@ class PackCliTest {
 
         val inputPath = tmpWorkingDirForBblPack.toPath() / "webus"
         val manifestPath = inputPath / "webus$MANIFEST_JSON_POSTFIX"
-        val oldManifest = Translation.webus.copy(bblVersion = "0.0.1").toJson()
+        val oldManifest = Translation.webus.copy(bblArtifactCompatibilityVersion = "0.0.1").toJson()
         fileSystem.write(manifestPath) { writeUtf8(oldManifest) }
 
         PackCli(Bible()).createBblPack(
@@ -155,7 +155,7 @@ class PackCliTest {
         )
 
         val manifestTranslation = Translation.fromJson(fileSystem.read(manifestPath) { readUtf8() })
-        assertEquals(bblCliVersion, manifestTranslation.bblVersion)
+        assertEquals(bblArtifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
     }
 
     /**

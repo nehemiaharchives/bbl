@@ -11,7 +11,9 @@ pack_dir = "#{install_root}\\packs"
 bin_dir = "#{local_app_data}\\Programs\\bbl"
 helper_bin_dir = "#{install_root}\\bin"
 version_file_path = "#{install_root}\\version.txt"
+artifact_compatibility_version_file_path = "#{install_root}\\artifact_compatibility_version.txt"
 expected_bbl_version = file(version_file_path).content.to_s.strip
+expected_artifact_compatibility_version = file(artifact_compatibility_version_file_path).content.to_s.strip
 BBL_BIN = "#{bin_dir}\\bbl.exe"
 
 WINDOWS_EXECUTABLE_COMMAND = lambda do |path, args|
@@ -26,7 +28,7 @@ zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
 
   Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
     while (entry = zip.get_next_entry)
-      return JSON.parse(zip.read)['bblVersion'] if entry.name == manifest_name
+      return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
     end
   end
 
@@ -77,6 +79,12 @@ describe file(version_file_path) do
   it { should exist }
   it { should be_file }
   its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
+describe file(artifact_compatibility_version_file_path) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\s*\z/) }
 end
 
 describe command(WINDOWS_BBL_COMMAND.call('-v')) do
@@ -166,15 +174,20 @@ installed_search_helpers.each do |helper_name|
     its('exit_status') { should eq 0 }
     its('stdout') { should include("#{helper_name.delete_suffix('.exe')} version #{expected_bbl_version}") }
   end
+
+  describe command(WINDOWS_EXECUTABLE_COMMAND.call("#{helper_bin_dir}\\#{helper_name}", '--artifact-compat-version')) do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should eq("#{expected_artifact_compatibility_version}\r\n") }
+  end
 end
 
 installed_pack_codes.each do |pack_code|
-  describe "#{pack_code}.zip manifest bblVersion" do
+  describe "#{pack_code}.zip manifest bblArtifactCompatibilityVersion" do
     subject(:bbl_version) do
       zip_manifest_bbl_version.call(file("#{pack_dir}\\#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
     end
 
-    it { should eq(expected_bbl_version) }
+    it { should eq(expected_artifact_compatibility_version) }
   end
 end
 

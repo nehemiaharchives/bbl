@@ -66,8 +66,8 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--version") {
-                ProcessResult(0, bblSearchHelperVersionLine("bbl-search-kuromoji"), "")
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -110,8 +110,8 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--version") {
-                ProcessResult(0, bblSearchHelperVersionLine("bbl-search-kuromoji"), "")
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(2, "", "boom")
             }
@@ -150,8 +150,8 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--version") {
-                ProcessResult(0, "bbl-search-kuromoji version 0.0.1", "")
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, "0.0.1", "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -178,8 +178,8 @@ class SearchBackendTest : ResourcesTestBase() {
         }
 
         val message = error.message ?: ""
-        assertTrue(message.contains("version mismatch"))
-        assertTrue(message.contains(bblCliVersion))
+        assertTrue(message.contains("artifact compatibility version mismatch"))
+        assertTrue(message.contains(bblArtifactCompatibilityVersion))
     }
 
     private class FakeProcessRunner(

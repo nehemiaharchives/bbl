@@ -75,21 +75,21 @@ class ExternalSearchBackend(
     private fun ensureCompatibleHelperVersion() {
         if (helperVersionValidated) return
 
-        val versionCommand = listOf(binaryPath.toString(), "--version")
+        val versionCommand = listOf(binaryPath.toString(), "--artifact-compat-version")
         val result = processRunner.run(versionCommand)
         if (result.exitCode != 0) {
             val detail = result.stderr.ifBlank { result.stdout }.ifBlank { "unknown error" }
             throw SearchBackendException(
-                "Search helper ${moduleId.name.lowercase()} failed version check (exit ${result.exitCode}): $detail"
+                "Search helper ${moduleId.name.lowercase()} failed artifact compatibility version check (exit ${result.exitCode}): $detail"
             )
         }
 
-        val expected = bblSearchHelperVersionLine(binaryPath.name.removeSuffix(".exe"))
+        val expected = bblSearchHelperArtifactCompatibilityVersionLine()
         val actual = result.stdout.trim()
         if (actual != expected) {
             val actualDisplay = actual.ifBlank { "<blank>" }
             throw SearchBackendException(
-                "Search helper ${moduleId.name.lowercase()} version mismatch: expected '$expected' but got '$actualDisplay'"
+                "Search helper ${moduleId.name.lowercase()} artifact compatibility version mismatch: expected '$expected' but got '$actualDisplay'"
             )
         }
 

@@ -39,6 +39,7 @@ private class SearchHelperCli(
 
     private val termParts by argument(help = "search term").multiple()
     private val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
+    private val artifactCompatibilityVersionFlag by option("--artifact-compat-version", help = "prints out bbl artifact compatibility version").flag()
     private val translationCode by option("-t", "--translation", help = "translation code")
     private val bookNumber by option("--book", help = "book number").convert { it.toInt() }
     private val startChapter by option("--chapter", help = "chapter number").convert { it.toInt() }
@@ -48,6 +49,11 @@ private class SearchHelperCli(
     override fun run() {
         if (versionFlag) {
             echo(bblSearchHelperVersionLine(searchHelperBinaryName))
+            return
+        }
+
+        if (artifactCompatibilityVersionFlag) {
+            echo(bblSearchHelperArtifactCompatibilityVersionLine())
             return
         }
 

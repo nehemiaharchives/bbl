@@ -396,7 +396,7 @@ jobs:
           name: ${{ matrix.fixture_artifact_name }}
           path: |
             ${{ matrix.fixture_path || 'bbl_install/files/' }}
-            build/bblInstallFixtures/common/version.txt
+            build/bblInstallFixtures/common
           if-no-files-found: error
           retention-days: 1
 
@@ -433,8 +433,10 @@ jobs:
         run: |
           set -euo pipefail
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          cp bbl_install/files/common/artifact_compatibility_version.txt bbl_install/files/artifact_compatibility_version.txt
           find bbl_install/files/linux -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
           test -f bbl_install/files/version.txt
+          test -f bbl_install/files/artifact_compatibility_version.txt
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
@@ -518,8 +520,10 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item bbl_install\files\common\version.txt bbl_install\files\version.txt -Force
+          Copy-Item bbl_install\files\common\artifact_compatibility_version.txt bbl_install\files\artifact_compatibility_version.txt -Force
           Get-ChildItem bbl_install\files\windows -File -Recurse | Copy-Item -Destination bbl_install\files -Force
           if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+          if (-not (Test-Path bbl_install\files\artifact_compatibility_version.txt)) { throw 'Missing bbl_install\files\artifact_compatibility_version.txt' }
           if (-not (Test-Path bbl_install\files\bbl.exe)) { throw 'Missing bbl_install\files\bbl.exe' }
           if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
           if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
@@ -574,12 +578,14 @@ jobs:
         run: |
           set -euo pipefail
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          cp bbl_install/files/common/artifact_compatibility_version.txt bbl_install/files/artifact_compatibility_version.txt
           for fixture_dir in bbl_install/files/macosArm64 bbl_install/files/macosX64; do
             if [ -d "$fixture_dir" ]; then
               find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
             fi
           done
           test -f bbl_install/files/version.txt
+          test -f bbl_install/files/artifact_compatibility_version.txt
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
