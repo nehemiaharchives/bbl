@@ -37,7 +37,7 @@ plugins {
 // checkout of lucene-kmp. When that sibling exists, use it for fast iteration.
 // When it doesn't (e.g. cloned standalone / CI), fall back to published artifacts.
 val luceneKmpSiblingDir = file("../lucene-kmp")
-if (luceneKmpSiblingDir.isDirectory /*false*/) {
+if (/*luceneKmpSiblingDir.isDirectory*/ false) { // disabled for now for dev speed because lucene-kmp is at least seems stable.
 
     logger.lifecycle("Found sibling lucene-kmp at ${luceneKmpSiblingDir.absolutePath} substituting maven published lucene-kmp dependency with local development version")
 
