@@ -166,6 +166,6 @@ class PackCliTest {
     //@Ignore
     @Test
     fun packTranslation() {
-        packTranslation("rvr09")
+        packTranslation("tb")
     }
 }

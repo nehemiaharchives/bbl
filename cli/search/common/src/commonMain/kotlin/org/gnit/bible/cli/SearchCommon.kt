@@ -29,7 +29,7 @@ import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ne.ct.BibleNepaliAnalyzer
 import org.gnit.lucenekmp.analysis.nl.DutchAnalyzer
-import org.gnit.lucenekmp.analysis.pt.PortugueseAnalyzer
+import org.gnit.lucenekmp.analysis.pt.ct.BiblePortugueseAnalyzer
 import org.gnit.lucenekmp.analysis.ru.RussianAnalyzer
 import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
@@ -48,7 +48,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             // search common (embedded in cmp)
             "en" -> EnglishAnalyzer()
             "es" -> BibleSpanishAnalyzer()
-            "pt" -> PortugueseAnalyzer()
+            "pt" -> BiblePortugueseAnalyzer()
             "de" -> BibleGermanAnalyzer()
             "fr" -> FrenchAnalyzer()
             "ru" -> RussianAnalyzer()
