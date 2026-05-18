@@ -58,10 +58,9 @@ interface SearchTestBase {
 
         val actualWebusRomans2 = bible.search(term = enTerm, bookNumber = romans, startChapter = 2, translation = webus).first()
         assertEquals(VersePointer(webus, romans, 2, 16), actualWebusRomans2)
-        /*
-        @Test
-        override fun searchJesusChristInWebusInRomans3To5() = super.searchJesusChristInWebusInRomans3To5()
-        */
+
+        val actualWebusRomans3To5 = bible.search(term = enTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = webus).first()
+        assertEquals(VersePointer(webus, romans, 3, 22), actualWebusRomans3To5)
 
         // English (en, kjv)
         val actualKjv = bible.search(term = enTerm, translation = kjv).first()
@@ -72,6 +71,9 @@ interface SearchTestBase {
 
         val actualKjvRomans2 = bible.search(term = enTerm, bookNumber = romans, startChapter = 2, translation = kjv).first()
         assertEquals(VersePointer(kjv, romans, 2, 16), actualKjvRomans2)
+
+        val actualKjvRomans3To5 = bible.search(term = enTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = kjv).first()
+        assertEquals(VersePointer(kjv, romans, 3, 22), actualKjvRomans3To5)
 
         // Spanish (es)
         val esTerm = "Jesucristo"
@@ -85,6 +87,9 @@ interface SearchTestBase {
         val actualRvr09Romans2 = bible.search(term = esTerm, bookNumber = romans, startChapter = 2, translation = rvr09).first()
         assertEquals(VersePointer(rvr09, romans, 2, 16), actualRvr09Romans2)
 
+        val actualRvr09Romans3To5 = bible.search(term = esTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = rvr09).first()
+        assertEquals(VersePointer(rvr09, romans, 3, 22), actualRvr09Romans3To5)
+
         // Portuguese (pt)
         val ptTerm = "Jesus Cristo"
 
@@ -96,6 +101,9 @@ interface SearchTestBase {
 
         val actualTbRomans2 = bible.search(term = ptTerm, bookNumber = romans, startChapter = 2, translation = tb).first()
         assertEquals(VersePointer(tb, romans, 2, 16), actualTbRomans2)
+
+        val actualTbRomans3To5 = bible.search(term = ptTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = tb).first()
+        assertEquals(VersePointer(tb, romans, 3, 22), actualTbRomans3To5)
 
         // German (de)
         val deTerm = "Jesu Christi"
@@ -113,6 +121,9 @@ interface SearchTestBase {
         val actualDelutRomans2 = bible.search(term = deTerm, bookNumber = romans, startChapter = 2, translation = delut).first()
         assertEquals(VersePointer(delut, romans, 2, 16), actualDelutRomans2)
 
+        val actualDelutRomans3To5 = bible.search(term = deTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = delut).first()
+        assertEquals(VersePointer(delut, romans, 3, 22), actualDelutRomans3To5)
+
         // French (fr)
         val frTerm = "Jésus-Christ"
 
@@ -124,6 +135,9 @@ interface SearchTestBase {
 
         val actualLsgRomans2 = bible.search(term = frTerm, bookNumber = romans, startChapter = 2, translation = lsg).first()
         assertEquals(VersePointer(lsg, romans, 2, 16), actualLsgRomans2)
+
+        val actualLsgRomans3To5 = bible.search(term = frTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = lsg).first()
+        assertEquals(VersePointer(lsg, romans, 3, 22), actualLsgRomans3To5)
 
         // Russian (ru)
         val ruTerm = "Иисуса Христа"
@@ -137,6 +151,9 @@ interface SearchTestBase {
         val actualSinodRomans2 = bible.search(term = ruTerm, bookNumber = romans, startChapter = 2, translation = sinod).first()
         assertEquals(VersePointer(sinod, romans, 2, 16), actualSinodRomans2)
 
+        val actualSinodRomans3To5 = bible.search(term = ruTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = sinod).first()
+        assertEquals(VersePointer(sinod, romans, 3, 22), actualSinodRomans3To5)
+
         // Dutch (nl)
         val nlTerm = "JEZUS CHRISTUS"
 
@@ -148,6 +165,9 @@ interface SearchTestBase {
 
         val actualSvrjRomans2 = bible.search(term = nlTerm, bookNumber = romans, startChapter = 2, translation = svrj).first()
         assertEquals(VersePointer(svrj, romans, 2, 16), actualSvrjRomans2)
+
+        val actualSvrjRomans3To5 = bible.search(term = nlTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = svrj).first()
+        assertEquals(VersePointer(svrj, romans, 3, 22), actualSvrjRomans3To5)
 
         // Italian (it)
         val itTerm = "Gesù Cristo"
@@ -161,6 +181,9 @@ interface SearchTestBase {
         val actualRdv24Romans2 = bible.search(term = itTerm, bookNumber = romans, startChapter = 2, translation = rdv24).first()
         assertEquals(VersePointer(rdv24, romans, 2, 16), actualRdv24Romans2)
 
+        val actualRdv24Romans3To5 = bible.search(term = itTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = rdv24).first()
+        assertEquals(VersePointer(rdv24, romans, 3, 22), actualRdv24Romans3To5)
+
         // Swedish (sv)
         val svTerm = "Jesu Kristi"
 
@@ -172,6 +195,9 @@ interface SearchTestBase {
 
         val actualSvenRomans2 = bible.search(term = svTerm, bookNumber = romans, startChapter = 2, translation = sven).first()
         assertEquals(VersePointer(sven, romans, 2, 16), actualSvenRomans2)
+
+        val actualSvenRomans3To5 = bible.search(term = svTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = sven).first()
+        assertEquals(VersePointer(sven, romans, 3, 22), actualSvenRomans3To5)
     }
 
     fun searchJesusChristCommonDownloaded(){
@@ -186,6 +212,9 @@ interface SearchTestBase {
         val actualAytRomans2 = bible.search(term = idTerm, bookNumber = romans, startChapter = 2, translation = ayt).first()
         assertEquals(VersePointer(ayt, romans, 2, 16), actualAytRomans2)
 
+        val actualAytRomans3To5 = bible.search(term = idTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ayt).first()
+        assertEquals(VersePointer(ayt, romans, 3, 22), actualAytRomans3To5)
+
         // Thai (th)
         val thTerm = "พระเยซูคริสต์"
         val actualTh1971 = bible.search(term = thTerm, translation = th1971).first()
@@ -196,6 +225,9 @@ interface SearchTestBase {
 
         val actualTh1971Romans2 = bible.search(term = thTerm, bookNumber = romans, startChapter = 2, translation = th1971).first()
         assertEquals(VersePointer(th1971, romans, 2, 16), actualTh1971Romans2)
+
+        val actualTh1971Romans3To5 = bible.search(term = thTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = th1971).first()
+        assertEquals(VersePointer(th1971, romans, 3, 22), actualTh1971Romans3To5)
 
         // Hindi (hi)
         val hiTerm = "यीशु मसीह"
@@ -208,6 +240,9 @@ interface SearchTestBase {
         val actualIrvHinRomans2 = bible.search(term = hiTerm, bookNumber = romans, startChapter = 2, translation = irvhin).first()
         assertEquals(VersePointer(irvhin, romans, 2, 16), actualIrvHinRomans2)
 
+        val actualIrvHinRomans3To5 = bible.search(term = hiTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvhin).first()
+        assertEquals(VersePointer(irvhin, romans, 3, 22), actualIrvHinRomans3To5)
+
         // Bengali (bn)
         val bnTerm = "যীশু খ্রীষ্ট"
         val actualIrvBen = bible.search(term = bnTerm, translation = irvben).first()
@@ -218,6 +253,9 @@ interface SearchTestBase {
 
         val actualIrvBenRomans2 = bible.search(term = bnTerm, bookNumber = romans, startChapter = 2, translation = irvben).first()
         assertEquals(VersePointer(irvben, romans, 2, 16), actualIrvBenRomans2)
+
+        val actualIrvBenRomans3To5 = bible.search(term = bnTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvben).first()
+        assertEquals(VersePointer(irvben, romans, 3, 22), actualIrvBenRomans3To5)
 
         // Telugu (te)
         val teTerm = "యేసు క్రీస్తు"
@@ -230,6 +268,9 @@ interface SearchTestBase {
         val actualIrvTelRomans2 = bible.search(term = teTerm, bookNumber = romans, startChapter = 2, translation = irvtel).first()
         assertEquals(VersePointer(irvtel, romans, 2, 16), actualIrvTelRomans2)
 
+        val actualIrvTelRomans3To5 = bible.search(term = teTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvtel).first()
+        assertEquals(VersePointer(irvtel, romans, 3, 22), actualIrvTelRomans3To5)
+
         // Tamil (ta)
         val taTerm = "இயேசுகிறிஸ்து"
         val actualIrvTam = bible.search(term = taTerm, translation = irvtam).first()
@@ -241,6 +282,9 @@ interface SearchTestBase {
         val actualIrvTamRomans2 = bible.search(term = taTerm, bookNumber = romans, startChapter = 2, translation = irvtam).first()
         assertEquals(VersePointer(irvtam, romans, 2, 16), actualIrvTamRomans2)
 
+        val actualIrvTamRomans3To5 = bible.search(term = taTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvtam).first()
+        assertEquals(VersePointer(irvtam, romans, 3, 22), actualIrvTamRomans3To5)
+
         // Nepali (ne)
         val neTerm = "येशू ख्रीष्‍ट"
         val actualNpiUlb = bible.search(term = neTerm, translation = npiulb).first()
@@ -251,6 +295,9 @@ interface SearchTestBase {
 
         val actualNpiUlbRomans2 = bible.search(term = neTerm, bookNumber = romans, startChapter = 2, translation = npiulb).first()
         assertEquals(VersePointer(npiulb, romans, 2, 16), actualNpiUlbRomans2)
+
+        val actualNpiUlbRomans3To5 = bible.search(term = neTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = npiulb).first()
+        assertEquals(VersePointer(npiulb, romans, 3, 22), actualNpiUlbRomans3To5)
     }
 
     fun searchJesusChristMorfologik() {
@@ -265,6 +312,9 @@ interface SearchTestBase {
         val actualUbgRomans2 = bible.search(term = plTerm, bookNumber = romans, startChapter = 2, translation = ubg).first()
         assertEquals(VersePointer(ubg, romans, 2, 16), actualUbgRomans2)
 
+        val actualUbgRomans3To5 = bible.search(term = plTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ubg).first()
+        assertEquals(VersePointer(ubg, romans, 3, 22), actualUbgRomans3To5)
+
         // Ukrainian (uk)
         val ukTerm = "Ісуса Христа"
         val actualUbio = bible.search(term = ukTerm, translation = ubio).first()
@@ -275,6 +325,9 @@ interface SearchTestBase {
 
         val actualUbioRomans2 = bible.search(term = ukTerm, bookNumber = romans, startChapter = 2, translation = ubio).first()
         assertEquals(VersePointer(ubio, romans, 2, 16), actualUbioRomans2)
+
+        val actualUbioRomans3To5 = bible.search(term = ukTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ubio).first()
+        assertEquals(VersePointer(ubio, romans, 3, 22), actualUbioRomans3To5)
     }
 
     fun searchJesusChristSmartcn() {
@@ -288,6 +341,9 @@ interface SearchTestBase {
 
         val actualCunpRomans2 = bible.search(term = zhTerm, bookNumber = romans, startChapter = 2, translation = cunp).first()
         assertEquals(VersePointer(cunp, romans, 2, 16), actualCunpRomans2)
+
+        val actualCunpRomans3To5 = bible.search(term = zhTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = cunp).first()
+        assertEquals(VersePointer(cunp, romans, 3, 22), actualCunpRomans3To5)
     }
 
     fun searchJesusChristNori() {
@@ -302,6 +358,9 @@ interface SearchTestBase {
         val actualKrvRomans2 = bible.search(term = koTerm, bookNumber = romans, startChapter = 2, translation = krv).first()
         assertEquals(VersePointer(krv, romans, 2, 16), actualKrvRomans2)
 
+        val actualKrvRomans3To5 = bible.search(term = koTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = krv).first()
+        assertEquals(VersePointer(krv, romans, 3, 22), actualKrvRomans3To5)
+
         // with space between Jesus Christ
         val koTermSpaced = "예수 그리스도"
         actualKrv = bible.search(term = koTermSpaced, translation = krv).first()
@@ -312,6 +371,9 @@ interface SearchTestBase {
 
         val actualKrvRomans2Spaced = bible.search(term = koTermSpaced, bookNumber = romans, startChapter = 2, translation = krv).first()
         assertEquals(VersePointer(krv, romans, 2, 16), actualKrvRomans2Spaced)
+
+        val actualKrvRomans3To5Spaced = bible.search(term = koTermSpaced, bookNumber = romans, startChapter = 3, endChapter = 5, translation = krv).first()
+        assertEquals(VersePointer(krv, romans, 3, 22), actualKrvRomans3To5Spaced)
     }
 
     fun searchJesusChristKuromoji() {
@@ -325,6 +387,9 @@ interface SearchTestBase {
 
         val actualJcRomans2 = bible.search(term = jaTerm, bookNumber = romans, startChapter = 2, translation = jc).first()
         assertEquals(VersePointer(jc, romans, 2, 16), actualJcRomans2)
+
+        val actualJcRomans3To5 = bible.search(term = jaTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = jc).first()
+        assertEquals(VersePointer(jc, romans, 3, 22), actualJcRomans3To5)
     }
 
     fun searchJesusChristExtra() {
@@ -339,6 +404,9 @@ interface SearchTestBase {
         val actualAbtagRomans2 = bible.search(term = tlTerm, bookNumber = romans, startChapter = 2, translation = abtag).first()
         assertEquals(VersePointer(abtag, romans, 2, 16), actualAbtagRomans2)
 
+        val actualAbtagRomans3To5 = bible.search(term = tlTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = abtag).first()
+        assertEquals(VersePointer(abtag, romans, 3, 22), actualAbtagRomans3To5)
+
 
         // Vietnamese (vi)
         val viTerm = "Jêsus-Christ"
@@ -351,6 +419,9 @@ interface SearchTestBase {
         val actualKttvRomans2 = bible.search(term = viTerm, bookNumber = romans, startChapter = 2, translation = kttv).first()
         assertEquals(VersePointer(kttv, romans, 2, 16), actualKttvRomans2)
 
+        val actualKttvRomans3To5 = bible.search(term = viTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = kttv).first()
+        assertEquals(VersePointer(kttv, romans, 3, 22), actualKttvRomans3To5)
+
         // Gujarati (gu)
         val guTerm = "ઈસુ ખ્રિસ્ત"
         val actualIrvGuj = bible.search(term = guTerm, translation = irvguj).first()
@@ -361,6 +432,9 @@ interface SearchTestBase {
 
         val actualIrvGujRomans2 = bible.search(term = guTerm, bookNumber = romans, startChapter = 2, translation = irvguj).first()
         assertEquals(VersePointer(irvguj, romans, 2, 16), actualIrvGujRomans2)
+
+        val actualIrvGujRomans3To5 = bible.search(term = guTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvguj).first()
+        assertEquals(VersePointer(irvguj, romans, 3, 22), actualIrvGujRomans3To5)
 
 
         // Marathi (mr)
@@ -374,6 +448,9 @@ interface SearchTestBase {
         val actualIrvMarRomans2 = bible.search(term = mrTerm, bookNumber = romans, startChapter = 2, translation = irvmar).first()
         assertEquals(VersePointer(irvmar, romans, 2, 16), actualIrvMarRomans2)
 
+        val actualIrvMarRomans3To5 = bible.search(term = mrTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvmar).first()
+        assertEquals(VersePointer(irvmar, romans, 3, 22), actualIrvMarRomans3To5)
+
 
         // Urdu (ur)
         val urTerm = "ईसा मसीह"
@@ -385,6 +462,9 @@ interface SearchTestBase {
 
         val actualIrvUrdRomans2 = bible.search(term = urTerm, bookNumber = romans, startChapter = 2, translation = irvurd).first()
         assertEquals(VersePointer(irvurd, romans, 2, 16), actualIrvUrdRomans2)
+
+        val actualIrvUrdRomans3To5 = bible.search(term = urTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first()
+        assertEquals(VersePointer(irvurd, romans, 3, 22), actualIrvUrdRomans3To5)
     }
 }
 
