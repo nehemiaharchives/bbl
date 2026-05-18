@@ -1,6 +1,4 @@
-require 'json'
-require 'stringio'
-require 'zip'
+require 'base64'
 
 if os.windows?
 
@@ -23,16 +21,29 @@ end
 
 WINDOWS_BBL_COMMAND = lambda { |args| WINDOWS_EXECUTABLE_COMMAND.call(BBL_BIN, args) }
 
-zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
-  return nil if zip_content.nil? || zip_content.empty?
-
-  Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
-    while (entry = zip.get_next_entry)
-      return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
-    end
-  end
-
-  nil
+WINDOWS_ZIP_MANIFEST_BBL_VERSION_COMMAND = lambda do |zip_path, manifest_name|
+  escaped_zip_path = zip_path.gsub("'", "''")
+  escaped_manifest_name = manifest_name.gsub("'", "''")
+  powershell = [
+    "$ProgressPreference = 'SilentlyContinue'",
+    'Add-Type -AssemblyName System.IO.Compression.FileSystem',
+    "$archive = [System.IO.Compression.ZipFile]::OpenRead('#{escaped_zip_path}')",
+    'try {',
+    "  $entry = $archive.GetEntry('#{escaped_manifest_name}')",
+    '  if ($null -eq $entry) { exit 2 }',
+    '  $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)',
+    '  try {',
+    '    $manifest = $reader.ReadToEnd() | ConvertFrom-Json',
+    '    Write-Output $manifest.bblArtifactCompatibilityVersion',
+    '  } finally {',
+    '    $reader.Dispose()',
+    '  }',
+    '} finally {',
+    '  $archive.Dispose()',
+    '}',
+  ].join("\n")
+  encoded_powershell = Base64.strict_encode64(powershell.encode('UTF-16LE'))
+  "powershell -NoProfile -ExecutionPolicy Bypass -EncodedCommand #{encoded_powershell}"
 end
 
 installed_pack_codes = %w[webus kjv jc krv cunp ubg kttv]
@@ -182,12 +193,9 @@ installed_search_helpers.each do |helper_name|
 end
 
 installed_pack_codes.each do |pack_code|
-  describe "#{pack_code}.zip manifest bblArtifactCompatibilityVersion" do
-    subject(:bbl_version) do
-      zip_manifest_bbl_version.call(file("#{pack_dir}\\#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
-    end
-
-    it { should eq(expected_artifact_compatibility_version) }
+  describe command(WINDOWS_ZIP_MANIFEST_BBL_VERSION_COMMAND.call("#{pack_dir}\\#{pack_code}.zip", "#{pack_code}.0.manifest.json")) do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should eq("#{expected_artifact_compatibility_version}\r\n") }
   end
 end
 
