@@ -3,7 +3,7 @@ package org.gnit.bible.cli
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Language
 import org.gnit.lucenekmp.analysis.Analyzer
-import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
+import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
@@ -11,7 +11,7 @@ import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.ct.BibleSpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
-import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
+import org.gnit.lucenekmp.analysis.hi.ct.BibleHindiAnalyzer
 import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
@@ -59,8 +59,8 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "id" -> IndonesianAnalyzer() //common
             "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra
             "th" -> ThaiAnalyzer() //common
-            "hi" -> HindiAnalyzer() //common
-            "bn" -> BengaliAnalyzer() //common
+            "hi" -> BibleHindiAnalyzer() //common
+            "bn" -> BibleBengaliAnalyzer() //common
             "mr" -> BibleMarathiAnalyzer() //extra
             "te" -> BibleTeluguAnalyzer() //common
             "ta" -> BibleTamilAnalyzer() //common

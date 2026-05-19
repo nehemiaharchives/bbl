@@ -1,7 +1,7 @@
 package org.gnit.bible
 
 import org.gnit.lucenekmp.analysis.Analyzer
-import org.gnit.lucenekmp.analysis.bn.BengaliAnalyzer
+import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
@@ -9,7 +9,7 @@ import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.ct.BibleSpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
-import org.gnit.lucenekmp.analysis.hi.HindiAnalyzer
+import org.gnit.lucenekmp.analysis.hi.ct.BibleHindiAnalyzer
 import org.gnit.lucenekmp.analysis.id.IndonesianAnalyzer
 import org.gnit.lucenekmp.analysis.it.ItalianAnalyzer
 import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
@@ -68,8 +68,8 @@ class CmpAnalyzerProvider : AnalyzerProvider {
 
             "id" -> IndonesianAnalyzer() //common (downloadable in cmp) ayt
             "th" -> ThaiAnalyzer() //common (downloadable in cmp) th 1971
-            "hi" -> HindiAnalyzer() //common (downloadable in cmp) irvhin
-            "bn" -> BengaliAnalyzer() //common (downloadable in cmp) irvben
+            "hi" -> BibleHindiAnalyzer() //common (downloadable in cmp) irvhin
+            "bn" -> BibleBengaliAnalyzer() //common (downloadable in cmp) irvben
             "ta" -> BibleTamilAnalyzer() //common (downloadable in cmp) irvtam
             "ne" -> BibleNepaliAnalyzer() //common (downloadable in cmp) npiulb
 
