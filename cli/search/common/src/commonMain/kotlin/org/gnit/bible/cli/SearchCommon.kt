@@ -49,6 +49,8 @@ class CommonAnalyzerProvider : AnalyzerProvider {
         return when {
             language == Language.ru && BibleRussianAnalyzer.requiresNewTestamentScope(term) ->
                 listOf(Books.Category.NEW_TESTAMENT.filter)
+            language == Language.sv && BibleSwedishAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
             else -> emptyList()
         }
     }
