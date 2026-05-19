@@ -455,19 +455,24 @@ interface SearchTestBase {
 
 
         // Urdu (ur)
-        listOf("ईसा मसीह", "ईसा", "मसीह").forEach { urTerm ->
-            val actualIrvUrd = bible.search(term = urTerm, translation = irvurd).first()
-            assertEquals(VersePointer(irvurd, 40, 1, 1), actualIrvUrd, "Failed on searching: $urTerm")
+        val urTermJesusChrist = "ईसा मसीह"
+        val urTermJesus = "ईसा"
+        val urTermChrist = "मसीह"
 
-            val actualIrvUrdRomans = bible.search(term = urTerm, bookNumber = romans, translation = irvurd).first()
-            assertEquals(VersePointer(irvurd, romans, 1, 1), actualIrvUrdRomans, "Failed on searching: $urTerm")
-
-            val actualIrvUrdRomans2 = bible.search(term = urTerm, bookNumber = romans, startChapter = 2, translation = irvurd).first()
-            assertEquals(VersePointer(irvurd, romans, 2, 16), actualIrvUrdRomans2, "Failed on searching: $urTerm")
-
-            val actualIrvUrdRomans3To5 = bible.search(term = urTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first()
-            assertEquals(VersePointer(irvurd, romans, 3, 22), actualIrvUrdRomans3To5, "Failed on searching: $urTerm")
+        // "ईसा" (Jesus) is NT-only, so both terms uniquely hit Matthew 1:1
+        listOf(urTermJesusChrist, urTermJesus).forEach { urTerm ->
+            assertEquals(VersePointer(irvurd, 40, 1, 1), bible.search(term = urTerm, translation = irvurd).first(), "Failed on searching: $urTerm")
+            assertEquals(VersePointer(irvurd, romans, 1, 1), bible.search(term = urTerm, bookNumber = romans, translation = irvurd).first(), "Failed on searching: $urTerm")
+            assertEquals(VersePointer(irvurd, romans, 2, 16), bible.search(term = urTerm, bookNumber = romans, startChapter = 2, translation = irvurd).first(), "Failed on searching: $urTerm")
+            assertEquals(VersePointer(irvurd, romans, 3, 22), bible.search(term = urTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first(), "Failed on searching: $urTerm")
         }
+
+        // "मसीह" (Messiah/Christ) — genuinely appears in Psalms 2:2 (OT) as translation of Hebrew
+        // "anointed one"; returning Psalms 2:2 first is correct, not a bug
+        assertEquals(VersePointer(irvurd, 19, 2, 2), bible.search(term = urTermChrist, translation = irvurd).first(), "Failed on searching: $urTermChrist")
+        assertEquals(VersePointer(irvurd, romans, 1, 1), bible.search(term = urTermChrist, bookNumber = romans, translation = irvurd).first(), "Failed on searching: $urTermChrist")
+        assertEquals(VersePointer(irvurd, romans, 2, 16), bible.search(term = urTermChrist, bookNumber = romans, startChapter = 2, translation = irvurd).first(), "Failed on searching: $urTermChrist")
+        assertEquals(VersePointer(irvurd, romans, 3, 22), bible.search(term = urTermChrist, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first(), "Failed on searching: $urTermChrist")
     }
 }
 
