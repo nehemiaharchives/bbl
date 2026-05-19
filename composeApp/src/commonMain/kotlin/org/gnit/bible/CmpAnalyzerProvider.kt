@@ -24,11 +24,10 @@ import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
-import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
+import org.gnit.lucenekmp.analysis.tl.ct.BibleTagalogAnalyzer
 import org.gnit.lucenekmp.analysis.uk.ct.BibleUkrainianAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
+import org.gnit.lucenekmp.analysis.vi.ct.BibleVietnameseAnalyzer
 
 class CmpAnalyzerProvider : AnalyzerProvider {
     private val cache = mutableMapOf<String, Analyzer>()
@@ -75,8 +74,8 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "ta" -> BibleTamilAnalyzer() //common (downloadable in cmp) irvtam
             "ne" -> BibleNepaliAnalyzer() //common (downloadable in cmp) npiulb
 
-            "tl" -> TagalogAnalyzer() //extra (downloadable in cmp) abtag
-            "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra (downloadable in cmp) kttv
+            "tl" -> BibleTagalogAnalyzer() //extra (downloadable in cmp) abtag
+            "vi" -> BibleVietnameseAnalyzer() //extra (downloadable in cmp) kttv
             "gu" -> GujaratiAnalyzer() //extra (downloadable in cmp) irvguj
             "mr" -> BibleMarathiAnalyzer() //extra (downloadable in cmp) irvmar
             "te" -> BibleTeluguAnalyzer() //extra (downloadable in cmp) irvtel

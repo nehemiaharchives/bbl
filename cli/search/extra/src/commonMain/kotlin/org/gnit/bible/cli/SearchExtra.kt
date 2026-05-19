@@ -20,10 +20,9 @@ import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
 import org.gnit.lucenekmp.analysis.mr.ct.BibleMarathiAnalyzer
-import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
+import org.gnit.lucenekmp.analysis.tl.ct.BibleTagalogAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
+import org.gnit.lucenekmp.analysis.vi.ct.BibleVietnameseAnalyzer
 
 class ExtraAnalyzerProvider : AnalyzerProvider {
 
@@ -35,8 +34,8 @@ class ExtraAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
-            "tl" -> TagalogAnalyzer()
-            "vi" -> VietnameseAnalyzer(VietnameseConfig())
+            "tl" -> BibleTagalogAnalyzer()
+            "vi" -> BibleVietnameseAnalyzer()
             "gu" -> GujaratiAnalyzer()
             "mr" -> BibleMarathiAnalyzer()
             "ur" -> UrduAnalyzer()

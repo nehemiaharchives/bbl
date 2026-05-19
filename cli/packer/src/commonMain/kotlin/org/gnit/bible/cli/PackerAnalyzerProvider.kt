@@ -26,11 +26,10 @@ import org.gnit.lucenekmp.analysis.sv.ct.BibleSwedishAnalyzer
 import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
-import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
+import org.gnit.lucenekmp.analysis.tl.ct.BibleTagalogAnalyzer
 import org.gnit.lucenekmp.analysis.uk.ct.BibleUkrainianAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
-import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
+import org.gnit.lucenekmp.analysis.vi.ct.BibleVietnameseAnalyzer
 
 class PackerAnalyzerProvider : AnalyzerProvider {
     private val cache = mutableMapOf<String, Analyzer>()
@@ -55,9 +54,9 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "zh" -> SmartChineseAnalyzer() //smartcn
             "ko" -> BibleKoreanAnalyzer() //nori
             "ja" -> BibleJapaneseAnalyzer() //kuromoji
-            "tl" -> TagalogAnalyzer() //extra
+            "tl" -> BibleTagalogAnalyzer() //extra
             "id" -> IndonesianAnalyzer() //common
-            "vi" -> VietnameseAnalyzer(VietnameseConfig()) //extra
+            "vi" -> BibleVietnameseAnalyzer() //extra
             "th" -> ThaiAnalyzer() //common
             "hi" -> BibleHindiAnalyzer() //common
             "bn" -> BibleBengaliAnalyzer() //common
