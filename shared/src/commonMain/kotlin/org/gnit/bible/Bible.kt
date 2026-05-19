@@ -106,11 +106,24 @@ class Bible(
         startChapter: Int? = null,
         endChapter: Int? = null,
         verses: Int = 100,
-        translation: Translation
+        filter: BibleFilter,
+        translation: Translation,
+    ): List<VersePointer>{
+        return search(term, bookNumber, startChapter, endChapter, verses, listOf(filter), translation)
+    }
+
+    fun search(
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        filters: List<BibleFilter> = emptyList(),
+        translation: Translation,
     ): List<VersePointer> {
         val isEmbedded = hasEmbeddedReader() && embeddedTranslationCodes.contains(translation.code)
         val searchEngine = obtainSearchEngine(isEmbedded)
-        return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, translation)
+        return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, filters, translation)
     }
 
     companion object {

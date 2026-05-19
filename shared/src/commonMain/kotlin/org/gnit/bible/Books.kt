@@ -74,6 +74,10 @@ object Books {
                 val key = raw.lowercase()
                 return entries.firstOrNull { key in it.key }
             }
+
+            fun filterOf(key: String): BibleFilter {
+                return fromKey(key)!!.filter
+            }
         }
     }
 }

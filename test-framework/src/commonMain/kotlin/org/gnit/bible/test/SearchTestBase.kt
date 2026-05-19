@@ -3,6 +3,7 @@ package org.gnit.bible.test
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.Books
 import org.gnit.bible.Translation.Companion.delut
 import org.gnit.bible.Translation.Companion.webus
 import org.gnit.bible.Translation.Companion.kjv
@@ -41,6 +42,7 @@ import kotlin.test.assertEquals
 interface SearchTestBase {
     companion object {
         val romans: Int = bookNumber("romans")
+        val firstJohn: Int = bookNumber("1john")
     }
 
     var bible: Bible
@@ -61,6 +63,9 @@ interface SearchTestBase {
             val actualWebusRomans3To5 = bible.search(term = enTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = webus).first()
             assertEquals(VersePointer(webus, romans, 3, 22), actualWebusRomans3To5, "Failed on searching: $enTerm")
 
+            val actualWebusJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters") ,translation = webus).first()
+            assertEquals(VersePointer(webus, firstJohn, 1, 3), actualWebusJohnsLetter, "Failed on searching: $enTerm")
+
             // English (en, kjv)
             val actualKjv = bible.search(term = enTerm, translation = kjv).first()
             assertEquals(VersePointer(kjv, 40, 1, 1), actualKjv, "Failed on searching: $enTerm")
@@ -73,6 +78,9 @@ interface SearchTestBase {
 
             val actualKjvRomans3To5 = bible.search(term = enTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = kjv).first()
             assertEquals(VersePointer(kjv, romans, 3, 22), actualKjvRomans3To5, "Failed on searching: $enTerm")
+
+            val actualKjvJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters"), translation = kjv).first()
+            assertEquals(VersePointer(kjv, firstJohn, 1, 3), actualKjvJohnsLetter, "Failed on searching: $enTerm")
         }
 
         // Spanish (es)
@@ -88,6 +96,9 @@ interface SearchTestBase {
 
             val actualRvr09Romans3To5 = bible.search(term = esTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = rvr09).first()
             assertEquals(VersePointer(rvr09, romans, 3, 22), actualRvr09Romans3To5, "Failed on searching: $esTerm")
+
+            val actualRvr09JohnsLetter = bible.search(term = esTerm, filter = Books.Category.filterOf("johns letters"), translation = rvr09).first()
+            assertEquals(VersePointer(rvr09, firstJohn, 1, 3), actualRvr09JohnsLetter, "Failed on searching: $esTerm")
         }
 
         // Portuguese (pt)
@@ -103,6 +114,9 @@ interface SearchTestBase {
 
             val actualTbRomans3To5 = bible.search(term = ptTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = tb).first()
             assertEquals(VersePointer(tb, romans, 3, 22), actualTbRomans3To5, "Failed on searching: $ptTerm")
+
+            val actualTbJohnsLetter = bible.search(term = ptTerm, filter = Books.Category.filterOf("johns letters"), translation = tb).first()
+            assertEquals(VersePointer(tb, firstJohn, 1, 3), actualTbJohnsLetter, "Failed on searching: $ptTerm")
         }
 
         // German (de)
@@ -122,6 +136,9 @@ interface SearchTestBase {
 
             val actualDelutRomans3To5 = bible.search(term = deTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = delut).first()
             assertEquals(VersePointer(delut, romans, 3, 22), actualDelutRomans3To5, "Failed on searching: $deTerm")
+
+            val actualDelutJohnsLetter = bible.search(term = deTerm, filter = Books.Category.filterOf("johns letters"), translation = delut).first()
+            assertEquals(VersePointer(delut, firstJohn, 1, 3), actualDelutJohnsLetter, "Failed on searching: $deTerm")
         }
 
         // French (fr)
@@ -137,6 +154,9 @@ interface SearchTestBase {
 
             val actualLsgRomans3To5 = bible.search(term = frTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = lsg).first()
             assertEquals(VersePointer(lsg, romans, 3, 22), actualLsgRomans3To5, "Failed on searching: $frTerm")
+
+            val actualLsgJohnsLetter = bible.search(term = frTerm, filter = Books.Category.filterOf("johns letters"), translation = lsg).first()
+            assertEquals(VersePointer(lsg, firstJohn, 1, 3), actualLsgJohnsLetter, "Failed on searching: $frTerm")
         }
 
         // Russian (ru)
@@ -152,6 +172,9 @@ interface SearchTestBase {
 
             val actualSinodRomans3To5 = bible.search(term = ruTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = sinod).first()
             assertEquals(VersePointer(sinod, romans, 3, 22), actualSinodRomans3To5, "Failed on searching: $ruTerm")
+
+            val actualSinodJohnsLetter = bible.search(term = ruTerm, filter = Books.Category.filterOf("johns letters"), translation = sinod).first()
+            assertEquals(VersePointer(sinod, firstJohn, 1, 3), actualSinodJohnsLetter, "Failed on searching: $ruTerm")
         }
 
         // Dutch (nl)
@@ -167,6 +190,9 @@ interface SearchTestBase {
 
             val actualSvrjRomans3To5 = bible.search(term = nlTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = svrj).first()
             assertEquals(VersePointer(svrj, romans, 3, 22), actualSvrjRomans3To5, "Failed on searching: $nlTerm")
+
+            val actualSvrjJohnsLetter = bible.search(term = nlTerm, filter = Books.Category.filterOf("johns letters"), translation = svrj).first()
+            assertEquals(VersePointer(svrj, firstJohn, 1, 3), actualSvrjJohnsLetter, "Failed on searching: $nlTerm")
         }
 
         // Italian (it)
@@ -182,6 +208,9 @@ interface SearchTestBase {
 
             val actualRdv24Romans3To5 = bible.search(term = itTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = rdv24).first()
             assertEquals(VersePointer(rdv24, romans, 3, 22), actualRdv24Romans3To5, "Failed on searching: $itTerm")
+
+            val actualRdv24JohnsLetter = bible.search(term = itTerm, filter = Books.Category.filterOf("johns letters"), translation = rdv24).first()
+            assertEquals(VersePointer(rdv24, firstJohn, 1, 3), actualRdv24JohnsLetter, "Failed on searching: $itTerm")
         }
 
         // Swedish (sv)
@@ -197,6 +226,9 @@ interface SearchTestBase {
 
             val actualSvenRomans3To5 = bible.search(term = svTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = sven).first()
             assertEquals(VersePointer(sven, romans, 3, 22), actualSvenRomans3To5, "Failed on searching: $svTerm")
+
+            val actualSvenJohnsLetter = bible.search(term = svTerm, filter = Books.Category.filterOf("johns letters"), translation = sven).first()
+            assertEquals(VersePointer(sven, firstJohn, 1, 3), actualSvenJohnsLetter, "Failed on searching: $svTerm")
         }
     }
 
@@ -214,6 +246,9 @@ interface SearchTestBase {
 
             val actualAytRomans3To5 = bible.search(term = idTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ayt).first()
             assertEquals(VersePointer(ayt, romans, 3, 22), actualAytRomans3To5, "Failed on searching: $idTerm")
+
+            val actualAytJohnsLetter = bible.search(term = idTerm, filter = Books.Category.filterOf("johns letters"), translation = ayt).first()
+            assertEquals(VersePointer(ayt, firstJohn, 1, 3), actualAytJohnsLetter, "Failed on searching: $idTerm")
         }
 
         // Thai (th)
@@ -229,6 +264,9 @@ interface SearchTestBase {
 
             val actualTh1971Romans3To5 = bible.search(term = thTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = th1971).first()
             assertEquals(VersePointer(th1971, romans, 3, 22), actualTh1971Romans3To5, "Failed on searching: $thTerm")
+
+            val actualTh1971JohnsLetter = bible.search(term = thTerm, filter = Books.Category.filterOf("johns letters"), translation = th1971).first()
+            assertEquals(VersePointer(th1971, firstJohn, 1, 3), actualTh1971JohnsLetter, "Failed on searching: $thTerm")
         }
 
         // Hindi (hi)
@@ -244,6 +282,9 @@ interface SearchTestBase {
 
             val actualIrvHinRomans3To5 = bible.search(term = hiTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvhin).first()
             assertEquals(VersePointer(irvhin, romans, 3, 22), actualIrvHinRomans3To5, "Failed on searching: $hiTerm")
+
+            val actualIrvHinJohnsLetter = bible.search(term = hiTerm, filter = Books.Category.filterOf("johns letters"), translation = irvhin).first()
+            assertEquals(VersePointer(irvhin, firstJohn, 1, 3), actualIrvHinJohnsLetter, "Failed on searching: $hiTerm")
         }
 
         // Bengali (bn)
@@ -259,6 +300,9 @@ interface SearchTestBase {
 
             val actualIrvBenRomans3To5 = bible.search(term = bnTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvben).first()
             assertEquals(VersePointer(irvben, romans, 3, 22), actualIrvBenRomans3To5, "Failed on searching: $bnTerm")
+
+            val actualIrvBenJohnsLetter = bible.search(term = bnTerm, filter = Books.Category.filterOf("johns letters"), translation = irvben).first()
+            assertEquals(VersePointer(irvben, firstJohn, 1, 3), actualIrvBenJohnsLetter, "Failed on searching: $bnTerm")
         }
 
         // Telugu (te)
@@ -274,6 +318,9 @@ interface SearchTestBase {
 
             val actualIrvTelRomans3To5 = bible.search(term = teTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvtel).first()
             assertEquals(VersePointer(irvtel, romans, 3, 22), actualIrvTelRomans3To5, "Failed on searching: $teTerm")
+
+            val actualIrvTelJohnsLetter = bible.search(term = teTerm, filter = Books.Category.filterOf("johns letters"), translation = irvtel).first()
+            assertEquals(VersePointer(irvtel, firstJohn, 1, 3), actualIrvTelJohnsLetter, "Failed on searching: $teTerm")
         }
 
         // Tamil (ta)
@@ -289,6 +336,9 @@ interface SearchTestBase {
 
             val actualIrvTamRomans3To5 = bible.search(term = taTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvtam).first()
             assertEquals(VersePointer(irvtam, romans, 3, 22), actualIrvTamRomans3To5, "Failed on searching: $taTerm")
+
+            val actualIrvTamJohnsLetter = bible.search(term = taTerm, filter = Books.Category.filterOf("johns letters"), translation = irvtam).first()
+            assertEquals(VersePointer(irvtam, firstJohn, 1, 3), actualIrvTamJohnsLetter, "Failed on searching: $taTerm")
         }
 
         // Nepali (ne)
@@ -304,6 +354,9 @@ interface SearchTestBase {
 
             val actualNpiUlbRomans3To5 = bible.search(term = neTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = npiulb).first()
             assertEquals(VersePointer(npiulb, romans, 3, 22), actualNpiUlbRomans3To5, "Failed on searching: $neTerm")
+
+            val actualNpiUlbJohnsLetter = bible.search(term = neTerm, filter = Books.Category.filterOf("johns letters"), translation = npiulb).first()
+            assertEquals(VersePointer(npiulb, firstJohn, 1, 3), actualNpiUlbJohnsLetter, "Failed on searching: $neTerm")
         }
     }
 
@@ -321,6 +374,9 @@ interface SearchTestBase {
 
             val actualUbgRomans3To5 = bible.search(term = plTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ubg).first()
             assertEquals(VersePointer(ubg, romans, 3, 22), actualUbgRomans3To5, "Failed on searching: $plTerm")
+
+            val actualUbgJohnsLetter = bible.search(term = plTerm, filter = Books.Category.filterOf("johns letters"), translation = ubg).first()
+            assertEquals(VersePointer(ubg, firstJohn, 1, 3), actualUbgJohnsLetter, "Failed on searching: $plTerm")
         }
 
         // Ukrainian (uk)
@@ -336,6 +392,9 @@ interface SearchTestBase {
 
             val actualUbioRomans3To5 = bible.search(term = ukTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = ubio).first()
             assertEquals(VersePointer(ubio, romans, 3, 22), actualUbioRomans3To5, "Failed on searching: $ukTerm")
+
+            val actualUbioJohnsLetter = bible.search(term = ukTerm, filter = Books.Category.filterOf("johns letters"), translation = ubio).first()
+            assertEquals(VersePointer(ubio, firstJohn, 1, 3), actualUbioJohnsLetter, "Failed on searching: $ukTerm")
         }
     }
 
@@ -353,6 +412,9 @@ interface SearchTestBase {
 
             val actualCunpRomans3To5 = bible.search(term = zhTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = cunp).first()
             assertEquals(VersePointer(cunp, romans, 3, 22), actualCunpRomans3To5, "Failed on searching: $zhTerm")
+
+            val actualCunpJohnsLetter = bible.search(term = zhTerm, filter = Books.Category.filterOf("johns letters"), translation = cunp).first()
+            assertEquals(VersePointer(cunp, firstJohn, 1, 3), actualCunpJohnsLetter, "Failed on searching: $zhTerm")
         }
     }
 
@@ -370,6 +432,9 @@ interface SearchTestBase {
 
             val actualKrvRomans3To5 = bible.search(term = koTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = krv).first()
             assertEquals(VersePointer(krv, romans, 3, 22), actualKrvRomans3To5, "Failed on searching: $koTerm")
+
+            val actualKrvJohnsLetter = bible.search(term = koTerm, filter = Books.Category.filterOf("johns letters"), translation = krv).first()
+            assertEquals(VersePointer(krv, firstJohn, 1, 3), actualKrvJohnsLetter, "Failed on searching: $koTerm")
         }
     }
 
@@ -387,6 +452,9 @@ interface SearchTestBase {
 
             val actualJcRomans3To5 = bible.search(term = jaTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = jc).first()
             assertEquals(VersePointer(jc, romans, 3, 22), actualJcRomans3To5, "Failed on searching: $jaTerm")
+
+            val actualJcJohnsLetter = bible.search(term = jaTerm, filter = Books.Category.filterOf("johns letters"), translation = jc).first()
+            assertEquals(VersePointer(jc, firstJohn, 1, 3), actualJcJohnsLetter, "Failed on searching: $jaTerm")
         }
     }
 
@@ -404,6 +472,9 @@ interface SearchTestBase {
 
             val actualAbtagRomans3To5 = bible.search(term = tlTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = abtag).first()
             assertEquals(VersePointer(abtag, romans, 3, 22), actualAbtagRomans3To5, "Failed on searching: $tlTerm")
+
+            val actualAbtagJohnsLetter = bible.search(term = tlTerm, filter = Books.Category.filterOf("johns letters"), translation = abtag).first()
+            assertEquals(VersePointer(abtag, firstJohn, 1, 3), actualAbtagJohnsLetter, "Failed on searching: $tlTerm")
         }
 
 
@@ -420,6 +491,9 @@ interface SearchTestBase {
 
             val actualKttvRomans3To5 = bible.search(term = viTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = kttv).first()
             assertEquals(VersePointer(kttv, romans, 3, 22), actualKttvRomans3To5, "Failed on searching: $viTerm")
+
+            val actualKttvJohnsLetter = bible.search(term = viTerm, filter = Books.Category.filterOf("johns letters"), translation = kttv).first()
+            assertEquals(VersePointer(kttv, firstJohn, 1, 3), actualKttvJohnsLetter, "Failed on searching: $viTerm")
         }
 
         // Gujarati (gu)
@@ -435,6 +509,9 @@ interface SearchTestBase {
 
             val actualIrvGujRomans3To5 = bible.search(term = guTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvguj).first()
             assertEquals(VersePointer(irvguj, romans, 3, 22), actualIrvGujRomans3To5, "Failed on searching: $guTerm")
+
+            val actualIrvGujJohnsLetter = bible.search(term = guTerm, filter = Books.Category.filterOf("johns letters"), translation = irvguj).first()
+            assertEquals(VersePointer(irvguj, firstJohn, 1, 3), actualIrvGujJohnsLetter, "Failed on searching: $guTerm")
         }
 
 
@@ -451,6 +528,9 @@ interface SearchTestBase {
 
             val actualIrvMarRomans3To5 = bible.search(term = mrTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvmar).first()
             assertEquals(VersePointer(irvmar, romans, 3, 22), actualIrvMarRomans3To5, "Failed on searching: $mrTerm")
+
+            val actualIrvMarJohnsLetter = bible.search(term = mrTerm, filter = Books.Category.filterOf("johns letters"), translation = irvmar).first()
+            assertEquals(VersePointer(irvmar, firstJohn, 1, 3), actualIrvMarJohnsLetter, "Failed on searching: $mrTerm")
         }
 
 
@@ -465,6 +545,9 @@ interface SearchTestBase {
             assertEquals(VersePointer(irvurd, romans, 1, 1), bible.search(term = urTerm, bookNumber = romans, translation = irvurd).first(), "Failed on searching: $urTerm")
             assertEquals(VersePointer(irvurd, romans, 2, 16), bible.search(term = urTerm, bookNumber = romans, startChapter = 2, translation = irvurd).first(), "Failed on searching: $urTerm")
             assertEquals(VersePointer(irvurd, romans, 3, 22), bible.search(term = urTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first(), "Failed on searching: $urTerm")
+
+            val actualIrvUrdJohnsLetter = bible.search(term = urTerm, filter = Books.Category.filterOf("johns letters"), translation = irvurd).first()
+            assertEquals(VersePointer(irvurd, firstJohn, 1, 3), actualIrvUrdJohnsLetter, "Failed on searching: $urTerm")
         }
 
         // "मसीह" (Messiah/Christ) — genuinely appears in Psalms 2:2 (OT) as translation of Hebrew
@@ -473,6 +556,9 @@ interface SearchTestBase {
         assertEquals(VersePointer(irvurd, romans, 1, 1), bible.search(term = urTermChrist, bookNumber = romans, translation = irvurd).first(), "Failed on searching: $urTermChrist")
         assertEquals(VersePointer(irvurd, romans, 2, 16), bible.search(term = urTermChrist, bookNumber = romans, startChapter = 2, translation = irvurd).first(), "Failed on searching: $urTermChrist")
         assertEquals(VersePointer(irvurd, romans, 3, 22), bible.search(term = urTermChrist, bookNumber = romans, startChapter = 3, endChapter = 5, translation = irvurd).first(), "Failed on searching: $urTermChrist")
+
+        val actualIrvUrdJohnsLetter = bible.search(term = urTermChrist, filter = Books.Category.filterOf("johns letters"), translation = irvurd).first()
+        assertEquals(VersePointer(irvurd, firstJohn, 1, 3), actualIrvUrdJohnsLetter, "Failed on searching: $urTermChrist")
     }
 }
 

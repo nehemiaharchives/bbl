@@ -49,6 +49,17 @@ class SearchEngine(
     private val logger = KotlinLogging.logger {}
     private val directoriesByTranslation = HashMap<String, ByteBuffersDirectory>()
 
+    fun search(
+        term: String,
+        bookNumber: Int? = null,
+        startChapter: Int? = null,
+        endChapter: Int? = null,
+        verses: Int = 100,
+        filter: BibleFilter,
+        translation: Translation,
+    ): List<VersePointer>{
+        return search(term, bookNumber, startChapter, endChapter, verses, listOf(filter), translation)
+    }
 
     fun search(
         term: String,
@@ -56,8 +67,8 @@ class SearchEngine(
         startChapter: Int? = null,
         endChapter: Int? = null,
         verses: Int = 100,
+        filters: List<BibleFilter> = emptyList(),
         translation: Translation,
-        filters: List<BibleFilter> = emptyList()
     ): List<VersePointer> {
         // Some unit-test fixtures only include a placeholder codec file and no segments_N.
         // Without a segments* file Lucene can't open the directory.
