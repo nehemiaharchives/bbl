@@ -63,9 +63,9 @@ object Books {
         THESSALONIANS(listOf("thes", "thessalonians", "epistle to the thessalonians", "letter to the thessalonians"), books(52..53)),
         TIMOTHY(listOf("tim", "thimothy", "epistle to thimothy", "letter to thimothy"), books(54..55)),
         PETER(listOf("peter", "pet", "epistle of peter", "epistles of peter", "letter of peter", "letters of peter"), books(60, 61)),
-        JOHN_GOSPEL(listOf("john gospel", "gospel john", "johng"), books(43)),
-        JOHN_LETTERS(listOf("john", "jhn", "epistle of john", "epistles of john", "letter of john", "letters of john"), books(62, 63, 64)),
-        JOHANNINE(listOf("johannine", "john writings", "john+"), books(43, 62, 63, 64, 66)),
+        //JOHN_GOSPEL(listOf("john", "jhn", "johng", "johns gospel", "john gospel", "gospel john", "gospel of john"), books(43)),
+        JOHN_LETTERS(listOf("johnl", "johne", "johns letter", "johns letter", "johns letters", "johnsletter", "john letter", "johnletter", "epistle of john", "epistles of john", "letter of john", "letters of john"), books(62, 63, 64)),
+        JOHANNINE(listOf("johnw", "john writing", "johns writings", "john writings", "johannine"), books(43, 62, 63, 64, 66)),
         ALL(listOf("all"), BibleFilter.All),
         ;
 
