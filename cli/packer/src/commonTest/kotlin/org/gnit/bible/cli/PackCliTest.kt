@@ -163,7 +163,7 @@ class PackCliTest {
      * This is not test but walk around the problem of PackCli.main() IntelliJ Edit view execute icon not working. So usually need to put @Ignore.
      * Run this only when creating/updating bblpack.
      */
-    //@Ignore
+    @Ignore
     @Test
     fun packTranslation() {
         packTranslation("sinod")
