@@ -25,7 +25,7 @@ import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
-import org.gnit.lucenekmp.analysis.uk.UkrainianMorfologikAnalyzer
+import org.gnit.lucenekmp.analysis.uk.ct.BibleUkrainianAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
@@ -42,6 +42,8 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             language == Language.ru && BibleRussianAnalyzer.requiresNewTestamentScope(term) ->
                 listOf(Books.Category.NEW_TESTAMENT.filter)
             language == Language.sv && BibleSwedishAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            language == Language.uk && BibleUkrainianAnalyzer.requiresNewTestamentScope(term) ->
                 listOf(Books.Category.NEW_TESTAMENT.filter)
             else -> emptyList()
         }
@@ -60,7 +62,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
             "sv" -> BibleSwedishAnalyzer() //common (embedded in cmp)
 
             "pl" -> MorfologikAnalyzer() //morfologik (embedded in cmp)
-            "uk" -> UkrainianMorfologikAnalyzer() //morfologik (embedded in cmp)
+            "uk" -> BibleUkrainianAnalyzer() //morfologik (embedded in cmp)
 
             "zh" -> SmartChineseAnalyzer() //smartcn (embedded in cmp)
             "ko" -> BibleKoreanAnalyzer() //nori (embedded in cmp)

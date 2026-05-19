@@ -27,7 +27,7 @@ import org.gnit.lucenekmp.analysis.ta.ct.BibleTamilAnalyzer
 import org.gnit.lucenekmp.analysis.te.ct.BibleTeluguAnalyzer
 import org.gnit.lucenekmp.analysis.th.ThaiAnalyzer
 import org.gnit.lucenekmp.analysis.tl.TagalogAnalyzer
-import org.gnit.lucenekmp.analysis.uk.UkrainianMorfologikAnalyzer
+import org.gnit.lucenekmp.analysis.uk.ct.BibleUkrainianAnalyzer
 import org.gnit.lucenekmp.analysis.ur.UrduAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseAnalyzer
 import org.gnit.lucenekmp.analysis.vi.VietnameseConfig
@@ -50,7 +50,7 @@ class PackerAnalyzerProvider : AnalyzerProvider {
             "nl" -> DutchAnalyzer() //common
             "it" -> ItalianAnalyzer() //common
             "pl" -> MorfologikAnalyzer() //morfologik
-            "uk" -> UkrainianMorfologikAnalyzer() //morfologik
+            "uk" -> BibleUkrainianAnalyzer() //morfologik
             "sv" -> BibleSwedishAnalyzer() //common
             "zh" -> SmartChineseAnalyzer() //smartcn
             "ko" -> BibleKoreanAnalyzer() //nori

@@ -10,6 +10,8 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.AnalyzerProvider
+import org.gnit.bible.BibleFilter
+import org.gnit.bible.Books
 import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
@@ -19,7 +21,7 @@ import org.gnit.bible.bblSearchHelperVersionLine
 import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.morfologik.MorfologikAnalyzer
-import org.gnit.lucenekmp.analysis.uk.UkrainianMorfologikAnalyzer
+import org.gnit.lucenekmp.analysis.uk.ct.BibleUkrainianAnalyzer
 
 class MorfologikAnalyzerProvider : AnalyzerProvider {
     private val cache = mutableMapOf<String, Analyzer>()
@@ -28,9 +30,17 @@ class MorfologikAnalyzerProvider : AnalyzerProvider {
         return cache.getOrPut(language.code) {
             when (language.code) {
                 "pl" -> MorfologikAnalyzer()
-                "uk" -> UkrainianMorfologikAnalyzer()
+                "uk" -> BibleUkrainianAnalyzer()
                 else -> throw UnsupportedOperationException("MorfologikAnalyzerProvider only supports Polish and Ukrainian")
             }
+        }
+    }
+
+    override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
+        return when {
+            language == Language.uk && BibleUkrainianAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            else -> emptyList()
         }
     }
 }
