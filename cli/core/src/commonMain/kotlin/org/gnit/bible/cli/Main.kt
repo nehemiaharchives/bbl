@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
+import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Books
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
@@ -102,7 +103,7 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
 }
 
 class Bbl(
-    private val bible: Bible = Bible(),
+    private val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider()),
     searchBackendProvider: ((Translation) -> SearchBackend)? = null
 ) : CliktCommand() {
 

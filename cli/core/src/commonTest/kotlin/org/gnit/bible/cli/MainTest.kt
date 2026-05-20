@@ -13,6 +13,7 @@ import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.AssetManagerImpl
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.CommonAnalyzerProvider
 import kotlin.test.AfterTest
 
@@ -23,32 +24,35 @@ class MainTest {
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
     @BeforeTest
     fun clearSavedSettings() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = testPackDir
-        platform.overrideFileSystem = null
+        platform.overrideFileSystem = fakeFs
         platform.settings.remove(ConfigKey.TRANSLATION.value)
         platform.settings.remove(ConfigKey.HEADER.value)
 
         val packDirPath = platform.packDir.toPath()
 
         // Strong test isolation: remove all packs installed in this test pack dir.
-        platform.fileSystem.deleteRecursively(packDirPath, mustExist = false)
-        platform.fileSystem.createDirectories(packDirPath)
+        fakeFs.deleteRecursively(packDirPath, mustExist = false)
+        fakeFs.createDirectories(packDirPath)
 
-        // Integration-like: write minimal zip packs directly to the real filesystem for ZipBibleResourcesReader.
-        platform.fileSystem.write(packDirPath / "webus.zip") { write(TestFixtures.webusMinimalZipBytes) }
-        platform.fileSystem.write(packDirPath / "jc.zip") { write(TestFixtures.jcMinimalZipBytes) }
+        // Integration-like: write minimal zip packs directly to the configured filesystem for ZipBibleResourcesReader.
+        fakeFs.write(packDirPath / "webus.zip") { write(TestFixtures.webusMinimalZipBytes) }
+        fakeFs.write(packDirPath / "jc.zip") { write(TestFixtures.jcMinimalZipBytes) }
 
         bible = Bible(
             assetManager = AssetManagerImpl(
                 platform = platform,
                 fileSystem = platform.fileSystem
-            )
+            ),
+            analyzerProvider = CommonAnalyzerProvider()
         )
 
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
@@ -75,6 +79,15 @@ class MainTest {
         val command = Bbl(bible)
         val result = command.test()
         assertEquals("${TestFixtures.genesisOneWebus}\n", result.stdout)
+    }
+
+    @Test
+    fun testDefaultBblUsesCommonAnalyzerProvider() {
+        val command = Bbl()
+        val bibleField = command.javaClass.getDeclaredField("bible").apply { isAccessible = true }
+        val commandBible = bibleField.get(command) as Bible
+
+        assertTrue(commandBible.analyzerProvider is CommonAnalyzerProvider)
     }
 
     @Test

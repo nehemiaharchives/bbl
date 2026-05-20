@@ -182,6 +182,11 @@ describe command(bbl_command.call('search Christ')) do
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
 end
 
+describe command(bbl_command.call('search Jesus')) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
+end
+
 describe 'bbl list translations output' do
   include_context 'search helpers'
   subject(:translations) { translation_list_lines(bbl_command.call('list translations')) }
@@ -204,7 +209,25 @@ describe 'bbl search Christ exact output' do
   end
 end
 
+describe 'bbl search Jesus exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call('search Jesus')) }
+
+  it 'starts with the expected webus verse text' do
+    expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
+  end
+
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
+  end
+end
+
 describe command(bbl_command.call('search Christ in kjv')) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/The book of the generation of Jesus Christ/) }
+end
+
+describe command(bbl_command.call('search Jesus in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the generation of Jesus Christ/) }
 end
@@ -212,6 +235,19 @@ end
 describe 'bbl search Christ in kjv exact output' do
   include_context 'search helpers'
   subject(:results) { search_results(bbl_command.call('search Christ in kjv')) }
+
+  it 'starts with the expected kjv verse text' do
+    expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
+  end
+
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe 'bbl search Jesus in kjv exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call('search Jesus in kjv')) }
 
   it 'starts with the expected kjv verse text' do
     expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')

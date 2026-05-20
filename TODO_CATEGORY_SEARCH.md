@@ -188,8 +188,8 @@ intersection semantics through shared `SearchEngine` Boolean clauses.
   - [x] For now this computer is linuxX64, so run `./gradlew stageBblInstallLinuxCliAllFixture` then `bundle exec kitchen test ubuntu-26` only is enough.
   - [x] If there are any failing tests, debug and iterate over till you all pass.
 
-- [ ] 10. Bug Fix
-    - [ ] In E2E only, "bbl search Jesus" in English bible (webus, kjv) returns no results, while unit tests pass. Debug and fix the issue.
+- [x] 10. Bug Fix
+    - [x] In E2E only, "bbl search Jesus" in English bible (webus, kjv) returns no results, while unit tests pass. Debug and fix the issue.
 
 ## Non-Goals
 
