@@ -52,7 +52,7 @@ object Books {
         KINGS(listOf("ki", "kings"), books(11..12)),
         CHRONICLES(listOf("chr", "chro", "chronicles"), books(13..14)),
         WISDOM_BOOKS(listOf("w", "wis", "wisdom"), books(18..22)),
-        PROPHETS(listOf("p", "pro", "prophet", "prophets", "profets"), books(23..39)),
+        PROPHETS(listOf("p", "prophet", "prophets", "profets"), books(23..39)),
         MAJOR_PROPHETS(listOf("map", "major", "major prophet", "major prophets"), books(23..27)),
         MINOR_PROPHETS(listOf("mip", "minor", "minor prophet", "minor prophets"), books(28..39)),
         NEW_TESTAMENT(listOf("nt", "new testament"), books(40..66)),
@@ -71,7 +71,7 @@ object Books {
 
         companion object {
             fun fromKey(raw: String): Category? {
-                val key = raw.lowercase()
+                val key = raw.trim().lowercase()
                 return entries.firstOrNull { key in it.key }
             }
 
@@ -80,4 +80,8 @@ object Books {
             }
         }
     }
+}
+
+fun categoryFilterOrNull(key: String): BibleFilter? {
+    return Books.Category.fromKey(key)?.filter
 }

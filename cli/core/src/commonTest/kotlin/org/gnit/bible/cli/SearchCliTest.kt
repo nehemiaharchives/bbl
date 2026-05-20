@@ -3,9 +3,11 @@ package org.gnit.bible.cli
 import com.github.ajalt.clikt.testing.test
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.Books
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
@@ -17,6 +19,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SearchCliTest {
 
@@ -25,28 +28,30 @@ class SearchCliTest {
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
     @BeforeTest
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = testPackDir
-        platform.overrideFileSystem = null
+        platform.overrideFileSystem = fakeFs
         platform.settings.remove(ConfigKey.HEADER.value)
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
 
         val packDirPath = platform.packDir.toPath()
-        platform.fileSystem.deleteRecursively(packDirPath, mustExist = false)
-        platform.fileSystem.createDirectories(packDirPath)
-        platform.fileSystem.write(packDirPath / "webus.zip") { write(webusSearchFixtureZipBytes) }
-        platform.fileSystem.write(packDirPath / "kjv.zip") { write(kjvSearchFixtureZipBytes) }
-        platform.fileSystem.write(packDirPath / "jc.zip") { write(jcSearchFixtureZipBytes) }
+        fakeFs.deleteRecursively(packDirPath, mustExist = false)
+        fakeFs.createDirectories(packDirPath)
+        fakeFs.write(packDirPath / "webus.zip") { write(webusSearchFixtureZipBytes) }
+        fakeFs.write(packDirPath / "kjv.zip") { write(kjvSearchFixtureZipBytes) }
+        fakeFs.write(packDirPath / "jc.zip") { write(jcSearchFixtureZipBytes) }
 
         bible = Bible(
             assetManager = AssetManagerImpl(
                 platform = platform,
-                fileSystem = platform.fileSystem
+                fileSystem = fakeFs
             )
         )
     }
@@ -90,6 +95,154 @@ class SearchCliTest {
 
         assertEquals(0, result.statusCode)
         assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search in christ stays literal search text`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("in christ", it.term)
+            assertEquals("webus", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertTrue(it.filters.isEmpty())
+            assertTrue(it.categoryKeys.isEmpty())
+            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search in christ")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search king in david resolves category filter`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("king", it.term)
+            assertEquals("webus", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertEquals(listOf("david"), it.categoryKeys)
+            assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
+            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in david")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in johns letters resolves spaced category key`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("webus", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertEquals(listOf("johns letters"), it.categoryKeys)
+            assertEquals(listOf(Books.Category.JOHN_LETTERS.filter), it.filters)
+            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in johns letters")
+
+        assertEquals(0, result.statusCode)
+        assertTrue(result.stdout.contains("Matthew 1:1"))
+    }
+
+    @Test
+    fun `bbl search Jesus in kjv john 3 is rejected`() {
+        val backend = RecordingBackendFactory {
+            error("backend should not be reached for invalid mixed scope syntax")
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus in kjv john 3")
+
+        assertTrue(result.statusCode != 0, "Command should reject compact mixed scope syntax")
+        assertTrue(
+            result.stderr.contains("Translation scope must be separate"),
+            "Should explain the strict scope syntax. Got: ${result.stderr}"
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus in john 3 in kjv combines repeated scopes`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(bookNumber("john"), it.bookNumber)
+            assertEquals(3, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertTrue(it.filters.isEmpty())
+            assertTrue(it.categoryKeys.isEmpty())
+            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus in john 3 in kjv")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search king in kjv in david combines translation and category`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("king", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertEquals(listOf("david"), it.categoryKeys)
+            assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
+            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in kjv in david")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search king in david in kjv combines category and translation in reverse order`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("king", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertEquals(listOf("david"), it.categoryKeys)
+            assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
+            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in david in kjv")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search gospel category option resolves category filter`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("gospel", it.term)
+            assertEquals("webus", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            assertEquals(listOf("paul"), it.categoryKeys)
+            assertTrue(it.filters.isNotEmpty())
+            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search gospel --category paul")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
     }
 
     @Test

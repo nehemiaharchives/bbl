@@ -8,14 +8,17 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
+import org.gnit.bible.BibleFilter
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
 import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
 import org.gnit.bible.bblSearchHelperVersionLine
+import org.gnit.bible.resolveCategoryFiltersOrThrow
 import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
@@ -57,6 +60,7 @@ private class SearchHelperCli(
     private val bookNumber by option("--book", help = "book number").convert { it.toInt() }
     private val startChapter by option("--chapter", help = "chapter number").convert { it.toInt() }
     private val endChapter by option("--end-chapter", help = "end chapter number").convert { it.toInt() }
+    private val categoryKeys by option("--category", help = "category key").multiple()
     private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }.default(100)
 
     override fun run() {
@@ -75,6 +79,9 @@ private class SearchHelperCli(
 
         val translation = resolveTranslationOrThrow()
         val (start, end) = validateAndResolveChapterRange(bookNumber)
+        val filters = resolveCategoryFiltersOrThrow(categoryKeys) {
+            UsageError("Category key '$it' not found. Run 'bbl list categories' to see supported category names.")
+        }
 
         val results = bible.search(
             term = term,
@@ -82,6 +89,7 @@ private class SearchHelperCli(
             startChapter = start,
             endChapter = end,
             verses = verses,
+            filters = filters,
             translation = translation
         )
 
@@ -108,6 +116,7 @@ private class SearchHelperCli(
         if (verses <= 0) throw UsageError("--verses must be > 0")
         return start to end
     }
+
 }
 
 fun main(args: Array<String>) {

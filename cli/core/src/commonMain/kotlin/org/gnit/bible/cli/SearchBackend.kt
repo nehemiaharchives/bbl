@@ -4,6 +4,7 @@ import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.Bible
+import org.gnit.bible.BibleFilter
 import org.gnit.bible.Language
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
@@ -16,7 +17,9 @@ data class SearchRequest(
     val bookNumber: Int?,
     val startChapter: Int?,
     val endChapter: Int?,
-    val verses: Int
+    val verses: Int,
+    val filters: List<BibleFilter> = emptyList(),
+    val categoryKeys: List<String> = emptyList()
 )
 
 data class SearchOutput(val text: String)
@@ -37,6 +40,7 @@ class InternalSearchBackend(
             startChapter = request.startChapter,
             endChapter = request.endChapter,
             verses = request.verses,
+            filters = request.filters,
             translation = request.translation
         )
         return SearchOutput(VersePointerJson.encodeList(results))
@@ -113,6 +117,10 @@ class ExternalSearchBackend(
         request.endChapter?.let {
             args.add("--end-chapter")
             args.add(it.toString())
+        }
+        request.categoryKeys.forEach { categoryKey ->
+            args.add("--category")
+            args.add(categoryKey)
         }
         if (request.verses > 0) {
             args.add("--verses")

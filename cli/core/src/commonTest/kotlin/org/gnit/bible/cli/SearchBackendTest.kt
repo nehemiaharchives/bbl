@@ -88,7 +88,8 @@ class SearchBackendTest : ResourcesTestBase() {
             bookNumber = 1,
             startChapter = 1,
             endChapter = null,
-            verses = 5
+            verses = 5,
+            categoryKeys = listOf("david")
         )
 
         backend.search(request)
@@ -98,6 +99,97 @@ class SearchBackendTest : ResourcesTestBase() {
             "-t", "jc",
             "--book", "1",
             "--chapter", "1",
+            "--category", "david",
+            "--verses", "5",
+            "grace"
+        )
+        assertEquals(expected, runner.lastCommand)
+    }
+
+    @Test
+    fun externalBackendBuildsCommandWithCategoryOnly() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("kuromoji")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+
+        val backend = selector.backendFor(Language.ja)
+        val request = SearchRequest(
+            term = "grace",
+            translation = Translation.jc,
+            bookNumber = 1,
+            startChapter = 1,
+            endChapter = null,
+            verses = 5,
+            categoryKeys = listOf("david")
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "jc",
+            "--book", "1",
+            "--chapter", "1",
+            "--category", "david",
+            "--verses", "5",
+            "grace"
+        )
+        assertEquals(expected, runner.lastCommand)
+    }
+
+    @Test
+    fun externalBackendBuildsCommandWithSpacedCategoryKey() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("kuromoji")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+
+        val backend = selector.backendFor(Language.ja)
+        val request = SearchRequest(
+            term = "grace",
+            translation = Translation.jc,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5,
+            categoryKeys = listOf("johns letters")
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "jc",
+            "--category", "johns letters",
             "--verses", "5",
             "grace"
         )

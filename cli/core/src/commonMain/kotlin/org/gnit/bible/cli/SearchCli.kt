@@ -6,20 +6,26 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
+import org.gnit.bible.BibleFilter
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.VersePointerJson
 import org.gnit.bible.bookNumber
 import org.gnit.bible.formatHeader
+import org.gnit.bible.categoryFilterOrNull
+import org.gnit.bible.resolveCategoryFilterOrThrow
 
 private data class InlineSearchFilters(
     val term: String,
     val translationCode: String?,
     val bookNumber: Int?,
     val startChapter: Int?,
-    val endChapter: Int?
+    val endChapter: Int?,
+    val categoryKeys: List<String>,
+    val filters: List<BibleFilter>
 )
 
 class SearchCli(
@@ -33,6 +39,7 @@ class SearchCli(
     private val book by option("-b", "--book", help = "book name or number")
     private val chapter by option("--chapter", help = "chapter number").convert { it.toInt() }
     private val endChapter by option("--end-chapter", help = "end chapter number").convert { it.toInt() }
+    private val categoryKeys by option("--category", help = "category key").multiple()
     private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }.default(100)
 
     override fun run() {
@@ -49,6 +56,10 @@ class SearchCli(
             inlineStartChapter = inlineFilters.startChapter,
             inlineEndChapter = inlineFilters.endChapter
         )
+        val explicitCategoryKeys = categoryKeys.map { normalizeCategoryKey(it) }.filter { it.isNotBlank() }
+        val explicitCategoryFilters = explicitCategoryKeys.map { resolveCategoryFilter(it) }
+        val requestCategoryKeys = (inlineFilters.categoryKeys + explicitCategoryKeys).distinct()
+        val requestFilters = (inlineFilters.filters + explicitCategoryFilters).distinct()
 
         val request = SearchRequest(
             term = term,
@@ -56,7 +67,9 @@ class SearchCli(
             bookNumber = bookNumber,
             startChapter = startChapter,
             endChapter = endChapterValue,
-            verses = verses
+            verses = verses,
+            filters = requestFilters,
+            categoryKeys = requestCategoryKeys
         )
 
         val backend = backendProvider ?: { requestedTranslation ->
@@ -85,7 +98,7 @@ class SearchCli(
 
     private fun parseInlineFilters(tokens: List<String>): InlineSearchFilters {
         if (tokens.isEmpty()) {
-            return InlineSearchFilters("", null, null, null, null)
+            return InlineSearchFilters("", null, null, null, null, emptyList(), emptyList())
         }
 
         var remaining = tokens
@@ -93,29 +106,45 @@ class SearchCli(
         var inlineBookNumber: Int? = null
         var inlineStartChapter: Int? = null
         var inlineEndChapter: Int? = null
+        val inlineCategoryKeys = mutableListOf<String>()
+        val inlineFilters = mutableListOf<BibleFilter>()
 
-        val translationSuffixIndex = findTrailingInIndex(remaining)
-        if (translationSuffixIndex != null) {
-            val candidate = remaining.drop(translationSuffixIndex + 1)
-            if (candidate.size == 1) {
-                val code = candidate.single().lowercase()
-                if (bible.findTranslationByCode(code)) {
-                    inlineTranslationCode = code
-                    remaining = remaining.take(translationSuffixIndex)
+        while (true) {
+            val suffixIndex = findTrailingInIndex(remaining) ?: break
+            if (suffixIndex == remaining.lastIndex) {
+                break
+            }
+
+            val suffixTokens = remaining.drop(suffixIndex + 1)
+            val parsedSuffix = parseScopeTokens(suffixTokens) ?: break
+
+            parsedSuffix.translationCode?.let { code ->
+                if (inlineTranslationCode != null && inlineTranslationCode != code) {
+                    throw UsageError("Conflicting translation scopes: '$inlineTranslationCode' and '$code'")
                 }
+                inlineTranslationCode = code
             }
-        }
-
-        val locationSuffixIndex = findTrailingInIndex(remaining)
-        if (locationSuffixIndex != null) {
-            val locationTokens = remaining.drop(locationSuffixIndex + 1)
-            val parsedLocation = parseLocationTokens(locationTokens)
-            if (parsedLocation != null) {
-                inlineBookNumber = parsedLocation.bookNumber
-                inlineStartChapter = parsedLocation.startChapter
-                inlineEndChapter = parsedLocation.endChapter
-                remaining = remaining.take(locationSuffixIndex)
+            parsedSuffix.bookNumber?.let { book ->
+                if (inlineBookNumber != null && inlineBookNumber != book) {
+                    throw UsageError("Conflicting book scopes")
+                }
+                inlineBookNumber = book
             }
+            parsedSuffix.startChapter?.let { chapter ->
+                if (inlineStartChapter != null && inlineStartChapter != chapter) {
+                    throw UsageError("Conflicting chapter scopes")
+                }
+                inlineStartChapter = chapter
+            }
+            parsedSuffix.endChapter?.let { end ->
+                if (inlineEndChapter != null && inlineEndChapter != end) {
+                    throw UsageError("Conflicting chapter ranges")
+                }
+                inlineEndChapter = end
+            }
+            inlineCategoryKeys.addAll(parsedSuffix.categoryKeys)
+            inlineFilters.addAll(parsedSuffix.filters)
+            remaining = remaining.take(suffixIndex)
         }
 
         return InlineSearchFilters(
@@ -123,8 +152,80 @@ class SearchCli(
             translationCode = inlineTranslationCode,
             bookNumber = inlineBookNumber,
             startChapter = inlineStartChapter,
-            endChapter = inlineEndChapter
+            endChapter = inlineEndChapter,
+            categoryKeys = inlineCategoryKeys.distinct(),
+            filters = inlineFilters.distinct()
         )
+    }
+
+    private data class ParsedScopeTokens(
+        val translationCode: String? = null,
+        val bookNumber: Int? = null,
+        val startChapter: Int? = null,
+        val endChapter: Int? = null,
+        val categoryKeys: List<String> = emptyList(),
+        val filters: List<BibleFilter> = emptyList()
+    )
+
+    private fun parseScopeTokens(tokens: List<String>): ParsedScopeTokens? {
+        if (tokens.isEmpty()) return null
+
+        val firstTokenTranslation = parseTranslationCode(tokens.first())
+        if (firstTokenTranslation != null) {
+            val rest = tokens.drop(1)
+            if (rest.isEmpty()) {
+                return ParsedScopeTokens(translationCode = firstTokenTranslation)
+            }
+
+            if (parseLocationTokens(rest) != null || parseCategoryKey(rest) != null) {
+                throw UsageError(
+                    "Translation scope must be separate: use '... in john 3 in kjv' or '... in david in kjv', not combined with translation inside one scope."
+                )
+            }
+        }
+
+        parseLocationTokens(tokens)?.let { location ->
+            return ParsedScopeTokens(
+                bookNumber = location.bookNumber,
+                startChapter = location.startChapter,
+                endChapter = location.endChapter
+            )
+        }
+
+        parseCategoryKey(tokens)?.let { categoryKey ->
+            return ParsedScopeTokens(
+                categoryKeys = listOf(categoryKey),
+                filters = listOf(resolveCategoryFilter(categoryKey))
+            )
+        }
+
+        if (tokens.size == 1) {
+            parseTranslationCode(tokens.single())?.let { code ->
+                return ParsedScopeTokens(translationCode = code)
+            }
+        }
+
+        return null
+    }
+
+    private fun parseTranslationCode(token: String): String? {
+        val code = token.trim().lowercase()
+        return if (code.isNotBlank() && bible.findTranslationByCode(code)) code else null
+    }
+
+    private fun parseCategoryKey(tokens: List<String>): String? {
+        val key = normalizeCategoryKey(tokens.joinToString(separator = " "))
+        return if (key.isNotBlank() && categoryFilterOrNull(key) != null) key else null
+    }
+
+    private fun normalizeCategoryKey(raw: String): String {
+        return raw.trim().lowercase()
+    }
+
+    private fun resolveCategoryFilter(key: String): BibleFilter {
+        return resolveCategoryFilterOrThrow(key) {
+            UsageError("Category key '$it' not found. Run 'bbl list categories' to see supported category names.")
+        }
     }
 
     private fun findTrailingInIndex(tokens: List<String>): Int? {

@@ -177,7 +177,7 @@ installed_pack_codes.each do |pack_code|
   end
 end
 
-describe command(bbl_command.call('search Jesus Christ')) do
+describe command(bbl_command.call('search Christ')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
 end
@@ -191,9 +191,9 @@ describe 'bbl list translations output' do
   end
 end
 
-describe 'bbl search Jesus Christ exact output' do
+describe 'bbl search Christ exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results(bbl_command.call('search Jesus Christ')) }
+  subject(:results) { search_results(bbl_command.call('search Christ')) }
 
   it 'starts with the expected webus verse text' do
     expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
@@ -204,14 +204,14 @@ describe 'bbl search Jesus Christ exact output' do
   end
 end
 
-describe command(bbl_command.call('search Jesus Christ in kjv')) do
+describe command(bbl_command.call('search Christ in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the generation of Jesus Christ/) }
 end
 
-describe 'bbl search Jesus Christ in kjv exact output' do
+describe 'bbl search Christ in kjv exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results(bbl_command.call('search Jesus Christ in kjv')) }
+  subject(:results) { search_results(bbl_command.call('search Christ in kjv')) }
 
   it 'starts with the expected kjv verse text' do
     expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
@@ -222,14 +222,14 @@ describe 'bbl search Jesus Christ in kjv exact output' do
   end
 end
 
-describe command(bbl_command.call('search Jesus Christ in romans')) do
+describe command(bbl_command.call('search Christ in romans')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
 end
 
-describe 'bbl search Jesus Christ in romans exact output' do
+describe 'bbl search Christ in romans exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans')) }
+  subject(:results) { search_results(bbl_command.call('search Christ in romans')) }
 
   it 'starts with the expected romans webus verse text' do
     expect(results.first).to eq('Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,')
@@ -240,14 +240,14 @@ describe 'bbl search Jesus Christ in romans exact output' do
   end
 end
 
-describe command(bbl_command.call('search Jesus Christ in romans 5-12')) do
+describe command(bbl_command.call('search Christ in romans 5-12')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Being therefore justified by faith/) }
 end
 
-describe 'bbl search Jesus Christ in romans 5-12 exact output' do
+describe 'bbl search Christ in romans 5-12 exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans 5-12')) }
+  subject(:results) { search_results(bbl_command.call('search Christ in romans 5-12')) }
 
   it 'starts with the expected romans chapter-range webus verse text' do
     expect(results.first).to eq('Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;')
@@ -258,20 +258,56 @@ describe 'bbl search Jesus Christ in romans 5-12 exact output' do
   end
 end
 
-describe command(bbl_command.call('search Jesus Christ in romans 5-12 in kjv')) do
+describe command(bbl_command.call('search Christ in romans 5-12 in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/Therefore being justified by faith/) }
 end
 
-describe 'bbl search Jesus Christ in romans 5-12 in kjv exact output' do
+describe 'bbl search Christ in romans 5-12 in kjv exact output' do
   include_context 'search helpers'
-  subject(:results) { search_results(bbl_command.call('search Jesus Christ in romans 5-12 in kjv')) }
+  subject(:results) { search_results(bbl_command.call('search Christ in romans 5-12 in kjv')) }
 
   it 'starts with the expected romans chapter-range kjv verse text' do
     expect(results.first).to eq('Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:')
   end
 
   it 'returns multiple hits in the requested kjv chapter range' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe command(bbl_command.call("search Christ in johns letters")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/1 John 1:3/) }
+end
+
+describe 'bbl search Christ in johns letters exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call("search Christ in johns letters")) }
+
+  it 'starts with the expected Johns letters verse text' do
+    expect(results.first).to match(/\A1 John 1:3 /)
+  end
+
+  it 'returns multiple hits from the requested category' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe command(bbl_command.call("search Christ in johns letters in kjv")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/1 John 1:3/) }
+end
+
+describe 'bbl search Christ --category johns letters exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call("search Christ --category 'johns letters'")) }
+
+  it 'starts with the expected Johns letters verse text' do
+    expect(results.first).to match(/\A1 John 1:3 /)
+  end
+
+  it 'returns multiple hits from the requested category' do
     expect(results.length).to be > 1
   end
 end

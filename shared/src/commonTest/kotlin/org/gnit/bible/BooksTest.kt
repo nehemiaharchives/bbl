@@ -29,4 +29,23 @@ class BooksTest {
         assertEquals(true, abraham.contains(BookChapterVerse(1, 15, 1)))   // inside
         assertEquals(false, abraham.contains(BookChapterVerse(1, 25, 12))) // after end
     }
+
+    @Test
+    fun testCategoryKeysDoNotConflictWithBookAliases() {
+        val bookAliases = bookNameNumberArray
+            .flatMap { it.asList() }
+            .map { it.trim().lowercase() }
+            .filter { it.isNotBlank() }
+            .toSet()
+
+        val categoryAliases = Books.Category.entries
+            .flatMap { it.key }
+            .map { it.trim().lowercase() }
+            .filter { it.isNotBlank() }
+            .toSet()
+
+        val overlap = categoryAliases.intersect(bookAliases)
+
+        assertEquals(emptySet(), overlap, "Category keys must not overlap with canonical book aliases: $overlap")
+    }
 }
