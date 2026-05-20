@@ -48,8 +48,10 @@ interface SearchTestBase {
     var bible: Bible
 
     fun searchCommonEmbedded(){
-        listOf("Jesus Christ", "Jesus", "Christ").forEach { enTerm ->
-            // English (en, webus)
+        val enTerms = listOf("Jesus Christ", "Jesus", "Christ")
+
+        // English (en, webus)
+        enTerms.forEach { enTerm ->
 
             val actualWebus = bible.search(term = enTerm, translation = webus).first()
             assertEquals(VersePointer(webus, 40, 1, 1), actualWebus, "Failed on searching: $enTerm")
@@ -63,10 +65,12 @@ interface SearchTestBase {
             val actualWebusRomans3To5 = bible.search(term = enTerm, bookNumber = romans, startChapter = 3, endChapter = 5, translation = webus).first()
             assertEquals(VersePointer(webus, romans, 3, 22), actualWebusRomans3To5, "Failed on searching: $enTerm")
 
-            val actualWebusJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters") ,translation = webus).first()
+            val actualWebusJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters"), translation = webus).first()
             assertEquals(VersePointer(webus, firstJohn, 1, 3), actualWebusJohnsLetter, "Failed on searching: $enTerm")
+        }
 
-            // English (en, kjv)
+        // English (en, kjv)
+        enTerms.forEach { enTerm ->
             val actualKjv = bible.search(term = enTerm, translation = kjv).first()
             assertEquals(VersePointer(kjv, 40, 1, 1), actualKjv, "Failed on searching: $enTerm")
 
