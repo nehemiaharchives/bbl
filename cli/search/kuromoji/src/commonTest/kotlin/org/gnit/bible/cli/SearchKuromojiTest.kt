@@ -10,7 +10,7 @@ class SearchKuromojiTest: CliSearchTestBase(KuromojiAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist() {
-        super.searchJesusChristKuromoji()
+    fun searchKuromojiCli() {
+        super.searchKuromoji()
     }
 }

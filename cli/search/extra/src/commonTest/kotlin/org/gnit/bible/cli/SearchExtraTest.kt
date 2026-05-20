@@ -10,7 +10,7 @@ class SearchExtraTest: CliSearchTestBase(ExtraAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist() {
-        super.searchJesusChristExtra()
+    fun searchExtraCli() {
+        super.searchExtra()
     }
 }

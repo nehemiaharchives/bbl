@@ -28,37 +28,37 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     }
 
     @Test
-    fun searchJesusChristCommonEmbeddedCmp(){
-        super.searchJesusChristCommonEmbedded()
+    fun searchCommonEmbeddedCmp(){
+        super.searchCommonEmbedded()
     }
 
     @Test
-    fun searchJesusChristCommonDownloadedCmp(){
-        super.searchJesusChristCommonDownloaded()
+    fun searchCommonDownloadedCmp(){
+        super.searchCommonDownloaded()
     }
 
     @Test
-    fun searchJesusChristMorfologikCmp(){
-        super.searchJesusChristMorfologik()
+    fun searchMorfologikCmp(){
+        super.searchMorfologik()
     }
 
     @Test
-    fun searchJesusChristSmartcnCmp(){
-        super.searchJesusChristSmartcn()
+    fun searchSmartcnCmp(){
+        super.searchSmartcn()
     }
 
     @Test
-    fun searchJesusChristNoriCmp(){
-        super.searchJesusChristNori()
+    fun searchNoriCmp(){
+        super.searchNori()
     }
 
     @Test
-    fun searchJesusChristKuromojiCmp(){
-        super.searchJesusChristKuromoji()
+    fun searchKuromojiCmp(){
+        super.searchKuromoji()
     }
 
     @Test
-    fun searchJesusChristExtraCmp(){
-        super.searchJesusChristExtra()
+    fun searchExtraCmp(){
+        super.searchExtra()
     }
 }

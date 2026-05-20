@@ -11,9 +11,9 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist(){
-        super.searchJesusChristCommonEmbedded()
+    fun searchCommonCli(){
+        super.searchCommonEmbedded()
 
-        super.searchJesusChristCommonDownloaded()
+        super.searchCommonDownloaded()
     }
 }

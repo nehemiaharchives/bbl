@@ -10,7 +10,7 @@ class SearchNoriTest: CliSearchTestBase(NoriAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist() {
-        super.searchJesusChristNori()
+    fun searchNoriCli() {
+        super.searchNori()
     }
 }

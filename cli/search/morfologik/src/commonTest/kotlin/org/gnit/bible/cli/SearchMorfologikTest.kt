@@ -10,7 +10,7 @@ class SearchMorfologikTest: CliSearchTestBase(MorfologikAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist() {
-        super.searchJesusChristMorfologik()
+    fun searchMorfologikCli() {
+        super.searchMorfologik()
     }
 }

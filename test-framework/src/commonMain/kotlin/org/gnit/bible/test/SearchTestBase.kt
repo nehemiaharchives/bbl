@@ -47,7 +47,7 @@ interface SearchTestBase {
 
     var bible: Bible
 
-    fun searchJesusChristCommonEmbedded(){
+    fun searchCommonEmbedded(){
         listOf("Jesus Christ", "Jesus", "Christ").forEach { enTerm ->
             // English (en, webus)
 
@@ -232,7 +232,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristCommonDownloaded(){
+    fun searchCommonDownloaded(){
         // Indonesian (id)
         listOf("Yesus Kristus", "Yesus", "Kristus").forEach { idTerm ->
             val actualAyt = bible.search(term = idTerm, translation = ayt).first()
@@ -360,7 +360,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristMorfologik() {
+    fun searchMorfologik() {
         // Polish (pl)
         listOf("Jezusa Chrystusa", "Jezusa", "Chrystusa").forEach { plTerm ->
             val actualUbg = bible.search(term = plTerm, translation = ubg).first()
@@ -398,7 +398,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristSmartcn() {
+    fun searchSmartcn() {
         // Chinese (zh)
         listOf("耶稣基督", "耶稣", "基督").forEach { zhTerm ->
             val actualCunp = bible.search(term = zhTerm, translation = cunp).first()
@@ -418,7 +418,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristNori() {
+    fun searchNori() {
         // Korean (ko)
         listOf("예수그리스도", "예수 그리스도", "예수", "그리스도").forEach { koTerm ->
             val actualKrv = bible.search(term = koTerm, translation = krv).first()
@@ -438,7 +438,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristKuromoji() {
+    fun searchKuromoji() {
         // Japanese (ja)
         listOf("イエス・キリスト", "イエス", "キリスト").forEach { jaTerm ->
             val actualJc = bible.search(term = jaTerm, translation = jc).first()
@@ -458,7 +458,7 @@ interface SearchTestBase {
         }
     }
 
-    fun searchJesusChristExtra() {
+    fun searchExtra() {
         // Tagalog (tl)
         listOf("Jesucristo", "Jesus", "Cristo").forEach { tlTerm ->
             val actualAbtag = bible.search(term = tlTerm, translation = abtag).first()

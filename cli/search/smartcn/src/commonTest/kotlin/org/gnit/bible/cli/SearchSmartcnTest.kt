@@ -10,7 +10,7 @@ class SearchSmartcnTest: CliSearchTestBase(SmartcnAnalyzerProvider()) {
     override fun setup() = super.setup()
 
     @Test
-    fun searchJesusChrist() {
-        super.searchJesusChristSmartcn()
+    fun searchSmartcnCli() {
+        super.searchSmartcn()
     }
 }
