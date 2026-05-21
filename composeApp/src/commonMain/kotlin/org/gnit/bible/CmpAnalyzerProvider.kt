@@ -5,7 +5,7 @@ import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
 import org.gnit.lucenekmp.analysis.cn.smart.SmartChineseAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
-import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
+import org.gnit.lucenekmp.analysis.en.ct.BibleEnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.ct.BibleSpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
 import org.gnit.lucenekmp.analysis.gu.GujaratiAnalyzer
@@ -50,7 +50,7 @@ class CmpAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(language: Language): Analyzer {
         return when (language.code) {
-            "en" -> EnglishAnalyzer() //common (embedded in cmp)
+            "en" -> BibleEnglishAnalyzer() //common (embedded in cmp)
             "es" -> BibleSpanishAnalyzer() //common (embedded in cmp)
             "pt" -> BiblePortugueseAnalyzer() //common (embedded in cmp)
             "de" -> BibleGermanAnalyzer() //common (embedded in cmp)

@@ -26,7 +26,7 @@ import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
 import org.gnit.lucenekmp.analysis.de.ct.BibleGermanAnalyzer
-import org.gnit.lucenekmp.analysis.en.EnglishAnalyzer
+import org.gnit.lucenekmp.analysis.en.ct.BibleEnglishAnalyzer
 import org.gnit.lucenekmp.analysis.es.ct.BibleSpanishAnalyzer
 import org.gnit.lucenekmp.analysis.fr.FrenchAnalyzer
 import org.gnit.lucenekmp.analysis.hi.ct.BibleHindiAnalyzer
@@ -61,7 +61,7 @@ class CommonAnalyzerProvider : AnalyzerProvider {
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
             // search common (embedded in cmp)
-            "en" -> EnglishAnalyzer()
+            "en" -> BibleEnglishAnalyzer()
             "es" -> BibleSpanishAnalyzer()
             "pt" -> BiblePortugueseAnalyzer()
             "de" -> BibleGermanAnalyzer()

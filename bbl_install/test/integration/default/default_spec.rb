@@ -235,6 +235,19 @@ describe 'bbl search Jesus wept exact output' do
   end
 end
 
+describe 'bbl search Jesus weep exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call('search Jesus weep')) }
+
+  it 'starts with the expected normalized-search verse text' do
+    expect(results.first).to eq('Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.')
+  end
+
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
+  end
+end
+
 describe 'bbl search quoted Jesus wept exact output' do
   include_context 'search helpers'
   subject(:results) { search_results(bbl_command.call('search "Jesus wept"')) }

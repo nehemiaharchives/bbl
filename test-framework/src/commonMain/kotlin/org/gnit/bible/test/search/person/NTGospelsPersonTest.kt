@@ -51,9 +51,14 @@ class NTGospelsPersonTest(
                     }
 
                     val enTermWept = "Jesus wept"
-                    val actualMatthew26 = bible.search(term = enTermWept, translation = webus).first() // because the term is not double quoted, Matthew comes as top result instead of John.
+                    val actualMatthew26 = bible.search(term = enTermWept, translation = webus).first() // the unquoted term still ranks Matthew 26:75 first in current search behavior.
                     // Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.
-                    assertEquals(VersePointer(webus, matthew, 26, 75), actualMatthew26, "Failed on searching: $enTermWept")
+                    val expectedMatthew26 = VersePointer(webus, matthew, 26, 75)
+                    assertEquals(expectedMatthew26, actualMatthew26, "Failed on searching: $enTermWept")
+
+                    val enTermWeep = "Jesus weep"
+                    val actualMatthew23byWeep = bible.search(term = enTermWeep, translation = webus).first() // the "weep" and other variants of "wept" are normalized to the same root form "weep".
+                    assertEquals(expectedMatthew26, actualMatthew23byWeep, "Failed on searching: $enTermWeep")
 
                     val actualJohn11 = bible.search(term = """"$enTermWept"""", translation = webus).first() // the exact quot only appears in John 11:35, so it should come as top result.
                     // John 11:35 Jesus wept.
@@ -79,6 +84,20 @@ class NTGospelsPersonTest(
                         val actualKjvJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters"), translation = kjv).first()
                         assertEquals(VersePointer(kjv, firstJohn, 1, 3), actualKjvJohnsLetter, "Failed on searching: $enTerm")
                     }
+
+                    val enTermWept = "Jesus wept"
+                    val actualMatthew26 = bible.search(term = enTermWept, translation = kjv).first() // the unquoted term still ranks Matthew 26:75 first in current search behavior.
+                    // Matthew 26:75 Then Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” He went out and wept bitterly.
+                    val expectedMatthew26 = VersePointer(kjv, matthew, 26, 75)
+                    assertEquals(expectedMatthew26, actualMatthew26, "Failed on searching: $enTermWept")
+
+                    val enTermWeep = "Jesus weep"
+                    val actualMatthew23byWeep = bible.search(term = enTermWeep, translation = kjv).first() // the "weep" and other variants of "wept" are normalized to the same root form "weep".
+                    assertEquals(expectedMatthew26, actualMatthew23byWeep, "Failed on searching: $enTermWeep")
+
+                    val actualJohn11 = bible.search(term = """"$enTermWept"""", translation = kjv).first() // the exact quot only appears in John 11:35, so it should come as top result.
+                    // John 11:35 Jesus wept.
+                    assertEquals(VersePointer(kjv, john, 11, 35), actualJohn11, "Failed on searching exact quoted: $enTermWept")
                 }
 
                 RVR09 -> {
