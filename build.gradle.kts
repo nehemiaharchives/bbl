@@ -1,5 +1,6 @@
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
@@ -46,7 +47,7 @@ subprojects {
         environment("SIMCTL_CHILD_BBL_KMP_ROOT", rootProject.projectDir.absolutePath)
     }
 
-    if (path.startsWith(":cli")) {
+    /*if (path.startsWith(":cli")) {
         plugins.withId("org.jetbrains.kotlin.multiplatform") {
             extensions.configure<KotlinMultiplatformExtension> {
                 targets.withType<KotlinNativeTarget>().configureEach {
@@ -71,7 +72,7 @@ subprojects {
                 }
             }
         }
-    }
+    }*/
 
         tasks.matching { it.name in setOf("compileKotlinJvm", "compileTestKotlinJvm") }
         .configureEach {
@@ -134,25 +135,27 @@ val bblArtifactCompatibilityVersionProvider = providers.fileContents(
         ?: error("Unable to read bblArtifactCompatibilityVersion from BblVersion.kt")
 }
 
+val serverBblPacksDirectory = layout.projectDirectory.dir("server/src/main/resources/files/bblpacks")
 val verifyServerBblPackVersions = tasks.register("verifyServerBblPackVersions") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Verify server bblpack zip manifests match bblArtifactCompatibilityVersion."
 
     inputs.file(bblVersionFile)
     inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
-    inputs.files(fileTree(layout.projectDirectory.dir("server/src/main/resources/files/bblpacks")) {
+    inputs.files(fileTree(serverBblPacksDirectory) {
         include("*.zip")
     })
 
+    val expectedVersionProvider = bblArtifactCompatibilityVersionProvider
+    val packDirectory = serverBblPacksDirectory.asFile
     doLast {
-        val expectedVersion = bblArtifactCompatibilityVersionProvider.get()
-        val packDir = layout.projectDirectory.dir("server/src/main/resources/files/bblpacks").asFile
-        val zipFiles = packDir.listFiles { file -> file.isFile && file.extension == "zip" }
+        val expectedVersion = expectedVersionProvider.get()
+        val zipFiles = packDirectory.listFiles { file -> file.isFile && file.extension == "zip" }
             ?.sortedBy { it.name }
             .orEmpty()
 
         require(zipFiles.isNotEmpty()) {
-            "No server bblpack zips found in ${packDir.absolutePath}"
+            "No server bblpack zips found in ${packDirectory.absolutePath}"
         }
 
         val versionRegex = Regex(""""bblArtifactCompatibilityVersion"\s*:\s*"([^"]+)"""")
@@ -189,6 +192,9 @@ val bblInstallCommonFixtureDirectory = layout.buildDirectory.dir("bblInstallFixt
 val bblInstallVersionFixtureFile = bblInstallCommonFixtureDirectory.map { it.file("version.txt") }
 val bblInstallArtifactCompatibilityVersionFixtureFile =
     bblInstallCommonFixtureDirectory.map { it.file("artifact_compatibility_version.txt") }
+val bblInstallCookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt")
+val bblInstallCookbookArtifactCompatibilityVersionFile =
+    layout.projectDirectory.file("bbl_install/files/artifact_compatibility_version.txt")
 val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage expected bbl version files for bbl_install Kitchen tests and local cookbook runs."
@@ -196,22 +202,28 @@ val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixtur
     inputs.property("bblCliVersion", bblCliVersionProvider)
     inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
     outputs.files(bblInstallVersionFixtureFile, bblInstallArtifactCompatibilityVersionFixtureFile)
+    outputs.files(bblInstallCookbookVersionFile, bblInstallCookbookArtifactCompatibilityVersionFile)
 
+    val versionFixtureFileProvider = bblInstallVersionFixtureFile
+    val artifactCompatibilityVersionFixtureFileProvider = bblInstallArtifactCompatibilityVersionFixtureFile
+    val cookbookVersionFileProvider = bblInstallCookbookVersionFile
+    val cookbookArtifactCompatibilityVersionFileProvider = bblInstallCookbookArtifactCompatibilityVersionFile
+    val cliVersionProvider = bblCliVersionProvider
+    val artifactCompatibilityVersionProvider = bblArtifactCompatibilityVersionProvider
     doLast {
-        val versionFile = bblInstallVersionFixtureFile.get().asFile
+        val versionFile = versionFixtureFileProvider.get().asFile
         versionFile.parentFile.mkdirs()
-        versionFile.writeText("${bblCliVersionProvider.get()}\n")
+        versionFile.writeText("${cliVersionProvider.get()}\n")
 
-        val artifactCompatibilityVersionFile = bblInstallArtifactCompatibilityVersionFixtureFile.get().asFile
+        val artifactCompatibilityVersionFile = artifactCompatibilityVersionFixtureFileProvider.get().asFile
         artifactCompatibilityVersionFile.parentFile.mkdirs()
-        artifactCompatibilityVersionFile.writeText("${bblArtifactCompatibilityVersionProvider.get()}\n")
+        artifactCompatibilityVersionFile.writeText("${artifactCompatibilityVersionProvider.get()}\n")
 
-        val cookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt").asFile
+        val cookbookVersionFile = cookbookVersionFileProvider.asFile
         cookbookVersionFile.parentFile.mkdirs()
         cookbookVersionFile.writeText(versionFile.readText())
 
-        val cookbookArtifactCompatibilityVersionFile =
-            layout.projectDirectory.file("bbl_install/files/artifact_compatibility_version.txt").asFile
+        val cookbookArtifactCompatibilityVersionFile = cookbookArtifactCompatibilityVersionFileProvider.asFile
         cookbookArtifactCompatibilityVersionFile.parentFile.mkdirs()
         cookbookArtifactCompatibilityVersionFile.writeText(artifactCompatibilityVersionFile.readText())
     }
@@ -250,7 +262,7 @@ val stageBblInstallLinuxFixtures = tasks.register("stageBblInstallLinuxFixtures"
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("Linux") })
 }
 
-fun Copy.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
+fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     val platformFixtureTasks = stageBblInstallFixtureTasks.filter { it.name.contains(platform.taskNamePart) }
     dependsOn(platformFixtureTasks)
     dependsOn(stageBblInstallVersionFixture)
@@ -264,16 +276,13 @@ fun Copy.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     }
     includeEmptyDirs = false
     outputs.upToDateWhen { false }
-
-    doFirst {
-        delete(fileTree(layout.projectDirectory.dir("bbl_install/files")) {
-            exclude("README.md")
-        })
+    preserve {
+        include("README.md")
     }
 }
 
 // before test kitchen, run this task in local dev linux
-tasks.register<Copy>("stageBblInstallLinuxCliAllFixture") {
+tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Linux CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "linux" })
@@ -286,7 +295,7 @@ val stageBblInstallWindowsFixtures = tasks.register("stageBblInstallWindowsFixtu
 }
 
 // before test kitchen, run this task in local dev windows
-tasks.register<Copy>("stageBblInstallWindowsCliAllFixture") {
+tasks.register<Sync>("stageBblInstallWindowsCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
@@ -299,14 +308,14 @@ val stageBblInstallMacosFixtures = tasks.register("stageBblInstallMacosFixtures"
 }
 
 // before test kitchen, run this task in local dev macos (arm64)
-tasks.register<Copy>("stageBblInstallMacosArm64CliAllFixture") {
+tasks.register<Sync>("stageBblInstallMacosArm64CliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS Arm64 CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosArm64" })
 }
 
 // before test kitchen, run this task in local dev macos (x64)
-tasks.register<Copy>("stageBblInstallMacosX64CliAllFixture") {
+tasks.register<Sync>("stageBblInstallMacosX64CliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS X64 CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosX64" })
