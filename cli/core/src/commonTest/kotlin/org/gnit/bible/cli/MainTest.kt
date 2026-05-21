@@ -84,10 +84,7 @@ class MainTest {
     @Test
     fun testDefaultBblUsesCommonAnalyzerProvider() {
         val command = Bbl()
-        val bibleField = command.javaClass.getDeclaredField("bible").apply { isAccessible = true }
-        val commandBible = bibleField.get(command) as Bible
-
-        assertTrue(commandBible.analyzerProvider is CommonAnalyzerProvider)
+        assertTrue(command.bible.analyzerProvider is CommonAnalyzerProvider)
     }
 
     @Test

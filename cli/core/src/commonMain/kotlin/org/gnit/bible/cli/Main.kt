@@ -103,7 +103,7 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
 }
 
 class Bbl(
-    private val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider()),
+    val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider()),
     searchBackendProvider: ((Translation) -> SearchBackend)? = null
 ) : CliktCommand() {
 
