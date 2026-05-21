@@ -41,6 +41,7 @@ Example agent runtime environment: locally running ai coding agent in desktop/la
 
 ### Priority 2, Gradle command line (avoid as much as possible)
 When you don't have access to jetbrains MCP server, first ask Human developer to enable it and wait until it is enabled! Never use Gradle wrapper (./gradlew).
+Assume that GRADLE_USER_HOME is already set system-wide so just use it without overriding.
 If you are in cloud environment where you have NO access to jetbrains MCP server, you are allowed to use the command line Gradle wrapper (./gradlew) to compile and run tests.
 Example agent runtime environment: desktop/laptop but human developer forgot to launch JetBrains IDEs, or cloud coding agent such as codex web, Google Jules.
 
