@@ -222,6 +222,32 @@ describe 'bbl search Jesus exact output' do
   end
 end
 
+describe 'bbl search Jesus wept exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call('search Jesus wept')) }
+
+  it 'starts with the expected plain-search verse text' do
+    expect(results.first).to eq('Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.')
+  end
+
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe 'bbl search quoted Jesus wept exact output' do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl_command.call('search "Jesus wept"')) }
+
+  it 'starts with the expected exact-search verse text' do
+    expect(results.first).to eq('John 11:35 Jesus wept.')
+  end
+
+  it 'returns only the exact phrase result' do
+    expect(results.length).to eq(1)
+  end
+end
+
 describe command(bbl_command.call('search Christ in kjv')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the generation of Jesus Christ/) }

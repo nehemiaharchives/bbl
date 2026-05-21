@@ -81,6 +81,23 @@ class SearchCliTest {
     }
 
     @Test
+    fun `bbl search quoted Jesus wept preserves exact phrase`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("\"Jesus wept\"", it.term)
+            assertEquals("webus", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search \"Jesus wept\"")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
     fun `bbl search Jesus Christ in kjv overrides translation`() {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)

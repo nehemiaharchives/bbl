@@ -318,3 +318,17 @@ class SearchEngine(
         }
     }
 }
+
+fun searchTermFromArgs(args: List<String>): String {
+    if (args.isEmpty()) return ""
+
+    val term = args.joinToString(separator = " ").trim()
+    if (args.size == 1 && term.isNotEmpty() && term.any(Char::isWhitespace) && !isQuotedTerm(term)) {
+        return "\"$term\""
+    }
+    return term
+}
+
+private fun isQuotedTerm(term: String): Boolean {
+    return term.length >= 2 && term.first() == '"' && term.last() == '"'
+}

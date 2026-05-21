@@ -17,9 +17,10 @@ import org.gnit.bible.bookNumber
 import org.gnit.bible.formatHeader
 import org.gnit.bible.categoryFilterOrNull
 import org.gnit.bible.resolveCategoryFilterOrThrow
+import org.gnit.bible.searchTermFromArgs
 
 private data class InlineSearchFilters(
-    val term: String,
+    val termParts: List<String>,
     val translationCode: String?,
     val bookNumber: Int?,
     val startChapter: Int?,
@@ -44,7 +45,7 @@ class SearchCli(
 
     override fun run() {
         val inlineFilters = parseInlineFilters(termParts)
-        val term = inlineFilters.term
+        val term = searchTermFromArgs(inlineFilters.termParts)
         if (term.isBlank()) {
             throw UsageError("Missing search term")
         }
@@ -98,7 +99,7 @@ class SearchCli(
 
     private fun parseInlineFilters(tokens: List<String>): InlineSearchFilters {
         if (tokens.isEmpty()) {
-            return InlineSearchFilters("", null, null, null, null, emptyList(), emptyList())
+            return InlineSearchFilters(emptyList(), null, null, null, null, emptyList(), emptyList())
         }
 
         var remaining = tokens
@@ -148,7 +149,7 @@ class SearchCli(
         }
 
         return InlineSearchFilters(
-            term = remaining.joinToString(separator = " ").trim(),
+            termParts = remaining,
             translationCode = inlineTranslationCode,
             bookNumber = inlineBookNumber,
             startChapter = inlineStartChapter,

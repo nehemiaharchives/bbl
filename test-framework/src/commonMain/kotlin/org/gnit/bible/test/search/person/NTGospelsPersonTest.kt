@@ -12,6 +12,9 @@ class NTGospelsPersonTest(
     private val bible: Bible,
     private val translationsToBeTested: List<SupportedTranslation>,
 ) {
+
+    private val matthew: Int = bookNumber("matthew")
+    private val john: Int = bookNumber("john")
     private val romans: Int = bookNumber("romans")
     private val firstJohn: Int = bookNumber("1john")
 
@@ -46,6 +49,15 @@ class NTGospelsPersonTest(
                         val actualWebusJohnsLetter = bible.search(term = enTerm, filter = Books.Category.filterOf("johns letters"), translation = webus).first()
                         assertEquals(VersePointer(webus, firstJohn, 1, 3), actualWebusJohnsLetter, "Failed on searching: $enTerm")
                     }
+
+                    val enTermWept = "Jesus wept"
+                    val actualMatthew26 = bible.search(term = enTermWept, translation = webus).first() // because the term is not double quoted, Matthew comes as top result instead of John.
+                    // Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.
+                    assertEquals(VersePointer(webus, matthew, 26, 75), actualMatthew26, "Failed on searching: $enTermWept")
+
+                    val actualJohn11 = bible.search(term = """"$enTermWept"""", translation = webus).first() // the exact quot only appears in John 11:35, so it should come as top result.
+                    // John 11:35 Jesus wept.
+                    assertEquals(VersePointer(webus, john, 11, 35), actualJohn11, "Failed on searching exact quoted: $enTermWept")
                 }
 
                 KJV -> {

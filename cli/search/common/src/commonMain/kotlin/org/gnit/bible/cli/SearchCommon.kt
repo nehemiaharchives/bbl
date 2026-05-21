@@ -20,6 +20,7 @@ import org.gnit.bible.VersePointerJson
 import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
 import org.gnit.bible.bblSearchHelperVersionLine
 import org.gnit.bible.resolveCategoryFiltersOrThrow
+import org.gnit.bible.searchTermFromArgs
 import org.gnit.bible.suppressKotlinLoggingStartupMessage
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
@@ -111,7 +112,7 @@ private class SearchHelperCli(
             return
         }
 
-        val term = termParts.joinToString(separator = " ").trim()
+        val term = searchTermFromArgs(termParts)
         if (term.isBlank()) throw UsageError("Missing search term")
 
         val translation = resolveTranslationOrThrow()
