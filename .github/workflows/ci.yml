@@ -22,37 +22,23 @@ jobs:
       matrix:
         include:
           - platform: jvm
-            module_name: shared
+            module_name: app-shared
             os: ubuntu-latest
             timeout: 10
-            task: :shared:jvmTest
+            task: :app:shared:jvmTest
             job_type: Test
           - platform: android
-            module_name: shared
+            module_name: app-shared
             os: ubuntu-latest
             timeout: 15
-            task: :shared:testAndroidHostTest
+            task: :app:shared:testAndroidHostTest
             needs_android: true
             job_type: Test
           - platform: ios
-            module_name: shared
+            module_name: app-shared
             os: macos-latest
             timeout: 20
-            task: :shared:iosSimulatorArm64Test
-            needs_konan_cache: true
-            job_type: Test
-          - platform: linux
-            module_name: shared
-            os: ubuntu-latest
-            timeout: 20
-            task: :shared:linuxX64Test
-            needs_konan_cache: true
-            job_type: Test
-          - platform: mingw
-            module_name: shared
-            os: windows-latest
-            timeout: 25
-            task: :shared:mingwX64Test
+            task: :app:shared:iosSimulatorArm64Test
             needs_konan_cache: true
             job_type: Test
 
@@ -327,27 +313,6 @@ jobs:
             fixture_task: stageBblInstallWindowsCliSearchSmartcnFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-search-smartcn-files
             fixture_path: build/bblInstallFixtures/windows/cli-search-smartcn
-            job_type: Test
-
-          - platform: jvm
-            module_name: composeApp
-            os: ubuntu-latest
-            timeout: 10
-            task: :composeApp:jvmTest
-            job_type: Test
-          - platform: android
-            module_name: composeApp
-            os: ubuntu-latest
-            timeout: 15
-            task: :composeApp:testAndroidHostTest
-            needs_android: true
-            job_type: Test
-          - platform: ios
-            module_name: composeApp
-            os: macos-latest
-            timeout: 25
-            task: :composeApp:iosSimulatorArm64Test
-            needs_konan_cache: true
             job_type: Test
 
     steps:
