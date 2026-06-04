@@ -5,9 +5,6 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.LoggingSetup
-import org.gnit.bible.SearchQueryText
-import org.gnit.bible.Books
 import org.gnit.bible.BblVersion
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Language
@@ -139,6 +136,90 @@ class SearchBackendTest : ResourcesTestBase() {
             "--category", "david",
             "--verses", "5",
             "grace"
+        )
+        assertEquals(expected, runner.lastCommand)
+    }
+
+    @Test
+    fun externalBackendSplitsPlainMultiWordSearchTerm() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("common")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+
+        val backend = selector.backendFor(Language.en)
+        val request = SearchRequest(
+            term = "Jesus wept",
+            translation = Translation.webus,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "webus",
+            "--verses", "5",
+            "Jesus", "wept"
+        )
+        assertEquals(expected, runner.lastCommand)
+    }
+
+    @Test
+    fun externalBackendKeepsQuotedMultiWordSearchTermAsOneArgument() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("common")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+
+        val backend = selector.backendFor(Language.en)
+        val request = SearchRequest(
+            term = "\"Jesus wept\"",
+            translation = Translation.webus,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "webus",
+            "--verses", "5",
+            "\"Jesus wept\""
         )
         assertEquals(expected, runner.lastCommand)
     }

@@ -330,6 +330,13 @@ object SearchQueryText {
         return term
     }
 
+    fun processArgsFromSearchTerm(term: String): List<String> {
+        val trimmed = term.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        if (isQuotedTerm(trimmed)) return listOf(trimmed)
+        return trimmed.split(Regex("\\s+"))
+    }
+
     private fun isQuotedTerm(term: String): Boolean {
         return term.length >= 2 && term.first() == '"' && term.last() == '"'
     }

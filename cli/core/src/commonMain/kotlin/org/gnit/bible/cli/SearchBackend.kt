@@ -7,6 +7,7 @@ import org.gnit.bible.BblVersion
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.Language
+import org.gnit.bible.SearchQueryText
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
 
@@ -108,7 +109,7 @@ class ExternalSearchBackend(
             args.add("--verses")
             args.add(request.verses.toString())
         }
-        args.add(request.term)
+        args.addAll(SearchQueryText.processArgsFromSearchTerm(request.term))
         return args
     }
 }
