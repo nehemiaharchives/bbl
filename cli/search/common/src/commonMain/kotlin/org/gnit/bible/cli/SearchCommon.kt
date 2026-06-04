@@ -1,6 +1,6 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -13,15 +13,12 @@ import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
-import org.gnit.bible.Books
 import org.gnit.bible.Language
-import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
-import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
-import org.gnit.bible.bblSearchHelperVersionLine
-import org.gnit.bible.resolveCategoryFiltersOrThrow
-import org.gnit.bible.searchTermFromArgs
-import org.gnit.bible.suppressKotlinLoggingStartupMessage
+import org.gnit.bible.BblVersion
+import org.gnit.bible.Books
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.LoggingSetup
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.bn.ct.BibleBengaliAnalyzer
 import org.gnit.lucenekmp.analysis.core.SimpleAnalyzer
@@ -60,7 +57,6 @@ class CommonAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(code: String): Analyzer {
         return when (code) {
-            // search common (embedded in cmp)
             "en" -> BibleEnglishAnalyzer()
             "es" -> BibleSpanishAnalyzer()
             "pt" -> BiblePortugueseAnalyzer()
@@ -70,8 +66,6 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             "nl" -> DutchAnalyzer()
             "it" -> ItalianAnalyzer()
             "sv" -> BibleSwedishAnalyzer()
-
-            // search common (downloadable in cmp)
             "id" -> IndonesianAnalyzer()
             "th" -> ThaiAnalyzer()
             "hi" -> BibleHindiAnalyzer()
@@ -82,14 +76,13 @@ class CommonAnalyzerProvider : AnalyzerProvider {
             else -> SimpleAnalyzer()
         }
     }
-
 }
 
 private const val searchHelperBinaryName = "bbl-search-common"
 
 private class SearchHelperCli(
     private val bible: Bible
-) : CliktCommand(name = searchHelperBinaryName) {
+) : CoreCliktCommand(name = searchHelperBinaryName) {
 
     private val termParts by argument(help = "search term").multiple()
     private val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
@@ -103,21 +96,21 @@ private class SearchHelperCli(
 
     override fun run() {
         if (versionFlag) {
-            echo(bblSearchHelperVersionLine(searchHelperBinaryName))
+            echo(BblVersion.searchHelperVersionLine(searchHelperBinaryName))
             return
         }
 
         if (artifactCompatibilityVersionFlag) {
-            echo(bblSearchHelperArtifactCompatibilityVersionLine())
+            echo(BblVersion.artifactCompatibilityVersionLine())
             return
         }
 
-        val term = searchTermFromArgs(termParts)
+        val term = SearchQueryText.searchTermFromArgs(termParts)
         if (term.isBlank()) throw UsageError("Missing search term")
 
         val translation = resolveTranslationOrThrow()
         val (start, end) = validateAndResolveChapterRange(bookNumber)
-        val filters = resolveCategoryFiltersOrThrow(categoryKeys) {
+        val filters = Books.Category.resolveAllOrThrow(categoryKeys) {
             UsageError("Category key '$it' not found. Run 'bbl list categories' to see supported category names.")
         }
 
@@ -136,29 +129,22 @@ private class SearchHelperCli(
         }
     }
 
-    private fun resolveTranslationOrThrow(): Translation {
-        val code = translationCode?.lowercase() ?: throw UsageError("Missing required option -t/--translation")
-        if (!bible.findTranslationByCode(code)) {
-            throw UsageError("Translation code '$code' not found (is the pack installed?)")
-        }
-        return bible.availableTranslations().first { it.code == code }
+    private fun resolveTranslationOrThrow() = (translationCode ?: throw UsageError("Missing translation code")).let { code ->
+        org.gnit.bible.SupportedTranslation.entries.find { it.translation.code == code }?.translation
+            ?: throw UsageError("Translation '$code' not found or not supported by this search helper.")
     }
 
     private fun validateAndResolveChapterRange(bookNumber: Int?): Pair<Int?, Int?> {
-        val start = startChapter
-        val end = endChapter
-        if (start != null && bookNumber == null) throw UsageError("--chapter requires --book")
-        if (end != null && bookNumber == null) throw UsageError("--end-chapter requires --book")
-        if (end != null && start == null) throw UsageError("--end-chapter requires --chapter")
-        if (start != null && end != null && end < start) throw UsageError("--end-chapter must be >= --chapter")
-        if (verses <= 0) throw UsageError("--verses must be > 0")
-        return start to end
+        if (bookNumber == null && (startChapter != null || endChapter != null)) {
+            throw UsageError("Chapter options require --book")
+        }
+        return startChapter to endChapter
     }
-
 }
 
 fun main(args: Array<String>) {
-    suppressKotlinLoggingStartupMessage()
-    val bible = Bible(analyzerProvider = CommonAnalyzerProvider())
-    SearchHelperCli(bible).main(args)
+    LoggingSetup.suppressKotlinLoggingStartupMessage()
+    SearchHelperCli(
+        Bible(analyzerProvider = CommonAnalyzerProvider())
+    ).main(args)
 }

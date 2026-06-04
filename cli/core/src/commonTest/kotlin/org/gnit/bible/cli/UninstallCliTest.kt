@@ -1,14 +1,18 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import io.ktor.client.HttpClient
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase
-import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -22,6 +26,7 @@ class UninstallCliTest : ResourcesTestBase() {
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
+    private var originalSettings: com.russhwolf.settings.Settings? = null
 
     @BeforeTest
     fun setup(){
@@ -31,9 +36,11 @@ class UninstallCliTest : ResourcesTestBase() {
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         platform.overridePlatformPackDir = packDir
         platform.overrideFileSystem = fakeFs
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        platform.overrideSettings = InMemorySettings()
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine())
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
         Bbl(bible = bible).test("install kttv th1971")
@@ -44,6 +51,7 @@ class UninstallCliTest : ResourcesTestBase() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test

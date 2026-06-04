@@ -1,16 +1,18 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import org.gnit.bible.AssetManager
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
+import org.gnit.bible.BblVersion
 import org.gnit.bible.BookChapterVerse
 import org.gnit.bible.Books
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.RandPicker
 import org.gnit.bible.RandomlyShow
 import org.gnit.bible.Translation
-import org.gnit.bible.bookNumber
+
 import org.gnit.bible.getPlatform
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
@@ -25,7 +27,8 @@ class RandCliTest {
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
-    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_rand_test_dir"}"
+    private var originalSettings = platform.overrideSettings
+    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_rand_test_dir"}"
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
@@ -34,8 +37,10 @@ class RandCliTest {
         fakeFs = FakeFileSystem()
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         platform.overridePlatformPackDir = testPackDir
         platform.overrideFileSystem = fakeFs
+        platform.overrideSettings = InMemorySettings()
 
         val settings = platform.settings
         settings.remove(ConfigKey.TRANSLATION.value)
@@ -56,6 +61,7 @@ class RandCliTest {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     private fun stubPickerForSingleVerse(verseText: String): RandPicker {
@@ -98,7 +104,7 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = bookNumber(bookName.lowercase())
+        val bookId = Books.bookNumber(bookName.lowercase())
         val filter = Books.Category.fromKey("nt")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in NT")
     }
@@ -119,7 +125,7 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = bookNumber(bookName.lowercase())
+        val bookId = Books.bookNumber(bookName.lowercase())
         val filter = Books.Category.fromKey("ot")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in OT")
     }
@@ -140,7 +146,7 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = bookNumber(bookName.lowercase())
+        val bookId = Books.bookNumber(bookName.lowercase())
         val filter = Books.Category.fromKey("prophets")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in prophets")
     }
@@ -161,7 +167,7 @@ class RandCliTest {
         val match = Regex("^(.*) (\\d+):(\\d+)").find(firstLine)
         val bookName = match?.groupValues?.get(1)?.trim()
         assertTrue(bookName != null, "Failed to parse book name from header: $firstLine")
-        val bookId = bookNumber(bookName.lowercase())
+        val bookId = Books.bookNumber(bookName.lowercase())
         val filter = Books.Category.fromKey("paul")!!.filter
         assertTrue(filter.contains(BookChapterVerse(bookId, 1, 1)), "Header book '$bookName' should be in paul")
     }

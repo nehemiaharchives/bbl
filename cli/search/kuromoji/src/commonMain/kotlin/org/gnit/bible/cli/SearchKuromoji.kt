@@ -1,6 +1,6 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -15,11 +15,10 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
-import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
-import org.gnit.bible.bblSearchHelperVersionLine
-import org.gnit.bible.resolveCategoryFiltersOrThrow
-import org.gnit.bible.searchTermFromArgs
-import org.gnit.bible.suppressKotlinLoggingStartupMessage
+import org.gnit.bible.BblVersion
+import org.gnit.bible.Books
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.LoggingSetup
 import org.gnit.lucenekmp.analysis.Analyzer
 import org.gnit.lucenekmp.analysis.ja.ct.BibleJapaneseAnalyzer
 
@@ -27,7 +26,6 @@ class KuromojiAnalyzerProvider : AnalyzerProvider {
     private var cached: Analyzer? = null
 
     override fun analyzerFor(language: Language): Analyzer {
-        // Helper binary is module-specific. Always use the kuromoji analyzer.
         val existing = cached
         if (existing != null) return existing
         val created = BibleJapaneseAnalyzer()
@@ -40,7 +38,7 @@ private const val searchHelperBinaryName = "bbl-search-kuromoji"
 
 private class SearchHelperCli(
     private val bible: Bible
-) : CliktCommand(name = searchHelperBinaryName) {
+) : CoreCliktCommand(name = searchHelperBinaryName) {
 
     private val termParts by argument(help = "search term").multiple()
     private val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
@@ -54,21 +52,21 @@ private class SearchHelperCli(
 
     override fun run() {
         if (versionFlag) {
-            echo(bblSearchHelperVersionLine(searchHelperBinaryName))
+            echo(BblVersion.searchHelperVersionLine(searchHelperBinaryName))
             return
         }
 
         if (artifactCompatibilityVersionFlag) {
-            echo(bblSearchHelperArtifactCompatibilityVersionLine())
+            echo(BblVersion.artifactCompatibilityVersionLine())
             return
         }
 
-        val term = searchTermFromArgs(termParts)
+        val term = SearchQueryText.searchTermFromArgs(termParts)
         if (term.isBlank()) throw UsageError("Missing search term")
 
         val translation = resolveTranslationOrThrow()
         val (start, end) = validateAndResolveChapterRange(bookNumber)
-        val filters = resolveCategoryFiltersOrThrow(categoryKeys) {
+        val filters = Books.Category.resolveAllOrThrow(categoryKeys) {
             UsageError("Category key '$it' not found. Run 'bbl list categories' to see supported category names.")
         }
 
@@ -108,7 +106,7 @@ private class SearchHelperCli(
 }
 
 fun main(args: Array<String>) {
-    suppressKotlinLoggingStartupMessage()
+    LoggingSetup.suppressKotlinLoggingStartupMessage()
     val bible = Bible(analyzerProvider = KuromojiAnalyzerProvider())
     SearchHelperCli(bible).main(args)
 }

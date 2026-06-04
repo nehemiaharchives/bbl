@@ -1,12 +1,17 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
 import kotlin.test.AfterTest
@@ -23,14 +28,17 @@ class ConfigCliTest {
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private var originalSettings = platform.overrideSettings
 
     @BeforeTest
     fun setup(){
         fakeFs = FakeFileSystem()
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         platform.overrideFileSystem = fakeFs
-        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_config_test_dir"
+        platform.overridePlatformPackDir = "/tmp/bbl_cli_config_test_dir"
+        platform.overrideSettings = InMemorySettings()
         platform.settings.clear()
 
         val packDirPath = platform.packDir.toPath()
@@ -46,6 +54,7 @@ class ConfigCliTest {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test

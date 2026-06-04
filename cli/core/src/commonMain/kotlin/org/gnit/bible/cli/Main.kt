@@ -1,6 +1,7 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.requireObject
@@ -11,105 +12,18 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
-import org.gnit.bible.CommonAnalyzerProvider
 import org.gnit.bible.Books
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
-import org.gnit.bible.bookNumber
-import org.gnit.bible.bookNameEnglishCapital
-import org.gnit.bible.formatHeader
-import org.gnit.bible.suppressKotlinLoggingStartupMessage
-
-private fun parseVersePointerOrThrow(
-    translation: Translation,
-    bookTokens: List<String>,
-    chapterVerse: String
-): VersePointer {
-    val bookString = bookTokens.joinToString(separator = " ") { it.lowercase() }
-
-    val bookNumber = try {
-        bookNumber(bookString)
-    } catch (_: Exception) {
-        throw UsageError("Unknown book '$bookString'. Run 'bbl list books' to see supported book names.")
-    }
-
-    val chapterVerseSplit = chapterVerse.split(":")
-    if (chapterVerseSplit.isEmpty() || chapterVerseSplit.size > 2) {
-        throw UsageError("Invalid reference '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, or CHAPTER:START-END (e.g. '3', '3:16', '3:16-18').")
-    }
-
-    val chapterNumber = chapterVerseSplit[0].toIntOrNull()
-        ?: throw UsageError("Invalid chapter in '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, or CHAPTER:START-END (e.g. '3', '3:16', '3:16-18').")
-
-    val maxChapter = Books.maxChapter(bookNumber)
-    if (chapterNumber !in 1..maxChapter) {
-        throw UsageError("Chapter $chapterNumber is out of range for ${bookNameEnglishCapital(bookNumber)}. Valid range: 1..$maxChapter.")
-    }
-
-    val (startVerse, endVerse) = if (chapterVerseSplit.size == 2) {
-        val versePart = chapterVerseSplit[1]
-        val rangeParts = versePart.split("-")
-        if (rangeParts.isEmpty() || rangeParts.size > 2) {
-            throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
-        }
-
-        val start = rangeParts[0].toIntOrNull()
-            ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
-
-        val end = if (rangeParts.size == 2) {
-            rangeParts[1].toIntOrNull()
-                ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
-        } else {
-            null
-        }
-
-        if (end != null && end < start) {
-            throw UsageError("Invalid verse range $start-$end. Start verse must be <= end verse.")
-        }
-
-        start to end
-    } else {
-        null to null
-    }
-
-    return VersePointer(
-        translation = translation,
-        book = bookNumber,
-        chapter = chapterNumber,
-        startVerse = startVerse,
-        endVerse = endVerse
-    )
-}
-
-private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String) {
-    val start = pointer.startVerse ?: return
-    val end = pointer.endVerse
-
-    val maxVerses = Bible.splitChapterToVerses(chapterText).size
-    val ref = "${bookNameEnglishCapital(pointer.book)} ${pointer.chapter}"
-
-    if (start !in 1..maxVerses) {
-        throw UsageError("Verse $start is out of range for $ref. Valid range: 1..$maxVerses.")
-    }
-
-    if (end != null) {
-        if (end !in 1..maxVerses) {
-            throw UsageError("Verse $end is out of range for $ref. Valid range: 1..$maxVerses.")
-        }
-        if (end < start) {
-            throw UsageError("Invalid verse range $start-$end for $ref. Start verse must be <= end verse.")
-        }
-    }
-}
+import org.gnit.bible.LoggingSetup
 
 class Bbl(
     val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider()),
     searchBackendProvider: ((Translation) -> SearchBackend)? = null
-) : CliktCommand() {
+) : CoreCliktCommand() {
 
     override val invokeWithoutSubcommand = true
 
-    // Verse lookup args (used when running `bbl gen 1`, etc).
     val book: List<String> by argument().multiple(default = listOf("gen"))
     val chapterVerse: String by argument().default("1")
 
@@ -128,10 +42,10 @@ class Bbl(
             InstallCli(bible),
             UninstallCli(bible),
             ConfigCli(bible),
-
-            // pack/index builder has been moved to :cli:packer (developer-only tool)
         )
     }
+
+    override fun help(context: Context): String = "The bbl (Bible) command line tool."
 
     override fun aliases(): Map<String, List<String>> = mapOf(
         "get" to listOf("install"),
@@ -141,25 +55,19 @@ class Bbl(
     )
 
     override fun run() {
-
         if (versionFlag) {
-            echo(versionOutput)
+            echo(CliSupport.versionOutput)
             return
         }
 
-        // Always parse the verse pointer from the top-level args first and publish it.
-        // Subcommands like `in` depend on it (e.g. `bbl matt 28:18-20 in jc`).
-        versePointer = parseVersePointerOrThrow(
+        versePointer = CliSupport.parseVersePointerOrThrow(
             translation = bible.defaultTranslationFromSettings(),
             bookTokens = book,
             chapterVerse = chapterVerse
         )
         currentContext.findOrSetObject { versePointer }
 
-        // If a subcommand (or alias) is invoked, don't treat args as verse lookup.
-        // This allows `bbl install kttv` to work even when no default translation is installed.
-        val invoked = currentContext.invokedSubcommand
-        if (invoked != null) {
+        if (currentContext.invokedSubcommand != null) {
             return
         }
 
@@ -168,25 +76,21 @@ class Bbl(
         }
 
         chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
-        validateVerseRangeOrThrow(versePointer, chapterText)
-
-        val start = versePointer.startVerse
-        val end = versePointer.endVerse
+        CliSupport.validateVerseRangeOrThrow(versePointer, chapterText)
 
         selectedVerses = formatSelectedVersesFromChapterText(
             chapterText = chapterText,
-            startVerse = start,
-            endVerse = end
+            startVerse = versePointer.startVerse,
+            endVerse = versePointer.endVerse
         )
 
         if (bible.showHeaderFromSettings()) {
-            echo(formatHeader(versePointer))
+            echo(Books.formatHeader(versePointer))
         }
 
         echo(selectedVerses.trimEnd())
 
-        // Preserve historical behavior: ranges print an extra blank line after output.
-        if (start != null && end != null) {
+        if (versePointer.startVerse != null && versePointer.endVerse != null) {
             echo("")
         }
     }
@@ -194,7 +98,7 @@ class Bbl(
 
 class In(
     private val bible: Bible
-) : CliktCommand() {
+) : CoreCliktCommand() {
 
     val translationOverrides: List<String> by argument(help = "specify one or more translations with translation code(s)")
         .multiple()
@@ -202,39 +106,37 @@ class In(
 
     lateinit var selectedVerses: String
 
+    override fun help(context: Context): String = "Read verses from the Bible in one or more translations."
+
     override fun run() {
         val codes = translationOverrides
             .map { it.lowercase() }
             .distinct()
 
-        val translations = codes.mapNotNull { code ->
-            if (!bible.findTranslationByCode(code)) {
-                echo("Translation code '$code' not found", err = true)
-                null
-            } else {
-                bible.availableTranslations().first { it.code == code }
-            }
+        val translations = codes.map { code ->
+            bible.availableTranslations().firstOrNull { it.code == code }
+                ?: throw UsageError("Translation code '$code' not found")
         }
 
-        if (translations.size != codes.size) return
+        if (translations.isEmpty()) {
+            throw UsageError("Missing translation code(s)")
+        }
+
         val firstTranslation = translations.first()
 
         if (translations.size == 1) {
-            versePointer.translation = firstTranslation
-            val chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
-            validateVerseRangeOrThrow(versePointer, chapterText)
-
-            val start = versePointer.startVerse
-            val end = versePointer.endVerse
+            val translatedPointer = versePointer.copy(translation = firstTranslation)
+            val chapterText = bible.verses(translatedPointer.translation.code, translatedPointer.book, translatedPointer.chapter)
+            CliSupport.validateVerseRangeOrThrow(translatedPointer, chapterText)
 
             selectedVerses = formatSelectedVersesFromChapterText(
                 chapterText = chapterText,
-                startVerse = start,
-                endVerse = end
+                startVerse = translatedPointer.startVerse,
+                endVerse = translatedPointer.endVerse
             )
 
             if (bible.showHeaderFromSettings()) {
-                echo(formatHeader(versePointer))
+                echo(Books.formatHeader(translatedPointer))
             }
 
             echo(selectedVerses.trimEnd())
@@ -261,17 +163,15 @@ class In(
 
         if (bible.showHeaderFromSettings()) {
             val headerEndVerse = if (end == null) null else verseNumbers.lastOrNull()
-            val headerPointer = VersePointer(
+            val headerPointer = versePointer.copy(
                 translation = firstTranslation,
-                book = versePointer.book,
-                chapter = versePointer.chapter,
                 startVerse = versePointer.startVerse,
                 endVerse = headerEndVerse
             )
-            echo(formatHeader(headerPointer))
+            echo(Books.formatHeader(headerPointer))
         }
 
-        val lastVerse = verseNumbers.last
+        val lastVerse = verseNumbers.lastOrNull() ?: return
         for (verseNumber in verseNumbers) {
             translations.forEach { translation ->
                 val verses = versesByCode.getValue(translation.code)
@@ -287,11 +187,10 @@ class In(
 }
 
 fun main(args: Array<String>) {
-    suppressKotlinLoggingStartupMessage()
+    LoggingSetup.suppressKotlinLoggingStartupMessage()
     Bbl().main(args)
 }
 
-// Dedicated native entry point to avoid collisions with other CLI helpers.
 fun cliMain(args: Array<String>) {
     main(args)
 }

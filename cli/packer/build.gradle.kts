@@ -1,31 +1,29 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
 kotlin {
-    @Suppress("DEPRECATION")
-    macosX64() // intel mac
-    macosArm64() // m1/2/3/4 mac
+    macosX64()
+    macosArm64()
     linuxX64()
-    // PackCli uses kzip for writing bblpack archives; kzip does not publish mingwX64 artifacts.
-    jvm() // primarily for testing purposes,
-    // in case windows native implementation has too much problems
-    jvmToolchain(24)
+    jvm()
 
     compilerOptions {
         optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.shared)
+                implementation(projects.core)
+                implementation(projects.cli.shared)
                 implementation(libs.clikt)
                 implementation(libs.okio)
                 implementation(libs.kmpio)
                 implementation(libs.kotlinx.coroutines)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)
                 implementation(libs.lucene.kmp.analysis.common)
@@ -40,7 +38,6 @@ kotlin {
             dependencies {
                 implementation(projects.testFramework)
                 implementation(libs.kotlin.test)
-                implementation(libs.ktor.clientMock)
                 implementation(libs.okio.fakefs)
             }
         }
@@ -48,55 +45,24 @@ kotlin {
         val nativeMain by creating { dependsOn(commonMain) }
         val nativeTest by creating { dependsOn(commonTest) }
 
-        macosX64Main.get().dependsOn(nativeMain)
-        macosX64Test.get().dependsOn(nativeTest)
+        val posixMain by creating { dependsOn(nativeMain) }
+        val posixTest by creating { dependsOn(nativeTest) }
 
-        macosArm64Main.get().dependsOn(nativeMain)
-        macosArm64Test.get().dependsOn(nativeTest)
-
-        linuxX64Main.get().dependsOn(nativeMain)
-        linuxX64Test.get().dependsOn(nativeTest)
+        macosX64Main.get().dependsOn(posixMain)
+        macosX64Test.get().dependsOn(posixTest)
+        macosArm64Main.get().dependsOn(posixMain)
+        macosArm64Test.get().dependsOn(posixTest)
+        linuxX64Main.get().dependsOn(posixMain)
+        linuxX64Test.get().dependsOn(posixTest)
 
     }
-}
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
-    compilerOptions{
-        optIn.addAll(
-            "kotlin.ExperimentalStdlibApi",
-        )
-        //suppressWarnings = true
-        freeCompilerArgs.addAll(
-            "-Xexpect-actual-classes",
-        )
+    targets.withType<KotlinNativeTarget>().all {
+        binaries {
+            executable {
+                entryPoint = "org.gnit.bible.cli.main"
+                baseName = "bbl-packer"
+            }
+        }
     }
-}
-
-val jvmRuntimeClasspath by configurations.getting
-
-fun org.gradle.api.tasks.JavaExec.configurePackBblExec() {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    mainClass.set("org.gnit.bible.cli.PackCliKt")
-    classpath = files(
-        layout.buildDirectory.dir("classes/kotlin/jvm/main"),
-        layout.buildDirectory.dir("processedResources/jvm/main"),
-        jvmRuntimeClasspath
-    )
-    workingDir = layout.projectDirectory.asFile
-    dependsOn(tasks.named("jvmMainClasses"))
-}
-
-tasks.register<JavaExec>("packBblTranslation") {
-    configurePackBblExec()
-    description = "Regenerate one server bblpack. Use -Pbblpack.translation=<code>, for example sven."
-    val translationCode = providers.gradleProperty("bblpack.translation").orElse("sven")
-    doFirst {
-        args(translationCode.get())
-    }
-}
-
-tasks.register<JavaExec>("packBblAllTranslations") {
-    configurePackBblExec()
-    description = "Regenerate every downloadable server bblpack."
-    args("--all")
 }

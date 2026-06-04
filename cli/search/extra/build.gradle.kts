@@ -6,26 +6,23 @@ plugins {
 
 kotlin {
     @Suppress("DEPRECATION")
-    macosX64() // intel mac
-    macosArm64() // m1/2/3/4 mac
+    macosX64()
+    macosArm64()
     linuxX64()
-    mingwX64() // windows native
-    jvm() // primarily for testing purposes,
-    // in case windows native implementation has too much problems
-    jvmToolchain(24)
+    mingwX64()
+    jvm()
 
     compilerOptions {
         optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.shared)
+                implementation(projects.core)
+                implementation(projects.cli.shared)
                 implementation(libs.clikt)
-                implementation(libs.okio)
-                implementation(libs.kotlinx.coroutines)
-                implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)
                 implementation(libs.lucene.kmp.analysis.extra)
@@ -35,45 +32,32 @@ kotlin {
             dependencies {
                 implementation(projects.testFramework)
                 implementation(libs.kotlin.test)
-                implementation(libs.ktor.clientMock)
-                implementation(libs.okio.fakefs)
             }
         }
 
         val nativeMain by creating { dependsOn(commonMain) }
         val nativeTest by creating { dependsOn(commonTest) }
 
-        macosX64Main.get().dependsOn(nativeMain)
-        macosX64Test.get().dependsOn(nativeTest)
+        val posixMain by creating { dependsOn(nativeMain) }
+        val posixTest by creating { dependsOn(nativeTest) }
 
-        macosArm64Main.get().dependsOn(nativeMain)
-        macosArm64Test.get().dependsOn(nativeTest)
-
-        linuxX64Main.get().dependsOn(nativeMain)
-        linuxX64Test.get().dependsOn(nativeTest)
+        macosX64Main.get().dependsOn(posixMain)
+        macosX64Test.get().dependsOn(posixTest)
+        macosArm64Main.get().dependsOn(posixMain)
+        macosArm64Test.get().dependsOn(posixTest)
+        linuxX64Main.get().dependsOn(posixMain)
+        linuxX64Test.get().dependsOn(posixTest)
 
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)
+    }
 
-        targets.withType<KotlinNativeTarget>().all {
-            binaries {
-                executable {
-                    entryPoint = "org.gnit.bible.cli.main"
-                    baseName = "bbl-search-extra"
-                }
+    targets.withType<KotlinNativeTarget>().all {
+        binaries {
+            executable {
+                entryPoint = "org.gnit.bible.cli.main"
+                baseName = "bbl-search-extra"
             }
         }
-    }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
-    compilerOptions{
-        optIn.addAll(
-            "kotlin.ExperimentalStdlibApi",
-        )
-        //suppressWarnings = true
-        freeCompilerArgs.addAll(
-            "-Xexpect-actual-classes",
-        )
     }
 }

@@ -1,7 +1,5 @@
 package org.gnit.bible.cli
 
-// Extracted from :cli to :cli:packer as part of Phase 6.
-
 import io.github.oshai.kotlinlogging.KotlinLogging
 import okio.FileSystem
 import okio.Path
@@ -10,7 +8,7 @@ import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.SearchEngine.Companion.INDEX_MANIFEST_FILENAME_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.bookNameEnglish
+import org.gnit.bible.Books.bookNameEnglish
 import org.gnit.lucenekmp.document.Document
 import org.gnit.lucenekmp.document.Field
 import org.gnit.lucenekmp.document.IntPoint
@@ -116,8 +114,6 @@ class IndexBuilder(
                         add(IntPoint("verse", verse))
                         add(StoredField("verse", verse))
 
-                        // Index-only (not stored) to reduce pack size.
-                        // The search binary can return verse pointers and load verse text from .txt files.
                         add(Field("text", sanitizedText, TextField.TYPE_NOT_STORED))
                     }
                     iWriter.addDocument(doc)
@@ -181,8 +177,7 @@ class IndexBuilder(
 }
 
 fun createEmbeddedLuceneKmpIndex(translation: Translation) {
-    val translationDir =
-        "../composeApp/src/commonMain/composeResources/files/bblpacks/${translation.code}".toPath()
+    val translationDir = "resources/bblpacks/${translation.code}".toPath()
 
     IndexBuilder(Bible()).createLuceneKmpIndex(
         translation = translation,

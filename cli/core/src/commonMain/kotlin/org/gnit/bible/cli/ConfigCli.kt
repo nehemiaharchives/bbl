@@ -1,6 +1,6 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.subcommands
@@ -12,11 +12,10 @@ import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.RandomlyShow
 import org.gnit.bible.SETTINGS_FILE_NAME
-import org.gnit.bible.Translation.Companion.downloadableTranslationCodeListCli
 
 class ConfigCli(
     private val bible: Bible
-) : CliktCommand(name = "config") {
+) : CoreCliktCommand(name = "config") {
 
     override fun help(context: Context): String = "Manage bbl config"
 
@@ -78,7 +77,7 @@ class ConfigCli(
         if (configKey == ConfigKey.TRANSLATION) {
             val valid = bible.availableTranslationCodes().contains(newValue)
             if (!valid) {
-                if (downloadableTranslationCodeListCli.contains(newValue)) {
+                if (CliTranslationCatalog.downloadableTranslationCodes().contains(newValue)) {
                     echo("Translation '$newValue' is downloadable but not installed. Run: bbl install $newValue", err = true)
                     throw UsageError("Translation '$newValue' is not installed.")
                 }
@@ -120,7 +119,7 @@ private fun generateDefaultConfig(bible: Bible): Path {
 
 private class ConfigInitCli(
     private val bible: Bible
-) : CliktCommand(name = "init") {
+) : CoreCliktCommand(name = "init") {
 
     override fun help(context: Context): String {
         val bblDir = bible.assetManager.platform.packDir.toPath().parent

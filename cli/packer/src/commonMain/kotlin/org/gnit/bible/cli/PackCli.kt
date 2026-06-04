@@ -1,12 +1,14 @@
 package org.gnit.bible.cli
 
-// Extracted from :cli to :cli:packer as part of Phase 6.
-// This tool is developer-only: it creates bbl pack zip files (with lucene-kmp indexes) for publishing.
-
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.optional
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.default
 import com.oldguy.common.io.File
 import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
@@ -17,29 +19,39 @@ import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.bblArtifactCompatibilityVersion
+import org.gnit.bible.BblVersion
 
 class PackCli(
     private val bible: Bible
-) : CliktCommand(name = "pack") {
+) : CoreCliktCommand(name = "pack") {
 
     private val logger = KotlinLogging.logger {}
 
     override fun help(context: Context): String {
-        return "Pack a directory named with translation code into a zip file of bblpack file which can be imported for bbl"
+        return "Pack a translation directory into a bblpack zip. By convention, run from the project root and use ./resources/bbltexts and ./resources/bblpacks; override with --source and --packs when needed."
     }
 
-    private val target by argument(help = "translation code of new bblpack dir/zip to be created, e.g. webus, jc")
+    private val target by argument(help = "translation code of new bblpack dir/zip to be created, e.g. webus, jc").optional()
+
+    private val all by option("--all", help = "pack every downloadable translation").flag()
+    private val sourceDir by option("--source", help = "source bbltexts directory").default("resources/bbltexts")
+    private val packsDir by option("--packs", help = "output bblpacks directory").default("resources/bblpacks")
 
     override fun run() {
-        val normalizedTarget = target.trim().lowercase()
+        if (all) {
+            mainAll(sourceDir, packsDir)
+            return
+        }
+
+        val normalizedTarget = target?.trim()?.lowercase().orEmpty()
         if (normalizedTarget.isEmpty()) {
             throw CliktError("Missing translation code")
         }
 
-        val resolvedInputPath = currentDir().resolve(normalizedTarget, true)
-        val outputPathString = resolvedInputPath.parent?.toString() ?: "."
-        createBblPack(inputPathString = normalizedTarget, outputPathString = outputPathString)
+        createBblPack(
+            inputPathString = "$sourceDir/$normalizedTarget",
+            outputPathString = packsDir
+        )
     }
 
     private val fileSystem = bible.assetManager.fileSystem
@@ -52,7 +64,6 @@ class PackCli(
         val currentDir = currentDir()
         logger.debug { "currentDir: $currentDir" }
 
-        // validate input path
         val inputPath = currentDir.resolve(inputPathString, true)
         if (!(fileSystem.exists(inputPath) && fileSystem.metadata(inputPath).isDirectory)) {
             val msg = when {
@@ -62,7 +73,6 @@ class PackCli(
             throw IllegalStateException(msg)
         }
 
-        // validate output path
         val outputPath = currentDir.resolve(outputPathString, true)
         if (!(fileSystem.exists(outputPath) && fileSystem.metadata(outputPath).isDirectory)) {
             val msg = when {
@@ -72,12 +82,9 @@ class PackCli(
             throw IllegalStateException(msg)
         }
 
-        // get translation code
         val translationCode = inputPath.name
         logger.info { "translationCode: $translationCode" }
 
-        // validate manifest json
-        // Convention: manifest file name is '<translationCode>.0.manifest.json' (MANIFEST_JSON_POSTFIX)
         val manifestPath = inputPath.resolve("$translationCode$MANIFEST_JSON_POSTFIX")
         if (!fileSystem.exists(manifestPath)) {
             val translationEntry = Translation.downloadableTranslationsCmp
@@ -105,7 +112,7 @@ class PackCli(
             Translation.fromJson(rawManifest)
         } catch (e: Throwable) {
             throw IllegalStateException("Error while parsing manifest $manifestPath: ${e.message}", e)
-        }.copy(bblArtifactCompatibilityVersion = bblArtifactCompatibilityVersion)
+        }.copy(bblArtifactCompatibilityVersion = BblVersion.artifactCompatibilityVersion)
 
         fileSystem.write(manifestPath) { writeUtf8(translation.toJson()) }
 
@@ -123,7 +130,6 @@ class PackCli(
             return
         }
 
-        // zip everything into ${translationCode}.zip
         val dir = File(outputPath.toString())
         if (!(dir.exists && dir.isDirectory)) {
             val msg = when {
@@ -172,53 +178,16 @@ class PackCli(
             }
         }
     }
-
 }
 
-fun packTranslation(translationCode: String) {
-
-    // update server resources index and also zip file
+fun packTranslation(translationCode: String, sourceDir: String = "resources/bbltexts", packsDir: String = "resources/bblpacks") {
     PackCli(Bible()).createBblPack(
-        inputPathString = "../../server/src/main/resources/files/bbltexts/$translationCode",
-        outputPathString = "../../server/src/main/resources/files/bblpacks/"
+        inputPathString = "$sourceDir/$translationCode",
+        outputPathString = packsDir
     )
-
-    val isEmbeddedTranslation = Translation.embeddedTranslationCodes.contains(translationCode)
-
-    if (isEmbeddedTranslation) {
-        // update compose resources index only
-        PackCli(Bible()).createBblPack(
-            inputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks/$translationCode",
-            outputPathString = "../../composeApp/src/commonMain/composeResources/files/bblpacks",
-            updateIndexOnly = true
-        )
-    } else {
-        // update android test fixture zip file by copying server zip
-        val fileSystem = FileSystem.SYSTEM
-        val currentDir = currentDir()
-        val serverZip = currentDir.resolve(
-            "../../server/src/main/resources/files/bblpacks/$translationCode.zip",
-            true
-        )
-        if (!fileSystem.exists(serverZip)) {
-            throw IllegalStateException("Server zip $serverZip does not exist")
-        }
-
-        val fixtureDir = currentDir.resolve(
-            "../../composeApp/src/androidDeviceTest/assets/bblpacks",
-            true
-        )
-        fileSystem.createDirectories(fixtureDir)
-        val fixtureZip = fixtureDir.resolve("$translationCode.zip")
-        if (fileSystem.exists(fixtureZip)) {
-            fileSystem.delete(fixtureZip)
-        }
-        val bytes = fileSystem.read(serverZip) { readByteArray() }
-        fileSystem.write(fixtureZip) { write(bytes) }
-    }
 }
 
-fun mainAll() {
+fun mainAll(sourceDir: String = "resources/bbltexts", packsDir: String = "resources/bblpacks") {
     println("bbl-packer: use PackCli (developer tool)")
     val currentDir = currentDir()
     println("currentDir: $currentDir")
@@ -230,11 +199,10 @@ fun mainAll() {
         .distinct()
         .forEach { translationCode ->
         runCatching {
-            packTranslation(translationCode)
+            packTranslation(translationCode, sourceDir, packsDir)
         }.onFailure { e ->
             val msg = e.message ?: e.toString()
             failures += translationCode to msg
-            // Keep this kmp-friendly (commonMain): no java.lang.System.
             println("FAILED to pack $translationCode: $msg")
         }
     }
@@ -244,15 +212,10 @@ fun mainAll() {
         failures.forEach { (code, msg) ->
             println(" - $code: $msg")
         }
-        // Make CI / automation fail.
         throw IllegalStateException("Failed to pack ${failures.size} translations")
     }
 }
 
 fun main(args: Array<String>) {
-    when {
-        args.size == 1 && args.single() == "--all" -> mainAll()
-        args.size == 1 -> packTranslation(args.single().trim().lowercase())
-        else -> println("Usage: packer <translation-code>|--all")
-    }
+    PackCli(Bible()).main(args)
 }

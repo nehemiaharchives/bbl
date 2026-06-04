@@ -7,10 +7,14 @@ import okio.Path.Companion.toPath
 import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.BibleTestBase
-import org.gnit.bible.test.TestFixtures
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -19,14 +23,15 @@ import kotlin.test.assertTrue
 
 class CliBibleTest : BibleTestBase {
 
-    private val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_cli_bible_test_dir"}"
+    private val cliBibleTestPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_cli_bible_test_dir"}"
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private var originalSettings = platform.overrideSettings
 
     override val bible: Bible = Bible(
         assetManager = AssetManagerImpl(
-            httpClient = HttpClient(TestFixtures.bblInstallMockEngine),
+            httpClient = HttpClient(TestFixtures.bblInstallMockEngine()),
             platform = platform
         )
     ).apply {
@@ -37,8 +42,10 @@ class CliBibleTest : BibleTestBase {
     fun setup(){
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         platform.overridePlatformPackDir = cliBibleTestPackDir
         platform.overrideFileSystem = null
+        platform.overrideSettings = InMemorySettings()
 
         val fs = FileSystem.SYSTEM
         // Integration-like: ZipBibleResourcesReader reads real zip files from the OS filesystem.
@@ -55,6 +62,7 @@ class CliBibleTest : BibleTestBase {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test

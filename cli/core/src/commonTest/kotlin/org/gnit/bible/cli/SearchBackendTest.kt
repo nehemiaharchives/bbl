@@ -5,13 +5,17 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.Platform
-import org.gnit.bible.bblArtifactCompatibilityVersion
-import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
+
+
 import org.gnit.bible.test.ResourcesTestBase
-import org.gnit.bible.test.TestFixtures
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -26,6 +30,7 @@ class SearchBackendTest : ResourcesTestBase() {
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
+    private var originalSettings: com.russhwolf.settings.Settings? = null
 
     @BeforeTest
     fun setup() {
@@ -33,9 +38,11 @@ class SearchBackendTest : ResourcesTestBase() {
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         platform.overrideFileSystem = fakeFs
-        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_search_backend_test_dir"
-        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine)
+        platform.overridePlatformPackDir = "/tmp/bbl_cli_search_backend_test_dir"
+        platform.overrideSettings = InMemorySettings()
+        val httpClient = HttpClient(TestFixtures.bblInstallMockEngine())
         val assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
         bible = Bible(assetManager = assetManager)
     }
@@ -45,6 +52,7 @@ class SearchBackendTest : ResourcesTestBase() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test
@@ -69,7 +77,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -115,7 +123,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -161,7 +169,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -205,7 +213,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, bblSearchHelperArtifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
             } else {
                 ProcessResult(2, "", "boom")
             }
@@ -273,7 +281,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val message = error.message ?: ""
         assertTrue(message.contains("artifact compatibility version mismatch"))
-        assertTrue(message.contains(bblArtifactCompatibilityVersion))
+        assertTrue(message.contains(BblVersion.artifactCompatibilityVersion))
     }
 
     private class FakeProcessRunner(

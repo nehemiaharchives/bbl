@@ -1,29 +1,33 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.getPlatform
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.gnit.bible.test.TestFixtures
 import org.gnit.bible.AssetManagerImpl
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import org.gnit.bible.CommonAnalyzerProvider
 import kotlin.test.AfterTest
 
 class MainTest {
 
-    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_main_test_dir"}"
+    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_main_test_dir"}"
 
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private var originalSettings = platform.overrideSettings
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
@@ -31,9 +35,11 @@ class MainTest {
     fun clearSavedSettings() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = testPackDir
         platform.overrideFileSystem = fakeFs
+        platform.overrideSettings = InMemorySettings()
         platform.settings.remove(ConfigKey.TRANSLATION.value)
         platform.settings.remove(ConfigKey.HEADER.value)
 
@@ -63,6 +69,7 @@ class MainTest {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test

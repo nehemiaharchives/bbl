@@ -1,9 +1,13 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import okio.SYSTEM
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.BblVersion
 import org.gnit.bible.Books
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
 import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
@@ -21,14 +25,17 @@ class ListCliTest : ResourcesTestBase() {
     private lateinit var platform: Platform
     private var originalPackDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
+    private var originalSettings: com.russhwolf.settings.Settings? = null
 
     @BeforeTest
     fun setup(){
         platform = createTestPlatform()
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
-        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_list_cli_test_dir"
+        originalSettings = platform.overrideSettings
+        platform.overridePlatformPackDir = "/tmp/bbl_cli_list_cli_test_dir"
         platform.overrideFileSystem = null
+        platform.overrideSettings = InMemorySettings()
 
         val installed = Translation.kttv
         val list = Translation.embeddedTranslations
@@ -49,6 +56,7 @@ class ListCliTest : ResourcesTestBase() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Available | Public Domain
@@ -71,7 +79,7 @@ AYT    | The Opened Bible                           | Alkitab Yang Terbuka      
 KTTV   | Vietnamese Bible 1925                      | Kinh Thánh Tiếng Việt            | Vietnamese | 1925 | Installed | Public Domain
 TH1971 | Thai Bible 1925                            | พระคริสตธรรมคัมภีร์ ฉบับ1971          | Thai       | 1971 | Available | Public Domain
 IRVHIN | Indian Revised Version - Hindi             | इंडियन रिवाइज्ड वर्जन (IRV) हिंदी         | Hindi      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVBEN | Indian Revised Version - Bengali           | ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী    | Bengali    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
+IRVBEN | Indian Revised Version - Bengali           | ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী   | Bengali    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 IRVMAR | Indian Revised Version - Marathi           | इंडियन रीवाइज्ड वर्जन (IRV) मराठी        | Marathi    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 IRVTEL | Indian Revised Version - Telugu            | ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు       | Telugu     | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
 IRVTAM | Indian Revised Version - Tamil             | இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்      | Tamil      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.

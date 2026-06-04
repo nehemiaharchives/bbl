@@ -9,7 +9,7 @@ import org.gnit.bible.Language
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
-import org.gnit.bible.bblSearchHelperArtifactCompatibilityVersionLine
+import org.gnit.bible.BblVersion
 
 data class SearchRequest(
     val term: String,
@@ -89,7 +89,7 @@ class ExternalSearchBackend(
             )
         }
 
-        val expected = bblSearchHelperArtifactCompatibilityVersionLine()
+        val expected = BblVersion.artifactCompatibilityVersionLine()
         val actual = result.stdout.trim()
         if (actual != expected) {
             val actualDisplay = actual.ifBlank { "<blank>" }
@@ -143,18 +143,13 @@ class SearchBackendSelector(
         return if (language.searchModuleId == SearchModuleId.COMMON) {
             InternalSearchBackend(bible)
         } else {
-            val executableSuffix = if (bible.assetManager.platform.name == "Windows") ".exe" else ""
-            val binaryName = "bbl-search-${language.searchModuleId.name.lowercase()}$executableSuffix"
+            val binaryName = CliBinaryPaths.binaryName(language.searchModuleId, bible.assetManager.platform.name)
             val binaryPath = binDirProvider() / binaryName
             ExternalSearchBackend(processRunner, fileSystem, binaryPath, language.searchModuleId)
         }
     }
 
     fun defaultBinDir(): Path {
-        val platform = bible.assetManager.platform
-        val packDir = platform.packDir.toPath()
-        val bblDir = packDir.parent
-            ?: throw SearchBackendException("Unable to resolve bbl dir from pack dir: ${platform.packDir}")
-        return bblDir / "bin"
+        return CliBinaryPaths.binDir(bible.assetManager.platform.packDir)
     }
 }

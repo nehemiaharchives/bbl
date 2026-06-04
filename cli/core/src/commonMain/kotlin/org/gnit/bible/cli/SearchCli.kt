@@ -1,6 +1,6 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -9,31 +9,14 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
-import org.gnit.bible.BibleFilter
 import org.gnit.bible.Translation
-import org.gnit.bible.VersePointer
 import org.gnit.bible.VersePointerJson
-import org.gnit.bible.bookNumber
-import org.gnit.bible.formatHeader
-import org.gnit.bible.categoryFilterOrNull
-import org.gnit.bible.resolveCategoryFilterOrThrow
-import org.gnit.bible.searchTermFromArgs
-
-private data class InlineSearchFilters(
-    val termParts: List<String>,
-    val translationCode: String?,
-    val bookNumber: Int?,
-    val startChapter: Int?,
-    val endChapter: Int?,
-    val categoryKeys: List<String>,
-    val filters: List<BibleFilter>
-)
 
 class SearchCli(
     private val bible: Bible,
     private val processRunner: ProcessRunner = PlatformProcessRunner(),
     private val backendProvider: ((Translation) -> SearchBackend)? = null
-) : CliktCommand(name = "search") {
+) : CoreCliktCommand(name = "search") {
 
     private val termParts by argument(help = "search term").multiple()
     private val translationCode by option("-t", "--translation", help = "translation code (e.g. webus)")
@@ -44,21 +27,22 @@ class SearchCli(
     private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }.default(100)
 
     override fun run() {
-        val inlineFilters = parseInlineFilters(termParts)
-        val term = searchTermFromArgs(inlineFilters.termParts)
+        val inlineFilters = SearchCliSupport.parseInlineFilters(termParts, bible)
+        val term = SearchCliSupport.parseSearchTerm(inlineFilters.termParts)
         if (term.isBlank()) {
             throw UsageError("Missing search term")
         }
 
-        val translation = resolveTranslation(inlineFilters.translationCode)
-        val bookNumber = resolveBookNumber(inlineFilters.bookNumber)
-        val (startChapter, endChapterValue) = resolveChapterRange(
+        val translation = SearchCliSupport.resolveTranslation(bible, translationCode, inlineFilters.translationCode)
+        val bookNumber = SearchCliSupport.resolveBookNumber(book, inlineFilters.bookNumber)
+        val (startChapter, endChapterValue) = SearchCliSupport.resolveChapterRange(
             bookNumber = bookNumber,
+            explicitStartChapter = chapter,
+            explicitEndChapter = endChapter,
             inlineStartChapter = inlineFilters.startChapter,
             inlineEndChapter = inlineFilters.endChapter
         )
-        val explicitCategoryKeys = categoryKeys.map { normalizeCategoryKey(it) }.filter { it.isNotBlank() }
-        val explicitCategoryFilters = explicitCategoryKeys.map { resolveCategoryFilter(it) }
+        val (explicitCategoryKeys, explicitCategoryFilters) = SearchCliSupport.resolveCategoryFilters(categoryKeys)
         val requestCategoryKeys = (inlineFilters.categoryKeys + explicitCategoryKeys).distinct()
         val requestFilters = (inlineFilters.filters + explicitCategoryFilters).distinct()
 
@@ -93,254 +77,7 @@ class SearchCli(
         }
 
         if (hits.isNotEmpty()) {
-            echo(renderHits(hits))
+            echo(SearchCliSupport.renderHits(bible, hits))
         }
-    }
-
-    private fun parseInlineFilters(tokens: List<String>): InlineSearchFilters {
-        if (tokens.isEmpty()) {
-            return InlineSearchFilters(emptyList(), null, null, null, null, emptyList(), emptyList())
-        }
-
-        var remaining = tokens
-        var inlineTranslationCode: String? = null
-        var inlineBookNumber: Int? = null
-        var inlineStartChapter: Int? = null
-        var inlineEndChapter: Int? = null
-        val inlineCategoryKeys = mutableListOf<String>()
-        val inlineFilters = mutableListOf<BibleFilter>()
-
-        while (true) {
-            val suffixIndex = findTrailingInIndex(remaining) ?: break
-            if (suffixIndex == remaining.lastIndex) {
-                break
-            }
-
-            val suffixTokens = remaining.drop(suffixIndex + 1)
-            val parsedSuffix = parseScopeTokens(suffixTokens) ?: break
-
-            parsedSuffix.translationCode?.let { code ->
-                if (inlineTranslationCode != null && inlineTranslationCode != code) {
-                    throw UsageError("Conflicting translation scopes: '$inlineTranslationCode' and '$code'")
-                }
-                inlineTranslationCode = code
-            }
-            parsedSuffix.bookNumber?.let { book ->
-                if (inlineBookNumber != null && inlineBookNumber != book) {
-                    throw UsageError("Conflicting book scopes")
-                }
-                inlineBookNumber = book
-            }
-            parsedSuffix.startChapter?.let { chapter ->
-                if (inlineStartChapter != null && inlineStartChapter != chapter) {
-                    throw UsageError("Conflicting chapter scopes")
-                }
-                inlineStartChapter = chapter
-            }
-            parsedSuffix.endChapter?.let { end ->
-                if (inlineEndChapter != null && inlineEndChapter != end) {
-                    throw UsageError("Conflicting chapter ranges")
-                }
-                inlineEndChapter = end
-            }
-            inlineCategoryKeys.addAll(parsedSuffix.categoryKeys)
-            inlineFilters.addAll(parsedSuffix.filters)
-            remaining = remaining.take(suffixIndex)
-        }
-
-        return InlineSearchFilters(
-            termParts = remaining,
-            translationCode = inlineTranslationCode,
-            bookNumber = inlineBookNumber,
-            startChapter = inlineStartChapter,
-            endChapter = inlineEndChapter,
-            categoryKeys = inlineCategoryKeys.distinct(),
-            filters = inlineFilters.distinct()
-        )
-    }
-
-    private data class ParsedScopeTokens(
-        val translationCode: String? = null,
-        val bookNumber: Int? = null,
-        val startChapter: Int? = null,
-        val endChapter: Int? = null,
-        val categoryKeys: List<String> = emptyList(),
-        val filters: List<BibleFilter> = emptyList()
-    )
-
-    private fun parseScopeTokens(tokens: List<String>): ParsedScopeTokens? {
-        if (tokens.isEmpty()) return null
-
-        val firstTokenTranslation = parseTranslationCode(tokens.first())
-        if (firstTokenTranslation != null) {
-            val rest = tokens.drop(1)
-            if (rest.isEmpty()) {
-                return ParsedScopeTokens(translationCode = firstTokenTranslation)
-            }
-
-            if (parseLocationTokens(rest) != null || parseCategoryKey(rest) != null) {
-                throw UsageError(
-                    "Translation scope must be separate: use '... in john 3 in kjv' or '... in david in kjv', not combined with translation inside one scope."
-                )
-            }
-        }
-
-        parseLocationTokens(tokens)?.let { location ->
-            return ParsedScopeTokens(
-                bookNumber = location.bookNumber,
-                startChapter = location.startChapter,
-                endChapter = location.endChapter
-            )
-        }
-
-        parseCategoryKey(tokens)?.let { categoryKey ->
-            return ParsedScopeTokens(
-                categoryKeys = listOf(categoryKey),
-                filters = listOf(resolveCategoryFilter(categoryKey))
-            )
-        }
-
-        if (tokens.size == 1) {
-            parseTranslationCode(tokens.single())?.let { code ->
-                return ParsedScopeTokens(translationCode = code)
-            }
-        }
-
-        return null
-    }
-
-    private fun parseTranslationCode(token: String): String? {
-        val code = token.trim().lowercase()
-        return if (code.isNotBlank() && bible.findTranslationByCode(code)) code else null
-    }
-
-    private fun parseCategoryKey(tokens: List<String>): String? {
-        val key = normalizeCategoryKey(tokens.joinToString(separator = " "))
-        return if (key.isNotBlank() && categoryFilterOrNull(key) != null) key else null
-    }
-
-    private fun normalizeCategoryKey(raw: String): String {
-        return raw.trim().lowercase()
-    }
-
-    private fun resolveCategoryFilter(key: String): BibleFilter {
-        return resolveCategoryFilterOrThrow(key) {
-            UsageError("Category key '$it' not found. Run 'bbl list categories' to see supported category names.")
-        }
-    }
-
-    private fun findTrailingInIndex(tokens: List<String>): Int? {
-        for (index in tokens.lastIndex downTo 0) {
-            if (tokens[index].equals("in", ignoreCase = true)) {
-                return index
-            }
-        }
-        return null
-    }
-
-    private data class ParsedLocation(
-        val bookNumber: Int,
-        val startChapter: Int?,
-        val endChapter: Int?
-    )
-
-    private fun parseLocationTokens(tokens: List<String>): ParsedLocation? {
-        if (tokens.isEmpty()) return null
-
-        for (bookTokenCount in tokens.size downTo 1) {
-            val bookTokens = tokens.take(bookTokenCount)
-            val bookNumber = resolveInlineBookNumber(bookTokens) ?: continue
-            val chapterTokens = tokens.drop(bookTokenCount)
-            if (chapterTokens.isEmpty()) {
-                return ParsedLocation(bookNumber = bookNumber, startChapter = null, endChapter = null)
-            }
-            if (chapterTokens.size != 1) continue
-
-            val chapterRange = chapterTokens.single().split("-")
-            if (chapterRange.isEmpty() || chapterRange.size > 2) continue
-            val startChapter = chapterRange[0].toIntOrNull() ?: continue
-            val endChapter = if (chapterRange.size == 2) {
-                chapterRange[1].toIntOrNull() ?: continue
-            } else {
-                null
-            }
-
-            return ParsedLocation(
-                bookNumber = bookNumber,
-                startChapter = startChapter,
-                endChapter = endChapter
-            )
-        }
-
-        return null
-    }
-
-    private fun resolveInlineBookNumber(tokens: List<String>): Int? {
-        val joined = tokens.joinToString(separator = " ").lowercase()
-        return joined.toIntOrNull() ?: runCatching { bookNumber(joined) }.getOrNull()
-    }
-
-    private fun renderHits(hits: List<VersePointer>): String {
-        return hits.joinToString(separator = "\n\n") { pointer ->
-            val chapterText = bible.verses(pointer.translation.code, pointer.book, pointer.chapter)
-            val verseText = formatSelectedVersesFromChapterText(
-                chapterText = chapterText,
-                startVerse = pointer.startVerse,
-                endVerse = pointer.endVerse
-            ).trimEnd()
-
-            renderHit(pointer, verseText)
-        }
-    }
-
-    private fun renderHit(pointer: VersePointer, verseText: String): String {
-        val header = formatHeader(pointer)
-        val startVerse = pointer.startVerse ?: return "$header\n$verseText"
-        return verseText.replaceFirst(Regex("^$startVerse\\s+"), "$header ")
-    }
-
-    private fun resolveTranslation(inlineTranslationCode: String?): Translation {
-        val code = translationCode?.lowercase()
-            ?: inlineTranslationCode
-            ?: bible.defaultTranslationFromSettings().code
-        if (!bible.findTranslationByCode(code)) {
-            throw UsageError("Translation code '$code' not found")
-        }
-        return bible.availableTranslations().first { it.code == code }
-    }
-
-    private fun resolveBookNumber(inlineBookNumber: Int?): Int? {
-        val raw = book ?: return inlineBookNumber
-        val asInt = raw.toIntOrNull()
-        if (asInt != null) {
-            return asInt
-        }
-        return try {
-            bookNumber(raw.lowercase())
-        } catch (_: Exception) {
-            throw UsageError("Unknown book '$raw'. Run 'bbl list books' to see supported book names.")
-        }
-    }
-
-    private fun resolveChapterRange(
-        bookNumber: Int?,
-        inlineStartChapter: Int?,
-        inlineEndChapter: Int?
-    ): Pair<Int?, Int?> {
-        val start = chapter ?: inlineStartChapter
-        val end = endChapter ?: inlineEndChapter
-        if (start != null && bookNumber == null) {
-            throw UsageError("--chapter requires --book")
-        }
-        if (end != null && bookNumber == null) {
-            throw UsageError("--end-chapter requires --book")
-        }
-        if (end != null && start == null) {
-            throw UsageError("--end-chapter requires --chapter")
-        }
-        if (start != null && end != null && end < start) {
-            throw UsageError("--end-chapter must be >= --chapter")
-        }
-        return Pair(start, end)
     }
 }

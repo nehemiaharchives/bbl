@@ -1,18 +1,22 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.BblVersion
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.Books
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.VersePointerJson
-import org.gnit.bible.bookNumber
+
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.ZipUtil
 import kotlin.test.AfterTest
@@ -23,11 +27,12 @@ import kotlin.test.assertTrue
 
 class SearchCliTest {
 
-    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_cli_search_test_dir"}"
+    private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_search_test_dir"}"
 
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private var originalSettings = platform.overrideSettings
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
@@ -35,9 +40,11 @@ class SearchCliTest {
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = testPackDir
         platform.overrideFileSystem = fakeFs
+        platform.overrideSettings = InMemorySettings()
         platform.settings.remove(ConfigKey.HEADER.value)
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
 
@@ -61,6 +68,7 @@ class SearchCliTest {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test
@@ -191,7 +199,7 @@ class SearchCliTest {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus", it.term)
             assertEquals("kjv", it.translation.code)
-            assertEquals(bookNumber("john"), it.bookNumber)
+            assertEquals(Books.bookNumber("john"), it.bookNumber)
             assertEquals(3, it.startChapter)
             assertEquals(null, it.endChapter)
             assertTrue(it.filters.isEmpty())
@@ -267,7 +275,7 @@ class SearchCliTest {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)
             assertEquals("webus", it.translation.code)
-            assertEquals(bookNumber("romans"), it.bookNumber)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
             listOf(VersePointer(translation = Translation.webus, book = 45, chapter = 1, startVerse = 1))
@@ -284,7 +292,7 @@ class SearchCliTest {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)
             assertEquals("webus", it.translation.code)
-            assertEquals(bookNumber("romans"), it.bookNumber)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(5, it.startChapter)
             assertEquals(12, it.endChapter)
             listOf(VersePointer(translation = Translation.webus, book = 45, chapter = 5, startVerse = 1))
@@ -301,7 +309,7 @@ class SearchCliTest {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)
             assertEquals("kjv", it.translation.code)
-            assertEquals(bookNumber("romans"), it.bookNumber)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(5, it.startChapter)
             assertEquals(12, it.endChapter)
             listOf(VersePointer(translation = Translation.kjv, book = 45, chapter = 5, startVerse = 1))

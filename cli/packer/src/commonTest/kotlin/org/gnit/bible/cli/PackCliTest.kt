@@ -8,7 +8,7 @@ import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
 import org.gnit.bible.ZipBibleResourcesReader
-import org.gnit.bible.bblArtifactCompatibilityVersion
+import org.gnit.bible.BblVersion
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
 import org.gnit.bible.test.TestFixtures
@@ -38,7 +38,7 @@ class PackCliTest {
         fileSystem.createDirectories(targetDir)
 
         // Minimal set: manifest + one chapter file to keep the test fast.
-        // Do NOT depend on composeApp resources (tests may run with a different working dir).
+        // Do NOT depend on generated app resources here; the test builds its own minimal source pack.
         val manifestPath = targetDir / "webus$MANIFEST_JSON_POSTFIX"
         fileSystem.write(manifestPath) { writeUtf8(Translation.webus.toJson()) }
 
@@ -105,7 +105,7 @@ class PackCliTest {
 
             val manifestTranslation = zipBibleResourcesReader.getTranslationFromManifest("webus")
             assertEquals("webus", manifestTranslation.code)
-            assertEquals(bblArtifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
+            assertEquals(BblVersion.artifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
 
             // Verify lucene-kmp index files are included in the zip (and lock is not).
             val zipEntries = mutableListOf<String>()
@@ -156,7 +156,7 @@ class PackCliTest {
         )
 
         val manifestTranslation = Translation.fromJson(fileSystem.read(manifestPath) { readUtf8() })
-        assertEquals(bblArtifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
+        assertEquals(BblVersion.artifactCompatibilityVersion, manifestTranslation.bblArtifactCompatibilityVersion)
     }
 
     /**

@@ -1,19 +1,15 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
-import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
-import org.gnit.bible.bookNameNumberArray
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
 
 internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {
     val codeWidth = 7
@@ -58,7 +54,7 @@ internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<Str
 
 class ListCli(
     private val bible: Bible
-) : CliktCommand(name = "list") {
+) : CoreCliktCommand(name = "list") {
 
     override fun help(context: Context): String {
         return "List bibles/translations"
@@ -74,24 +70,8 @@ class ListCli(
         when (target.lowercase()) {
             "bible", "bibles", "translation", "translations", "version", "versions" -> {
                 val am = bible.assetManager
-                val downloadable = runBlocking {
-                    runCatching { am.downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL) }
-                        .onFailure { logger.debug { "ListCli failed to download latest downloadable translation list, falling back to built-in translation catalog" } }
-                        .getOrDefault(downloadableTranslationsCmp)
-                }
-                val mergedDownloadable = (downloadable + downloadableTranslationsCmp)
-                    .associateBy { it.code }
-                    .values
-                    .toList()
-                val downloaded = am.downloadedTranslations()
-
-                val downloadedEntries =
-                    downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
-
-                val takenCodes = (downloaded.map { it.code }).toSet()
-                val downloadableEntries = mergedDownloadable
-                    .filterNot { takenCodes.contains(it.code) }
-                    .map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
+                val downloadedEntries = CliTranslationCatalog.downloadedTranslationEntries(bible)
+                val downloadableEntries = CliTranslationCatalog.downloadableTranslationEntries(bible)
 
                 val entries: List<TranslationEntry> =
                     (downloadedEntries + downloadableEntries).sortedBy { entry ->
@@ -103,7 +83,7 @@ class ListCli(
 
             "book", "books" -> {
                 (1..66).forEach { book ->
-                    echo(bookNameNumberArray[book].joinToString(", "))
+                    echo(Books.allBookNames[book].joinToString(", "))
                 }
             }
 

@@ -1,21 +1,15 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
-//import io.github.oshai.kotlinlogging.KotlinLogging
 import org.gnit.bible.Bible
 import org.gnit.bible.SearchModuleId
-import org.gnit.bible.Translation
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
-import okio.Path.Companion.toPath
 
 class UninstallCli(
     private val bible: Bible
-) : CliktCommand(name = "uninstall") {
-    //private val logger = KotlinLogging.logger {}
-
+) : CoreCliktCommand(name = "uninstall") {
     override fun help(context: Context): String {
         return "Delete one or more downloaded bible translation packs from your computer"
     }
@@ -32,7 +26,7 @@ class UninstallCli(
         val downloaded = runCatching { am.downloadedTranslationCodes() }
             .getOrDefault(emptyList())
             .toMutableSet()
-        val downloadableByCode = downloadableTranslationsCmp.associateBy { it.code }
+        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode(bible)
 
         for (translationCode in requestedCodes) {
             if (translationCode !in downloaded) {
@@ -54,9 +48,9 @@ class UninstallCli(
     }
 
     private fun uninstallSearchBinaryIfUnused(
-        removedTranslation: Translation?,
+        removedTranslation: org.gnit.bible.Translation?,
         remainingDownloadedCodes: Set<String>,
-        downloadableByCode: Map<String, Translation>
+        downloadableByCode: Map<String, org.gnit.bible.Translation>
     ) {
         val moduleId = removedTranslation?.language?.searchModuleId ?: return
         if (moduleId == SearchModuleId.COMMON) return
@@ -67,8 +61,8 @@ class UninstallCli(
         if (stillNeeded) return
 
         val am = bible.assetManager
-        val binaryName = "bbl-search-${moduleId.name.lowercase()}${if (am.platform.name == "Windows") ".exe" else ""}"
-        val binaryPath = am.platform.packDir.toPath().parent!! / "bin" / binaryName
+        val binaryName = CliBinaryPaths.binaryName(moduleId, am.platform.name)
+        val binaryPath = CliBinaryPaths.binDir(am.platform.packDir) / binaryName
         if (!am.fileSystem.exists(binaryPath)) return
 
         runCatching { am.fileSystem.delete(binaryPath) }

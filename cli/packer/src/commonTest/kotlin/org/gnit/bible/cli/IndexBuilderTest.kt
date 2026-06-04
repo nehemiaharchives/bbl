@@ -163,7 +163,7 @@ class IndexBuilderTest {
     fun embeddedIndexExistenceTest() {
         val fs = FileSystem.SYSTEM
         val repoRoot = findRepoRoot(fs)
-        val embeddedRoot = repoRoot / "composeApp/src/commonMain/composeResources/files/bblpacks"
+        val embeddedRoot = repoRoot / "bbl/resources/bblpacks"
 
         var checked = 0
         embeddedTranslations.forEach { translation ->
@@ -181,7 +181,7 @@ class IndexBuilderTest {
     fun downloadableIndexExistenceTest() {
         val fs = FileSystem.SYSTEM
         val repoRoot = findRepoRoot(fs)
-        val downloadableRoot = repoRoot / "server/src/main/resources/files/bbltexts"
+        val downloadableRoot = repoRoot / "bbl/resources/bbltexts"
 
         var checked = 0
         downloadableTranslationsCli.forEach { translation ->

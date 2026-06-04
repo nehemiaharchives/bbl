@@ -1,16 +1,20 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.testing.test
+
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.LoggingSetup
+import org.gnit.bible.SearchQueryText
+import org.gnit.bible.Books
+import org.gnit.bible.BblVersion
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.InMemorySettings
 import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
-import org.gnit.bible.test.TestFixtures
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -25,15 +29,18 @@ class SettingsTest {
     private val platform = getPlatform()
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
+    private var originalSettings = platform.overrideSettings
 
     @BeforeTest
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
+        originalSettings = platform.overrideSettings
         // Integration-like: ZipBibleResourcesReader reads real zip files from the OS filesystem.
         systemFs = FileSystem.SYSTEM
         platform.overrideFileSystem = null
-        platform.overridePlatformPackDir = "/tmp/bbl_kmp_cli_settings_test_dir"
+        platform.overridePlatformPackDir = "/tmp/bbl_cli_settings_test_dir"
+        platform.overrideSettings = InMemorySettings()
 
         // compute settings path using the same layout as Platform implementations
         val packDirPath = platform.packDir.toPath()
@@ -56,6 +63,7 @@ class SettingsTest {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
+        platform.overrideSettings = originalSettings
     }
 
     @Test

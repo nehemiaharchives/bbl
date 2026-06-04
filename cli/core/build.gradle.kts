@@ -6,12 +6,11 @@ plugins {
 
 kotlin {
     @Suppress("DEPRECATION")
-    macosX64() // intel mac
-    macosArm64() // m1/2/3/4 mac
+    macosX64()
+    macosArm64()
     linuxX64()
-    mingwX64() // windows native
-    jvm() // primarily for testing purposes,
-    // in case windows native implementation has too much problems
+    mingwX64()
+    jvm()
     jvmToolchain(24)
 
     compilerOptions {
@@ -22,8 +21,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.shared)
-                implementation(projects.cli.search.common)
+                implementation(projects.core)
+                implementation(projects.cli.shared)
                 implementation(libs.clikt)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.serialization.json)
@@ -60,17 +59,6 @@ kotlin {
 
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)
-
-        // Keep JVM resource wiring (used by some JVM tests/tools).
-        jvmMain.get().resources.srcDir(
-            rootProject.layout.projectDirectory
-                .dir("composeApp/src/commonMain/composeResources").asFile
-        )
-
-        jvmTest.get().resources.srcDir(
-            rootProject.layout.projectDirectory
-                .dir("composeApp/src/commonTest/composeResources").asFile
-        )
     }
 
     targets.withType<KotlinNativeTarget>().all {
