@@ -7,32 +7,35 @@ plugins {
 group = "org.gnit.bible"
 version = "1.0.0"
 application {
-    mainClass.set("org.gnit.bible.ApplicationKt")
-    
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    mainClass = "org.gnit.bible.server.ApplicationKt"
 }
 
 dependencies {
-    implementation(projects.shared)
+    api(projects.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.okio)
+    implementation(libs.logback)
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
 }
 
+tasks.register<Sync>("syncBblPacks") {
+    from(rootProject.layout.projectDirectory.dir("resources/bblpacks"))
+    into(layout.buildDirectory.dir("processedResources/files/bblpacks"))
+    include("*.zip")
+}
+
+tasks.register<Sync>("syncBblTexts") {
+    from(rootProject.layout.projectDirectory.dir("resources/bbltexts"))
+    into(layout.buildDirectory.dir("processedResources/files/bbltexts"))
+}
+
 kotlin {
     sourceSets {
-        main.get().resources.srcDir(
-            rootProject.layout.projectDirectory
-                .dir("composeApp/src/commonMain/composeResources").asFile
-        )
-
-        test.get().resources.srcDir(
-            rootProject.layout.projectDirectory
-                .dir("composeApp/src/commonTest/composeResources").asFile
-        )
+        val main by getting {
+            resources.srcDir(tasks.named("syncBblPacks"))
+            resources.srcDir(tasks.named("syncBblTexts"))
+        }
     }
 }
