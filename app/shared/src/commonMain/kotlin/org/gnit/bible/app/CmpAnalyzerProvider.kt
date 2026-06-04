@@ -54,35 +54,38 @@ class CmpAnalyzerProvider : AnalyzerProvider {
 
     private fun createAnalyzer(language: Language): Analyzer {
         return when (language.code) {
-            "en" -> BibleEnglishAnalyzer()
-            "es" -> BibleSpanishAnalyzer()
-            "pt" -> BiblePortugueseAnalyzer()
-            "de" -> BibleGermanAnalyzer()
-            "fr" -> FrenchAnalyzer()
-            "ru" -> BibleRussianAnalyzer()
-            "nl" -> DutchAnalyzer()
-            "it" -> ItalianAnalyzer()
-            "sv" -> BibleSwedishAnalyzer()
+            "en" -> BibleEnglishAnalyzer() //common (embedded in cmp)
+            "es" -> BibleSpanishAnalyzer() //common (embedded in cmp)
+            "pt" -> BiblePortugueseAnalyzer() //common (embedded in cmp)
+            "de" -> BibleGermanAnalyzer() //common (embedded in cmp)
+            "fr" -> FrenchAnalyzer() //common (embedded in cmp)
+            "ru" -> BibleRussianAnalyzer() //common (embedded in cmp)
+            "nl" -> DutchAnalyzer() //common (embedded in cmp)
+            "it" -> ItalianAnalyzer() //common (embedded in cmp)
+            "sv" -> BibleSwedishAnalyzer() //common (embedded in cmp)
 
-            "pl" -> MorfologikAnalyzer()
-            "uk" -> BibleUkrainianAnalyzer()
+            "pl" -> MorfologikAnalyzer() //morfologik (embedded in cmp)
+            "uk" -> BibleUkrainianAnalyzer() //morfologik (embedded in cmp)
 
-            "zh" -> SmartChineseAnalyzer()
-            "ko" -> BibleKoreanAnalyzer()
-            "ja" -> BibleJapaneseAnalyzer()
-            "id" -> IndonesianAnalyzer()
-            "th" -> ThaiAnalyzer()
-            "hi" -> BibleHindiAnalyzer()
-            "bn" -> BibleBengaliAnalyzer()
-            "ta" -> BibleTamilAnalyzer()
-            "ne" -> BibleNepaliAnalyzer()
+            "zh" -> SmartChineseAnalyzer() //smartcn (embedded in cmp)
 
-            "tl" -> BibleTagalogAnalyzer()
-            "vi" -> BibleVietnameseAnalyzer()
-            "gu" -> GujaratiAnalyzer()
-            "mr" -> BibleMarathiAnalyzer()
-            "te" -> BibleTeluguAnalyzer()
-            "ur" -> UrduAnalyzer()
+            "ko" -> BibleKoreanAnalyzer() //nori (embedded in cmp)
+
+            "ja" -> BibleJapaneseAnalyzer() //kuromoji (embedded in cmp)
+
+            "id" -> IndonesianAnalyzer() //common (downloadable in cmp) ayt
+            "th" -> ThaiAnalyzer() //common (downloadable in cmp) th 1971
+            "hi" -> BibleHindiAnalyzer() //common (downloadable in cmp) irvhin
+            "bn" -> BibleBengaliAnalyzer() //common (downloadable in cmp) irvben
+            "ta" -> BibleTamilAnalyzer() //common (downloadable in cmp) irvtam
+            "ne" -> BibleNepaliAnalyzer() //common (downloadable in cmp) npiulb
+
+            "tl" -> BibleTagalogAnalyzer() //extra (downloadable in cmp) abtag
+            "vi" -> BibleVietnameseAnalyzer() //extra (downloadable in cmp) kttv
+            "gu" -> GujaratiAnalyzer() //extra (downloadable in cmp) irvguj
+            "mr" -> BibleMarathiAnalyzer() //extra (downloadable in cmp) irvmar
+            "te" -> BibleTeluguAnalyzer() //extra (downloadable in cmp) irvtel
+            "ur" -> UrduAnalyzer() //extra (downloadable in cmp) irvurd
 
             else -> SimpleAnalyzer()
         }

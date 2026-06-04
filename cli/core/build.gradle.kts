@@ -30,7 +30,6 @@ kotlin {
                 implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)
-                implementation(libs.lucene.kmp.analysis.common)
             }
         }
         val commonTest by getting {

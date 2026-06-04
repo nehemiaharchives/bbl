@@ -11,8 +11,7 @@ enum class ConfigKey(val value: String, val defaultValue: String, val descriptio
 }
 
 class Bible(
-    val assetManager: AssetManager = AssetManagerImpl(),
-    val analyzerProvider: AnalyzerProvider = SimpleAnalyzerProvider()
+    val assetManager: AssetManager = AssetManagerImpl()
 ) {
 
     private fun hasEmbeddedReader(): Boolean = this::bibleResourcesReader.isInitialized
@@ -51,22 +50,25 @@ class Bible(
         return zipBibleResourcesReader!!
     }
 
-    var embeddedTranslationSearchEngine: SearchEngine? = null
+    private val defaultAnalyzerProvider = SimpleAnalyzerProvider()
 
-    var zipTranslationSearchEngine: SearchEngine? = null
+    private val embeddedTranslationSearchEngines = mutableMapOf<AnalyzerProvider, SearchEngine>()
 
-    fun obtainSearchEngine(isEmbedded: Boolean = true): SearchEngine {
+    private val zipTranslationSearchEngines = mutableMapOf<AnalyzerProvider, SearchEngine>()
+
+    fun obtainSearchEngine(
+        isEmbedded: Boolean = true,
+        analyzerProvider: AnalyzerProvider = defaultAnalyzerProvider
+    ): SearchEngine {
         val embedded = hasEmbeddedReader() && isEmbedded
-        if (embedded) {
-            if (embeddedTranslationSearchEngine == null) {
-                embeddedTranslationSearchEngine = SearchEngine(bibleResourcesReader, analyzerProvider)
+        return if (embedded) {
+            embeddedTranslationSearchEngines.getOrPut(analyzerProvider) {
+                SearchEngine(bibleResourcesReader, analyzerProvider)
             }
-            return embeddedTranslationSearchEngine!!
         } else {
-            if (zipTranslationSearchEngine == null) {
-                zipTranslationSearchEngine = SearchEngine(obtainZipBibleResourcesReader(), analyzerProvider)
+            zipTranslationSearchEngines.getOrPut(analyzerProvider) {
+                SearchEngine(obtainZipBibleResourcesReader(), analyzerProvider)
             }
-            return zipTranslationSearchEngine!!
         }
     }
 
@@ -108,8 +110,9 @@ class Bible(
         verses: Int = 100,
         filter: BibleFilter,
         translation: Translation,
+        analyzerProvider: AnalyzerProvider = defaultAnalyzerProvider
     ): List<VersePointer>{
-        return search(term, bookNumber, startChapter, endChapter, verses, listOf(filter), translation)
+        return search(term, bookNumber, startChapter, endChapter, verses, listOf(filter), translation, analyzerProvider)
     }
 
     fun search(
@@ -120,9 +123,10 @@ class Bible(
         verses: Int = 100,
         filters: List<BibleFilter> = emptyList(),
         translation: Translation,
+        analyzerProvider: AnalyzerProvider = defaultAnalyzerProvider
     ): List<VersePointer> {
         val isEmbedded = hasEmbeddedReader() && embeddedTranslationCodes.contains(translation.code)
-        val searchEngine = obtainSearchEngine(isEmbedded)
+        val searchEngine = obtainSearchEngine(isEmbedded, analyzerProvider)
         return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, filters, translation)
     }
 

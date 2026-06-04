@@ -3,13 +3,12 @@ package org.gnit.bible.cli
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import org.gnit.bible.BblVersion
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.Language
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
-import org.gnit.bible.VersePointerJson
-import org.gnit.bible.BblVersion
 
 data class SearchRequest(
     val term: String,
@@ -28,23 +27,6 @@ class SearchBackendException(message: String) : RuntimeException(message)
 
 interface SearchBackend {
     fun search(request: SearchRequest): SearchOutput
-}
-
-class InternalSearchBackend(
-    private val bible: Bible
-) : SearchBackend {
-    override fun search(request: SearchRequest): SearchOutput {
-        val results = bible.search(
-            term = request.term,
-            bookNumber = request.bookNumber,
-            startChapter = request.startChapter,
-            endChapter = request.endChapter,
-            verses = request.verses,
-            filters = request.filters,
-            translation = request.translation
-        )
-        return SearchOutput(VersePointerJson.encodeList(results))
-    }
 }
 
 class ExternalSearchBackend(
@@ -140,13 +122,9 @@ class SearchBackendSelector(
     private val binDirProvider: () -> Path = binDirProvider ?: { defaultBinDir() }
 
     fun backendFor(language: Language): SearchBackend {
-        return if (language.searchModuleId == SearchModuleId.COMMON) {
-            InternalSearchBackend(bible)
-        } else {
-            val binaryName = CliBinaryPaths.binaryName(language.searchModuleId, bible.assetManager.platform.name)
-            val binaryPath = binDirProvider() / binaryName
-            ExternalSearchBackend(processRunner, fileSystem, binaryPath, language.searchModuleId)
-        }
+        val binaryName = CliBinaryPaths.binaryName(language.searchModuleId, bible.assetManager.platform.name)
+        val binaryPath = binDirProvider() / binaryName
+        return ExternalSearchBackend(processRunner, fileSystem, binaryPath, language.searchModuleId)
     }
 
     fun defaultBinDir(): Path {

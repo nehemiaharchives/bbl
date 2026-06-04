@@ -5,6 +5,7 @@ import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.SearchModule
+import org.gnit.bible.SimpleAnalyzerProvider
 import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.search.person.NTGospelsPersonTest
@@ -14,6 +15,9 @@ import org.gnit.bible.test.search.person.NTGospelsPersonTest
  */
 interface SearchTestBase {
     var bible: Bible
+
+    val analyzerProvider: AnalyzerProvider
+        get() = SimpleAnalyzerProvider()
 
     val translationsToBeTested: List<SupportedTranslation>
         get() = SupportedTranslation.entries.toList()
@@ -83,13 +87,17 @@ interface SearchTestBase {
         //OTPentateuchObjectTest(bible = bible, translationsToBeTested = translationsToBeTested,).runAllTests()
         //OTPentateuchConceptTest(bible = bible, translationsToBeTested = translationsToBeTested,).runAllTests()
         // ...
-        NTGospelsPersonTest(bible = bible, translationsToBeTested = translationsToBeTested,).runAllTests()
+        NTGospelsPersonTest(
+            bible = bible,
+            analyzerProvider = analyzerProvider,
+            translationsToBeTested = translationsToBeTested,
+        ).runAllTests()
         //NTGospelsPlaceTest(bible = bible, translationsToBeTested = translationsToBeTested,).runAllTests()
         // ...
     }
 }
 
-open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : SearchTestBase {
+open class CliSearchTestBase(override val analyzerProvider: AnalyzerProvider) : SearchTestBase {
 
     override lateinit var bible: Bible
 
@@ -105,6 +113,6 @@ open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : S
 
         val am = AssetManagerImpl(platform = platform)
 
-        bible = Bible(am, analyzerProvider)
+        bible = Bible(am)
     }
 }

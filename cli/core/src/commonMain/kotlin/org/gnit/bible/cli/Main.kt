@@ -18,7 +18,7 @@ import org.gnit.bible.VersePointer
 import org.gnit.bible.LoggingSetup
 
 class Bbl(
-    val bible: Bible = Bible(analyzerProvider = CommonAnalyzerProvider()),
+    val bible: Bible = Bible(),
     searchBackendProvider: ((Translation) -> SearchBackend)? = null
 ) : CoreCliktCommand() {
 

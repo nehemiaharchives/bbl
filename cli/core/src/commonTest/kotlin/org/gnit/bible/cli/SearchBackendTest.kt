@@ -56,16 +56,45 @@ class SearchBackendTest : ResourcesTestBase() {
     }
 
     @Test
-    fun commonLanguageUsesInternalBackend() {
+    fun commonLanguageUsesSearchHelperBackend() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("common")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
         val selector = SearchBackendSelector(
             bible = bible,
-            processRunner = FakeProcessRunner(),
+            processRunner = runner,
             fileSystem = fakeFs,
-            binDirProvider = { "/tmp/bbl/bin".toPath() }
+            binDirProvider = { binDir }
         )
 
         val backend = selector.backendFor(Language.en)
-        assertTrue(backend is InternalSearchBackend)
+        val request = SearchRequest(
+            term = "Jesus",
+            translation = Translation.webus,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "webus",
+            "--verses", "5",
+            "Jesus"
+        )
+        assertEquals(expected, runner.lastCommand)
     }
 
     @Test

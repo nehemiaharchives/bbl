@@ -57,8 +57,7 @@ class MainTest {
             assetManager = AssetManagerImpl(
                 platform = platform,
                 fileSystem = platform.fileSystem
-            ),
-            analyzerProvider = CommonAnalyzerProvider()
+            )
         )
 
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
@@ -89,9 +88,9 @@ class MainTest {
     }
 
     @Test
-    fun testDefaultBblUsesCommonAnalyzerProvider() {
+    fun testDefaultBblCreatesBible() {
         val command = Bbl()
-        assertTrue(command.bible.analyzerProvider is CommonAnalyzerProvider)
+        assertEquals(Bible::class, command.bible::class)
     }
 
     @Test

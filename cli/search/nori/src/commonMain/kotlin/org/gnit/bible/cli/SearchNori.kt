@@ -36,8 +36,9 @@ class NoriAnalyzerProvider : AnalyzerProvider {
 
 private const val searchHelperBinaryName = "bbl-search-nori"
 
-private class SearchHelperCli(
-    private val bible: Bible
+internal class SearchHelperCli(
+    private val bible: Bible,
+    val analyzerProvider: AnalyzerProvider
 ) : CoreCliktCommand(name = searchHelperBinaryName) {
 
     private val termParts by argument(help = "search term").multiple()
@@ -77,7 +78,8 @@ private class SearchHelperCli(
             endChapter = end,
             verses = verses,
             filters = filters,
-            translation = translation
+            translation = translation,
+            analyzerProvider = analyzerProvider
         )
 
         if (results.isNotEmpty()) {
@@ -107,6 +109,8 @@ private class SearchHelperCli(
 
 fun main(args: Array<String>) {
     LoggingSetup.suppressKotlinLoggingStartupMessage()
-    val bible = Bible(analyzerProvider = NoriAnalyzerProvider())
-    SearchHelperCli(bible).main(args)
+    SearchHelperCli(
+        bible = Bible(),
+        analyzerProvider = NoriAnalyzerProvider()
+    ).main(args)
 }

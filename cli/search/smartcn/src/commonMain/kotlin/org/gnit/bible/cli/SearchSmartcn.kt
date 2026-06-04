@@ -36,8 +36,9 @@ class SmartcnAnalyzerProvider : AnalyzerProvider {
 
 private const val searchHelperBinaryName = "bbl-search-smartcn"
 
-private class SearchHelperCli(
-    private val bible: Bible
+internal class SearchHelperCli(
+    private val bible: Bible,
+    val analyzerProvider: AnalyzerProvider
 ) : CoreCliktCommand(name = searchHelperBinaryName) {
 
     private val termParts by argument(help = "search term").multiple()
@@ -77,7 +78,8 @@ private class SearchHelperCli(
             endChapter = end,
             verses = verses,
             filters = filters,
-            translation = translation
+            translation = translation,
+            analyzerProvider = analyzerProvider
         )
 
         if (results.isNotEmpty()) {
@@ -107,6 +109,8 @@ private class SearchHelperCli(
 
 fun main(args: Array<String>) {
     LoggingSetup.suppressKotlinLoggingStartupMessage()
-    val bible = Bible(analyzerProvider = SmartcnAnalyzerProvider())
-    SearchHelperCli(bible).main(args)
+    SearchHelperCli(
+        bible = Bible(),
+        analyzerProvider = SmartcnAnalyzerProvider()
+    ).main(args)
 }

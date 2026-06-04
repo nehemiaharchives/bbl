@@ -2,7 +2,6 @@ package org.gnit.bible
 
 import io.ktor.client.HttpClient
 import okio.FileSystem
-import org.gnit.bible.app.CmpAnalyzerProvider
 import org.gnit.bible.app.ComposeBibleResourcesReader
 import org.gnit.bible.test.BibleTestBase
 import org.gnit.bible.test.ResourcesTestBase
@@ -23,8 +22,7 @@ class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
         assetManager = AssetManagerImpl(
             httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
             platform = createComposePlatform()
-        ),
-        analyzerProvider = CmpAnalyzerProvider()
+        )
     ).apply {
         bibleResourcesReader = ComposeBibleResourcesReader()
     }

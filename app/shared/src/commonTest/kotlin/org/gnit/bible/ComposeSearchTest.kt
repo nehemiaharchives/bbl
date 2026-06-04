@@ -9,6 +9,7 @@ import org.gnit.bible.test.TestFixtures
 import kotlin.test.Test
 
 class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
+    override val analyzerProvider = CmpAnalyzerProvider()
 
     private fun createComposePlatform(): Platform {
         val platform = createTestPlatform().apply {
@@ -22,8 +23,7 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
         assetManager = AssetManagerImpl(
             httpClient = HttpClient(TestFixtures.kttvDownloadingMockEngine),
             platform = createComposePlatform()
-        ),
-        analyzerProvider = CmpAnalyzerProvider()
+        )
     ).apply {
         bibleResourcesReader = ComposeBibleResourcesReader()
     }
