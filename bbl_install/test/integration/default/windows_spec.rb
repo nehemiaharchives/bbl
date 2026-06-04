@@ -74,10 +74,23 @@ RSpec.shared_context 'windows search helpers' do
   end
 
   def search_results(command_text)
-    search_stdout(command_text)
-      .split(/\r?\n\r?\n/)
-      .map(&:strip)
-      .reject(&:empty?)
+    results = []
+    current = []
+
+    search_stdout(command_text).each_line do |line|
+      stripped = line.strip
+      next if stripped.empty?
+
+      if stripped.match?(/^\S.*\d+:\d+\s+/)
+        results << current.join("\n").strip unless current.empty?
+        current = [stripped]
+      else
+        current << stripped
+      end
+    end
+
+    results << current.join("\n").strip unless current.empty?
+    results.reject(&:empty?)
   end
 end
 
@@ -95,7 +108,7 @@ end
 describe file(artifact_compatibility_version_file_path) do
   it { should exist }
   it { should be_file }
-  its('content') { should match(/\A\d+\.\d+\s*\z/) }
+  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
 end
 
 describe command(WINDOWS_BBL_COMMAND.call('-v')) do
