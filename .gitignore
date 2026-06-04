@@ -1,13 +1,11 @@
 *.iml
 .kotlin
 .gradle
-gradle/gradle-daemon-jvm.properties
 **/build/
 xcuserdata
 !src/**/build/
 local.properties
 .idea
-.run
 .DS_Store
 captures
 .externalNativeBuild
@@ -18,6 +16,7 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+node_modules/
 .logs
 
 /bbl_install/.bundle/
@@ -25,14 +24,4 @@ captures
 /bbl_install/vendor/bundle/
 /bbl_install/files/*
 !/bbl_install/files/README.md
-/bbl_install_linux/.bundle/
-/bbl_install_linux/.kitchen/
-/bbl_install_linux/vendor/bundle/
-/bbl_install_linux/files/*
-!/bbl_install_linux/files/README.md
-
-/bbl_install_windows/.bundle/
-/bbl_install_windows/.kitchen/
-/bbl_install_windows/vendor/bundle/
-/bbl_install_windows/files/*
-!/bbl_install_windows/files/README.md
+/bbl_install/vendor/bundle/ruby/*
