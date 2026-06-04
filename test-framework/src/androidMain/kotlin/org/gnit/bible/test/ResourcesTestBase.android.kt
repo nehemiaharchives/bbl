@@ -88,16 +88,16 @@ actual abstract class ResourcesTestBase actual constructor() {
         val ctx: Context = ApplicationProvider.getApplicationContext()
         val packDirs = linkedSetOf(
             getPlatform(ctx).packDir,
-            (FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_kmp_composeapp_compose_bible_test_dir").toString()
+            (FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_compose_bible_test_dir").toString()
         )
-        val serverPackDir = findServerPackDir()
+        val canonicalPackDir = findCanonicalPackDir()
         val downloadableCodes = downloadableTranslationsCmp.map { it.code }
 
         downloadableCodes.forEach { code ->
             if (embeddedTranslationCodes.contains(code)) {
                 return@forEach
             }
-            val sourceFile = serverPackDir?.let { File(it, "$code.zip") }?.takeIf { it.isFile }
+            val sourceFile = canonicalPackDir?.let { File(it, "$code.zip") }?.takeIf { it.isFile }
             if (sourceFile != null) {
                 packDirs.forEach { packDir ->
                     copyZipIfOutdated(sourceFile, File(packDir, "$code.zip"))
@@ -167,14 +167,15 @@ actual abstract class ResourcesTestBase actual constructor() {
         }
     }
 
-    private fun findServerPackDir(): File? {
+    private fun findCanonicalPackDir(): File? {
         val userDir = System.getProperty("user.dir") ?: return null
         var current: File? = File(userDir)
         while (current != null) {
-            val candidate = File(current, "server/src/main/resources/files/bblpacks")
-            if (candidate.isDirectory) {
-                return candidate
-            }
+            val candidates = listOf(
+                File(current, "resources/bblpacks"),
+                File(current, "bbl/resources/bblpacks")
+            )
+            candidates.firstOrNull { it.isDirectory }?.let { return it }
             current = current.parentFile
         }
         return null

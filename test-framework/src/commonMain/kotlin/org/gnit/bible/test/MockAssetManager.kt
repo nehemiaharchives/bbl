@@ -16,6 +16,8 @@ class MockAssetManager() : AssetManager {
             get() = TODO("Not yet implemented")
         override val settings: Settings
             get() = TODO("Not yet implemented")
+        override val platformSettings: Settings
+            get() = TODO("Not yet implemented")
     }
     override val fileSystem: FileSystem = FileSystem.SYSTEM
 

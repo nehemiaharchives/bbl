@@ -34,7 +34,7 @@ where in `org.gnit.bible.test.search.person` following test files are expected t
 which consists one file per Bible category in a package. This avoids too many files and lets one category test share assertions for books that naturally contain similar words, such as Matthew, Mark, Luke, and John.
 
 ## Books Category
-`shared/src/commonMain/kotlin/org/gnit/bible/Books.kt` contains `enum Category`
+`core/src/commonMain/kotlin/org/gnit/bible/Books.kt` contains `enum Category`
 The test names starts from `[OT/NT][Category]` prefix. Which is following:
 - `OTPentateuch` - Old Testament Pentateuch including Genesis, Exodus, Leviticus, Numbers, Deuteronomy
 - `OTHistorical` - Old Testament Historical Books including Joshua, Judges, Ruth, 1 Samuel, 2 Samuel, 1 Kings, 2 Kings, 1 Chronicles, 2 Chronicles, Ezra, Nehemiah, Esther
@@ -49,7 +49,7 @@ The test names starts from `[OT/NT][Category]` prefix. Which is following:
 
 ## Translations
 The tests assertions needs to be written for all available officially supported translations.
-`shared/src/commonMain/kotlin/org/gnit/bible/SupportedTranslation.kt` contains `enum class SupportedTranslation`, which is the compiler-visible source of truth for official translations supported by bbl-kmp.
+`core/src/commonMain/kotlin/org/gnit/bible/SupportedTranslation.kt` contains `enum class SupportedTranslation`, which is the compiler-visible source of truth for official translations supported by bbl.
 `Translation` remains the runtime and manifest data class because end users can generate their own bbl packs as user translations that are not officially supported by this test framework.
 
 Each subject test function should use an exhaustive `when (supportedTranslation)` over `SupportedTranslation`, with no `else`.

@@ -25,10 +25,10 @@ actual abstract class ResourcesTestBase actual constructor() {
 
     actual fun seedComposePackDirIfNeeded(platform: Platform) {
         val packDirPath = platform.packDir
-        if (!packDirPath.contains("bbl_kmp_composeapp_compose_bible_test_dir")) {
+        if (!packDirPath.contains("compose_bible_test_dir")) {
             return
         }
-        val serverPackDir = findServerPackDir() ?: return
+        val canonicalPackDir = findCanonicalPackDir() ?: return
         val fileSystem = FileSystem.SYSTEM
         val packDir = packDirPath.toPath()
         if (!fileSystem.exists(packDir)) {
@@ -37,7 +37,7 @@ actual abstract class ResourcesTestBase actual constructor() {
         val codes = downloadableTranslationsCmp.map { it.code }
             .filterNot { embeddedTranslationCodes.contains(it) }
         codes.forEach { code ->
-            val src = serverPackDir / "$code.zip"
+            val src = canonicalPackDir / "$code.zip"
             if (fileSystem.exists(src) && fileSystem.metadata(src).isRegularFile) {
                 copyZip(fileSystem, src, packDir / "$code.zip")
             }
@@ -56,27 +56,27 @@ actual abstract class ResourcesTestBase actual constructor() {
         }
     }
 
-    private fun findServerPackDir(): Path? {
+    private fun findCanonicalPackDir(): Path? {
         envPath("BBL_KMP_ROOT")?.let { candidate ->
-            val packDir = candidate / "server" / "src" / "main" / "resources" / "files" / "bblpacks"
+            val packDir = canonicalPackDir(candidate)
             if (FileSystem.SYSTEM.exists(packDir)) {
                 return packDir
             }
         }
         envPath("PWD")?.let { candidate ->
-            val packDir = candidate / "server" / "src" / "main" / "resources" / "files" / "bblpacks"
+            val packDir = canonicalPackDir(candidate)
             if (FileSystem.SYSTEM.exists(packDir)) {
                 return packDir
             }
         }
         envPath("PROJECT_DIR")?.let { candidate ->
-            val packDir = candidate / "server" / "src" / "main" / "resources" / "files" / "bblpacks"
+            val packDir = canonicalPackDir(candidate)
             if (FileSystem.SYSTEM.exists(packDir)) {
                 return packDir
             }
         }
         envPath("SRCROOT")?.let { candidate ->
-            val packDir = candidate / "server" / "src" / "main" / "resources" / "files" / "bblpacks"
+            val packDir = canonicalPackDir(candidate)
             if (FileSystem.SYSTEM.exists(packDir)) {
                 return packDir
             }
@@ -84,9 +84,12 @@ actual abstract class ResourcesTestBase actual constructor() {
         var current = currentWorkingDir() ?: return null
         val fileSystem = FileSystem.SYSTEM
         while (true) {
-            val candidate = current / "server" / "src" / "main" / "resources" / "files" / "bblpacks"
-            if (fileSystem.exists(candidate) && fileSystem.metadata(candidate).isDirectory) {
-                return candidate
+            val candidates = listOf(
+                canonicalPackDir(current),
+                current / "bbl" / "resources" / "bblpacks"
+            )
+            candidates.firstOrNull { fileSystem.exists(it) && fileSystem.metadata(it).isDirectory }?.let {
+                return it
             }
             val parent = current.parent ?: return null
             if (parent == current) {
@@ -94,6 +97,10 @@ actual abstract class ResourcesTestBase actual constructor() {
             }
             current = parent
         }
+    }
+
+    private fun canonicalPackDir(root: Path): Path {
+        return root / "resources" / "bblpacks"
     }
 
     private fun currentWorkingDir(): Path? = memScoped {

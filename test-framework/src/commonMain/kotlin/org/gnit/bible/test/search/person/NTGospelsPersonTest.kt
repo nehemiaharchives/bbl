@@ -5,7 +5,6 @@ import org.gnit.bible.Books
 import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.SupportedTranslation.*
 import org.gnit.bible.VersePointer
-import org.gnit.bible.bookNumber
 import kotlin.test.assertEquals
 
 class NTGospelsPersonTest(
@@ -13,10 +12,10 @@ class NTGospelsPersonTest(
     private val translationsToBeTested: List<SupportedTranslation>,
 ) {
 
-    private val matthew: Int = bookNumber("matthew")
-    private val john: Int = bookNumber("john")
-    private val romans: Int = bookNumber("romans")
-    private val firstJohn: Int = bookNumber("1john")
+    private val matthew: Int = Books.bookNumber("matthew")
+    private val john: Int = Books.bookNumber("john")
+    private val romans: Int = Books.bookNumber("romans")
+    private val firstJohn: Int = Books.bookNumber("1john")
 
     fun runAllTests() {
         searchJesusChrist()

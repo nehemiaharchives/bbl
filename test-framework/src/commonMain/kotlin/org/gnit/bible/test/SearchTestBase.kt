@@ -1,5 +1,6 @@
 package org.gnit.bible.test
 
+import okio.Path.Companion.toPath
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
@@ -9,7 +10,7 @@ import org.gnit.bible.getPlatform
 import org.gnit.bible.test.search.person.NTGospelsPersonTest
 
 /**
- * When you add new downloadable bible for testing search, add bbl zip file to this dir: `composeApp/src/androidDeviceTest/assets/bblpacks`
+ * When you add new downloadable bible for testing search, add bbl zip file to `resources/bblpacks`
  */
 interface SearchTestBase {
     var bible: Bible
@@ -73,7 +74,7 @@ interface SearchTestBase {
      * Especially problems in the language specific biblical terms in each `Bible{$languageName}Analyzer`
      * so that any Bible specific search term cast by end users will return expected Bible versers which makes sense to the general Christian public.
      *
-     * This way we dogfood the `lucene-kmp` analyzers and develop both `lucene-kmp` and `bbl-kmp` together.
+     * This way we dogfood the `lucene-kmp` analyzers and develop both `lucene-kmp` and `bbl` together.
      */
     fun runSearchTests(translationsToBeTested: List<SupportedTranslation>) {
         //OTPentateuchPersonTest(bible = bible, translationsToBeTested = translationsToBeTested,).runAllTests()
@@ -94,7 +95,13 @@ open class CliSearchTestBase(private val analyzerProvider: AnalyzerProvider) : S
 
     open fun setup() {
         val platform = getPlatform()
-        platform.overridePlatformPackDir = "../../../server/src/main/resources/files/bblpacks/"
+        platform.overridePlatformPackDir = if (platform.fileSystem.exists("resources/bblpacks/".toPath())) {
+            "resources/bblpacks/"
+        } else if (platform.fileSystem.exists("bbl/resources/bblpacks/".toPath())) {
+            "bbl/resources/bblpacks/"
+        } else {
+            "../../../resources/bblpacks/"
+        }
 
         val am = AssetManagerImpl(platform = platform)
 

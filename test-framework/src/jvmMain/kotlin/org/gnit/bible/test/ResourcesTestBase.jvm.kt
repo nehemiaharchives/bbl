@@ -1,8 +1,6 @@
 package org.gnit.bible.test
 
 import org.gnit.bible.Platform
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
-import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import java.io.File
 import java.io.InputStream
@@ -14,22 +12,18 @@ actual abstract class ResourcesTestBase actual constructor() {
 
     actual fun seedComposePackDirIfNeeded(platform: Platform) {
         val packDirPath = platform.packDir
-        if (!packDirPath.contains("bbl_kmp_composeapp_compose_bible_test_dir")) {
+        if (!packDirPath.contains("compose_bible_test_dir")) {
             return
         }
-        val serverPackDir = findServerPackDir() ?: return
+        val canonicalPackDir = findCanonicalPackDir() ?: return
         val packDir = File(packDirPath)
         if (!packDir.exists()) {
             packDir.mkdirs()
         }
-        val codes = downloadableTranslationsCmp.map { it.code }
-            .filterNot { embeddedTranslationCodes.contains(it) }
-        codes.forEach { code ->
-            val src = File(serverPackDir, "$code.zip")
-            if (src.isFile) {
-                copyZip(src::inputStream, File(packDir, "$code.zip"))
+        canonicalPackDir.listFiles { file -> file.isFile && file.extension == "zip" }
+            ?.forEach { src ->
+                copyZip(src::inputStream, File(packDir, src.name))
             }
-        }
     }
 
     private fun copyZip(openStream: () -> InputStream, destination: File) {
@@ -41,14 +35,15 @@ actual abstract class ResourcesTestBase actual constructor() {
         }
     }
 
-    private fun findServerPackDir(): File? {
+    private fun findCanonicalPackDir(): File? {
         val userDir = System.getProperty("user.dir") ?: return null
         var current: File? = File(userDir)
         while (current != null) {
-            val candidate = File(current, "server/src/main/resources/files/bblpacks")
-            if (candidate.isDirectory) {
-                return candidate
-            }
+            val candidates = listOf(
+                File(current, "resources/bblpacks"),
+                File(current, "bbl/resources/bblpacks")
+            )
+            candidates.firstOrNull { it.isDirectory }?.let { return it }
             current = current.parentFile
         }
         return null

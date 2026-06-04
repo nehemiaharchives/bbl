@@ -2,15 +2,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    //alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.androidMultiplatformLibrary)
 }
 
 kotlin {
-
-    // mobile app
-    // bbl-kmp-android
-
     android {
         namespace = "org.gnit.bible.test"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -24,23 +19,19 @@ kotlin {
         }
     }
 
-    // bbl-kmp-ios
     iosArm64()
     iosSimulatorArm64()
     iosX64()
 
-    // bbl-kmp-cli
     @Suppress("DEPRECATION")
-    macosX64() // intel mac
-    macosArm64() // m1/2/3/4 mac
+    macosX64()
+    macosArm64()
     linuxX64()
-    mingwX64() // windows native
+    mingwX64()
 
-    // desktop app (and windows jvm cli if windows native development has too much problem)
     jvm()
 
     sourceSets {
-
         val commonMain by getting
         val nativeMain by creating { dependsOn(commonMain) }
 
@@ -55,14 +46,13 @@ kotlin {
         val linuxX64Main by getting { dependsOn(posixMain) }
         val mingwX64Main by getting { dependsOn(nativeMain) }
 
-        // ---- Tests ----
         val commonTest by getting
         val jvmTest by getting
         val nativeTest by creating { dependsOn(commonTest) }
         val mingwX64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
-            implementation(projects.shared)
+            implementation(projects.core)
             implementation(libs.kotlin.test)
             implementation(libs.ktor.clientMock)
             implementation(libs.multiplatform.settings)
@@ -88,34 +78,12 @@ kotlin {
             implementation(libs.androidx.runner)
             implementation(libs.robolectric)
         }
-
-        named("androidHostTest") {
-            dependencies {
-            }
-        }
     }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
-    compilerOptions{
-        optIn.addAll(
-            "kotlin.ExperimentalStdlibApi",
-        )
-        //suppressWarnings = true
-        freeCompilerArgs.addAll(
-            "-Xexpect-actual-classes",
-        )
+    compilerOptions {
+        optIn.addAll("kotlin.ExperimentalStdlibApi")
+        freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 }
-
-/*android {
-    namespace = "org.gnit.bible.test"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-}*/
