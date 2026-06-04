@@ -37,7 +37,11 @@ class MorfologikAnalyzerProvider : AnalyzerProvider {
     }
 
     override fun bibleFiltersFor(language: Language, term: String): List<BibleFilter> {
-        return emptyList()
+        return  when {
+            language == Language.uk && BibleUkrainianAnalyzer.requiresNewTestamentScope(term) ->
+                listOf(Books.Category.NEW_TESTAMENT.filter)
+            else -> emptyList()
+        }
     }
 }
 
