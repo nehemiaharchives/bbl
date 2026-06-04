@@ -14,7 +14,7 @@ on:
 
 jobs:
   tests:
-    name: ${{ matrix.job_type }} (${{ matrix.platform }}/${{ matrix.module_name }})
+    name: ${{ matrix.job_type }} (${{ matrix.module_name }}/${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
