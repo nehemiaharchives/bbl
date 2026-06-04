@@ -1,75 +1,73 @@
 [versions]
-#agp = "8.13.2"
-androidGradlePlugin = "9.1.0"
+agp = "9.0.1"
 android-compileSdk = "36"
-android-minSdk = "26"
+android-minSdk = "24"
 android-targetSdk = "36"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.18.0"
 androidx-espresso = "3.7.0"
-androidx-lifecycle = "2.10.0"
-androidx-testCore = "1.7.0"
+androidx-lifecycle = "2.11.0-beta01"
 androidx-testExt = "1.3.0"
-componentsResources = "1.10.3"
-foundation = "1.10.3"
-material3 = "1.9.0"
+androidx-testCore = "1.7.0"
+runner = "1.7.0"
 robolectric = "4.16.1"
-composeHotReload = "1.1.1"
-composeMultiplatform = "1.10.3"
-composeMaterialIconsCore = "1.7.3"
+composeMultiplatform = "1.11.0"
 junit = "4.13.2"
-kotlin = "2.3.20"
+kotlin = "2.3.21"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 ktor = "3.4.3"
+logback = "1.5.32"
+material3 = "1.11.0-alpha07"
 okio = "3.17.0"
 kmpio = "0.3.0"
 clikt = "5.1.0"
-lucene-kmp = "10.2.0-alpha12"
+lucene-kmp = "10.2.0-alpha13"
 kotlin-logging = "8.0.02"
-runtime = "1.10.3"
-slf4j-simple = "2.0.17"
-slf4j-android = "2.0.17-0"
 multiplatform-settings = "1.3.0"
 multiplatform-locale = "0.10.0"
-#kotlinStdlib = "2.3.20"
-runner = "1.7.0"
-uiToolingPreview = "1.10.3"
+composeMaterialIconsCore = "1.7.3"
+slf4j-android = "2.0.17-0"
 
 [libraries]
-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
-androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-testCore" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-testCore" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-material-iconsCore = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "composeMaterialIconsCore" }
-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 ktor-clientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-clientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-clientCurl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
 ktor-clientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktor-clientOkhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-clientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
-ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
-ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
-ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kmpio = { module = "io.github.skolson:kmp-io", version.ref = "kmpio" }
-clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+clikt = { module = "com.github.ajalt.clikt:clikt-core", version.ref = "clikt" }
 lucene-kmp-core = { module = "org.gnit.lucene-kmp:lucene-kmp-core", version.ref = "lucene-kmp" }
 lucene-kmp-queryparser = { module = "org.gnit.lucene-kmp:lucene-kmp-queryparser", version.ref = "lucene-kmp" }
 lucene-kmp-analysis-common = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-common", version.ref = "lucene-kmp" }
@@ -77,31 +75,18 @@ lucene-kmp-analysis-morfologik = { module = "org.gnit.lucene-kmp:lucene-kmp-anal
 lucene-kmp-analysis-smartcn = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-smartcn", version.ref = "lucene-kmp" }
 lucene-kmp-analysis-nori = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-nori", version.ref = "lucene-kmp" }
 lucene-kmp-analysis-kuromoji = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-kuromoji", version.ref = "lucene-kmp" }
-lucene-kmp-analysis-extra = { module= "org.gnit.lucene-kmp:lucene-kmp-analysis-extra", version.ref = "lucene-kmp" }
+lucene-kmp-analysis-extra = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-extra", version.ref = "lucene-kmp" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
-kotlin-logging-android = { module = "io.github.oshai:kotlin-logging-android", version.ref = "kotlin-logging" }
-kotlin-logging-android-debug = { module = "io.github.oshai:kotlin-logging-android-debug", version.ref = "kotlin-logging" }
-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-simple" }
-slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4j-android" }
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-locale = { module = "com.vanniktech:multiplatform-locale", version.ref = "multiplatform-locale" }
-#kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
-androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "uiToolingPreview" }
-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
+slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4j-android" }
 
 [plugins]
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
-android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
-androidLint = { id = "com.android.lint", version.ref = "androidGradlePlugin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
