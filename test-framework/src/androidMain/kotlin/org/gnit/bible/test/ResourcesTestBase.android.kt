@@ -27,7 +27,23 @@ actual abstract class ResourcesTestBase actual constructor() {
     }
 
     actual fun seedComposePackDirIfNeeded(platform: Platform) {
-        // No-op on Android; packs are handled via assets/downloads in setup.
+        val packDirPath = platform.packDir
+        if (!packDirPath.contains("compose_bible_test_dir")) {
+            return
+        }
+        val canonicalPackDir = findCanonicalPackDir() ?: return
+        val packDir = File(packDirPath)
+        if (!packDir.exists()) {
+            packDir.mkdirs()
+        }
+        canonicalPackDir.listFiles { file -> file.isFile && file.extension == "zip" }
+            ?.forEach { src ->
+                src.inputStream().use { input ->
+                    File(packDir, src.name).outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
     }
 
     @Before
