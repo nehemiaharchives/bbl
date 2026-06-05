@@ -5,6 +5,7 @@ plugins {
 }
 
 kotlin {
+    @Suppress("DEPRECATION")
     macosX64()
     macosArm64()
     linuxX64()
