@@ -14,7 +14,7 @@ import platform.posix.read
 import platform.posix.waitpid
 
 actual class PlatformProcessRunner actual constructor() : ProcessRunner {
-    override fun run(command: List<String>): ProcessResult {
+    actual override fun run(command: List<String>): ProcessResult {
         require(command.isNotEmpty()) { "command must not be empty" }
 
         val (stdoutRead, stdoutWrite) = createPipe()

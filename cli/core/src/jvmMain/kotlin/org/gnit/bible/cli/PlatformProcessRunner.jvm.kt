@@ -1,7 +1,7 @@
 package org.gnit.bible.cli
 
 actual class PlatformProcessRunner actual constructor() : ProcessRunner {
-    override fun run(command: List<String>): ProcessResult {
+    actual override fun run(command: List<String>): ProcessResult {
         require(command.isNotEmpty()) { "command must not be empty" }
 
         val process = ProcessBuilder(command)

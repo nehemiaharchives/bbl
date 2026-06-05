@@ -135,7 +135,6 @@ object SearchCliSupport {
             book == null -> inlineBookNumber
             book.toIntOrNull() != null -> book.toInt()
             else -> Books.bookNumber(book.lowercase())
-                ?: throw UsageError("Unknown book '$book'. Run 'bbl list books' to see supported book names.")
         }
     }
 

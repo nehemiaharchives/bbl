@@ -10,4 +10,6 @@ interface ProcessRunner {
     fun run(command: List<String>): ProcessResult
 }
 
-expect class PlatformProcessRunner() : ProcessRunner
+expect class PlatformProcessRunner() : ProcessRunner {
+    override fun run(command: List<String>): ProcessResult
+}
