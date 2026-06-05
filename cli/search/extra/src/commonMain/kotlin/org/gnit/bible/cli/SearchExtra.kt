@@ -116,5 +116,5 @@ fun main(args: Array<String>) {
     SearchHelperCli(
         bible = Bible(),
         analyzerProvider = ExtraAnalyzerProvider()
-    ).main(args)
+    ).main(platformCommandLineArgs(args))
 }

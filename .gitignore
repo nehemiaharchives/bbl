@@ -1,6 +1,7 @@
 *.iml
 .kotlin
 .gradle
+.run/*
 gradle-daemon-jvm.properties
 **/build/
 xcuserdata

@@ -3,7 +3,9 @@ package org.gnit.bible.cli
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.NativePlacement
 import kotlinx.cinterop.UIntVar
+import kotlinx.cinterop.UShortVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
@@ -19,7 +21,7 @@ import platform.posix.getenv
 import platform.windows.CloseHandle
 import platform.windows.CREATE_ALWAYS
 import platform.windows.CreateFileA
-import platform.windows.CreateProcessA
+import platform.windows.CreateProcessW
 import platform.windows.FILE_ATTRIBUTE_NORMAL
 import platform.windows.FILE_SHARE_DELETE
 import platform.windows.FILE_SHARE_READ
@@ -34,7 +36,7 @@ import platform.windows.INVALID_HANDLE_VALUE
 import platform.windows.PROCESS_INFORMATION
 import platform.windows.SECURITY_ATTRIBUTES
 import platform.windows.STARTF_USESTDHANDLES
-import platform.windows.STARTUPINFOA
+import platform.windows.STARTUPINFOW
 import platform.windows.STD_INPUT_HANDLE
 import platform.windows.WaitForSingleObject
 import kotlin.random.Random
@@ -62,8 +64,8 @@ actual class PlatformProcessRunner actual constructor() : ProcessRunner {
                 stdoutHandle = createOutputHandle(stdoutPath, securityAttributes.ptr)
                 stderrHandle = createOutputHandle(stderrPath, securityAttributes.ptr)
 
-                val startupInfo = alloc<STARTUPINFOA>()
-                startupInfo.cb = sizeOf<STARTUPINFOA>().toUInt()
+                val startupInfo = alloc<STARTUPINFOW>()
+                startupInfo.cb = sizeOf<STARTUPINFOW>().toUInt()
                 startupInfo.dwFlags = STARTF_USESTDHANDLES.toUInt()
                 startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE)
                 startupInfo.hStdOutput = stdoutHandle
@@ -71,11 +73,8 @@ actual class PlatformProcessRunner actual constructor() : ProcessRunner {
 
                 val processInformation = alloc<PROCESS_INFORMATION>()
                 val commandLine = command.joinToString(" ") { it.quoteForCreateProcess() }
-                val commandLineBytes = commandLine.encodeToByteArray()
-                val commandLineBuffer = allocArray<ByteVar>(commandLineBytes.size + 1)
-                commandLineBytes.forEachIndexed { index, byte -> commandLineBuffer[index] = byte }
-                commandLineBuffer[commandLineBytes.size] = 0
-                val created = CreateProcessA(
+                val commandLineBuffer = wideMutableBuffer(commandLine)
+                val created = CreateProcessW(
                     lpApplicationName = null,
                     lpCommandLine = commandLineBuffer,
                     lpProcessAttributes = null,
@@ -179,6 +178,13 @@ actual class PlatformProcessRunner actual constructor() : ProcessRunner {
             ?: getenv("TMP")?.toKString()
             ?: "."
         return base.toPath() / "bbl-process-${Random.nextLong().toString(16)}-$kind.tmp"
+    }
+
+    private fun NativePlacement.wideMutableBuffer(value: String): CPointer<UShortVar> {
+        val buffer = allocArray<UShortVar>(value.length + 1)
+        value.forEachIndexed { index, char -> buffer[index] = char.code.toUShort() }
+        buffer[value.length] = 0u
+        return buffer
     }
 
     private fun String.quoteForCreateProcess(): String {

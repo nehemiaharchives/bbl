@@ -112,5 +112,5 @@ fun main(args: Array<String>) {
     SearchHelperCli(
         bible = Bible(),
         analyzerProvider = KuromojiAnalyzerProvider()
-    ).main(args)
+    ).main(platformCommandLineArgs(args))
 }

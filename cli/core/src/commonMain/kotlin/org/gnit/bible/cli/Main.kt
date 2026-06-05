@@ -188,7 +188,7 @@ class In(
 
 fun main(args: Array<String>) {
     LoggingSetup.suppressKotlinLoggingStartupMessage()
-    Bbl().main(args)
+    Bbl().main(platformCommandLineArgs(args))
 }
 
 fun cliMain(args: Array<String>) {

@@ -217,5 +217,5 @@ fun mainAll(sourceDir: String = "resources/bbltexts", packsDir: String = "resour
 }
 
 fun main(args: Array<String>) {
-    PackCli(Bible()).main(args)
+    PackCli(Bible()).main(platformCommandLineArgs(args))
 }

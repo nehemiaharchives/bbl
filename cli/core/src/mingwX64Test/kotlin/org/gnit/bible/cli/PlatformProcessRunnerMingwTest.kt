@@ -47,4 +47,19 @@ class PlatformProcessRunnerMingwTest {
         assertEquals(0, result.exitCode)
         assertTrue(result.stdout.contains("alpha beta"))
     }
+
+    @Test
+    fun preservesUnicodeArguments() {
+        val result = PlatformProcessRunner().run(
+            listOf(
+                "powershell.exe",
+                "-NoProfile",
+                "-Command",
+                "if ('Ісуса Христа' -eq 'Ісуса Христа') { 'ok' } else { exit 9 }"
+            )
+        )
+
+        assertEquals(0, result.exitCode, "stdout=${result.stdout}; stderr=${result.stderr}")
+        assertEquals("ok", result.stdout.trim())
+    }
 }
