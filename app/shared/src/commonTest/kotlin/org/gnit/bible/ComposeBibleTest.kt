@@ -15,6 +15,7 @@ class ComposeBibleTest : BibleTestBase, ResourcesTestBase() {
             overridePlatformPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_composeapp_compose_bible_test_dir"}"
         }
         seedComposePackDirIfNeeded(platform)
+        seedComposePackDirFromResources(platform)
         return platform
     }
 
