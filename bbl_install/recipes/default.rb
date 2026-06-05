@@ -141,6 +141,15 @@ node['bbl_install']['deferred_pack_names'].each do |pack_name|
   end
 end
 
+test_attrs_path = windows ? "#{ENV['TEMP']}\\bbl-test-attributes.json" : '/tmp/bbl-test-attributes.json'
+
+ruby_block 'save bbl_install attributes for InSpec tests' do
+  block do
+    require 'json'
+    ::File.write(test_attrs_path, JSON.pretty_generate(node['bbl_install'].to_hash))
+  end
+end
+
 if windows
   ruby_block 'add bbl install directories to user PATH' do
     block do

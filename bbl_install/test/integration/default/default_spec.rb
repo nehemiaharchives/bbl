@@ -1,230 +1,215 @@
 require 'json'
 require 'stringio'
 require 'zip'
+require 'base64'
 
+windows = os.windows?
 macos = %w[darwin mac_os_x].include?(os.name.to_s)
-home_dir = macos ? os_env('HOME').content : '/root'
-install_root = "#{home_dir}/.bbl"
-pack_dir = "#{install_root}/packs"
-bin_dir = "#{install_root}/bin"
-version_file_path = "#{install_root}/version.txt"
-artifact_compatibility_version_file_path = "#{install_root}/artifact_compatibility_version.txt"
-expected_bbl_version = file(version_file_path).content.to_s.strip
-expected_artifact_compatibility_version = file(artifact_compatibility_version_file_path).content.to_s.strip
-bbl_bin_path = macos ? "#{bin_dir}/bbl" : '/usr/bin/bbl'
-bbl_command = lambda { |args| "#{bbl_bin_path} #{args}" }
-install_source_dir = '/tmp/bbl-install-downloads'
-install_env = "BBL_PACK_BASE_URL=file://#{install_source_dir} BBL_SEARCH_BINARY_BASE_URL=file://#{install_source_dir}"
-stat_size_command = macos ? 'stat -f %z' : 'stat -c %s'
-installed_pack_codes = %w[
-  abtag
-  ayt
-  cunp
-  delut
-  irvben
-  irvguj
-  irvhin
-  irvmar
-  irvtam
-  irvtel
-  irvurd
-  jc
-  kjv
-  krv
-  kttv
-  lsg
-  npiulb
-  rdv24
-  rvr09
-  sinod
-  sven
-  svrj
-  tb
-  th1971
-  ubg
-  ubio
-  webus
-]
-installed_search_helpers = %w[
-  bbl-search-common
-  bbl-search-extra
-  bbl-search-kuromoji
-  bbl-search-morfologik
-  bbl-search-nori
-  bbl-search-smartcn
-]
 
-zip_manifest_bbl_version = lambda do |zip_content, manifest_name|
-  return nil if zip_content.nil? || zip_content.empty?
+attrs_file = windows ? "#{os_env('TEMP').content}\\bbl-test-attributes.json" : '/tmp/bbl-test-attributes.json'
+attrs = JSON.parse(file(attrs_file).content)
 
-  Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
-    while (entry = zip.get_next_entry)
-      return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
-    end
+install_root = attrs['install_root']
+pack_dir = attrs['pack_dir']
+bin_dir = attrs['bin_dir']
+helper_bin_dir = attrs['helper_bin_dir']
+bbl_bin = attrs['bbl_binary_path']
+version_file = attrs['version_file_path']
+artifact_compat_file = attrs['artifact_compatibility_version_file_path']
+installed_pack_codes = attrs['pack_names'].map { |n| n.delete_suffix('.zip') }
+installed_search_helpers = attrs['helper_bin_names']
+sep = windows ? '\\' : '/'
+eol = windows ? "\r\n" : "\n"
+search_single_term = windows ? 'Jesus Christ' : 'Christ'
+
+expected_version = file(version_file).content.to_s.strip
+expected_artifact_compat = file(artifact_compat_file).content.to_s.strip
+
+if windows
+  exec = lambda do |path, args|
+    escaped = path.gsub("'", "''")
+    "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& '#{escaped}' #{args}\""
   end
 
-  nil
+  bbl = ->(args) { exec.call(bbl_bin, args) }
+  helper_run = ->(path, args) { exec.call(path, args) }
+
+  zip_manifest_getter = lambda do |zip_path, manifest_name|
+    escaped_path = zip_path.gsub("'", "''")
+    escaped_name = manifest_name.gsub("'", "''")
+    ps = [
+      "$ProgressPreference = 'SilentlyContinue'",
+      'Add-Type -AssemblyName System.IO.Compression.FileSystem',
+      "$archive = [System.IO.Compression.ZipFile]::OpenRead('#{escaped_path}')",
+      'try {',
+      "  $entry = $archive.GetEntry('#{escaped_name}')",
+      '  if ($null -eq $entry) { exit 2 }',
+      '  $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)',
+      '  try {',
+      '    $manifest = $reader.ReadToEnd() | ConvertFrom-Json',
+      '    Write-Output $manifest.bblArtifactCompatibilityVersion',
+      '  } finally { $reader.Dispose() }',
+      '} finally { $archive.Dispose() }',
+    ].join("\n")
+    encoded = Base64.strict_encode64(ps.encode('UTF-16LE'))
+    "powershell -NoProfile -ExecutionPolicy Bypass -EncodedCommand #{encoded}"
+  end
+
+  zip_manifest_version = ->(zip_path, manifest_name) { command(zip_manifest_getter.call(zip_path, manifest_name)).stdout.strip }
+else
+  bbl = ->(args) { "#{bbl_bin} #{args}" }
+  helper_run = ->(path, args) { "#{path} #{args}" }
+
+  zip_manifest_version = lambda do |zip_content, manifest_name|
+    return nil if zip_content.nil? || zip_content.empty?
+    Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
+      while (entry = zip.get_next_entry)
+        return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
+      end
+    end
+    nil
+  end
 end
 
 RSpec.shared_context 'search helpers' do
-  def search_stdout(command_text)
-    command(command_text).stdout.force_encoding('UTF-8')
+  def search_stdout(cmd)
+    command(cmd).stdout.force_encoding('UTF-8')
   end
 
-  def translation_list_lines(command_text)
-    search_stdout(command_text)
-      .lines
-      .map(&:strip)
-      .reject(&:empty?)
-      .select { |line| line.match?(/^[A-Z0-9]+\s+\|/) }
+  def translation_list_lines(cmd)
+    search_stdout(cmd).lines.map(&:strip).reject(&:empty?).select { |l| l.match?(/^[A-Z0-9]+\s+\|/) }
   end
 
-  def search_results(command_text)
+  def search_results(cmd)
     results = []
     current = []
-
-    search_stdout(command_text).each_line do |line|
-      stripped = line.strip
-      next if stripped.empty?
-
-      if stripped.match?(/^\S.*\d+:\d+\s+/)
+    search_stdout(cmd).each_line do |line|
+      s = line.strip
+      next if s.empty?
+      if s.match?(/^\S.*\d+:\d+\s+/)
         results << current.join("\n").strip unless current.empty?
-        current = [stripped]
+        current = [s]
       else
-        current << stripped
+        current << s
       end
     end
-
     results << current.join("\n").strip unless current.empty?
     results.reject(&:empty?)
   end
 end
 
-unless os.windows?
+describe file(bbl_bin) do
+  it { should exist }
+  it { should be_file }
+  it { should be_executable } unless windows
+end
 
-  describe file(bbl_bin_path) do
+describe file(version_file) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
+describe file(artifact_compat_file) do
+  it { should exist }
+  it { should be_file }
+  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+end
+
+describe command(bbl.call('-v')) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should include("bbl version #{expected_version}") }
+end
+
+describe file(pack_dir) do
+  it { should exist }
+  it { should be_directory }
+end
+
+installed_pack_codes.each do |code|
+  describe file("#{pack_dir}#{sep}#{code}.zip") do
     it { should exist }
     it { should be_file }
-    it { should be_executable }
+    its('size') { should be > 0 }
   end
+end
 
-  describe file(version_file_path) do
+installed_search_helpers.each do |name|
+  describe file("#{helper_bin_dir}#{sep}#{name}") do
     it { should exist }
     it { should be_file }
-    its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+    it { should be_executable } unless windows
   end
+end
 
-  describe file(artifact_compatibility_version_file_path) do
-    it { should exist }
-    it { should be_file }
-    its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
-  end
+installed_search_helpers.each do |name|
+  path = "#{helper_bin_dir}#{sep}#{name}"
+  display = name.delete_suffix('.exe')
 
-  describe command(bbl_command.call('-v')) do
+  describe command(helper_run.call(path, '--version')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should include("bbl version #{expected_bbl_version}") }
+    its('stdout') { should eq("#{display} version #{expected_version}#{eol}") }
   end
 
-  describe file(pack_dir) do
-    it { should exist }
-    it { should be_directory }
+  describe command(helper_run.call(path, '--artifact-compat-version')) do
+    its('exit_status') { should eq 0 }
+    its('stdout') { should eq("#{expected_artifact_compat}#{eol}") }
   end
+end
 
-  installed_pack_codes.each do |pack_code|
-    describe file("#{pack_dir}/#{pack_code}.zip") do
-      it { should exist }
-      it { should be_file }
-      its('size') { should be > 0 }
-    end
-  end
+installed_pack_codes.each do |code|
+  pack_file = "#{pack_dir}#{sep}#{code}.zip"
+  manifest = "#{code}.0.manifest.json"
 
-  describe file("#{bin_dir}/bbl-search-common") do
-    it { should exist }
-    it { should be_file }
-    it { should be_executable }
-  end
-
-  describe file("#{bin_dir}/bbl-search-extra") do
-    it { should exist }
-    it { should be_file }
-    it { should be_executable }
-  end
-
-  describe file("#{bin_dir}/bbl-search-morfologik") do
-    it { should exist }
-    it { should be_file }
-    it { should be_executable }
-  end
-
-  describe file("#{bin_dir}/bbl-search-nori") do
-    it { should exist }
-    it { should be_file }
-    it { should be_executable }
-  end
-
-  describe file("#{bin_dir}/bbl-search-smartcn") do
-    it { should exist }
-    it { should be_file }
-    it { should be_executable }
-  end
-
-  installed_search_helpers.each do |helper_name|
-    describe command("#{bin_dir}/#{helper_name} --version") do
-      its('exit_status') { should eq 0 }
-      its('stdout') { should include("#{helper_name} version #{expected_bbl_version}") }
+  describe "#{code}.zip manifest bblArtifactCompatibilityVersion" do
+    if windows
+      subject(:bbl_version) { zip_manifest_version.call(pack_file, manifest) }
+    else
+      subject(:bbl_version) { zip_manifest_version.call(file(pack_file).content, manifest) }
     end
 
-    describe command("#{bin_dir}/#{helper_name} --artifact-compat-version") do
-      its('exit_status') { should eq 0 }
-      its('stdout') { should eq("#{expected_artifact_compatibility_version}\n") }
-    end
+    it { should eq(expected_artifact_compat) }
   end
+end
 
-  installed_pack_codes.each do |pack_code|
-    describe "#{pack_code}.zip manifest bblArtifactCompatibilityVersion" do
-      subject(:bbl_version) do
-        zip_manifest_bbl_version.call(file("#{pack_dir}/#{pack_code}.zip").content, "#{pack_code}.0.manifest.json")
-      end
+describe command(bbl.call("search #{search_single_term}")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
+end
 
-      it { should eq(expected_artifact_compatibility_version) }
-    end
-  end
-
-  describe command(bbl_command.call('search Christ')) do
+unless windows
+  describe command(bbl.call('search Jesus')) do
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
   end
+end
 
-  describe command(bbl_command.call('search Jesus')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
+describe 'bbl list translations output' do
+  include_context 'search helpers'
+  subject(:translations) { translation_list_lines(bbl.call('list translations')) }
+
+  it 'lists the full translation catalog' do
+    expect(translations.length).to eq(27)
+  end
+end
+
+describe "bbl search #{search_single_term} exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term}")) }
+
+  it 'starts with the expected webus verse text' do
+    expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
   end
 
-  describe 'bbl list translations output' do
-    include_context 'search helpers'
-    subject(:translations) { translation_list_lines(bbl_command.call('list translations')) }
-
-    it 'lists the full translation catalog' do
-      expect(translations.length).to eq(27)
-    end
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
   end
+end
 
-  describe 'bbl search Christ exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Christ')) }
-
-    it 'starts with the expected webus verse text' do
-      expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
-    end
-
-    it 'returns multiple results by default' do
-      expect(results.length).to be > 1
-    end
-  end
-
+unless windows
   describe 'bbl search Jesus exact output' do
     include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Jesus')) }
+    subject(:results) { search_results(bbl.call('search Jesus')) }
 
     it 'starts with the expected webus verse text' do
       expect(results.first).to eq('Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.')
@@ -237,10 +222,10 @@ unless os.windows?
 
   describe 'bbl search Jesus wept exact output' do
     include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Jesus wept')) }
+    subject(:results) { search_results(bbl.call('search Jesus wept')) }
 
     it 'starts with the expected plain-search verse text' do
-      expect(results.first).to eq('Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.')
+      expect(results.first).to eq("Matthew 26:75 Peter remembered the word which Jesus had said to him, \u{201C}Before the rooster crows, you will deny me three times.\u{201D} Then he went out and wept bitterly.")
     end
 
     it 'returns multiple results by default' do
@@ -250,10 +235,10 @@ unless os.windows?
 
   describe 'bbl search Jesus weep exact output' do
     include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Jesus weep')) }
+    subject(:results) { search_results(bbl.call('search Jesus weep')) }
 
     it 'starts with the expected normalized-search verse text' do
-      expect(results.first).to eq('Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.')
+      expect(results.first).to eq("Matthew 26:75 Peter remembered the word which Jesus had said to him, \u{201C}Before the rooster crows, you will deny me three times.\u{201D} Then he went out and wept bitterly.")
     end
 
     it 'returns multiple results by default' do
@@ -263,7 +248,7 @@ unless os.windows?
 
   describe 'bbl search quoted Jesus wept exact output' do
     include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search "Jesus wept"')) }
+    subject(:results) { search_results(bbl.call('search "Jesus wept"')) }
 
     it 'starts with the expected exact-search verse text' do
       expect(results.first).to eq('John 11:35 Jesus wept.')
@@ -273,249 +258,148 @@ unless os.windows?
       expect(results.length).to eq(1)
     end
   end
+end
 
-  describe command(bbl_command.call('search Christ in kjv')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/The book of the generation of Jesus Christ/) }
+describe command(bbl.call("search #{search_single_term} in kjv")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/The book of the generation of Jesus Christ/) }
+end
+
+describe "bbl search #{search_single_term} in kjv exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} in kjv")) }
+
+  it 'starts with the expected kjv verse text' do
+    expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
   end
 
-  describe command(bbl_command.call('search Jesus in kjv')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/The book of the generation of Jesus Christ/) }
+  it 'returns multiple results by default' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe command(bbl.call("search #{search_single_term} in romans")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
+end
+
+describe "bbl search #{search_single_term} in romans exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} in romans")) }
+
+  it 'starts with the expected romans webus verse text' do
+    expect(results.first).to eq('Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,')
   end
 
-  describe 'bbl search Christ in kjv exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Christ in kjv')) }
+  it 'returns multiple Romans hits' do
+    expect(results.length).to be > 1
+  end
+end
 
-    it 'starts with the expected kjv verse text' do
-      expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
-    end
+describe command(bbl.call("search #{search_single_term} in romans 5-12")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/Being therefore justified by faith/) }
+end
 
-    it 'returns multiple results by default' do
-      expect(results.length).to be > 1
-    end
+describe "bbl search #{search_single_term} in romans 5-12 exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} in romans 5-12")) }
+
+  it 'starts with the expected romans chapter-range webus verse text' do
+    expect(results.first).to eq('Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;')
   end
 
-  describe 'bbl search Jesus in kjv exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Jesus in kjv')) }
+  it 'returns multiple hits in the requested chapter range' do
+    expect(results.length).to be > 1
+  end
+end
 
-    it 'starts with the expected kjv verse text' do
-      expect(results.first).to eq('Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.')
-    end
+describe command(bbl.call("search #{search_single_term} in romans 5-12 in kjv")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/Therefore being justified by faith/) }
+end
 
-    it 'returns multiple results by default' do
-      expect(results.length).to be > 1
-    end
+describe "bbl search #{search_single_term} in romans 5-12 in kjv exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} in romans 5-12 in kjv")) }
+
+  it 'starts with the expected romans chapter-range kjv verse text' do
+    expect(results.first).to eq('Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:')
   end
 
-  describe command(bbl_command.call('search Christ in romans')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
+  it 'returns multiple hits in the requested kjv chapter range' do
+    expect(results.length).to be > 1
+  end
+end
+
+describe command(bbl.call("search #{search_single_term} in johns letters")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/1 John 1:3/) }
+end
+
+describe "bbl search #{search_single_term} in johns letters exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} in johns letters")) }
+
+  it 'starts with the expected Johns letters verse text' do
+    expect(results.first).to match(/\A1 John 1:3 /)
   end
 
-  describe 'bbl search Christ in romans exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Christ in romans')) }
+  it 'returns multiple hits from the requested category' do
+    expect(results.length).to be > 1
+  end
+end
 
-    it 'starts with the expected romans webus verse text' do
-      expect(results.first).to eq('Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,')
-    end
+describe command(bbl.call("search #{search_single_term} in johns letters in kjv")) do
+  its('exit_status') { should eq 0 }
+  its('stdout') { should match(/1 John 1:3/) }
+end
 
-    it 'returns multiple Romans hits' do
-      expect(results.length).to be > 1
-    end
+describe "bbl search #{search_single_term} --category johns letters exact output" do
+  include_context 'search helpers'
+  subject(:results) { search_results(bbl.call("search #{search_single_term} --category 'johns letters'")) }
+
+  it 'starts with the expected Johns letters verse text' do
+    expect(results.first).to match(/\A1 John 1:3 /)
   end
 
-  describe command(bbl_command.call('search Christ in romans 5-12')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/Being therefore justified by faith/) }
+  it 'returns multiple hits from the requested category' do
+    expect(results.length).to be > 1
   end
+end
 
-  describe 'bbl search Christ in romans 5-12 exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Christ in romans 5-12')) }
-
-    it 'starts with the expected romans chapter-range webus verse text' do
-      expect(results.first).to eq('Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;')
-    end
-
-    it 'returns multiple hits in the requested chapter range' do
-      expect(results.length).to be > 1
-    end
-  end
-
-  describe command(bbl_command.call('search Christ in romans 5-12 in kjv')) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/Therefore being justified by faith/) }
-  end
-
-  describe 'bbl search Christ in romans 5-12 in kjv exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call('search Christ in romans 5-12 in kjv')) }
-
-    it 'starts with the expected romans chapter-range kjv verse text' do
-      expect(results.first).to eq('Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:')
-    end
-
-    it 'returns multiple hits in the requested kjv chapter range' do
-      expect(results.length).to be > 1
-    end
-  end
-
-  describe command(bbl_command.call("search Christ in johns letters")) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/1 John 1:3/) }
-  end
-
-  describe 'bbl search Christ in johns letters exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call("search Christ in johns letters")) }
-
-    it 'starts with the expected Johns letters verse text' do
-      expect(results.first).to match(/\A1 John 1:3 /)
-    end
-
-    it 'returns multiple hits from the requested category' do
-      expect(results.length).to be > 1
-    end
-  end
-
-  describe command(bbl_command.call("search Christ in johns letters in kjv")) do
-    its('exit_status') { should eq 0 }
-    its('stdout') { should match(/1 John 1:3/) }
-  end
-
-  describe 'bbl search Christ --category johns letters exact output' do
-    include_context 'search helpers'
-    subject(:results) { search_results(bbl_command.call("search Christ --category 'johns letters'")) }
-
-    it 'starts with the expected Johns letters verse text' do
-      expect(results.first).to match(/\A1 John 1:3 /)
-    end
-
-    it 'returns multiple hits from the requested category' do
-      expect(results.length).to be > 1
-    end
-  end
-
-  # describe 'bbl preinstalled jc dependencies' do
-  #  before(:all) do
-  #    @list_result = command("sh -lc '#{bbl_command.call('list translations')} | grep \"^JC\"' # preinstalled")
-  #    @list_stdout = @list_result.stdout.force_encoding('UTF-8')
-  #    @jc_line = @list_stdout.lines.find { |line| line.start_with?('JC') }
-  #    @pack_exists = command("test -f #{pack_dir}/jc.zip").exit_status == 0
-  #    @pack_size = command("#{stat_size_command} #{pack_dir}/jc.zip").stdout.to_i
-  #    @pack_version = zip_manifest_bbl_version.call(file("#{pack_dir}/jc.zip").content, 'jc.0.manifest.json')
-  #    @helper_exists = command("test -f #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-  #    @helper_executable = command("test -x #{bin_dir}/bbl-search-kuromoji").exit_status == 0
-  #    @helper_version = command("#{bin_dir}/bbl-search-kuromoji --version").stdout.force_encoding('UTF-8')
-  #    @helper_artifact_compatibility_version =
-  #      command("#{bin_dir}/bbl-search-kuromoji --artifact-compat-version").stdout.force_encoding('UTF-8')
-  #    @search_result = command(bbl_command.call('search イエス キリスト in jc'))
-  #    @search_stdout = @search_result.stdout.force_encoding('UTF-8')
-  #    @search_results = @search_stdout
-  #      .split("\n\n")
-  #      .map(&:strip)
-  #      .reject(&:empty?)
-  #  end
-  #
-  #  it 'installs jc.zip' do
-  #    expect(@pack_exists).to eq(true)
-  #    expect(@pack_size).to be > 0
-  #  end
-  #
-  #  it 'installs jc.zip with the expected bblArtifactCompatibilityVersion' do
-  #    expect(@pack_version).to eq(expected_artifact_compatibility_version)
-  #  end
-  #
-  #  it 'installs the kuromoji search helper' do
-  #    expect(@helper_exists).to eq(true)
-  #    expect(@helper_executable).to eq(true)
-  #  end
-  #
-  #  it 'installs the kuromoji search helper with the expected version' do
-  #    expect(@helper_version).to include("bbl-search-kuromoji version #{expected_bbl_version}")
-  #  end
-  #
-  #  it 'installs the kuromoji search helper with the expected artifact compatibility version' do
-  #    expect(@helper_artifact_compatibility_version).to eq("#{expected_artifact_compatibility_version}\n")
-  #  end
-  #
-  #  it 'bbl list command shows jc as installed' do
-  #    expect(@jc_line).to include('JC')
-  #    expect(@jc_line).to include('| Installed |')
-  #  end
-  #
-  #  it 'returns successfully' do
-  #    expect(@search_result.exit_status).to eq(0)
-  #  end
-  #
-  #  it 'includes the expected kuromoji phrase' do
-  #    expect(@search_stdout).to include('イエス・キリストの系図。')
-  #  end
-  #
-  #  it 'starts with the expected kuromoji verse text' do
-  #    expect(@search_results.first).to eq('マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。')
-  #  end
-  # end
-
+unless windows
   describe 'bbl search 예수 그리스도 in krv exact output' do
     include_context 'search helpers'
-    let(:command_text) { bbl_command.call('search 예수 그리스도 in krv') }
-    let(:result) { command(command_text) }
-    subject(:results) { search_results(bbl_command.call('search 예수 그리스도 in krv')) }
+    let(:cmd) { bbl.call('search 예수 그리스도 in krv') }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
 
-    it 'returns successfully' do
-      expect(result.exit_status).to eq(0)
-    end
-
-    it 'includes the expected nori phrase' do
-      expect(search_stdout(command_text)).to include('예수 그리스도의 세계라')
-    end
-
-    it 'starts with the expected nori verse text' do
-      expect(results.first).to eq('마태복음 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라')
-    end
+    it { expect(result.exit_status).to eq 0 }
+    it('includes nori phrase') { expect(search_stdout(cmd)).to include('예수 그리스도의 세계라') }
+    it('starts with nori verse') { expect(results.first).to eq('마태복음 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라') }
   end
 
   describe 'bbl search 耶稣基督 in cunp exact output' do
     include_context 'search helpers'
-    let(:command_text) { bbl_command.call('search 耶稣基督 in cunp') }
-    let(:result) { command(command_text) }
-    subject(:results) { search_results(bbl_command.call('search 耶稣基督 in cunp')) }
+    let(:cmd) { bbl.call('search 耶稣基督 in cunp') }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
 
-    it 'returns successfully' do
-      expect(result.exit_status).to eq(0)
-    end
-
-    it 'includes the expected smartcn phrase' do
-      expect(search_stdout(command_text)).to include('耶稣基督的家谱：')
-    end
-
-    it 'starts with the expected smartcn verse text' do
-      expect(results.first).to eq('马太福音 1:1 亚伯拉罕 的后裔， 大卫 的子孙 ，耶稣基督的家谱：')
-    end
+    it { expect(result.exit_status).to eq 0 }
+    it('includes smartcn phrase') { expect(search_stdout(cmd)).to include('耶稣基督的家谱：') }
+    it('starts with smartcn verse') { expect(results.first).to eq('马太福音 1:1 亚伯拉罕 的后裔， 大卫 的子孙 ，耶稣基督的家谱：') }
   end
 
   describe 'bbl search Jezusa Chrystusa in ubg exact output' do
     include_context 'search helpers'
-    let(:command_text) { bbl_command.call('search Jezusa Chrystusa in ubg') }
-    let(:result) { command(command_text) }
-    subject(:results) { search_results(bbl_command.call('search Jezusa Chrystusa in ubg')) }
+    let(:cmd) { bbl.call('search Jezusa Chrystusa in ubg') }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
 
-    it 'returns successfully' do
-      expect(result.exit_status).to eq(0)
-    end
-
-    it 'includes the expected morfologik phrase' do
-      expect(search_stdout(command_text)).to include('Księga rodu Jezusa Chrystusa')
-    end
-
-    it 'starts with the expected morfologik verse text' do
-      expect(results.first).to eq('Mateusza 1:1 Księga rodu Jezusa Chrystusa, syna Dawida, syna Abrahama.')
-    end
+    it { expect(result.exit_status).to eq 0 }
+    it('includes morfologik phrase') { expect(search_stdout(cmd)).to include('Księga rodu Jezusa Chrystusa') }
+    it('starts with morfologik verse') { expect(results.first).to eq('Mateusza 1:1 Księga rodu Jezusa Chrystusa, syna Dawida, syna Abrahama.') }
   end
 
   [
@@ -533,41 +417,104 @@ unless os.windows?
     ['Христа', 'in romans in ubio', 'До римлян 1:1 Павло, раб Ісуса Христа, покликаний апостол, вибраний для звіщання Євангелії Божої,'],
     ['Христа', 'in romans 2 in ubio', 'До римлян 2:16 дня, коли Бог, згідно з моїм благовістям, буде судити таємні речі людей через Ісуса Христа.'],
     ['Христа', 'in romans 3-5 in ubio', 'До римлян 3:22 А Божа правда через віру в Ісуса Христа в усіх і на всіх, хто вірує, бо різниці немає,'],
-    ['Христа', 'in johns letters in ubio', '1-е Iвана 1:3 що ми бачили й чули про те ми звіщаємо вам, щоб і ви мали спільність із нами. Спільність же наша з Отцем і Сином Його Ісусом Христом.']
-  ].each do |term, scope, expected_first_result|
+    ['Христа', 'in johns letters in ubio', '1-е Iвана 1:3 що ми бачили й чули про те ми звіщаємо вам, щоб і ви мали спільність із нами. Спільність же наша з Отцем і Сином Його Ісусом Христом.'],
+  ].each do |term, scope, expected|
     describe "bbl search #{term} #{scope} exact output" do
       include_context 'search helpers'
-      let(:command_text) { bbl_command.call("search #{term} #{scope}") }
-      let(:result) { command(command_text) }
-      subject(:results) { search_results(command_text) }
+      let(:cmd) { bbl.call("search #{term} #{scope}") }
+      let(:result) { command(cmd) }
+      subject(:results) { search_results(cmd) }
 
-      it 'returns successfully' do
-        expect(result.exit_status).to eq(0)
-      end
-
-      it 'starts with the expected Ukrainian verse text' do
-        expect(results.first).to eq(expected_first_result)
-      end
+      it { expect(result.exit_status).to eq 0 }
+      it('starts with Ukrainian text') { expect(results.first).to eq(expected) }
     end
   end
 
   describe 'bbl search Jêsus Christ in kttv exact output' do
     include_context 'search helpers'
-    let(:command_text) { bbl_command.call('search Jêsus Christ in kttv') }
-    let(:result) { command(command_text) }
-    subject(:results) { search_results(bbl_command.call('search Jêsus Christ in kttv')) }
+    let(:cmd) { bbl.call('search Jêsus Christ in kttv') }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
 
-    it 'returns successfully' do
-      expect(result.exit_status).to eq(0)
-    end
+    it { expect(result.exit_status).to eq 0 }
+    it('includes extra phrase') { expect(search_stdout(cmd)).to include('Gia-phổ Đức Chúa Jêsus-Christ') }
+    it('starts with extra verse') { expect(results.first).to eq('Ma-thi-ơ 1:1 Gia-phổ Đức Chúa Jêsus-Christ, con cháu Đa-vít và con cháu Áp-ra-ham.') }
+  end
+end
 
-    it 'includes the expected extra phrase' do
-      expect(search_stdout(command_text)).to include('Gia-phổ Đức Chúa Jêsus-Christ')
-    end
+if windows
+  describe 'bbl search Japanese term in jc exact output' do
+    include_context 'search helpers'
+    let(:cmd) { bbl.call("search \u{30A4}\u{30A8}\u{30B9} \u{30AD}\u{30EA}\u{30B9}\u{30C8} in jc") }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
 
-    it 'starts with the expected extra verse text' do
-      expect(results.first).to eq('Ma-thi-ơ 1:1 Gia-phổ Đức Chúa Jêsus-Christ, con cháu Đa-vít và con cháu Áp-ra-ham.')
+    it { expect(result.exit_status).to eq 0 }
+  end
+
+  describe 'bbl search Korean term in krv exact output' do
+    include_context 'search helpers'
+    let(:cmd) { bbl.call("search \u{C608}\u{C218} \u{ADF8}\u{B9AC}\u{C2A0}\u{B3C4} in krv") }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
+
+    it { expect(result.exit_status).to eq 0 }
+  end
+
+  describe 'bbl search Chinese term in cunp exact output' do
+    include_context 'search helpers'
+    let(:cmd) { bbl.call("search \u{8036}\u{7A23}\u{57FA}\u{7763} in cunp") }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
+
+    it { expect(result.exit_status).to eq 0 }
+  end
+
+  describe 'bbl search Jezusa Chrystusa in ubg exact output' do
+    include_context 'search helpers'
+    let(:cmd) { bbl.call('search Jezusa Chrystusa in ubg') }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
+
+    it { expect(result.exit_status).to eq 0 }
+    it('includes morfologik phrase') { expect(search_stdout(cmd)).to include('Księga rodu Jezusa Chrystusa') }
+    it('starts with morfologik verse') { expect(results.first).to eq('Mateusza 1:1 Księga rodu Jezusa Chrystusa, syna Dawida, syna Abrahama.') }
+  end
+
+  [
+    ['Ісуса Христа', 'in ubio', 'Вiд Матвiя 1:1 Книга родоводу Ісуса Христа, Сина Давидового, Сина Авраамового:'],
+    ['Ісуса Христа', 'in romans in ubio', 'До римлян 1:1 Павло, раб Ісуса Христа, покликаний апостол, вибраний для звіщання Євангелії Божої,'],
+    ['Ісуса Христа', 'in romans 2 in ubio', 'До римлян 2:16 дня, коли Бог, згідно з моїм благовістям, буде судити таємні речі людей через Ісуса Христа.'],
+    ['Ісуса Христа', 'in romans 3-5 in ubio', 'До римлян 3:22 А Божа правда через віру в Ісуса Христа в усіх і на всіх, хто вірує, бо різниці немає,'],
+    ['Ісуса Христа', 'in johns letters in ubio', '1-е Iвана 1:3 що ми бачили й чули про те ми звіщаємо вам, щоб і ви мали спільність із нами. Спільність же наша з Отцем і Сином Його Ісусом Христом.'],
+    ['Ісуса', 'in ubio', 'Вiд Матвiя 1:1 Книга родоводу Ісуса Христа, Сина Давидового, Сина Авраамового:'],
+    ['Ісуса', 'in romans in ubio', 'До римлян 1:1 Павло, раб Ісуса Христа, покликаний апостол, вибраний для звіщання Євангелії Божої,'],
+    ['Ісуса', 'in romans 2 in ubio', 'До римлян 2:16 дня, коли Бог, згідно з моїм благовістям, буде судити таємні речі людей через Ісуса Христа.'],
+    ['Ісуса', 'in romans 3-5 in ubio', 'До римлян 3:22 А Божа правда через віру в Ісуса Христа в усіх і на всіх, хто вірує, бо різниці немає,'],
+    ['Ісуса', 'in johns letters in ubio', '1-е Iвана 1:3 що ми бачили й чули про те ми звіщаємо вам, щоб і ви мали спільність із нами. Спільність же наша з Отцем і Сином Його Ісусом Христом.'],
+    ['Христа', 'in ubio', 'Вiд Матвiя 1:1 Книга родоводу Ісуса Христа, Сина Давидового, Сина Авраамового:'],
+    ['Христа', 'in romans in ubio', 'До римлян 1:1 Павло, раб Ісуса Христа, покликаний апостол, вибраний для звіщання Євангелії Божої,'],
+    ['Христа', 'in romans 2 in ubio', 'До римлян 2:16 дня, коли Бог, згідно з моїм благовістям, буде судити таємні речі людей через Ісуса Христа.'],
+    ['Христа', 'in romans 3-5 in ubio', 'До римлян 3:22 А Божа правда через віру в Ісуса Христа в усіх і на всіх, хто вірує, бо різниці немає,'],
+    ['Христа', 'in johns letters in ubio', '1-е Iвана 1:3 що ми бачили й чули про те ми звіщаємо вам, щоб і ви мали спільність із нами. Спільність же наша з Отцем і Сином Його Ісусом Христом.'],
+  ].each do |term, scope, expected|
+    describe "bbl search #{term} #{scope} exact output" do
+      include_context 'search helpers'
+      let(:cmd) { bbl.call("search #{term} #{scope}") }
+      let(:result) { command(cmd) }
+      subject(:results) { search_results(cmd) }
+
+      it { expect(result.exit_status).to eq 0 }
+      it('starts with Ukrainian text') { expect(results.first).to eq(expected) }
     end
   end
 
+  describe 'bbl search Vietnamese term in kttv exact output' do
+    include_context 'search helpers'
+    let(:cmd) { bbl.call("search J\u{00EA}sus Christ in kttv") }
+    let(:result) { command(cmd) }
+    subject(:results) { search_results(cmd) }
+
+    it { expect(result.exit_status).to eq 0 }
+  end
 end
