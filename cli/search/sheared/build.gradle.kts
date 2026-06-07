@@ -22,18 +22,16 @@ kotlin {
             dependencies {
                 implementation(projects.core)
                 implementation(projects.cli.shared)
-                implementation(projects.cli.search.sheared)
                 implementation(libs.clikt)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)
-                implementation(libs.lucene.kmp.analysis.common)
-                implementation(libs.lucene.kmp.analysis.nori)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(projects.testFramework)
                 implementation(libs.kotlin.test)
+                implementation(libs.lucene.kmp.core)
             }
         }
 
@@ -52,14 +50,5 @@ kotlin {
 
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)
-    }
-
-    targets.withType<KotlinNativeTarget>().all {
-        binaries {
-            executable {
-                entryPoint = "org.gnit.bible.cli.main"
-                baseName = "bbl-search-nori"
-            }
-        }
     }
 }

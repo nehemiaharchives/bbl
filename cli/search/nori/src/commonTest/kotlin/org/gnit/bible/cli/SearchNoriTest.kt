@@ -15,7 +15,7 @@ class SearchNoriTest: CliSearchTestBase(NoriAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), NoriAnalyzerProvider())
+        val helper = SearchNori(Bible(), NoriAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.ko) is BibleKoreanAnalyzer)
     }
 

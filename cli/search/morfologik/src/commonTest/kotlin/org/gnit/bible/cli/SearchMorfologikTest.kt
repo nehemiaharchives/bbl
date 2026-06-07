@@ -16,7 +16,7 @@ class SearchMorfologikTest: CliSearchTestBase(MorfologikAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), MorfologikAnalyzerProvider())
+        val helper = SearchMorfologik(Bible(), MorfologikAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.pl) is MorfologikAnalyzer)
         assertTrue(helper.analyzerProvider.analyzerFor(Language.uk) is BibleUkrainianAnalyzer)
     }

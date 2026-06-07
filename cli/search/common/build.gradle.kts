@@ -22,6 +22,7 @@ kotlin {
             dependencies {
                 implementation(projects.core)
                 implementation(projects.cli.shared)
+                implementation(projects.cli.search.sheared)
                 implementation(libs.clikt)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)

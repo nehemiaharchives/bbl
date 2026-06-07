@@ -30,7 +30,7 @@ class SearchCommonTest: CliSearchTestBase(CommonAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), CommonAnalyzerProvider())
+        val helper = SearchCommon(Bible(), CommonAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.en) is BibleEnglishAnalyzer)
         assertTrue(helper.analyzerProvider.analyzerFor(Language.es) is BibleSpanishAnalyzer)
         assertTrue(helper.analyzerProvider.analyzerFor(Language.pt) is BiblePortugueseAnalyzer)

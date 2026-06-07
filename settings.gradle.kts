@@ -81,3 +81,5 @@ include(":app:desktopApp")
 
 // shared test related code
 include(":test-framework")
+
+include("cli:search:sheared")

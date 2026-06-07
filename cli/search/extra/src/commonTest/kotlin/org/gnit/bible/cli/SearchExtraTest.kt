@@ -19,7 +19,7 @@ class SearchExtraTest: CliSearchTestBase(ExtraAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), ExtraAnalyzerProvider())
+        val helper = SearchExtra(Bible(), ExtraAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.tl) is BibleTagalogAnalyzer)
         assertTrue(helper.analyzerProvider.analyzerFor(Language.vi) is BibleVietnameseAnalyzer)
         assertTrue(helper.analyzerProvider.analyzerFor(Language.gu) is GujaratiAnalyzer)

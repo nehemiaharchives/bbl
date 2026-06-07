@@ -15,7 +15,7 @@ class SearchSmartcnTest: CliSearchTestBase(SmartcnAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), SmartcnAnalyzerProvider())
+        val helper = SearchSmartcn(Bible(), SmartcnAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.zh) is SmartChineseAnalyzer)
     }
 

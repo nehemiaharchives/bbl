@@ -15,7 +15,7 @@ class SearchKuromojiTest: CliSearchTestBase(KuromojiAnalyzerProvider()) {
 
     @Test
     fun testContainsAnalyzers() {
-        val helper = SearchHelperCli(Bible(), KuromojiAnalyzerProvider())
+        val helper = SearchKuromoji(Bible(), KuromojiAnalyzerProvider())
         assertTrue(helper.analyzerProvider.analyzerFor(Language.ja) is BibleJapaneseAnalyzer)
     }
 
