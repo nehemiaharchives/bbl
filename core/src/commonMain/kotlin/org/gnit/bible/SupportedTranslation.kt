@@ -24,7 +24,7 @@ enum class SupportedTranslation(
     SVRJ(Translation("svrj", Language.nl.code, "Statenvertaling Jongbloed edition", "Statenvertaling Jongbloed-editie", 1888, "Public Domain"), SearchModule.COMMON, embedded = true),
     RDV24(Translation("rdv24", Language.it.code, "Revised Diodati Version", "Versione Diodati Riveduta", 1924, "Public Domain"), SearchModule.COMMON, embedded = true),
     UBG(Translation("ubg", Language.pl.code, "Updated Gdansk Bible", "Uwspółcześniona Biblia gdańska", 2017, "© 2017 Fundacja Wrota Nadziei (Non-commercial & unaltered text)"), SearchModule.MORFOLOGIK, embedded = true),
-    UBIO(Translation("ubio", Language.uk.code, "Ukrainian Bible, Ivan Ogienko", "Біблія в пер. Івана Огієнка", 1962, "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society"), SearchModule.MORFOLOGIK, embedded = true),
+    UBIO(Translation("ubio", Language.uk.code, "Ukrainian Bible, Ivan Ogienko", "Біблія в пер. Івана Огієнка", 1962, "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство"), SearchModule.MORFOLOGIK, embedded = true),
     SVEN(Translation("sven", Language.sv.code, "Svenska 1917", "1917 års kyrkobibel", 1917, "Public Domain"), SearchModule.COMMON, embedded = true),
     CUNP(Translation("cunp", Language.zh.code, "Chinese Union Version with New Punctuation", "新標點和合本", 1919, "Public Domain"), SearchModule.SMARTCN, embedded = true),
     KRV(Translation("krv", Language.ko.code, "Korean Revised Version", "개역한글", 1961, "Public Domain"), SearchModule.NORI, embedded = true),

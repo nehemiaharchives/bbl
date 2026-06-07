@@ -57,7 +57,7 @@ class InstallCli(
             return
         }
 
-        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode(bible)
+        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode()
         val availableDownloadableCodes = downloadableByCode.keys
         val unknownCodes = toInstall.filterNot { it in availableDownloadableCodes }
         if (unknownCodes.isNotEmpty()) {

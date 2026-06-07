@@ -427,7 +427,7 @@ object TestFixtures {
         "englishName": "Updated Gdansk Bible",
         "nativeName": "Uwspółcześniona Biblia gdańska",
         "year": 2017,
-        "copyright": "© 2017 Fundacja Wrota Nadziei (Non-commercial & unaltered text)"
+        "copyright": "© 2017 Fundacja Wrota Nadziei (Gate of Hope Foundation). Non-commercial use of unaltered text permitted."
     },
     {
         "code": "ubio",
@@ -435,7 +435,7 @@ object TestFixtures {
         "englishName": "Ukrainian Bible, Ivan Ogienko",
         "nativeName": "Біблія в пер. Івана Огієнка",
         "year": 1962,
-        "copyright": "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство / Ukrainian Bible Society"
+        "copyright": "CC BY-SA 4.0 © 1962 Українське Біблійне Товариство"
     },
     {
         "code": "sven",

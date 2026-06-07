@@ -14,8 +14,6 @@ import com.oldguy.common.io.FileMode
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import okio.FileSystem
-import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation

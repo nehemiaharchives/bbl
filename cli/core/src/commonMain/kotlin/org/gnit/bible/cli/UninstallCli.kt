@@ -26,7 +26,7 @@ class UninstallCli(
         val downloaded = runCatching { am.downloadedTranslationCodes() }
             .getOrDefault(emptyList())
             .toMutableSet()
-        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode(bible)
+        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode()
 
         for (translationCode in requestedCodes) {
             if (translationCode !in downloaded) {

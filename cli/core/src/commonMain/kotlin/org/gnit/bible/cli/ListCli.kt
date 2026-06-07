@@ -4,10 +4,8 @@ import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
-import org.gnit.bible.InstallationState
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
 
@@ -23,17 +21,21 @@ internal fun formatTranslationEntries(entries: List<TranslationEntry>): List<Str
 
     fun String.byteLength(): Int = this.encodeToByteArray().size
 
+    /**
+     *  Author of bbl use Ghostty as main terminal and following adjustment aligns list well for now.
+     *
+     *  ref: [ghostty/issues/5637](https://github.com/ghostty-org/ghostty/issues/5637)
+     */
     fun Translation.byteDiff(): Int = when (this.code) {
-        // following works on Ghostty
         "th1971" -> -5
-        "irvhin" -> -9
-        "irvben" -> -10
-        "irvmar" -> -8
-        "irvtel" -> -13
-        "irvtam" -> -12
-        "irvguj" -> -9
-        "irvurd" -> -8
-        "npiulb" -> -3
+        "irvhin" -> -4
+        "irvben" -> -6
+        "irvmar" -> -3
+        "irvtel" -> -10
+        "irvtam" -> -7
+        "irvguj" -> -5
+        "irvurd" -> -5
+        "npiulb" -> -1
         else -> 0
     }
 
@@ -60,8 +62,6 @@ class ListCli(
         return "List bibles/translations"
     }
 
-    private val logger = KotlinLogging.logger {}
-
     private val target by argument(help = "What to list: bibles/translations or books")
         .default("bibles")
 
@@ -69,7 +69,6 @@ class ListCli(
 
         when (target.lowercase()) {
             "bible", "bibles", "translation", "translations", "version", "versions" -> {
-                val am = bible.assetManager
                 val downloadedEntries = CliTranslationCatalog.downloadedTranslationEntries(bible)
                 val downloadableEntries = CliTranslationCatalog.downloadableTranslationEntries(bible)
 
