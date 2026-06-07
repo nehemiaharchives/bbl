@@ -7,12 +7,12 @@ import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
+import org.gnit.bible.CONFIG_FILE_NAME
 import org.gnit.bible.LoggingSetup
 import org.gnit.bible.SearchQueryText
 import org.gnit.bible.Books
 import org.gnit.bible.BblVersion
 import org.gnit.bible.InMemorySettings
-import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -29,6 +29,7 @@ class ConfigCliTest {
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private var originalSettings = platform.overrideSettings
+    private var originalConfigSettings = platform.overrideConfigSettings
 
     @BeforeTest
     fun setup(){
@@ -36,14 +37,16 @@ class ConfigCliTest {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
         originalSettings = platform.overrideSettings
+        originalConfigSettings = platform.overrideConfigSettings
         platform.overrideFileSystem = fakeFs
         platform.overridePlatformPackDir = "/tmp/bbl_cli_config_test_dir"
         platform.overrideSettings = InMemorySettings()
+        platform.overrideConfigSettings = null
         platform.settings.clear()
 
         val packDirPath = platform.packDir.toPath()
         bblDir = packDirPath.parent!!
-        settingsPath = bblDir.resolve(SETTINGS_FILE_NAME)
+        settingsPath = bblDir.resolve(CONFIG_FILE_NAME)
 
         val am = AssetManagerImpl(platform = platform, fileSystem = fakeFs)
         bible = Bible(am)
@@ -55,6 +58,7 @@ class ConfigCliTest {
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
         platform.overrideSettings = originalSettings
+        platform.overrideConfigSettings = originalConfigSettings
     }
 
     @Test
@@ -99,6 +103,26 @@ class ConfigCliTest {
         val result = command.test("config randomlyShow invalidValue")
         assertTrue(result.statusCode != 0, "Command should fail on invalid randomlyShow")
         assertTrue(result.stderr.isNotBlank(), "Should show allowed values")
+    }
+
+    @Test
+    fun configWriteThenReadSearchResult() {
+        val command = Bbl(bible)
+
+        val write = command.test("config searchResult 10")
+        assertTrue(write.statusCode == 0, "Write should succeed. stderr=${write.stderr}")
+
+        val read = command.test("config searchResult")
+        assertTrue(read.statusCode == 0, "Read should succeed. stderr=${read.stderr}")
+        assertTrue(read.stdout.trim() == "10", "Expected searchResult output 10, got: ${read.stdout}")
+    }
+
+    @Test
+    fun configWriteInvalidSearchResultFails() {
+        val command = Bbl(bible)
+        val result = command.test("config searchResult 0")
+        assertTrue(result.statusCode != 0, "Command should fail on invalid searchResult")
+        assertTrue(result.stderr.contains("positive integer"), "Should show allowed value shape")
     }
 
     @Test

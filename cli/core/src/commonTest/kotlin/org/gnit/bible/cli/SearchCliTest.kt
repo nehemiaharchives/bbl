@@ -35,6 +35,7 @@ class SearchCliTest {
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private var originalSettings = platform.overrideSettings
+    private var originalConfigSettings = platform.overrideConfigSettings
     private lateinit var fakeFs: FakeFileSystem
     private lateinit var bible: Bible
 
@@ -43,12 +44,14 @@ class SearchCliTest {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
         originalSettings = platform.overrideSettings
+        originalConfigSettings = platform.overrideConfigSettings
         fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = testPackDir
         platform.overrideFileSystem = fakeFs
         platform.overrideSettings = InMemorySettings()
-        platform.settings.remove(ConfigKey.HEADER.value)
-        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.overrideConfigSettings = null
+        platform.configSettings.remove(ConfigKey.HEADER.value)
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
 
         val packDirPath = platform.packDir.toPath()
         fakeFs.deleteRecursively(packDirPath, mustExist = false)
@@ -71,6 +74,7 @@ class SearchCliTest {
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
         platform.overrideSettings = originalSettings
+        platform.overrideConfigSettings = originalConfigSettings
     }
 
     @Test
@@ -78,6 +82,7 @@ class SearchCliTest {
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)
             assertEquals("webus", it.translation.code)
+            assertEquals(100, it.verses)
             assertEquals(null, it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
@@ -85,6 +90,20 @@ class SearchCliTest {
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search uses configured search result count`() {
+        platform.configSettings.putInt(ConfigKey.SEARCH_RESULT.value, 10)
+        val backend = RecordingBackendFactory {
+            assertEquals(10, it.verses)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus")
 
         assertEquals(0, result.statusCode)
         assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)

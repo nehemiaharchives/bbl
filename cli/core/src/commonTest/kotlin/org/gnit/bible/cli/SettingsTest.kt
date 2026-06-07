@@ -11,9 +11,9 @@ import org.gnit.bible.LoggingSetup
 import org.gnit.bible.SearchQueryText
 import org.gnit.bible.Books
 import org.gnit.bible.BblVersion
+import org.gnit.bible.CONFIG_FILE_NAME
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.InMemorySettings
-import org.gnit.bible.SETTINGS_FILE_NAME
 import org.gnit.bible.getPlatform
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -30,21 +30,24 @@ class SettingsTest {
     private var originalPackDir: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private var originalSettings = platform.overrideSettings
+    private var originalConfigSettings = platform.overrideConfigSettings
 
     @BeforeTest
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
         originalSettings = platform.overrideSettings
+        originalConfigSettings = platform.overrideConfigSettings
         // Integration-like: ZipBibleResourcesReader reads real zip files from the OS filesystem.
         systemFs = FileSystem.SYSTEM
         platform.overrideFileSystem = null
         platform.overridePlatformPackDir = "/tmp/bbl_cli_settings_test_dir"
         platform.overrideSettings = InMemorySettings()
+        platform.overrideConfigSettings = null
 
         // compute settings path using the same layout as Platform implementations
         val packDirPath = platform.packDir.toPath()
-        settingsPath = packDirPath.parent!!.resolve(SETTINGS_FILE_NAME)
+        settingsPath = packDirPath.parent!!.resolve(CONFIG_FILE_NAME)
 
         // install a minimal JC pack into the temp pack dir (CLI no longer embeds packs)
         systemFs.createDirectories(packDirPath)
@@ -64,6 +67,7 @@ class SettingsTest {
         platform.overridePlatformPackDir = originalPackDir
         platform.overrideFileSystem = originalFileSystem
         platform.overrideSettings = originalSettings
+        platform.overrideConfigSettings = originalConfigSettings
     }
 
     @Test
@@ -75,7 +79,7 @@ class SettingsTest {
         assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
 
         // persisted default translation
-        assertEquals("jc", bible.assetManager.platform.settings.getString(ConfigKey.TRANSLATION.value, ""))
+        assertEquals("jc", bible.assetManager.platform.configSettings.getString(ConfigKey.TRANSLATION.value, ""))
 
         // verify FakeFileSystem is used
         assertEquals(systemFs, bible.assetManager.fileSystem)

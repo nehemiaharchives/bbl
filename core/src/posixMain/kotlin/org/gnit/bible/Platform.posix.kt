@@ -27,10 +27,13 @@ class PosixPlatform : Platform() {
         "$home/$bblDir/$packBaseDir"
     }
 
-    override val platformSettings: Settings by lazy {
+    override val platformSettings: Settings
+        get() = platformConfigSettings
+
+    override val platformConfigSettings: Settings by lazy {
         val home = homeDir()
-        val settingsPath = home / "$bblDir/$SETTINGS_FILE_NAME"
-        PosixSettings(fileSystem = fileSystem, path = settingsPath)
+        val configPath = home / "$bblDir/$CONFIG_FILE_NAME"
+        JsonFileSettings(fileSystem = fileSystem, path = configPath)
     }
 }
 

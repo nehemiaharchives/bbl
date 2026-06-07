@@ -31,8 +31,11 @@ class MingwPlatform : Platform() {
         (windowsHomeDir() / bblDir / packBaseDir).toString()
     }
 
-    override val platformSettings: Settings by lazy {
-        CommonFileSettings(fileSystem = fileSystem, path = windowsHomeDir() / bblDir / SETTINGS_FILE_NAME)
+    override val platformSettings: Settings
+        get() = platformConfigSettings
+
+    override val platformConfigSettings: Settings by lazy {
+        JsonFileSettings(fileSystem = fileSystem, path = windowsHomeDir() / bblDir / CONFIG_FILE_NAME)
     }
 }
 

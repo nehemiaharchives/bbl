@@ -79,9 +79,11 @@ kotlin {
         macosArm64Test.get().dependsOn(posixTest)
         linuxX64Main.get().dependsOn(posixMain)
         linuxX64Test.get().dependsOn(posixTest)
-
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)
+
+        jvmMain.get().dependsOn(commonMain)
+        jvmTest.get().dependsOn(commonTest)
 
         val iosMain by creating {
             dependsOn(nativeMain)

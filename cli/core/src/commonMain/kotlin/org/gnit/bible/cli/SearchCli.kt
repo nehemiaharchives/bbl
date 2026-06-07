@@ -5,7 +5,6 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
@@ -24,7 +23,7 @@ class SearchCli(
     private val chapter by option("--chapter", help = "chapter number").convert { it.toInt() }
     private val endChapter by option("--end-chapter", help = "end chapter number").convert { it.toInt() }
     private val categoryKeys by option("--category", help = "category key").multiple()
-    private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }.default(100)
+    private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }
 
     override fun run() {
         val inlineFilters = SearchCliSupport.parseInlineFilters(termParts, bible)
@@ -52,7 +51,7 @@ class SearchCli(
             bookNumber = bookNumber,
             startChapter = startChapter,
             endChapter = endChapterValue,
-            verses = verses,
+            verses = verses ?: bible.searchResultFromSettings(),
             filters = requestFilters,
             categoryKeys = requestCategoryKeys
         )

@@ -7,7 +7,7 @@ const val BBLPACKS_CLASS_PATH_ROOT = BBL_RESOURCE_PACKS_ROOT
 val DOWNLOADABLE_BIBLE_BASE_URL = BblVersion.serverResourceUrl("bblpacks")
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
-const val SETTINGS_FILE_NAME = "config.properties"
+const val CONFIG_FILE_NAME = "config.json"
 
 val webusGenesisChapterOne = """
             1 In the beginning, God created the heavens and the earth.

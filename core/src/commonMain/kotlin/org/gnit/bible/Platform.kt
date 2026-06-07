@@ -40,6 +40,14 @@ abstract class Platform {
 
     protected abstract val platformSettings: Settings
 
+    var overrideConfigSettings: Settings? = null
+
+    open val configSettings: Settings
+        get() = overrideConfigSettings ?: overrideSettings ?: platformConfigSettings
+
+    protected open val platformConfigSettings: Settings
+        get() = platformSettings
+
     fun isIos() = name.startsWith("iOS")
     fun isAndroid() = name.startsWith("Android")
 }

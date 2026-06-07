@@ -4,6 +4,7 @@ enum class RandomlyShow { verse, chapter }
 
 enum class ConfigKey(val value: String, val defaultValue: String, val description: String){
     TRANSLATION("translation", SupportedTranslation.WEBUS.code, "default translation of bible, use code e.g. webus, jc"),
+    SEARCH_RESULT("searchResult", 100.toString(), "default number of search result verses"),
     RANDOMLY_SHOW("randomlyShow", RandomlyShow.verse.toString(), "[bbl rand] option to show a verse or a chapter"),
     HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not")
 }
@@ -83,20 +84,28 @@ class Bible(
     }
 
     fun defaultTranslationFromSettings(): Translation{
-        val translationCode = assetManager.platform.settings.getStringOrNull(ConfigKey.TRANSLATION.value) ?: "webus"
+        val translationCode = assetManager.platform.configSettings.getStringOrNull(ConfigKey.TRANSLATION.value) ?: ConfigKey.TRANSLATION.defaultValue
         val translation = availableTranslations().firstOrNull { it.code == translationCode }
             ?: availableTranslations().firstOrNull()
             ?: SupportedTranslation.WEBUS.translation
         return translation
     }
 
+    fun searchResultFromSettings(): Int {
+        return assetManager.platform.configSettings.getInt(
+            ConfigKey.SEARCH_RESULT.value,
+            ConfigKey.SEARCH_RESULT.defaultValue.toInt()
+        )
+    }
+
     fun randomlyShowFromSettings(): RandomlyShow {
-        val randomlyShowString = assetManager.platform.settings.getStringOrNull(ConfigKey.RANDOMLY_SHOW.value) ?: "verse"
+        val randomlyShowString = assetManager.platform.configSettings.getStringOrNull(ConfigKey.RANDOMLY_SHOW.value)
+            ?: ConfigKey.RANDOMLY_SHOW.defaultValue
         return RandomlyShow.valueOf(randomlyShowString)
     }
 
     fun showHeaderFromSettings(): Boolean {
-        val raw = assetManager.platform.settings.getStringOrNull(ConfigKey.HEADER.value) ?: ConfigKey.HEADER.defaultValue
+        val raw = assetManager.platform.configSettings.getStringOrNull(ConfigKey.HEADER.value) ?: ConfigKey.HEADER.defaultValue
         return raw.toBooleanStrictOrNull() ?: false
     }
 
@@ -144,7 +153,6 @@ class Bible(
             val bookString = book.joinToString(separator = " ") { it.lowercase() }
 
             val bookNumber = Books.bookNumber(bookString)
-                ?: throw IllegalArgumentException("Unknown book name: $bookString")
 
             val chapterVerseSplit = chapterVerse.split(":")
 

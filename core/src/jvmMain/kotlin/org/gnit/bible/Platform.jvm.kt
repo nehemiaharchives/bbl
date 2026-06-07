@@ -2,7 +2,6 @@ package org.gnit.bible
 
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import okio.Path.Companion.toPath
 import java.nio.file.FileSystems
 
@@ -15,10 +14,13 @@ class JVMPlatform : Platform() {
         "$home${s}$bblDir${s}$packBaseDir"
     }
 
-    override val platformSettings: Settings by lazy {
+    override val platformSettings: Settings
+        get() = platformConfigSettings
+
+    override val platformConfigSettings: Settings by lazy {
         val home = System.getProperty("user.home") ?: error("user.home not defined")
-        val settingsPath = "$home${FileSystems.getDefault().separator}$bblDir${FileSystems.getDefault().separator}$SETTINGS_FILE_NAME".toPath()
-        JvmFileSettings(fileSystem = fileSystem, path = settingsPath)
+        val configPath = "$home${FileSystems.getDefault().separator}$bblDir${FileSystems.getDefault().separator}$CONFIG_FILE_NAME".toPath()
+        JsonFileSettings(fileSystem = fileSystem, path = configPath)
     }
 }
 
@@ -26,4 +28,4 @@ private val cachedPlatform: JVMPlatform by lazy { JVMPlatform() }
 
 actual fun getPlatform(platformContext: Any?): Platform = cachedPlatform
 
-actual fun createPlatformHttpClient(): HttpClient = HttpClient(CIO)
+actual fun createPlatformHttpClient(): HttpClient = HttpClient()
