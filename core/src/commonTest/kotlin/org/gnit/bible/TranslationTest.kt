@@ -18,7 +18,7 @@ class TranslationTest : ResourcesTestBase() {
     }
 
     val webusJsonString = """
-        {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","bblArtifactCompatibilityVersion":"4.0.0"}
+        {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"4.0.0"}
         """.trimIndent()
 
     @Test
@@ -35,8 +35,8 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun translationDefaultsToCurrentBblVersion() {
-        assertEquals(BblVersion.artifactCompatibilityVersion, Translation.webus.bblArtifactCompatibilityVersion)
-        assertTrue(Translation.webus.toJson().contains("\"bblArtifactCompatibilityVersion\":\"${BblVersion.artifactCompatibilityVersion}\""))
+        assertEquals(BblVersion.version, Translation.webus.version)
+        assertTrue(Translation.webus.toJson().contains("\"version\":\"${BblVersion.version}\""))
     }
 
     @Test
@@ -44,9 +44,9 @@ class TranslationTest : ResourcesTestBase() {
         val translationList = listOf(Translation.webus, Translation.kjv, Translation.rvr09)
         val actual = translationList.toJson()
         val expected = """
-            [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","bblArtifactCompatibilityVersion":"4.0.0"},
-            {"code":"kjv","languageCode":"en","englishName":"King James Version","nativeName":"King James Version","year":1611,"copyright":"Public Domain","bblArtifactCompatibilityVersion":"4.0.0"},
-            {"code":"rvr09","languageCode":"es","englishName":"Reina-Valera","nativeName":"Reina-Valera","year":1909,"copyright":"Public Domain","bblArtifactCompatibilityVersion":"4.0.0"}]
+            [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"4.0.0"},
+            {"code":"kjv","languageCode":"en","englishName":"King James Version","nativeName":"King James Version","year":1611,"copyright":"Public Domain","version":"4.0.0"},
+            {"code":"rvr09","languageCode":"es","englishName":"Reina-Valera","nativeName":"Reina-Valera","year":1909,"copyright":"Public Domain","version":"4.0.0"}]
         """.trimIndent().replace("\n", "").replace(" ", "")
         assertEquals(expected, actual.replace("\n", "").replace(" ", ""))
     }

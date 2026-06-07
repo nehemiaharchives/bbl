@@ -72,7 +72,7 @@ class ExternalSearchBackend(
             )
         }
 
-        val expected = BblVersion.artifactCompatibilityVersionLine()
+        val expected = BblVersion.version
         val actual = result.stdout.trim()
         if (actual != expected) {
             val actualDisplay = actual.ifBlank { "<blank>" }

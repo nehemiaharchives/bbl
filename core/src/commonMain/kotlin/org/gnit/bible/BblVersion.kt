@@ -6,27 +6,20 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 object BblVersion {
+    private val manifestJson = Json { ignoreUnknownKeys = true }
     /**
      * The App version number. This string will be used as git tag for the release, note no "v" prefix, just the version number.
      */
-    const val cliVersion = "4.0.0"
+    val version = "4.0.0"
 
     const val downloadRepository = "nehemiaharchives/bbl"
     const val legacyDownloadRepository = "nehemiaharchives/bbl-kmp"
     private const val serverResourcesPath = "bbl/resources"
 
-    /**
-     * The version written into pack manifests and used by helper compatibility checks.
-     * For the simplified publishing model, this intentionally matches `cliVersion`.
-     */
-    const val artifactCompatibilityVersion = cliVersion
+    val releaseDownloadBaseUrl = "https://github.com/$downloadRepository/releases/download/$version"
+    val serverResourcesBaseUrl = "https://raw.githubusercontent.com/$downloadRepository/$version/$serverResourcesPath"
 
-    const val releaseDownloadBaseUrl = "https://github.com/$downloadRepository/releases/download/$cliVersion"
-    const val serverResourcesBaseUrl = "https://raw.githubusercontent.com/$downloadRepository/$cliVersion/$serverResourcesPath"
-
-    fun searchHelperVersionLine(binaryName: String): String = "$binaryName version $cliVersion"
-
-    fun artifactCompatibilityVersionLine(): String = artifactCompatibilityVersion
+    fun searchHelperVersionLine(binaryName: String): String = "$binaryName version $version"
 
     fun serverResourceUrl(relativePath: String): String = "$serverResourcesBaseUrl/$relativePath"
 
@@ -47,9 +40,11 @@ object BblVersion {
         return if (fallbackUrl == url) listOf(url) else listOf(url, fallbackUrl)
     }
 
-    fun packManifestArtifactCompatibilityVersionOrNull(manifestJson: String): String? {
+    fun packManifestVersionOrNull(manifestJson: String): String? {
         return runCatching {
-            Json.parseToJsonElement(manifestJson).jsonObject["bblArtifactCompatibilityVersion"]?.jsonPrimitive?.contentOrNull
+            val jsonElement = Json.parseToJsonElement(manifestJson)
+            jsonElement.jsonObject["version"]?.jsonPrimitive?.contentOrNull
+                ?: jsonElement.jsonObject["bblArtifactCompatibilityVersion"]?.jsonPrimitive?.contentOrNull
         }.getOrNull()
     }
 }

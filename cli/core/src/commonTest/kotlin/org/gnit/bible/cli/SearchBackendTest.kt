@@ -61,7 +61,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -103,7 +103,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -149,7 +149,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -191,7 +191,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -233,7 +233,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -279,7 +279,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -323,7 +323,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--artifact-compat-version") {
-                ProcessResult(0, BblVersion.artifactCompatibilityVersionLine(), "")
+                ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(2, "", "boom")
             }
@@ -391,7 +391,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val message = error.message ?: ""
         assertTrue(message.contains("artifact compatibility version mismatch"))
-        assertTrue(message.contains(BblVersion.artifactCompatibilityVersion))
+        assertTrue(message.contains(BblVersion.version))
     }
 
     private class FakeProcessRunner(

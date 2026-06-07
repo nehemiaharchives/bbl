@@ -46,12 +46,6 @@ data class Translation(
     val copyright: String,
 
     /**
-     * Version constraint shared by bbl CLI, search helper binaries, and downloadable pack manifests.
-     */
-    @EncodeDefault
-    val bblArtifactCompatibilityVersion: String = BblVersion.artifactCompatibilityVersion,
-
-    /**
      * In some language, name of the books are translated differently according to the translation.
      * For example, in `jc` (Japanese, Colloquial 1955) the book of ecclesiastes is translated as "伝道の書",
      * while others translate to "コヘレトの言葉" or "伝道者の書".
@@ -61,6 +55,9 @@ data class Translation(
      * eg. `val customBookNames = "Genesis,Exodus,Leviticus,x,x,x,x,x,x, ... ,Revelation"`
      */
     val customBookNamesConcat: String? = null,
+
+    @EncodeDefault
+    val version: String = BblVersion.version,
 ) {
 
     val language: Language

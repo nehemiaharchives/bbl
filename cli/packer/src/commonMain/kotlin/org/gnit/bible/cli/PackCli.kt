@@ -110,7 +110,7 @@ class PackCli(
             Translation.fromJson(rawManifest)
         } catch (e: Throwable) {
             throw IllegalStateException("Error while parsing manifest $manifestPath: ${e.message}", e)
-        }.copy(bblArtifactCompatibilityVersion = BblVersion.artifactCompatibilityVersion)
+        }.copy(version = BblVersion.version)
 
         fileSystem.write(manifestPath) { writeUtf8(translation.toJson()) }
 

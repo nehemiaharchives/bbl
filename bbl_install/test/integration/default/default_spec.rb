@@ -15,7 +15,6 @@ bin_dir = attrs['bin_dir']
 helper_bin_dir = attrs['helper_bin_dir']
 bbl_bin = attrs['bbl_binary_path']
 version_file = attrs['version_file_path']
-artifact_compat_file = attrs['artifact_compatibility_version_file_path']
 installed_pack_codes = attrs['pack_names'].map { |n| n.delete_suffix('.zip') }
 installed_search_helpers = attrs['helper_bin_names']
 sep = windows ? '\\' : '/'
@@ -23,7 +22,6 @@ eol = windows ? "\r\n" : "\n"
 search_single_term = windows ? 'Jesus Christ' : 'Christ'
 
 expected_version = file(version_file).content.to_s.strip
-expected_artifact_compat = file(artifact_compat_file).content.to_s.strip
 
 if windows
   exec = lambda do |path, args|
@@ -47,7 +45,7 @@ if windows
       '  $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)',
       '  try {',
       '    $manifest = $reader.ReadToEnd() | ConvertFrom-Json',
-      '    Write-Output $manifest.bblArtifactCompatibilityVersion',
+      '    Write-Output $manifest.version',
       '  } finally { $reader.Dispose() }',
       '} finally { $archive.Dispose() }',
     ].join("\n")
@@ -64,7 +62,7 @@ else
     return nil if zip_content.nil? || zip_content.empty?
     Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
       while (entry = zip.get_next_entry)
-        return JSON.parse(zip.read)['bblArtifactCompatibilityVersion'] if entry.name == manifest_name
+        return JSON.parse(zip.read)['version'] if entry.name == manifest_name
       end
     end
     nil
@@ -110,12 +108,6 @@ describe file(version_file) do
   its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
 end
 
-describe file(artifact_compat_file) do
-  it { should exist }
-  it { should be_file }
-  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
-end
-
 describe command(bbl.call('-v')) do
   its('exit_status') { should eq 0 }
   its('stdout') { should include("bbl version #{expected_version}") }
@@ -153,7 +145,7 @@ installed_search_helpers.each do |name|
 
   describe command(helper_run.call(path, '--artifact-compat-version')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{expected_artifact_compat}#{eol}") }
+    its('stdout') { should eq("#{expected_version}#{eol}") }
   end
 end
 
@@ -161,14 +153,16 @@ installed_pack_codes.each do |code|
   pack_file = "#{pack_dir}#{sep}#{code}.zip"
   manifest = "#{code}.0.manifest.json"
 
-  describe "#{code}.zip manifest bblArtifactCompatibilityVersion" do
-    if windows
+  if windows
+    describe "#{code}.zip manifest version" do
       subject(:bbl_version) { zip_manifest_version.call(pack_file, manifest) }
-    else
-      subject(:bbl_version) { zip_manifest_version.call(file(pack_file).content, manifest) }
+      it { should eq(expected_version) }
     end
-
-    it { should eq(expected_artifact_compat) }
+  else
+    describe "#{code}.zip manifest version" do
+      subject(:bbl_version) { zip_manifest_version.call(file(pack_file).content, manifest) }
+      it { should eq(expected_version) }
+    end
   end
 end
 

@@ -46,7 +46,7 @@ class InstallCli(
             .toSet()
 
         incompatibleInstalledCodes.forEach {
-            echo("$it installed pack is incompatible with bbl ${BblVersion.artifactCompatibilityVersion}, reinstalling")
+            echo("$it installed pack is incompatible with bbl ${BblVersion.version}, reinstalling")
             runCatching { am.delete(it) }
         }
 

@@ -41,7 +41,7 @@ open class SearchHelperCli(
         }
 
         if (artifactCompatibilityVersionFlag) {
-            echo(BblVersion.artifactCompatibilityVersionLine())
+            echo(BblVersion.version)
             return
         }
 

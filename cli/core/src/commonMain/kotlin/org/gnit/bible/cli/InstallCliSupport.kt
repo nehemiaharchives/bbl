@@ -6,16 +6,16 @@ import org.gnit.bible.ZipBibleResourcesReader
 import org.gnit.bible.BblVersion
 
 object InstallCliSupport {
-    fun installedPackCompatibilityVersionOrNull(bible: Bible, translationCode: String): String? {
+    fun installedPackVersionOrNull(bible: Bible, translationCode: String): String? {
         val am = bible.assetManager
         val manifestJson = runCatching {
             ZipBibleResourcesReader(platform = am.platform, fileSystem = am.fileSystem).getManifestJson(translationCode)
         }.getOrNull() ?: return null
-        return BblVersion.packManifestArtifactCompatibilityVersionOrNull(manifestJson)
+        return BblVersion.packManifestVersionOrNull(manifestJson)
     }
 
     fun isInstalledPackCompatible(bible: Bible, translationCode: String): Boolean {
-        return installedPackCompatibilityVersionOrNull(bible, translationCode) == BblVersion.artifactCompatibilityVersion
+        return installedPackVersionOrNull(bible, translationCode) == BblVersion.version
     }
 
     fun validateInstalledPackVersionOrThrow(bible: Bible, translationCode: String) {
@@ -27,12 +27,12 @@ object InstallCliSupport {
             throw CliktError("Installing $translationCode failed: unable to read pack manifest: ${error.message}")
         }
 
-        val packVersion = BblVersion.packManifestArtifactCompatibilityVersionOrNull(manifestJson)
-        if (packVersion != BblVersion.artifactCompatibilityVersion) {
+        val packVersion = BblVersion.packManifestVersionOrNull(manifestJson)
+        if (packVersion != BblVersion.version) {
             runCatching { am.delete(translationCode) }
             val actual = packVersion ?: "<missing>"
             throw CliktError(
-                "Installing $translationCode failed: pack manifest bblArtifactCompatibilityVersion $actual is incompatible with bbl ${BblVersion.artifactCompatibilityVersion}"
+                "Installing $translationCode failed: pack manifest version $actual is incompatible with bbl ${BblVersion.version}"
             )
         }
     }

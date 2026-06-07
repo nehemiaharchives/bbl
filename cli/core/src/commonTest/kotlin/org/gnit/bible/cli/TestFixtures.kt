@@ -54,12 +54,12 @@ object TestFixtures {
 
     val bibleListJson = """
         [
-          {"code":"kttv","languageCode":"vi","englishName":"Vietnamese Bible: Easy-to-Read Version","nativeName":"Kinh Thánh Tiếng Việt","year":2011,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"},
-          {"code":"th1971","languageCode":"th","englishName":"Thai Bible 1971","nativeName":"พระคริสตธรรมคัมภีร์ ฉบับ1971","year":1971,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"},
-          {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"},
-          {"code":"jc","languageCode":"ja","englishName":"Japanese Colloquial Bible","nativeName":"口語訳","year":1955,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"},
-          {"code":"ubg","languageCode":"pl","englishName":"Updated Gdańsk Bible","nativeName":"Uwspółcześniona Biblia Gdańska","year":2017,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"},
-          {"code":"ubio","languageCode":"uk","englishName":"Ukrainian Bible","nativeName":"Українська Біблія","year":1905,"copyright":"Public Domain","BblVersion.artifactCompatibilityVersion":"${BblVersion.artifactCompatibilityVersion}"}
+          {"code":"kttv","languageCode":"vi","englishName":"Vietnamese Bible: Easy-to-Read Version","nativeName":"Kinh Thánh Tiếng Việt","year":2011,"copyright":"Public Domain","version":"${BblVersion.version}"},
+          {"code":"th1971","languageCode":"th","englishName":"Thai Bible 1971","nativeName":"พระคริสตธรรมคัมภีร์ ฉบับ1971","year":1971,"copyright":"Public Domain","version":"${BblVersion.version}"},
+          {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"${BblVersion.version}"},
+          {"code":"jc","languageCode":"ja","englishName":"Japanese Colloquial Bible","nativeName":"口語訳","year":1955,"copyright":"Public Domain","version":"${BblVersion.version}"},
+          {"code":"ubg","languageCode":"pl","englishName":"Updated Gdańsk Bible","nativeName":"Uwspółcześniona Biblia Gdańska","year":2017,"copyright":"Public Domain","version":"${BblVersion.version}"},
+          {"code":"ubio","languageCode":"uk","englishName":"Ukrainian Bible","nativeName":"Українська Біблія","year":1905,"copyright":"Public Domain","version":"${BblVersion.version}"}
         ]
     """.trimIndent()
 
@@ -113,7 +113,7 @@ object TestFixtures {
     }
 
     fun bblInstallMockEngine() = MockEngine { request ->
-        val releaseVersion = BblVersion.cliVersion
+        val releaseVersion = BblVersion.version
         val path = request.url.encodedPath
         val helperName = path.substringAfterLast('/')
         val helperBytes = "$helperName helper".encodeToByteArray()
@@ -159,7 +159,7 @@ object TestFixtures {
     }
 
     fun downloadableTranslationsListMockEngine(json: String) = MockEngine { request ->
-        val releaseVersion = BblVersion.cliVersion
+        val releaseVersion = BblVersion.version
         when (request.url.encodedPath) {
             BblVersion.serverResourcePath("nehemiaharchives/bbl", releaseVersion, "bbllist.json") -> respond(
                 content = json,

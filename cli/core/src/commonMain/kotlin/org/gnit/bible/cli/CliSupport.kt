@@ -9,7 +9,7 @@ import org.gnit.bible.BblVersion
 
 object CliSupport {
     val versionOutput = """
-        bbl version ${BblVersion.cliVersion}
+        bbl version ${BblVersion.version}
         While you are in front of your console, you are not alone. God is with you.
         Always go back to the Word of God especially in difficulty.
     """.trimIndent()

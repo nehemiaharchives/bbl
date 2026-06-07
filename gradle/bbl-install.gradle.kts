@@ -37,102 +37,34 @@ val bblInstallBinaries = listOf(
 
 val bblVersionFile = layout.projectDirectory.file("core/src/commonMain/kotlin/org/gnit/bible/BblVersion.kt")
 
-val bblCliVersionProvider = providers.fileContents(
+val bblVersionProvider = providers.fileContents(
     bblVersionFile
 ).asText.map { source ->
     listOf(
-        Regex("""const val bblCliVersion = "([^"]+)""""),
-        Regex("""const val cliVersion = "([^"]+)"""")
+        Regex("""val version = "([^"]+)"""")
     ).firstNotNullOfOrNull { regex ->
         regex.find(source)?.groupValues?.get(1)
     }
-        ?: error("Unable to read bblCliVersion from BblVersion.kt")
-}
-
-val bblArtifactCompatibilityVersionProvider = bblCliVersionProvider
-
-val bblPacksDirectory = layout.projectDirectory.dir("resources/bblpacks")
-
-tasks.register("verifyBblPackVersions") {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Verify bblpack zip manifests match bblArtifactCompatibilityVersion."
-
-    inputs.file(bblVersionFile)
-    inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
-    inputs.files(fileTree(bblPacksDirectory) {
-        include("*.zip")
-    })
-
-    val expectedVersionProvider = bblArtifactCompatibilityVersionProvider
-    val packDirectory = bblPacksDirectory.asFile
-    doLast {
-        val expectedVersion = expectedVersionProvider.get()
-        val zipFiles = packDirectory.listFiles { file -> file.isFile && file.extension == "zip" }
-            ?.sortedBy { it.name }
-            .orEmpty()
-
-        require(zipFiles.isNotEmpty()) {
-            "No bblpack zips found in ${packDirectory.absolutePath}"
-        }
-
-        val versionRegex = Regex(""""bblArtifactCompatibilityVersion"\s*:\s*"([^"]+)"""")
-        val failures = mutableListOf<String>()
-
-        zipFiles.forEach { zipFile ->
-            java.util.zip.ZipFile(zipFile).use { zip ->
-                val manifestEntry = zip.entries().asSequence()
-                    .firstOrNull { it.name.endsWith(".0.manifest.json") }
-                if (manifestEntry == null) {
-                    failures.add("${zipFile.name}: missing .0.manifest.json")
-                    return@use
-                }
-
-                val manifestJson = zip.getInputStream(manifestEntry).bufferedReader().use { it.readText() }
-                val actualVersion = versionRegex.find(manifestJson)?.groupValues?.get(1)
-                if (actualVersion != expectedVersion) {
-                    failures.add("${zipFile.name}: bblArtifactCompatibilityVersion ${actualVersion ?: "<missing>"} != $expectedVersion")
-                }
-            }
-        }
-
-        if (failures.isNotEmpty()) {
-            throw GradleException(
-                "Bblpack versions are not compatible with bbl artifact compatibility version $expectedVersion:\n" +
-                    failures.joinToString(separator = "\n") { " - $it" } +
-                    "\nRegenerate packs with bbl pack before staging fixtures or publishing."
-            )
-        }
-    }
+        ?: error("Unable to read version from BblVersion.kt")
 }
 
 val bblInstallVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/version.txt")
-val bblInstallArtifactCompatibilityVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/artifact_compatibility_version.txt")
 val bblInstallCookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt")
-val bblInstallCookbookArtifactCompatibilityVersionFile = layout.projectDirectory.file("bbl_install/files/artifact_compatibility_version.txt")
 
 val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
     notCompatibleWithConfigurationCache("Writes staged cookbook version files using script-scoped providers.")
-    inputs.property("bblCliVersion", bblCliVersionProvider)
-    inputs.property("bblArtifactCompatibilityVersion", bblArtifactCompatibilityVersionProvider)
-    outputs.files(bblInstallVersionFixtureFile, bblInstallArtifactCompatibilityVersionFixtureFile)
-    outputs.files(bblInstallCookbookVersionFile, bblInstallCookbookArtifactCompatibilityVersionFile)
+    inputs.property("bblVersion", bblVersionProvider)
+    outputs.files(bblInstallVersionFixtureFile, bblInstallCookbookVersionFile)
 
     doLast {
+        val version = bblVersionProvider.get()
         bblInstallVersionFixtureFile.get().asFile.apply {
             parentFile.mkdirs()
-            writeText("${bblCliVersionProvider.get()}\n")
-        }
-        bblInstallArtifactCompatibilityVersionFixtureFile.get().asFile.apply {
-            parentFile.mkdirs()
-            writeText("${bblArtifactCompatibilityVersionProvider.get()}\n")
+            writeText("$version\n")
         }
         bblInstallCookbookVersionFile.asFile.apply {
             parentFile.mkdirs()
-            writeText("${bblCliVersionProvider.get()}\n")
-        }
-        bblInstallCookbookArtifactCompatibilityVersionFile.asFile.apply {
-            parentFile.mkdirs()
-            writeText("${bblArtifactCompatibilityVersionProvider.get()}\n")
+            writeText("$version\n")
         }
     }
 }
@@ -157,7 +89,6 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
             }
 
             if (binary.includePacks) {
-                dependsOn("verifyBblPackVersions")
                 from(rootProject.layout.projectDirectory.dir("resources/bblpacks")) {
                     include("*.zip")
                 }

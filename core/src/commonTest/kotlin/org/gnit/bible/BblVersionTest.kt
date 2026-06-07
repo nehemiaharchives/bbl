@@ -7,28 +7,15 @@ import kotlin.test.assertFalse
 class BblVersionTest {
 
     @Test
-    fun bblCliVersionUsesBareNumericTag() {
-        assertFalse(BblVersion.cliVersion.startsWith("v"))
+    fun bblVersionUsesBareNumericTag() {
+        assertFalse(BblVersion.version.startsWith("v"))
     }
 
     @Test
-    fun bblArtifactCompatibilityVersionUsesBareNumericTag() {
-        assertFalse(BblVersion.artifactCompatibilityVersion.startsWith("v"))
-    }
-
-    @Test
-    fun searchHelperVersionLineUsesCliVersion() {
+    fun searchHelperVersionLineUsesVersion() {
         assertEquals(
-            "bbl-search-kuromoji version ${BblVersion.cliVersion}",
+            "bbl-search-kuromoji version ${BblVersion.version}",
             BblVersion.searchHelperVersionLine("bbl-search-kuromoji")
-        )
-    }
-
-    @Test
-    fun searchHelperArtifactCompatibilityVersionLineIsMachineReadable() {
-        assertEquals(
-            BblVersion.artifactCompatibilityVersion,
-            BblVersion.artifactCompatibilityVersionLine()
         )
     }
 
@@ -47,8 +34,24 @@ class BblVersionTest {
     @Test
     fun searchHelperUrlUsesPinnedReleaseTag() {
         assertEquals(
-            "https://github.com/${BblVersion.downloadRepository}/releases/download/${BblVersion.cliVersion}",
+            "https://github.com/${BblVersion.downloadRepository}/releases/download/${BblVersion.version}",
             BblVersion.releaseDownloadBaseUrl
         )
+    }
+
+    @Test
+    fun packManifestVersionOrNullReturnsNullForInvalidJson() {
+        assertEquals(null, BblVersion.packManifestVersionOrNull("not json"))
+        assertEquals(null, BblVersion.packManifestVersionOrNull("{}"))
+    }
+
+    @Test
+    fun packManifestVersionOrNullReadsVersion() {
+        assertEquals("4.0.0", BblVersion.packManifestVersionOrNull("""{"version":"4.0.0"}"""))
+    }
+
+    @Test
+    fun packManifestVersionOrNullReadsBblArtifactCompatibilityVersionForBackCompat() {
+        assertEquals("4.0.0", BblVersion.packManifestVersionOrNull("""{"bblArtifactCompatibilityVersion":"4.0.0"}"""))
     }
 }
