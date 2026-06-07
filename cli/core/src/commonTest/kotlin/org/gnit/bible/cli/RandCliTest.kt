@@ -223,8 +223,6 @@ class RandCliTest {
         private val translations: List<Translation>
     ) : AssetManager {
 
-        override suspend fun downloadableTranslationList(listUrl: String): List<Translation> = translations
-
         override suspend fun download(baseUrl: String, fileName: String) {
             // No-op for these tests: they don't exercise downloads.
         }

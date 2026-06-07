@@ -21,10 +21,6 @@ class MockAssetManager() : AssetManager {
     }
     override val fileSystem: FileSystem = FileSystem.SYSTEM
 
-    override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun download(baseUrl: String, fileName: String) {
         TODO("Not yet implemented")
     }

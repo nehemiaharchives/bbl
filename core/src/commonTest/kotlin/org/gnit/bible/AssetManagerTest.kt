@@ -75,18 +75,4 @@ class AssetManagerTest : ResourcesTestBase() {
         }
     }
 
-    @Test
-    fun testDownloadableTranslationList() {
-        val httpClient = HttpClient(TestFixtures.downloadableTranslationsListMockEngine)
-        val am = AssetManagerImpl(httpClient, platform)
-        val listUrl = DOWNLOADABLE_BIBLE_LIST_URL
-        val result = runBlocking { am.downloadableTranslationList(listUrl) }
-
-        val abtag = result.firstOrNull { it.code == "abtag" }
-        assertNotNull(abtag)
-        assertEquals("abtag", abtag.code)
-        assertEquals("tl", abtag.languageCode)
-        assertEquals("Ang Biblia", abtag.englishName)
-        assertEquals("Public Domain", abtag.copyright)
-    }
 }

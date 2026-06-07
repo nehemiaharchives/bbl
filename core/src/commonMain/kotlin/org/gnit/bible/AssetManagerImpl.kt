@@ -6,12 +6,10 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
-import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -34,11 +32,6 @@ interface AssetManager {
     val fileSystem: FileSystem
 
     /**
-     * @param listUrl url of the translation list json file e.g. "https://bbl.pack.server.local/files/bblpacklist.json"
-     */
-    suspend fun downloadableTranslationList(listUrl: String): List<Translation>
-
-    /**
      * @param baseUrl url of the base dir of the zip file e.g. "https://bbl.pack.server.local/files/bblpack"
      * @param fileName "${translationCode}.zip" e.g. "kttv.zip"
      */
@@ -57,30 +50,6 @@ class AssetManagerImpl(
 ) : AssetManager {
 
     private val logger = KotlinLogging.logger {}
-
-    override suspend fun downloadableTranslationList(listUrl: String): List<Translation> {
-        BblVersion.downloadUrlCandidates(listUrl).forEachIndexed { index, candidate ->
-            val translations = runCatching {
-                val httpResponse = httpClient.get(candidate) {
-                    timeout { requestTimeoutMillis = 15_000 }
-                }
-                if (!httpResponse.status.isSuccess()) error("HTTP ${httpResponse.status}")
-                Json.decodeFromString<List<Translation>>(httpResponse.bodyAsText())
-            }.getOrElse { error ->
-                logger.debug {
-                    "AssetManagerImpl failed to fetch downloadable translation list from $candidate: ${error.message}"
-                }
-                return@forEachIndexed
-            }
-            if (index > 0) {
-                logger.debug { "AssetManagerImpl fetched downloadable translation list from fallback $candidate (${translations.size})" }
-            } else {
-                logger.debug { "AssetManagerImpl fetched downloadable translation list (${translations.size})" }
-            }
-            return translations
-        }
-        return emptyList()
-    }
 
     override suspend fun download(
         baseUrl: String,

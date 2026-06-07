@@ -20,11 +20,7 @@ class BblVersionTest {
     }
 
     @Test
-    fun downloadablePackUrlsUsePinnedServerResourcesTag() {
-        assertEquals(
-            BblVersion.serverResourceUrl("bbllist.json"),
-            DOWNLOADABLE_BIBLE_LIST_URL
-        )
+    fun downloadablePackBaseUrlUsesPinnedServerResourcesTag() {
         assertEquals(
             BblVersion.serverResourceUrl("bblpacks"),
             DOWNLOADABLE_BIBLE_BASE_URL

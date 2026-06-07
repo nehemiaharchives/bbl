@@ -1,6 +1,5 @@
 package org.gnit.bible.cli
 
-
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -10,22 +9,11 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.LoggingSetup
-import org.gnit.bible.SearchQueryText
-import org.gnit.bible.Books
 import org.gnit.bible.BblVersion
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
-import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
-
-
-
-
-
-
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.ZipUtil
 import kotlin.test.BeforeTest
@@ -104,33 +92,9 @@ class InstallCliTest : ResourcesTestBase() {
 
     @Test
     fun testBblInstallFallsBackToLegacyRepositoryWhenPrimaryRepositoryUnavailable() {
-        val downloadableTranslationsJson = """
-            [
-              {
-                "code": "jc",
-                "languageCode": "ja",
-                "englishName": "Japanese Colloquial Bible",
-                "nativeName": "口語訳",
-                "year": 1955,
-                "copyright": "Public Domain"
-              }
-            ]
-        """.trimIndent()
         val searchHelperName = searchHelperName("kuromoji")
         val httpClient = HttpClient(MockEngine { request ->
             when (request.url.encodedPath) {
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bbllist.json") ->
-                    respond("", status = HttpStatusCode.NotFound)
-
-                BblVersion.serverResourcePath("nehemiaharchives/bbl-kmp", BblVersion.version, "bbllist.json") ->
-                    respond(
-                        content = downloadableTranslationsJson,
-                        headers = headersOf(
-                            "Content-Type" to listOf("application/json"),
-                            "Content-Length" to listOf(downloadableTranslationsJson.encodeToByteArray().size.toString())
-                        )
-                    )
-
                 BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bblpacks/jc.zip") ->
                     respond("", status = HttpStatusCode.NotFound)
 
@@ -171,17 +135,8 @@ class InstallCliTest : ResourcesTestBase() {
 
     @Test
     fun testBblInstallUsesBuiltInCatalogWhenFetchedListOmitsEmbeddedTranslation() {
-        val remoteListWithoutJc = "[]"
         val httpClient = HttpClient(MockEngine { request ->
             when (request.url.encodedPath) {
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bbllist.json") -> respond(
-                    content = remoteListWithoutJc,
-                    headers = headersOf(
-                        "Content-Type" to listOf("application/json"),
-                        "Content-Length" to listOf(remoteListWithoutJc.encodeToByteArray().size.toString())
-                    )
-                )
-
                 BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bblpacks/jc.zip") -> respond(
                     content = TestFixtures.jcMinimalZipBytes,
                     headers = headersOf(

@@ -1,13 +1,11 @@
 package org.gnit.bible.cli
 
-
 import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
 import org.gnit.bible.Translation
-
 import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
@@ -146,8 +144,6 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     ) : org.gnit.bible.AssetManager {
 
         override val fileSystem: okio.FileSystem = okio.FileSystem.SYSTEM
-
-        override suspend fun downloadableTranslationList(listUrl: String): List<Translation> = emptyList()
 
         override suspend fun download(baseUrl: String, fileName: String) {
             // No-op for list-only tests.

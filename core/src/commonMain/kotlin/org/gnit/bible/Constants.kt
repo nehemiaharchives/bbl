@@ -4,7 +4,6 @@ const val SERVER_PORT = 8081
 const val BBL_RESOURCE_ROOT = "/files"
 const val BBL_RESOURCE_PACKS_ROOT = "$BBL_RESOURCE_ROOT/bblpacks"
 const val BBLPACKS_CLASS_PATH_ROOT = BBL_RESOURCE_PACKS_ROOT
-val DOWNLOADABLE_BIBLE_LIST_URL = BblVersion.serverResourceUrl("bbllist.json")
 val DOWNLOADABLE_BIBLE_BASE_URL = BblVersion.serverResourceUrl("bblpacks")
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 

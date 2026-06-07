@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,17 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
-import org.gnit.bible.DOWNLOADABLE_BIBLE_LIST_URL
 import org.gnit.bible.TranslationEntry
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
 import org.gnit.bible.app.currentAssetManager
 import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.logger
@@ -68,8 +63,6 @@ fun TranslationManagerScreen(
     val scope = rememberCoroutineScope()
     var downloadedCodes by remember(assetManager) { mutableStateOf(downloadedTranslationCodesSafe(assetManager)) }
     var downloadingCodes by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var downloadableTranslationsCmp by remember { mutableStateOf<List<Translation>>(emptyList()) }
-    var isLoadingList by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         if (bibleState.translationVisibility.isEmpty()) {
@@ -79,37 +72,9 @@ fun TranslationManagerScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        logger.debug {"TranslationManagerScreen called, fetching downloadable translations list"}
-        isLoadingList = true
-        val listResult = runCatching {
-            withTimeout(50_000) {
-                assetManager.downloadableTranslationList(DOWNLOADABLE_BIBLE_LIST_URL)
-            }
-        }.fold(
-            onSuccess = { translations ->
-                translations.ifEmpty {
-                    logger.debug { "TranslationManagerScreen Unable to load online list; showing embedded/cached only." }
-                    latestDownloadableTranslationsCmp.ifEmpty { Translation.downloadableTranslationsCmp }
-                }
-            },
-            onFailure = { throwable ->
-                logger.debug {
-                    when (throwable) {
-                        is TimeoutCancellationException -> "TranslationManagerScreen Timed out loading downloadable translations; showing embedded/cached only. (${throwable.message ?: "unknown"})"
-                        else -> "TranslationManagerScreen Failed to load downloadable translations (${throwable.message ?: "unknown"})"
-                    }
-                }
-                latestDownloadableTranslationsCmp.ifEmpty { Translation.downloadableTranslationsCmp }
-            }
-        )
-        downloadableTranslationsCmp = listResult
-        latestDownloadableTranslationsCmp = listResult
-        isLoadingList = false
-    }
-
-    val entries = remember(bible, downloadedCodes, downloadingCodes, downloadableTranslationsCmp) {
-        buildTranslationEntries(bible, downloadedCodes, downloadableTranslationsCmp)
+    val downloadableList = Translation.downloadableTranslationsCmp
+    val entries = remember(bible, downloadedCodes, downloadingCodes) {
+        buildTranslationEntries(bible, downloadedCodes, downloadableList)
     }
 
     Surface(
@@ -138,16 +103,6 @@ fun TranslationManagerScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (isLoadingList) {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) { CircularProgressIndicator() }
-                    }
-                }
                 items(entries, key = { it.translation.code }) { entry ->
                     TranslationManagerRow(
                         entry = entry,
@@ -329,9 +284,7 @@ private fun buildTranslationEntries(
         runCatching { bible.obtainZipBibleResourcesReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
-    val list = downloadable.ifEmpty { latestDownloadableTranslationsCmp.ifEmpty { downloadableTranslationsCmp } }
-
-    val notDownloaded = list.filterNot { candidate ->
+    val notDownloaded = downloadable.filterNot { candidate ->
         downloadedCodes.contains(candidate.code) || Translation.embeddedTranslations.any { it.code == candidate.code }
     }.map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
@@ -340,8 +293,6 @@ private fun buildTranslationEntries(
 
 private fun downloadedTranslationCodesSafe(assetManager: org.gnit.bible.AssetManager): List<String> =
     runCatching { assetManager.downloadedTranslationCodes() }.getOrElse { emptyList() }
-
-private var latestDownloadableTranslationsCmp = emptyList<Translation>() // the list will be provided when TranslationManagerScreen() is called
 
 private const val ACTION_BAR_WIDTH = 72
 private const val ACTION_ICON_SPACER = 12

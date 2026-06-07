@@ -52,17 +52,6 @@ object TestFixtures {
         appendLine("20 $JC_MATT_28_20")
     }
 
-    val bibleListJson = """
-        [
-          {"code":"kttv","languageCode":"vi","englishName":"Vietnamese Bible: Easy-to-Read Version","nativeName":"Kinh Thánh Tiếng Việt","year":2011,"copyright":"Public Domain","version":"${BblVersion.version}"},
-          {"code":"th1971","languageCode":"th","englishName":"Thai Bible 1971","nativeName":"พระคริสตธรรมคัมภีร์ ฉบับ1971","year":1971,"copyright":"Public Domain","version":"${BblVersion.version}"},
-          {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"${BblVersion.version}"},
-          {"code":"jc","languageCode":"ja","englishName":"Japanese Colloquial Bible","nativeName":"口語訳","year":1955,"copyright":"Public Domain","version":"${BblVersion.version}"},
-          {"code":"ubg","languageCode":"pl","englishName":"Updated Gdańsk Bible","nativeName":"Uwspółcześniona Biblia Gdańska","year":2017,"copyright":"Public Domain","version":"${BblVersion.version}"},
-          {"code":"ubio","languageCode":"uk","englishName":"Ukrainian Bible","nativeName":"Українська Біблія","year":1905,"copyright":"Public Domain","version":"${BblVersion.version}"}
-        ]
-    """.trimIndent()
-
     private val kttvManifestJson = Translation.kttv.toJson()
     private val th1971ManifestJson = Translation.th1971.toJson()
     private val webusManifestJson = Translation.webus.toJson()
@@ -118,16 +107,6 @@ object TestFixtures {
         val helperName = path.substringAfterLast('/')
         val helperBytes = "$helperName helper".encodeToByteArray()
         when {
-            path == BblVersion.serverResourcePath("nehemiaharchives/bbl", releaseVersion, "bbllist.json") -> respond(
-                content = bibleListJson,
-                status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", "application/json")
-            )
-            path == BblVersion.serverResourcePath("nehemiaharchives/bbl-kmp", releaseVersion, "bbllist.json") -> respond(
-                content = bibleListJson,
-                status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", "application/json")
-            )
             path.startsWith(BblVersion.serverResourcePath("nehemiaharchives/bbl", releaseVersion, "bblpacks/")) &&
                 path.endsWith(".zip") -> {
                 val code = path.substringAfterLast('/').removeSuffix(".zip")
@@ -158,23 +137,4 @@ object TestFixtures {
         }
     }
 
-    fun downloadableTranslationsListMockEngine(json: String) = MockEngine { request ->
-        val releaseVersion = BblVersion.version
-        when (request.url.encodedPath) {
-            BblVersion.serverResourcePath("nehemiaharchives/bbl", releaseVersion, "bbllist.json") -> respond(
-                content = json,
-                status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", "application/json")
-            )
-            BblVersion.serverResourcePath("nehemiaharchives/bbl-kmp", releaseVersion, "bbllist.json") -> respond(
-                content = json,
-                status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", "application/json")
-            )
-            else -> respond(
-                content = "",
-                status = HttpStatusCode.NotFound
-            )
-        }
-    }
 }

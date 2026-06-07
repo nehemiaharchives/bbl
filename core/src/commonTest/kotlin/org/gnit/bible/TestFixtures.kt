@@ -35,26 +35,6 @@ object TestFixtures {
         )
     }
 
-    val downloadableTranslationsListMockEngine = MockEngine { _ ->
-        val json = """[
-            {
-                "code": "abtag",
-                "languageCode": "tl",
-                "englishName": "Ang Biblia",
-                "nativeName": "Ang Biblia",
-                "year": 1905,
-                "copyright": "Public Domain"
-            }
-        ]""".trimIndent()
-        respond(
-            content = json,
-            headers = headersOf(
-                "Content-Type" to listOf("application/json"),
-                "Content-Length" to listOf(json.encodeToByteArray().size.toString())
-            )
-        )
-    }
-
     private val genesis1Kttv = """
     1 Ban đầu Đức Chúa Trời dựng nên trời đất.
     2 Vả, đất là vô-hình và trống không, sự mờ-tối ở trên mặt vực; Thần Đức Chúa Trời vận-hành trên mặt nước.
