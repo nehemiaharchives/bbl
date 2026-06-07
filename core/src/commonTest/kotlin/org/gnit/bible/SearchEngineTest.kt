@@ -30,7 +30,7 @@ class SearchEngineTest {
         }
 
         val engine = SearchEngine(reader, provider)
-        val results = engine.search(term = "quick", translation = Translation.webus)
+        val results = engine.search(term = "quick", translation = SupportedTranslation.WEBUS.translation)
 
         assertTrue(results.isNotEmpty(), "Expected at least one search result")
         assertEquals(1, provider.calls)
@@ -48,9 +48,9 @@ class SearchEngineTest {
         }
 
         val engine = SearchEngine(reader, provider)
-        val results = engine.search(term = "\"quick brown\"", translation = Translation.webus)
+        val results = engine.search(term = "\"quick brown\"", translation = SupportedTranslation.WEBUS.translation)
 
-        assertEquals(listOf(VersePointer(Translation.webus, 1, 1, 1)), results)
+        assertEquals(listOf(VersePointer(SupportedTranslation.WEBUS.translation, 1, 1, 1)), results)
     }
 
     @Test
@@ -65,9 +65,9 @@ class SearchEngineTest {
         }
 
         val engine = SearchEngine(reader, provider)
-        val results = engine.search(term = "jesus-christ", translation = Translation.webus)
+        val results = engine.search(term = "jesus-christ", translation = SupportedTranslation.WEBUS.translation)
 
-        assertEquals(VersePointer(Translation.webus, 40, 1, 1), results.first())
+        assertEquals(VersePointer(SupportedTranslation.WEBUS.translation, 40, 1, 1), results.first())
     }
 
     @Test
@@ -86,9 +86,9 @@ class SearchEngineTest {
         }
 
         val engine = SearchEngine(reader, provider)
-        val results = engine.search(term = "jesus", translation = Translation.webus)
+        val results = engine.search(term = "jesus", translation = SupportedTranslation.WEBUS.translation)
 
-        assertEquals(VersePointer(Translation.webus, 40, 1, 1), results.first())
+        assertEquals(VersePointer(SupportedTranslation.WEBUS.translation, 40, 1, 1), results.first())
     }
 
     @Test
@@ -103,9 +103,9 @@ class SearchEngineTest {
         }
 
         val engine = SearchEngine(reader, provider)
-        val results = engine.search(term = "jesus", translation = Translation.webus)
+        val results = engine.search(term = "jesus", translation = SupportedTranslation.WEBUS.translation)
 
-        assertEquals(VersePointer(Translation.webus, 4, 14, 30), results.first())
+        assertEquals(VersePointer(SupportedTranslation.WEBUS.translation, 4, 14, 30), results.first())
     }
 
     @Test
@@ -122,11 +122,11 @@ class SearchEngineTest {
         val engine = SearchEngine(reader, provider)
         val results = engine.search(
             term = "gospel",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             filters = listOf(Books.Category.PAULINE_EPISTLES.filter)
         )
 
-        assertEquals(listOf(VersePointer(Translation.webus, 45, 1, 1)), results)
+        assertEquals(listOf(VersePointer(SupportedTranslation.WEBUS.translation, 45, 1, 1)), results)
     }
 
     @Test
@@ -147,11 +147,11 @@ class SearchEngineTest {
         val engine = SearchEngine(reader, provider)
         val results = engine.search(
             term = "jesus",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             filters = listOf(Books.Category.OLD_TESTAMENT.filter)
         )
 
-        assertEquals(listOf(VersePointer(Translation.webus, 4, 14, 30)), results)
+        assertEquals(listOf(VersePointer(SupportedTranslation.WEBUS.translation, 4, 14, 30)), results)
     }
 
     @Test
@@ -171,15 +171,15 @@ class SearchEngineTest {
         val engine = SearchEngine(reader, provider)
         val results = engine.search(
             term = "king",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             filters = listOf(Books.Category.DAVID.filter)
         )
 
         assertEquals(
             listOf(
-                VersePointer(Translation.webus, 9, 16, 1),
-                VersePointer(Translation.webus, 10, 1, 1),
-                VersePointer(Translation.webus, 11, 2, 12)
+                VersePointer(SupportedTranslation.WEBUS.translation, 9, 16, 1),
+                VersePointer(SupportedTranslation.WEBUS.translation, 10, 1, 1),
+                VersePointer(SupportedTranslation.WEBUS.translation, 11, 2, 12)
             ),
             results
         )

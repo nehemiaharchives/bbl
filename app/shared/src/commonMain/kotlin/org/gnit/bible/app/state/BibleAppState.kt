@@ -1,5 +1,7 @@
 package org.gnit.bible.app.state
 
+import org.gnit.bible.SupportedTranslation
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.Saver
 import com.vanniktech.locale.Languages
@@ -15,7 +17,7 @@ enum class ReadingMode { SINGLE, BILINGUAL_SIDE, BILINGUAL_UNDER }
 
 @Serializable
 data class BibleState(
-    val mainTranslation: Translation = Translation.webus,
+    val mainTranslation: Translation = SupportedTranslation.WEBUS.translation,
     val subTranslation: Translation? = null,
     val readingMode: ReadingMode = ReadingMode.SINGLE,
     val book: Int = 1,
@@ -26,8 +28,8 @@ data class BibleState(
     val spaceBetweenVerses: Int = SPACE_BETWEEN_VERSES_MIN,
     val isFontFamilySerif: Boolean = true,
     val translationVisibility: Map<String, Boolean> = mapOf(
-        Translation.webus.code to true,
-        Translation.kjv.code to true
+        SupportedTranslation.WEBUS.translation.code to true,
+        SupportedTranslation.KJV.translation.code to true
     )
 ) {
     fun prevBook() = copy(book = book - 1, chapter = 1)
@@ -96,11 +98,11 @@ fun rememberBibleState(): BibleState {
     logger.debug { "rememberBibleSate default language is $defaultLanguage" }
 
     val initialMainTranslation = if (defaultLanguage == "en") {
-        Translation.webus
+        SupportedTranslation.WEBUS.translation
     } else {
         bible.availableTranslations().find { translation ->
             translation.languageCode == defaultLanguage
-        } ?: Translation.webus
+        } ?: SupportedTranslation.WEBUS.translation
     }
 
     val initialBibleState = BibleState(mainTranslation = initialMainTranslation)

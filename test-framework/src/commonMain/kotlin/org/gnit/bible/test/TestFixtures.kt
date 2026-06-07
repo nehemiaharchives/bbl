@@ -1,5 +1,7 @@
 package org.gnit.bible.test
 
+import org.gnit.bible.SupportedTranslation
+
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.headersOf
@@ -301,10 +303,10 @@ object TestFixtures {
         copyright = "Public Domain"
     ).toJson()
 
-    private val webusManifestJson = Translation.webus.toJson()
-    private val jcManifestJson = Translation.jc.toJson()
-    private val ubgManifestJson = Translation.ubg.toJson()
-    private val ubioManifestJson = Translation.ubio.toJson()
+    private val webusManifestJson = SupportedTranslation.WEBUS.translation.toJson()
+    private val jcManifestJson = SupportedTranslation.JC.translation.toJson()
+    private val ubgManifestJson = SupportedTranslation.UBG.translation.toJson()
+    private val ubioManifestJson = SupportedTranslation.UBIO.translation.toJson()
 
     val kttvDownloadingMockEngine = MockEngine { _ ->
         val bytes = ZipUtil.buildMinimalZip(

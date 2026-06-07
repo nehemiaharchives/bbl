@@ -1,11 +1,9 @@
 package org.gnit.bible
 
-import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
-
 enum class RandomlyShow { verse, chapter }
 
 enum class ConfigKey(val value: String, val defaultValue: String, val description: String){
-    TRANSLATION("translation", Translation.webus.code, "default translation of bible, use code e.g. webus, jc"),
+    TRANSLATION("translation", SupportedTranslation.WEBUS.code, "default translation of bible, use code e.g. webus, jc"),
     RANDOMLY_SHOW("randomlyShow", RandomlyShow.verse.toString(), "[bbl rand] option to show a verse or a chapter"),
     HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not")
 }
@@ -17,18 +15,18 @@ class Bible(
     private fun hasEmbeddedReader(): Boolean = this::bibleResourcesReader.isInitialized
 
     fun availableTranslationCodes(): Array<String> {
-        val embedded = if (hasEmbeddedReader()) embeddedTranslationCodes else emptyArray()
+        val embedded = if (hasEmbeddedReader()) SupportedTranslation.embeddedCodes else emptyArray()
         return embedded.plus(assetManager.downloadedTranslationCodes())
     }
 
     fun availableTranslations(): List<Translation> {
-        val embeddedTranslations = if (hasEmbeddedReader()) Translation.embeddedTranslations else emptyList()
+        val embeddedTranslations = if (hasEmbeddedReader()) SupportedTranslation.embeddedTranslations else emptyList()
         val downloadedTranslations = assetManager.downloadedTranslations()
         return embeddedTranslations.plus(downloadedTranslations)
     }
 
     fun findTranslationByCode(code: String): Boolean {
-        val foundInEmbedded = if (hasEmbeddedReader()) Translation.embeddedTranslations.find { it.code == code } else null
+        val foundInEmbedded = if (hasEmbeddedReader()) SupportedTranslation.embeddedTranslations.find { it.code == code } else null
         if (foundInEmbedded != null) {
             return true
         }
@@ -76,7 +74,7 @@ class Bible(
         return when {
             hasEmbeddedReader() && translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
             hasEmbeddedReader() && translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
-            hasEmbeddedReader() && embeddedTranslationCodes.contains(translation) ->
+            hasEmbeddedReader() && SupportedTranslation.embeddedCodes.contains(translation) ->
                 bibleResourcesReader.getChapterText(translation = translation, book = book, chapter = chapter)
             assetManager.downloadedTranslationCodes().contains(translation) ->
                 obtainZipBibleResourcesReader().getChapterText(translation = translation, book = book, chapter = chapter)
@@ -88,7 +86,7 @@ class Bible(
         val translationCode = assetManager.platform.settings.getStringOrNull(ConfigKey.TRANSLATION.value) ?: "webus"
         val translation = availableTranslations().firstOrNull { it.code == translationCode }
             ?: availableTranslations().firstOrNull()
-            ?: Translation.webus
+            ?: SupportedTranslation.WEBUS.translation
         return translation
     }
 
@@ -125,7 +123,7 @@ class Bible(
         translation: Translation,
         analyzerProvider: AnalyzerProvider = defaultAnalyzerProvider
     ): List<VersePointer> {
-        val isEmbedded = hasEmbeddedReader() && embeddedTranslationCodes.contains(translation.code)
+        val isEmbedded = hasEmbeddedReader() && SupportedTranslation.embeddedCodes.contains(translation.code)
         val searchEngine = obtainSearchEngine(isEmbedded, analyzerProvider)
         return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, filters, translation)
     }

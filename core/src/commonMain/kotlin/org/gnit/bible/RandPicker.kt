@@ -19,7 +19,7 @@ class RandPicker(
 ) {
 
     fun random(
-        translation: Translation = Translation.webus,
+        translation: Translation = SupportedTranslation.WEBUS.translation,
         filter: BibleFilter = BibleFilter.All,
         randomlyShow: RandomlyShow = RandomlyShow.verse
     ): RandResult {

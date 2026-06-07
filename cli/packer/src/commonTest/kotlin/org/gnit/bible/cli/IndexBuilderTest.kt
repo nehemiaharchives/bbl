@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -7,8 +9,6 @@ import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.Translation
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCli
-import org.gnit.bible.Translation.Companion.embeddedTranslations
 import org.gnit.bible.getPlatform
 import org.gnit.bible.test.FileUtil.deleteRecursively
 import kotlin.test.Ignore
@@ -39,7 +39,7 @@ class IndexBuilderTest {
 
         // Minimal required inputs: manifest + one chapter file.
         fileSystem.write(translationDir / "webus$MANIFEST_JSON_POSTFIX") {
-            writeUtf8(Translation.webus.toJson())
+            writeUtf8(SupportedTranslation.WEBUS.translation.toJson())
         }
 
         // Use a deterministic multi-verse chapter string so the doc count assertion is meaningful.
@@ -57,7 +57,7 @@ class IndexBuilderTest {
         val expectedDocCount = Bible.splitChapterToVerses(chapterText).size
 
         val actualDocCount = IndexBuilder(Bible()).createLuceneKmpIndex(
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             translationDir = translationDir
         )
 
@@ -166,7 +166,7 @@ class IndexBuilderTest {
         val embeddedRoot = repoRoot / "bbl/resources/bblpacks"
 
         var checked = 0
-        embeddedTranslations.forEach { translation ->
+        SupportedTranslation.embeddedTranslations.forEach { translation ->
             val translationDir = embeddedRoot / translation.code
             if (!fs.exists(translationDir)) return@forEach // not shipped in this working copy
             assertIndexPresent(fs, translationDir, translation.code)
@@ -184,7 +184,7 @@ class IndexBuilderTest {
         val downloadableRoot = repoRoot / "bbl/resources/bbltexts"
 
         var checked = 0
-        downloadableTranslationsCli.forEach { translation ->
+        SupportedTranslation.downloadableTranslations.forEach { translation ->
             val translationDir = downloadableRoot / translation.code
             if (!fs.exists(translationDir)) return@forEach // not shipped in this working copy
             assertIndexPresent(fs, translationDir, translation.code)
@@ -198,7 +198,7 @@ class IndexBuilderTest {
     @Test
     @Ignore
     fun createLuceneKmpIndexInProductionEnvTest() {
-        val translation = Translation.webus
+        val translation = SupportedTranslation.WEBUS.translation
         createEmbeddedLuceneKmpIndex(translation)
     }
 }

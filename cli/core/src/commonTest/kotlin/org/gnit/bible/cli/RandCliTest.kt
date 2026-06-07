@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 
 import org.gnit.bible.AssetManager
 import org.gnit.bible.Bible
@@ -51,7 +53,7 @@ class RandCliTest {
             assetManager = FakeAssetManager(
                 platform = platform,
                 fileSystem = fakeFs,
-                translations = listOf(Translation.webus, Translation.jc)
+                translations = listOf(SupportedTranslation.WEBUS.translation, SupportedTranslation.JC.translation)
             )
         )
     }

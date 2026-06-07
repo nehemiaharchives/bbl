@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
@@ -52,12 +54,12 @@ object TestFixtures {
         appendLine("20 $JC_MATT_28_20")
     }
 
-    private val kttvManifestJson = Translation.kttv.toJson()
-    private val th1971ManifestJson = Translation.th1971.toJson()
-    private val webusManifestJson = Translation.webus.toJson()
-    private val jcManifestJson = Translation.jc.toJson()
-    private val ubgManifestJson = Translation.ubg.toJson()
-    private val ubioManifestJson = Translation.ubio.toJson()
+    private val kttvManifestJson = SupportedTranslation.KTTV.translation.toJson()
+    private val th1971ManifestJson = SupportedTranslation.TH1971.translation.toJson()
+    private val webusManifestJson = SupportedTranslation.WEBUS.translation.toJson()
+    private val jcManifestJson = SupportedTranslation.JC.translation.toJson()
+    private val ubgManifestJson = SupportedTranslation.UBG.translation.toJson()
+    private val ubioManifestJson = SupportedTranslation.UBIO.translation.toJson()
 
     val webusMinimalZipBytes: ByteArray = ZipUtil.buildMinimalZip(
         listOf(

@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 
 @Serializable
 data class VersePointer(
-    var translation: Translation = Translation.webus,
+    var translation: Translation = SupportedTranslation.WEBUS.translation,
     val book: Int = 0,
     val chapter: Int = 0,
     val startVerse: Int? = null,

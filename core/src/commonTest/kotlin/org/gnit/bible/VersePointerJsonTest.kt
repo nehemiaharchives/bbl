@@ -8,8 +8,8 @@ class VersePointerJsonTest {
     @Test
     fun encodesAndDecodesVersePointerList() {
         val hits = listOf(
-            VersePointer(translation = Translation.webus, book = 45, chapter = 1, startVerse = 1),
-            VersePointer(translation = Translation.webus, book = 45, chapter = 2, startVerse = 16)
+            VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 1, startVerse = 1),
+            VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 2, startVerse = 16)
         )
 
         val encoded = VersePointerJson.encodeList(hits)

@@ -6,7 +6,6 @@ import okio.Path.Companion.toPath
 import org.gnit.bible.BblVersion
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
-import org.gnit.bible.Language
 import org.gnit.bible.SearchQueryText
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.Translation
@@ -122,10 +121,11 @@ class SearchBackendSelector(
 ) {
     private val binDirProvider: () -> Path = binDirProvider ?: { defaultBinDir() }
 
-    fun backendFor(language: Language): SearchBackend {
-        val binaryName = CliBinaryPaths.binaryName(language.searchModuleId, bible.assetManager.platform.name)
+    fun backendFor(translation: Translation): SearchBackend {
+        val moduleId = translation.language.searchModuleId
+        val binaryName = CliBinaryPaths.binaryName(moduleId, bible.assetManager.platform.name)
         val binaryPath = binDirProvider() / binaryName
-        return ExternalSearchBackend(processRunner, fileSystem, binaryPath, language.searchModuleId)
+        return ExternalSearchBackend(processRunner, fileSystem, binaryPath, moduleId)
     }
 
     fun defaultBinDir(): Path {

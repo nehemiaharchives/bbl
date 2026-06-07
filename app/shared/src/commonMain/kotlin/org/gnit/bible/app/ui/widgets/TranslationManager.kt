@@ -1,5 +1,7 @@
 package org.gnit.bible.app.ui.widgets
 
+import org.gnit.bible.SupportedTranslation
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,13 +68,13 @@ fun TranslationManagerScreen(
 
     LaunchedEffect(Unit) {
         if (bibleState.translationVisibility.isEmpty()) {
-            val allCodes = (Translation.embeddedTranslations.map { it.code } + downloadedCodes).distinct()
+            val allCodes = (SupportedTranslation.embeddedTranslations.map { it.code } + downloadedCodes).distinct()
             val seeded = allCodes.associateWith { true }
             onStateChange(bibleState.copy(translationVisibility = seeded))
         }
     }
 
-    val downloadableList = Translation.downloadableTranslationsCmp
+    val downloadableList = SupportedTranslation.all
     val entries = remember(bible, downloadedCodes, downloadingCodes) {
         buildTranslationEntries(bible, downloadedCodes, downloadableList)
     }
@@ -160,9 +162,9 @@ private fun TranslationManagerScreenPreview() {
         TranslationManagerScreen(
             bibleState = BibleState(
                 translationVisibility = mapOf(
-                    Translation.webus.code to true,
-                    Translation.kjv.code to true,
-                    Translation.rvr09.code to false
+                    SupportedTranslation.WEBUS.translation.code to true,
+                    SupportedTranslation.KJV.translation.code to true,
+                    SupportedTranslation.RVR09.translation.code to false
                 )
             ),
             onStateChange = {},
@@ -278,14 +280,14 @@ private fun buildTranslationEntries(
     downloadedCodes: List<String>,
     downloadable: List<Translation>
 ): List<TranslationEntry> {
-    val embedded = Translation.embeddedTranslations.map { TranslationEntry(it, InstallationState.EMBEDDED) }
+    val embedded = SupportedTranslation.embeddedTranslations.map { TranslationEntry(it, InstallationState.EMBEDDED) }
 
     val downloadedTranslations = downloadedCodes.mapNotNull { code ->
         runCatching { bible.obtainZipBibleResourcesReader().getTranslationFromManifest(code) }.getOrNull()
     }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
 
     val notDownloaded = downloadable.filterNot { candidate ->
-        downloadedCodes.contains(candidate.code) || Translation.embeddedTranslations.any { it.code == candidate.code }
+        downloadedCodes.contains(candidate.code) || SupportedTranslation.embeddedTranslations.any { it.code == candidate.code }
     }.map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
     return embedded + downloadedTranslations + notDownloaded

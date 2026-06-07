@@ -15,23 +15,23 @@ class BibleTest {
         assertEquals(31, versesJc.size)
     }
 
-    val versePointerGen1 = VersePointer(translation = Translation.webus, book = 1, chapter = 1)
-    val versePointerJohn3v16 = VersePointer(translation = Translation.webus, book = 43, chapter = 3, startVerse = 16)
-    val versePointerMatt28v18to20 = VersePointer(translation = Translation.webus, book = 40, chapter = 28, startVerse = 18, endVerse = 20)
+    val versePointerGen1 = VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 1, chapter = 1)
+    val versePointerJohn3v16 = VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 43, chapter = 3, startVerse = 16)
+    val versePointerMatt28v18to20 = VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 28, startVerse = 18, endVerse = 20)
 
     @Test
     fun parseTest() {
-        val actualGen1 = Bible.parse(translation = Translation.webus, book = listOf("gen"), chapterVerse = "1")
+        val actualGen1 = Bible.parse(translation = SupportedTranslation.WEBUS.translation, book = listOf("gen"), chapterVerse = "1")
         assertEquals(versePointerGen1, actualGen1)
 
-        val versePointerGen2 = VersePointer(translation = Translation.webus, book = 1, chapter = 2)
-        val actualGen2 = Bible.parse(translation = Translation.webus, book = listOf("gen"), chapterVerse = "2")
+        val versePointerGen2 = VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 1, chapter = 2)
+        val actualGen2 = Bible.parse(translation = SupportedTranslation.WEBUS.translation, book = listOf("gen"), chapterVerse = "2")
         assertEquals(versePointerGen2, actualGen2)
 
-        val actualJohn3v16 = Bible.parse(translation = Translation.webus, book = listOf("john"), chapterVerse = "3:16")
+        val actualJohn3v16 = Bible.parse(translation = SupportedTranslation.WEBUS.translation, book = listOf("john"), chapterVerse = "3:16")
         assertEquals(versePointerJohn3v16, actualJohn3v16)
 
-        val actualMatt28v18to20 = Bible.parse(translation = Translation.webus, book = listOf("matt"), chapterVerse = "28:18-20")
+        val actualMatt28v18to20 = Bible.parse(translation = SupportedTranslation.WEBUS.translation, book = listOf("matt"), chapterVerse = "28:18-20")
         assertEquals(versePointerMatt28v18to20, actualMatt28v18to20)
     }
 

@@ -2,6 +2,8 @@
 
 package org.gnit.bible.test
 
+import org.gnit.bible.SupportedTranslation
+
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
@@ -11,8 +13,6 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.gnit.bible.Platform
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
-import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import platform.posix.PATH_MAX
 import platform.posix.getenv
@@ -34,8 +34,8 @@ actual abstract class ResourcesTestBase actual constructor() {
         if (!fileSystem.exists(packDir)) {
             fileSystem.createDirectories(packDir)
         }
-        val codes = downloadableTranslationsCmp.map { it.code }
-            .filterNot { embeddedTranslationCodes.contains(it) }
+        val codes = SupportedTranslation.all.map { it.code }
+            .filterNot { SupportedTranslation.embeddedCodes.contains(it) }
         codes.forEach { code ->
             val src = canonicalPackDir / "$code.zip"
             if (fileSystem.exists(src) && fileSystem.metadata(src).isRegularFile) {

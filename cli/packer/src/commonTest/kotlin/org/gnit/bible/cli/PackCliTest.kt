@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import com.oldguy.common.io.ZipFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -40,7 +42,7 @@ class PackCliTest {
         // Minimal set: manifest + one chapter file to keep the test fast.
         // Do NOT depend on generated app resources here; the test builds its own minimal source pack.
         val manifestPath = targetDir / "webus$MANIFEST_JSON_POSTFIX"
-        fileSystem.write(manifestPath) { writeUtf8(Translation.webus.toJson()) }
+        fileSystem.write(manifestPath) { writeUtf8(SupportedTranslation.WEBUS.translation.toJson()) }
 
         // Create a tiny chapter file; keep it deterministic and small.
         // The indexer splits verses by leading verse numbers ("1 ", "2 ", etc.).
@@ -146,7 +148,7 @@ class PackCliTest {
 
         val inputPath = tmpWorkingDirForBblPack.toPath() / "webus"
         val manifestPath = inputPath / "webus$MANIFEST_JSON_POSTFIX"
-        val oldManifest = Translation.webus.copy(version = "0.0.1").toJson()
+        val oldManifest = SupportedTranslation.WEBUS.translation.copy(version = "0.0.1").toJson()
         fileSystem.write(manifestPath) { writeUtf8(oldManifest) }
 
         PackCli(Bible()).createBblPack(

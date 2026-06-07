@@ -91,66 +91,6 @@ data class Translation(
         fun fromJson(json: String): Translation {
             return translationJson.decodeFromString(json)
         }
-
-        // search common (embedded in cmp)
-        val webus: Translation get() = SupportedTranslation.WEBUS.translation
-        val kjv: Translation get() = SupportedTranslation.KJV.translation
-        val rvr09: Translation get() = SupportedTranslation.RVR09.translation
-        val tb: Translation get() = SupportedTranslation.TB.translation
-        val delut: Translation get() = SupportedTranslation.DELUT.translation
-        val lsg: Translation get() = SupportedTranslation.LSG.translation
-        val sinod: Translation get() = SupportedTranslation.SINOD.translation
-        val svrj: Translation get() = SupportedTranslation.SVRJ.translation
-        val rdv24: Translation get() = SupportedTranslation.RDV24.translation
-        val sven: Translation get() = SupportedTranslation.SVEN.translation
-
-        // search morfologik (embedded in cmp)
-        val ubg: Translation get() = SupportedTranslation.UBG.translation
-        val ubio: Translation get() = SupportedTranslation.UBIO.translation
-
-        // search smartcn (embedded in cmp)
-        val cunp: Translation get() = SupportedTranslation.CUNP.translation
-
-        // search nori (embedded in cmp)
-        val krv: Translation get() = SupportedTranslation.KRV.translation
-
-        // search kuromoji (embedded in cmp)
-        val jc: Translation get() = SupportedTranslation.JC.translation
-
-        val embeddedTranslations: List<Translation>
-            get() = SupportedTranslation.entries.filter { it.embedded }.map { it.translation }
-
-        val embeddedTranslationCodes: Array<String>
-            get() = embeddedTranslations.map { it.code }.toTypedArray()
-
-        fun hasEmbeddedTranslation(translationCode: String, readerInitialized: Boolean): Boolean {
-            return readerInitialized && Translation.embeddedTranslationCodes.contains(translationCode)
-        }
-
-        // search common (downloadable in cmp)
-        val ayt: Translation get() = SupportedTranslation.AYT.translation
-        val th1971: Translation get() = SupportedTranslation.TH1971.translation
-        val irvhin: Translation get() = SupportedTranslation.IRVHIN.translation
-        val irvben: Translation get() = SupportedTranslation.IRVBEN.translation
-        val irvtam: Translation get() = SupportedTranslation.IRVTAM.translation
-        val irvtel: Translation get() = SupportedTranslation.IRVTEL.translation
-        val npiulb: Translation get() = SupportedTranslation.NPIULB.translation
-
-        // search extra (downloadable in cmp)
-        val abtag: Translation get() = SupportedTranslation.ABTAG.translation
-        val kttv: Translation get() = SupportedTranslation.KTTV.translation
-        val irvguj: Translation get() = SupportedTranslation.IRVGUJ.translation
-        val irvmar: Translation get() = SupportedTranslation.IRVMAR.translation
-        val irvurd: Translation get() = SupportedTranslation.IRVURD.translation
-
-        val downloadableTranslationsCli: List<Translation>
-            get() = SupportedTranslation.entries.filterNot { it.embedded }.map { it.translation }
-
-        val downloadableTranslationsCmp: List<Translation>
-            get() = SupportedTranslation.entries.map { it.translation }
-
-        val downloadableTranslationCodeListCli: List<String>
-            get() = downloadableTranslationsCli.map { it.code }
     }
 }
 

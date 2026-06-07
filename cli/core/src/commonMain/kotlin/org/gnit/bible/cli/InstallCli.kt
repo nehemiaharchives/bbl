@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.SearchModuleId
+import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.Translation
 import okio.Path.Companion.toPath
 import org.gnit.bible.BblVersion
@@ -57,7 +58,7 @@ class InstallCli(
             return
         }
 
-        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode()
+        val downloadableByCode = SupportedTranslation.byCode.mapValues { it.value.translation }
         val availableDownloadableCodes = downloadableByCode.keys
         val unknownCodes = toInstall.filterNot { it in availableDownloadableCodes }
         if (unknownCodes.isNotEmpty()) {

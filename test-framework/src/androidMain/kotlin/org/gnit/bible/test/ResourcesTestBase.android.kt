@@ -1,13 +1,13 @@
 package org.gnit.bible.test
 
+import org.gnit.bible.SupportedTranslation
+
 import android.content.ContentProvider
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import okio.FileSystem
 import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.Platform
-import org.gnit.bible.Translation.Companion.downloadableTranslationsCmp
-import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.getPlatform
 import org.junit.Before
 import org.junit.runner.RunWith
@@ -107,10 +107,10 @@ actual abstract class ResourcesTestBase actual constructor() {
             (FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_compose_bible_test_dir").toString()
         )
         val canonicalPackDir = findCanonicalPackDir()
-        val downloadableCodes = downloadableTranslationsCmp.map { it.code }
+        val downloadableCodes = SupportedTranslation.all.map { it.code }
 
         downloadableCodes.forEach { code ->
-            if (embeddedTranslationCodes.contains(code)) {
+            if (SupportedTranslation.embeddedCodes.contains(code)) {
                 return@forEach
             }
             val sourceFile = canonicalPackDir?.let { File(it, "$code.zip") }?.takeIf { it.isFile }

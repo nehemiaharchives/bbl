@@ -1,5 +1,7 @@
 package org.gnit.bible.app
 
+import org.gnit.bible.SupportedTranslation
+
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -446,7 +448,7 @@ private fun availableTranslationsSafe(
     bible: Bible,
     visibility: Map<String, Boolean> = emptyMap()
 ): List<Translation> =
-    runCatching { bible.availableTranslations() }.getOrElse { Translation.embeddedTranslations }
+    runCatching { bible.availableTranslations() }.getOrElse { SupportedTranslation.embeddedTranslations }
         .filter { visibility[it.code] ?: true }
 
 @Preview
@@ -486,12 +488,12 @@ private fun TranslationDropdownMenuPreview_SettingsCollapsed() {
 }
 
 private val previewTranslationList = listOf(
-    Translation.webus,
-    Translation.kjv,
-    Translation.rvr09,
-    Translation.tb,
-    Translation.delut,
-    Translation.lsg,
-    Translation.sinod,
-    Translation.ubio
+    SupportedTranslation.WEBUS.translation,
+    SupportedTranslation.KJV.translation,
+    SupportedTranslation.RVR09.translation,
+    SupportedTranslation.TB.translation,
+    SupportedTranslation.DELUT.translation,
+    SupportedTranslation.LSG.translation,
+    SupportedTranslation.SINOD.translation,
+    SupportedTranslation.UBIO.translation
 )

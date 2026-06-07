@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -79,7 +81,7 @@ class SearchCliTest {
             assertEquals(null, it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ")
@@ -96,7 +98,7 @@ class SearchCliTest {
             assertEquals(null, it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search \"Jesus wept\"")
@@ -113,7 +115,7 @@ class SearchCliTest {
             assertEquals(null, it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
-            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv")
@@ -132,7 +134,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertTrue(it.filters.isEmpty())
             assertTrue(it.categoryKeys.isEmpty())
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search in christ")
@@ -151,7 +153,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertEquals(listOf("david"), it.categoryKeys)
             assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in david")
@@ -170,7 +172,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertEquals(listOf("johns letters"), it.categoryKeys)
             assertEquals(listOf(Books.Category.JOHN_LETTERS.filter), it.filters)
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in johns letters")
@@ -204,7 +206,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertTrue(it.filters.isEmpty())
             assertTrue(it.categoryKeys.isEmpty())
-            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus in john 3 in kjv")
@@ -223,7 +225,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertEquals(listOf("david"), it.categoryKeys)
             assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
-            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in kjv in david")
@@ -242,7 +244,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertEquals(listOf("david"), it.categoryKeys)
             assertEquals(listOf(Books.Category.DAVID.filter), it.filters)
-            listOf(VersePointer(translation = Translation.kjv, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search king in david in kjv")
@@ -261,7 +263,7 @@ class SearchCliTest {
             assertEquals(null, it.endChapter)
             assertEquals(listOf("paul"), it.categoryKeys)
             assertTrue(it.filters.isNotEmpty())
-            listOf(VersePointer(translation = Translation.webus, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search gospel --category paul")
@@ -278,7 +280,7 @@ class SearchCliTest {
             assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
-            listOf(VersePointer(translation = Translation.webus, book = 45, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans")
@@ -295,7 +297,7 @@ class SearchCliTest {
             assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(5, it.startChapter)
             assertEquals(12, it.endChapter)
-            listOf(VersePointer(translation = Translation.webus, book = 45, chapter = 5, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 5, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 5-12")
@@ -312,7 +314,7 @@ class SearchCliTest {
             assertEquals(Books.bookNumber("romans"), it.bookNumber)
             assertEquals(5, it.startChapter)
             assertEquals(12, it.endChapter)
-            listOf(VersePointer(translation = Translation.kjv, book = 45, chapter = 5, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 45, chapter = 5, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 5-12 in kjv")
@@ -329,7 +331,7 @@ class SearchCliTest {
             assertEquals(null, it.bookNumber)
             assertEquals(null, it.startChapter)
             assertEquals(null, it.endChapter)
-            listOf(VersePointer(translation = Translation.jc, book = 40, chapter = 1, startVerse = 1))
+            listOf(VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in jc")
@@ -356,7 +358,7 @@ class SearchCliTest {
                 "webus.40.1.txt" to "1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n",
                 "webus.45.1.txt" to "1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,\n",
                 "webus.45.5.txt" to "1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;\n",
-                "webus$MANIFEST_JSON_POSTFIX" to Translation.webus.toJson()
+                "webus$MANIFEST_JSON_POSTFIX" to SupportedTranslation.WEBUS.translation.toJson()
             )
         )
 
@@ -365,14 +367,14 @@ class SearchCliTest {
                 "kjv.40.1.txt" to "1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n",
                 "kjv.45.1.txt" to "1 Paul, a servant of Jesus Christ, called to be an apostle, separated unto the gospel of God,\n",
                 "kjv.45.5.txt" to "1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:\n",
-                "kjv$MANIFEST_JSON_POSTFIX" to Translation.kjv.toJson()
+                "kjv$MANIFEST_JSON_POSTFIX" to SupportedTranslation.KJV.translation.toJson()
             )
         )
 
         private val jcSearchFixtureZipBytes = ZipUtil.buildMinimalZip(
             listOf(
                 "jc.40.1.txt" to "1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n",
-                "jc$MANIFEST_JSON_POSTFIX" to Translation.jc.toJson()
+                "jc$MANIFEST_JSON_POSTFIX" to SupportedTranslation.JC.translation.toJson()
             )
         )
     }

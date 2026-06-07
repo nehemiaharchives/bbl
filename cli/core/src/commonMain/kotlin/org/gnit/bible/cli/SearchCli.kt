@@ -61,7 +61,7 @@ class SearchCli(
             SearchBackendSelector(
                 bible = bible,
                 processRunner = processRunner
-            ).backendFor(requestedTranslation.language)
+            ).backendFor(requestedTranslation)
         }
 
         val output = try {

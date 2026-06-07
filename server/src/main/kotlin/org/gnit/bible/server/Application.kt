@@ -1,5 +1,7 @@
 package org.gnit.bible.server
 
+import org.gnit.bible.SupportedTranslation
+
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -18,7 +20,7 @@ fun main() {
 fun Application.module() {
 
     val bible = Bible().apply { bibleResourcesReader = ServerBibleResourcesReader() }
-    val downloadableTranslations = Translation.downloadableTranslationsCmp
+    val downloadableTranslations = SupportedTranslation.all
 
     routing {
         get("/") {

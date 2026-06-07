@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
@@ -85,9 +87,7 @@ class PackCli(
 
         val manifestPath = inputPath.resolve("$translationCode$MANIFEST_JSON_POSTFIX")
         if (!fileSystem.exists(manifestPath)) {
-            val translationEntry = Translation.downloadableTranslationsCmp
-                .firstOrNull { it.code == translationCode }
-                ?: Translation.embeddedTranslations.firstOrNull { it.code == translationCode }
+            val translationEntry = SupportedTranslation.byCode[translationCode]?.translation
 
             if (translationEntry == null) {
                 throw IllegalStateException(
@@ -192,7 +192,7 @@ fun mainAll(sourceDir: String = "resources/bbltexts", packsDir: String = "resour
 
     val failures = mutableListOf<Pair<String, String>>()
 
-    Translation.downloadableTranslationsCmp
+    SupportedTranslation.all
         .map { it.code }
         .distinct()
         .forEach { translationCode ->

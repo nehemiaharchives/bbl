@@ -1,5 +1,7 @@
 package org.gnit.bible.app.ui.widgets
 
+import org.gnit.bible.SupportedTranslation
+
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -73,7 +75,7 @@ fun BilingualUnderBible(
     }
 }
 
-private val downView = BibleState(Translation.jc, Translation.webus, ReadingMode.BILINGUAL_UNDER)
+private val downView = BibleState(SupportedTranslation.JC.translation, SupportedTranslation.WEBUS.translation, ReadingMode.BILINGUAL_UNDER)
 
 @Preview(showBackground = true)
 @Composable

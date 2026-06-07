@@ -4,7 +4,7 @@ import okio.Path.Companion.toPath
 import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.SearchModule
+import org.gnit.bible.SearchModuleId
 import org.gnit.bible.SimpleAnalyzerProvider
 import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.getPlatform
@@ -28,43 +28,43 @@ interface SearchTestBase {
 
     fun searchCommonEmbedded() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.COMMON && it.embedded }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && it.embedded }
         )
     }
 
     fun searchCommonDownloaded() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.COMMON && !it.embedded }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && !it.embedded }
         )
     }
 
     fun searchMorfologik() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.MORFOLOGIK }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.MORFOLOGIK }
         )
     }
 
     fun searchSmartcn() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.SMARTCN }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.SMARTCN }
         )
     }
 
     fun searchNori() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.NORI }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.NORI }
         )
     }
 
     fun searchKuromoji() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.KUROMOJI }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.KUROMOJI }
         )
     }
 
     fun searchExtra() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModule == SearchModule.EXTRA }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.EXTRA }
         )
     }
 

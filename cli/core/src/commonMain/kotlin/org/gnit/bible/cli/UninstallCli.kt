@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import org.gnit.bible.Bible
 import org.gnit.bible.SearchModuleId
+import org.gnit.bible.Translation
 
 class UninstallCli(
     private val bible: Bible
@@ -26,7 +27,8 @@ class UninstallCli(
         val downloaded = runCatching { am.downloadedTranslationCodes() }
             .getOrDefault(emptyList())
             .toMutableSet()
-        val downloadableByCode = CliTranslationCatalog.downloadableTranslationsByCode()
+        val downloadedByCode = runCatching { am.downloadedTranslations().associateBy { it.code } }
+            .getOrDefault(emptyMap())
 
         for (translationCode in requestedCodes) {
             if (translationCode !in downloaded) {
@@ -34,12 +36,11 @@ class UninstallCli(
                 continue
             }
 
-            val translation = downloadableByCode[translationCode]
             runCatching { am.delete(translationCode) }
                 .onSuccess {
                     downloaded.remove(translationCode)
                     echo("Uninstalled $translationCode")
-                    uninstallSearchBinaryIfUnused(translation, downloaded, downloadableByCode)
+                    uninstallSearchBinaryIfUnused(downloadedByCode[translationCode], downloaded, downloadedByCode)
                 }
                 .onFailure {
                     echo("Uninstalling $translationCode failed")
@@ -48,15 +49,15 @@ class UninstallCli(
     }
 
     private fun uninstallSearchBinaryIfUnused(
-        removedTranslation: org.gnit.bible.Translation?,
+        removedTranslation: Translation?,
         remainingDownloadedCodes: Set<String>,
-        downloadableByCode: Map<String, org.gnit.bible.Translation>
+        downloadedByCode: Map<String, Translation>,
     ) {
         val moduleId = removedTranslation?.language?.searchModuleId ?: return
         if (moduleId == SearchModuleId.COMMON) return
 
         val stillNeeded = remainingDownloadedCodes.any { code ->
-            downloadableByCode[code]?.language?.searchModuleId == moduleId
+            downloadedByCode[code]?.language?.searchModuleId == moduleId
         }
         if (stillNeeded) return
 

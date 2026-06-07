@@ -82,14 +82,14 @@ class BooksTest {
         assertEquals("John 3:16", Books.formatHeader(VersePointer(book = 43, chapter = 3, startVerse = 16)))
         assertEquals("Matthew 28:18-20", Books.formatHeader(VersePointer(book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
 
-        assertEquals("創世記 1", Books.formatHeader(VersePointer(translation = Translation.jc, book = 1, chapter = 1)))
-        assertEquals("ヨハネによる福音書 3:16", Books.formatHeader(VersePointer(translation = Translation.jc, book = 43, chapter = 3, startVerse = 16)))
-        assertEquals("マタイによる福音書 28:18-20", Books.formatHeader(VersePointer(translation = Translation.jc, book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
+        assertEquals("創世記 1", Books.formatHeader(VersePointer(translation = SupportedTranslation.JC.translation, book = 1, chapter = 1)))
+        assertEquals("ヨハネによる福音書 3:16", Books.formatHeader(VersePointer(translation = SupportedTranslation.JC.translation, book = 43, chapter = 3, startVerse = 16)))
+        assertEquals("マタイによる福音書 28:18-20", Books.formatHeader(VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 28, startVerse = 18, endVerse = 20)))
     }
 
     @Test
     fun bookNameForTest() {
-        val translation = Translation.webus
+        val translation = SupportedTranslation.WEBUS.translation
         val bookNames = translation.language.bookNames()
         (1..66).forEach { bookNumber ->
             assertEquals(bookNames[bookNumber - 1], Books.bookNameFor(bookNumber, translation))
@@ -98,7 +98,7 @@ class BooksTest {
 
     @Test
     fun bookNameForJapaneseTest() {
-        val translation = Translation.jc
+        val translation = SupportedTranslation.JC.translation
         val bookNames = translation.language.bookNames()
         (1..66).forEach { bookNumber ->
             assertEquals(bookNames[bookNumber - 1], Books.bookNameFor(bookNumber, translation))

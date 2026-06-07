@@ -3,7 +3,6 @@ package org.gnit.bible
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class LanguageTest {
 
@@ -42,19 +41,14 @@ class LanguageTest {
     }
 
     @Test
-    fun searchModuleIdAssignedForAllLanguages() {
-        (Language.embeddedLanguages + Language.downloadableLanguages).forEach { language ->
-            assertTrue(SearchModuleId.values().contains(language.searchModuleId), "Missing searchModuleId for ${language.code}")
-        }
-    }
-
-    @Test
-    fun searchModuleIdMappingTest() {
+    fun searchModuleIdTest() {
         assertEquals(SearchModuleId.COMMON, Language.en.searchModuleId)
         assertEquals(SearchModuleId.MORFOLOGIK, Language.pl.searchModuleId)
+        assertEquals(SearchModuleId.MORFOLOGIK, Language.uk.searchModuleId)
         assertEquals(SearchModuleId.SMARTCN, Language.zh.searchModuleId)
         assertEquals(SearchModuleId.NORI, Language.ko.searchModuleId)
         assertEquals(SearchModuleId.KUROMOJI, Language.ja.searchModuleId)
         assertEquals(SearchModuleId.EXTRA, Language.vi.searchModuleId)
+        assertEquals(SearchModuleId.EXTRA, Language.mr.searchModuleId)
     }
 }

@@ -1,6 +1,5 @@
 package org.gnit.bible
 
-import org.gnit.bible.Translation.Companion.embeddedTranslationCodes
 import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,11 +9,17 @@ import kotlin.test.assertTrue
 class TranslationTest : ResourcesTestBase() {
 
     @Test
-    fun embeddedTranslationCompanionObjectExistsForEachResource() {
-        embeddedTranslationCodes.forEach { translationCode ->
-            val translation = Translation.embeddedTranslations.find { it.code == translationCode }
-            assertNotNull(translation) { "Embedded Translation companion object not found for code: $translationCode" }
+    fun embeddedSupportedTranslationExistsForEachResource() {
+        SupportedTranslation.embeddedCodes.forEach { translationCode ->
+            val translation = SupportedTranslation.embeddedTranslations.find { it.code == translationCode }
+            assertNotNull(translation) { "Embedded translation not found for code: $translationCode" }
         }
+    }
+
+    @Test
+    fun supportedTranslationLookupReturnsKnownTranslation() {
+        assertEquals(SupportedTranslation.WEBUS, SupportedTranslation.byCode["webus"])
+        assertEquals(SupportedTranslation.JC, SupportedTranslation.byCode["jc"])
     }
 
     val webusJsonString = """
@@ -23,25 +28,25 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun encodeTranslationToJsonTest(){
-        val actual = Translation.webus.toJson()
+        val actual = SupportedTranslation.WEBUS.translation.toJson()
         assertEquals(webusJsonString, actual)
     }
 
     @Test
     fun decodeTranslationFromJsonTest(){
         val actual = Translation.fromJson(webusJsonString)
-        assertEquals(Translation.webus, actual)
+        assertEquals(SupportedTranslation.WEBUS.translation, actual)
     }
 
     @Test
     fun translationDefaultsToCurrentBblVersion() {
-        assertEquals(BblVersion.version, Translation.webus.version)
-        assertTrue(Translation.webus.toJson().contains("\"version\":\"${BblVersion.version}\""))
+        assertEquals(BblVersion.version, SupportedTranslation.WEBUS.translation.version)
+        assertTrue(SupportedTranslation.WEBUS.translation.toJson().contains("\"version\":\"${BblVersion.version}\""))
     }
 
     @Test
     fun encodeTranslationListToJsonTest(){
-        val translationList = listOf(Translation.webus, Translation.kjv, Translation.rvr09)
+        val translationList = listOf(SupportedTranslation.WEBUS.translation, SupportedTranslation.KJV.translation, SupportedTranslation.RVR09.translation)
         val actual = translationList.toJson()
         val expected = """
             [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"4.0.0"},

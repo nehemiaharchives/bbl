@@ -6,6 +6,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
+import org.gnit.bible.InstallationState
+import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.Translation
 import org.gnit.bible.TranslationEntry
 
@@ -69,8 +71,12 @@ class ListCli(
 
         when (target.lowercase()) {
             "bible", "bibles", "translation", "translations", "version", "versions" -> {
-                val downloadedEntries = CliTranslationCatalog.downloadedTranslationEntries(bible)
-                val downloadableEntries = CliTranslationCatalog.downloadableTranslationEntries(bible)
+                val downloaded = bible.assetManager.downloadedTranslations()
+                val downloadedCodes = downloaded.map { it.code }.toSet()
+                val downloadedEntries = downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
+                val downloadableEntries = SupportedTranslation.all
+                    .filterNot { downloadedCodes.contains(it.code) }
+                    .map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
 
                 val entries: List<TranslationEntry> =
                     (downloadedEntries + downloadableEntries).sortedBy { entry ->

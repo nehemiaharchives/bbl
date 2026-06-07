@@ -7,11 +7,9 @@ import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.BblVersion
 import org.gnit.bible.InMemorySettings
-import org.gnit.bible.Language
-import org.gnit.bible.Translation
 import org.gnit.bible.Platform
-
-
+import org.gnit.bible.SupportedTranslation
+import org.gnit.bible.Translation
 import org.gnit.bible.test.ResourcesTestBase
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
@@ -73,10 +71,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.en)
+        val backend = selector.backendFor(SupportedTranslation.WEBUS.translation)
         val request = SearchRequest(
             term = "Jesus",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,
@@ -115,10 +113,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.ja)
+        val backend = selector.backendFor(SupportedTranslation.JC.translation)
         val request = SearchRequest(
             term = "grace",
-            translation = Translation.jc,
+            translation = SupportedTranslation.JC.translation,
             bookNumber = 1,
             startChapter = 1,
             endChapter = null,
@@ -136,6 +134,56 @@ class SearchBackendTest : ResourcesTestBase() {
             "--category", "david",
             "--verses", "5",
             "grace"
+        )
+        assertEquals(expected, runner.lastCommand)
+    }
+
+    @Test
+    fun sideloadedTranslationUsesLanguageSearchModule() {
+        val binDir = "/tmp/bbl/bin".toPath()
+        fakeFs.createDirectories(binDir)
+        val binaryPath = binDir / searchHelperName("morfologik")
+        fakeFs.write(binaryPath) { writeUtf8("bin") }
+
+        val runner = FakeProcessRunner { command ->
+            if (command.lastOrNull() == "--artifact-compat-version") {
+                ProcessResult(0, BblVersion.version, "")
+            } else {
+                ProcessResult(0, "ok", "")
+            }
+        }
+        val selector = SearchBackendSelector(
+            bible = bible,
+            processRunner = runner,
+            fileSystem = fakeFs,
+            binDirProvider = { binDir }
+        )
+        val sideloaded = Translation(
+            code = "sidepl",
+            languageCode = "pl",
+            englishName = "Sideloaded Polish",
+            nativeName = "Sideloaded Polish",
+            year = 2026,
+            copyright = "Test"
+        )
+
+        val backend = selector.backendFor(sideloaded)
+        val request = SearchRequest(
+            term = "Jezus",
+            translation = sideloaded,
+            bookNumber = null,
+            startChapter = null,
+            endChapter = null,
+            verses = 5
+        )
+
+        backend.search(request)
+
+        val expected = listOf(
+            binaryPath.toString(),
+            "-t", "sidepl",
+            "--verses", "5",
+            "Jezus"
         )
         assertEquals(expected, runner.lastCommand)
     }
@@ -161,10 +209,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.en)
+        val backend = selector.backendFor(SupportedTranslation.WEBUS.translation)
         val request = SearchRequest(
             term = "Jesus wept",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,
@@ -203,10 +251,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.en)
+        val backend = selector.backendFor(SupportedTranslation.WEBUS.translation)
         val request = SearchRequest(
             term = "\"Jesus wept\"",
-            translation = Translation.webus,
+            translation = SupportedTranslation.WEBUS.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,
@@ -245,10 +293,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.ja)
+        val backend = selector.backendFor(SupportedTranslation.JC.translation)
         val request = SearchRequest(
             term = "grace",
-            translation = Translation.jc,
+            translation = SupportedTranslation.JC.translation,
             bookNumber = 1,
             startChapter = 1,
             endChapter = null,
@@ -291,10 +339,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.ja)
+        val backend = selector.backendFor(SupportedTranslation.JC.translation)
         val request = SearchRequest(
             term = "grace",
-            translation = Translation.jc,
+            translation = SupportedTranslation.JC.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,
@@ -335,10 +383,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.ja)
+        val backend = selector.backendFor(SupportedTranslation.JC.translation)
         val request = SearchRequest(
             term = "grace",
-            translation = Translation.jc,
+            translation = SupportedTranslation.JC.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,
@@ -375,10 +423,10 @@ class SearchBackendTest : ResourcesTestBase() {
             binDirProvider = { binDir }
         )
 
-        val backend = selector.backendFor(Language.ja)
+        val backend = selector.backendFor(SupportedTranslation.JC.translation)
         val request = SearchRequest(
             term = "grace",
-            translation = Translation.jc,
+            translation = SupportedTranslation.JC.translation,
             bookNumber = null,
             startChapter = null,
             endChapter = null,

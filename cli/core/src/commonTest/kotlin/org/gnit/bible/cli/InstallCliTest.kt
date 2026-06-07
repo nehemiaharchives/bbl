@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -189,7 +191,7 @@ class InstallCliTest : ResourcesTestBase() {
         val packDir = bible.assetManager.platform.packDir.toPath()
         fakeFs.createDirectories(packDir)
         val wrongVersionZip = ZipUtil.buildMinimalZip(
-            listOf("kttv$MANIFEST_JSON_POSTFIX" to Translation.kttv.copy(version = "0.0.1").toJson())
+            listOf("kttv$MANIFEST_JSON_POSTFIX" to SupportedTranslation.KTTV.translation.copy(version = "0.0.1").toJson())
         )
         fakeFs.write(packDir / "kttv.zip") { write(wrongVersionZip) }
 
@@ -218,7 +220,7 @@ class InstallCliTest : ResourcesTestBase() {
               }
             ]
         """.trimIndent()
-        val wrongVersionManifest = Translation.jc.copy(version = "0.0.1").toJson()
+        val wrongVersionManifest = SupportedTranslation.JC.translation.copy(version = "0.0.1").toJson()
         val wrongVersionZip = ZipUtil.buildMinimalZip(
             listOf(
                 "jc.1.1.txt" to TestFixtures.JC_GENESIS_1_1,

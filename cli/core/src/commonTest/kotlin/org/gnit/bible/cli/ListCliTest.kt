@@ -1,5 +1,7 @@
 package org.gnit.bible.cli
 
+import org.gnit.bible.SupportedTranslation
+
 import okio.SYSTEM
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
@@ -32,7 +34,7 @@ class ListCliTest : ResourcesTestBase() {
         platform.overrideFileSystem = null
         platform.overrideSettings = InMemorySettings()
 
-        val installed = Translation.kttv
+        val installed = SupportedTranslation.KTTV.translation
 
         bible = Bible(
             assetManager = FakeAssetManager(

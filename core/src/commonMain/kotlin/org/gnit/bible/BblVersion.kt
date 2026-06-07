@@ -6,7 +6,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 object BblVersion {
-    private val manifestJson = Json { ignoreUnknownKeys = true }
     /**
      * The App version number. This string will be used as git tag for the release, note no "v" prefix, just the version number.
      */
