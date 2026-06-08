@@ -108,10 +108,6 @@ object SearchCliSupport {
             ?: throw UsageError("Translation '$code' not found. Run 'bbl list translations' to see installed translations.")
     }
 
-    fun resolveTerm(term: String?, inlineTermParts: List<String>): String {
-        return term ?: SearchQueryText.searchTermFromArgs(inlineTermParts)
-    }
-
     fun renderResults(pointers: List<VersePointer>, bible: Bible, jsonOutput: Boolean): String {
         if (pointers.isEmpty()) {
             return if (jsonOutput) "[]" else "No results found."
