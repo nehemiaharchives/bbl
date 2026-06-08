@@ -49,7 +49,8 @@ val bblVersionProvider = providers.fileContents(
     bblVersionFile
 ).asText.map { source ->
     listOf(
-        Regex("""val version = "([^"]+)"""")
+        Regex("""(?:const\s+)?val\s+VERSION(?:\s*:\s*String)?\s*=\s*"([^"]+)""""),
+        Regex("""(?:const\s+)?val\s+version(?:\s*:\s*String)?\s*=\s*"([^"]+)"""")
     ).firstNotNullOfOrNull { regex ->
         regex.find(source)?.groupValues?.get(1)
     }
