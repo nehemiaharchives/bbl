@@ -23,10 +23,6 @@ open class SearchHelperCli(
 ) : CoreCliktCommand(name = searchHelperBinaryName) {
     private val termParts by argument(help = "search term").multiple()
     private val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
-    private val artifactCompatibilityVersionFlag by option(
-        "--artifact-compat-version",
-        help = "prints out bbl artifact compatibility version"
-    ).flag()
     protected val translationCode by option("-t", "--translation", help = "translation code (e.g. webus)")
     protected val bookNumber by option("--book", help = "book number").convert { it.toInt() }
     protected val startChapter by option("--chapter", help = "chapter number").convert { it.toInt() }
@@ -36,11 +32,6 @@ open class SearchHelperCli(
 
     override fun run() {
         if (versionFlag) {
-            echo(BblVersion.searchHelperVersionLine(searchHelperBinaryName))
-            return
-        }
-
-        if (artifactCompatibilityVersionFlag) {
             echo(BblVersion.version)
             return
         }

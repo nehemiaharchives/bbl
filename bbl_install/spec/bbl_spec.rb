@@ -94,15 +94,6 @@ describe 'bbl_install::default' do
       )
     end
 
-    it 'copies the expected artifact compatibility version file' do
-      expect(chef_run).to create_cookbook_file('/root/.bbl/artifact_compatibility_version.txt').with(
-        source: 'artifact_compatibility_version.txt',
-        owner: 'root',
-        group: 'root',
-        mode: '0644'
-      )
-    end
-
     it 'copies the search helpers' do
       linux_helper_bin_names.each do |bin_name|
         expect(chef_run).to create_cookbook_file("/root/.bbl/bin/#{bin_name}").with(
@@ -230,12 +221,6 @@ describe 'bbl_install::default' do
       expect(chef_run).to run_ruby_block("copy version.txt to #{::File.join(install_root, 'version.txt')}")
     end
 
-    it 'copies the expected artifact compatibility version file' do
-      expect(chef_run).to run_ruby_block(
-        "copy artifact_compatibility_version.txt to #{::File.join(install_root, 'artifact_compatibility_version.txt')}"
-      )
-    end
-
     it 'copies the search helpers' do
       windows_helper_bin_names.each do |bin_name|
         expect(chef_run).to run_ruby_block("copy #{bin_name} to #{::File.join(helper_bin_dir, bin_name)}")
@@ -305,15 +290,6 @@ describe 'bbl_install::default' do
     it 'copies the expected bbl version file under the local home directory' do
       expect(chef_run).to create_cookbook_file(::File.join(install_root, 'version.txt')).with(
         source: 'version.txt',
-        owner: current_user,
-        group: current_group,
-        mode: '0644'
-      )
-    end
-
-    it 'copies the expected artifact compatibility version file under the local home directory' do
-      expect(chef_run).to create_cookbook_file(::File.join(install_root, 'artifact_compatibility_version.txt')).with(
-        source: 'artifact_compatibility_version.txt',
         owner: current_user,
         group: current_group,
         mode: '0644'

@@ -6,7 +6,6 @@ bin_dir = node['bbl_install']['bin_dir']
 helper_bin_dir = node['bbl_install']['helper_bin_dir'] || bin_dir
 pack_dir = node['bbl_install']['pack_dir']
 version_file_path = node['bbl_install']['version_file_path']
-artifact_compatibility_version_file_path = node['bbl_install']['artifact_compatibility_version_file_path']
 install_source_dir = node['bbl_install']['install_source_dir']
 bbl_bin_path = node['bbl_install']['bbl_binary_path']
 windows = platform_family?('windows')
@@ -59,17 +58,9 @@ end
 
 if windows
   install_windows_cookbook_file(version_file_path, 'version.txt')
-  install_windows_cookbook_file(artifact_compatibility_version_file_path, 'artifact_compatibility_version.txt')
 else
   cookbook_file version_file_path do
     source 'version.txt'
-    owner posix_owner
-    group posix_group
-    mode '0644'
-  end
-
-  cookbook_file artifact_compatibility_version_file_path do
-    source 'artifact_compatibility_version.txt'
     owner posix_owner
     group posix_group
     mode '0644'

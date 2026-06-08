@@ -136,14 +136,13 @@ end
 
 installed_search_helpers.each do |name|
   path = "#{helper_bin_dir}#{sep}#{name}"
-  display = name.delete_suffix('.exe')
 
   describe command(helper_run.call(path, '--version')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{display} version #{expected_version}#{eol}") }
+    its('stdout') { should eq("#{expected_version}#{eol}") }
   end
 
-  describe command(helper_run.call(path, '--artifact-compat-version')) do
+  describe command(helper_run.call(path, '-v')) do
     its('exit_status') { should eq 0 }
     its('stdout') { should eq("#{expected_version}#{eol}") }
   end

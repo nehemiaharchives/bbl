@@ -7,7 +7,6 @@ default['bbl_install']['bin_dir'] = '/root/.bbl/bin'
 default['bbl_install']['helper_bin_dir'] = '/root/.bbl/bin'
 default['bbl_install']['pack_dir'] = '/root/.bbl/packs'
 default['bbl_install']['version_file_path'] = '/root/.bbl/version.txt'
-default['bbl_install']['artifact_compatibility_version_file_path'] = '/root/.bbl/artifact_compatibility_version.txt'
 default['bbl_install']['bbl_binary_path'] = '/usr/bin/bbl'
 default['bbl_install']['install_source_dir'] = '/tmp/bbl-install-downloads'
 

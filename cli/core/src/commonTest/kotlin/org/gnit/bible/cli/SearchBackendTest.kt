@@ -58,7 +58,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -100,7 +100,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -146,7 +146,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -196,7 +196,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -238,7 +238,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -280,7 +280,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -326,7 +326,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -370,7 +370,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, BblVersion.version, "")
             } else {
                 ProcessResult(2, "", "boom")
@@ -410,7 +410,7 @@ class SearchBackendTest : ResourcesTestBase() {
         fakeFs.write(binaryPath) { writeUtf8("bin") }
 
         val runner = FakeProcessRunner { command ->
-            if (command.lastOrNull() == "--artifact-compat-version") {
+            if (command.lastOrNull() == "--version") {
                 ProcessResult(0, "0.0.1", "")
             } else {
                 ProcessResult(0, "ok", "")
@@ -438,7 +438,7 @@ class SearchBackendTest : ResourcesTestBase() {
         }
 
         val message = error.message ?: ""
-        assertTrue(message.contains("artifact compatibility version mismatch"))
+        assertTrue(message.contains("version mismatch"))
         assertTrue(message.contains(BblVersion.version))
     }
 
