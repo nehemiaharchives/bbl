@@ -8,18 +8,16 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.gnit.bible.Bible
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
 import org.gnit.bible.SearchModuleId
 import org.gnit.bible.SupportedTranslation
 import org.gnit.bible.Translation
-import okio.Path.Companion.toPath
 import org.gnit.bible.BblVersion
 
 class InstallCli(
     private val bible: Bible,
-    private val packBaseUrl: String = environmentVariable("BBL_PACK_BASE_URL") ?: DOWNLOADABLE_BIBLE_BASE_URL,
+    private val packBaseUrl: String = environmentVariable("BBL_PACK_BASE_URL") ?: BblVersion.DOWNLOADABLE_BIBLE_BASE_URL,
     private val searchBinaryBaseUrl: String = environmentVariable("BBL_SEARCH_BINARY_BASE_URL")
-        ?: BblVersion.releaseDownloadBaseUrl
+        ?: BblVersion.RELEASE_DOWNLOAD_URL
 ) : CoreCliktCommand(name = "install") {
     private val logger = KotlinLogging.logger {}
 
@@ -47,7 +45,7 @@ class InstallCli(
             .toSet()
 
         incompatibleInstalledCodes.forEach {
-            echo("$it installed pack is incompatible with bbl ${BblVersion.version}, reinstalling")
+            echo("$it installed pack is incompatible with bbl ${BblVersion.VERSION}, reinstalling")
             runCatching { am.delete(it) }
         }
 

@@ -4,7 +4,6 @@ import java.io.InputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import org.gnit.bible.BibleResourcesReader
-import org.gnit.bible.BBLPACKS_CLASS_PATH_ROOT
 import org.gnit.bible.SearchEngine
 
 /**
@@ -13,7 +12,7 @@ import org.gnit.bible.SearchEngine
 class ServerBibleResourcesReader : BibleResourcesReader {
 
     private fun openZip(translation: String): ZipInputStream {
-        val path = "$BBLPACKS_CLASS_PATH_ROOT/$translation.zip"
+        val path = "/files/bblpacks/$translation.zip"
         val stream = javaClass.getResourceAsStream(path)
             ?: error("ServerBibleResourcesReader could not find $path on classpath")
         return ZipInputStream(stream)

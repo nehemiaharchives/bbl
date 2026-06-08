@@ -2,7 +2,6 @@ package org.gnit.bible.cli
 
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import org.gnit.bible.BblVersion
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
@@ -71,7 +70,7 @@ class ExternalSearchBackend(
             )
         }
 
-        val expected = BblVersion.version
+        val expected = BblVersion.VERSION
         val actual = result.stdout.trim()
         if (actual != expected) {
             val actualDisplay = actual.ifBlank { "<blank>" }

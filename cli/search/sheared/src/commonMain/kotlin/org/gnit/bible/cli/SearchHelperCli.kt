@@ -32,7 +32,7 @@ open class SearchHelperCli(
 
     override fun run() {
         if (versionFlag) {
-            echo(BblVersion.version)
+            echo("$searchHelperBinaryName ${BblVersion.VERSION}")
             return
         }
 

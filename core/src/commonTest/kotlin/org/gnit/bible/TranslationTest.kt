@@ -40,8 +40,8 @@ class TranslationTest : ResourcesTestBase() {
 
     @Test
     fun translationDefaultsToCurrentBblVersion() {
-        assertEquals(BblVersion.version, SupportedTranslation.WEBUS.translation.version)
-        assertTrue(SupportedTranslation.WEBUS.translation.toJson().contains("\"version\":\"${BblVersion.version}\""))
+        assertEquals(BblVersion.VERSION, SupportedTranslation.WEBUS.translation.version)
+        assertTrue(SupportedTranslation.WEBUS.translation.toJson().contains("\"version\":\"${BblVersion.VERSION}\""))
     }
 
     @Test

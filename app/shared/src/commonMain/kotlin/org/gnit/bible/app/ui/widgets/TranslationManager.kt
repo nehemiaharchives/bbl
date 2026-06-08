@@ -41,7 +41,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
+import org.gnit.bible.BblVersion
 import org.gnit.bible.TranslationEntry
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Language
@@ -122,7 +122,7 @@ fun TranslationManagerScreen(
                             downloadingCodes = downloadingCodes + entry.translation.code
                             scope.launch(Dispatchers.IO) {
                                 runCatching {
-                                    val url = if (DOWNLOADABLE_BIBLE_BASE_URL.endsWith("/")) DOWNLOADABLE_BIBLE_BASE_URL else "$DOWNLOADABLE_BIBLE_BASE_URL/"
+                                    val url = if (BblVersion.DOWNLOADABLE_BIBLE_BASE_URL.endsWith("/")) BblVersion.DOWNLOADABLE_BIBLE_BASE_URL else "${BblVersion.DOWNLOADABLE_BIBLE_BASE_URL}/"
                                     val fileName = "${entry.translation.code}.zip"
                                     logger.debug {"download button tapped, start download ${entry.translation.code} url=${url}$fileName"}
                                     assetManager.download(url, fileName)

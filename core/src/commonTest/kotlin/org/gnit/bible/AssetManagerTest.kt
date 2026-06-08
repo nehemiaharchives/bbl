@@ -19,8 +19,7 @@ class AssetManagerTest : ResourcesTestBase() {
 
     lateinit var am: AssetManagerImpl
     val fileName = "kttv.zip"
-    val baseUrl =
-        BblVersion.rawGithubUrl("nehemiaharchives/bbl", "refs/heads/master", "core/src/commonTest/resources/data/")
+    val baseUrl = "https://raw.githubusercontent.com/nehemiaharchives/bbl/refs/heads/master/core/src/commonTest/resources/data/"
 
     lateinit var platform: Platform
     lateinit var systemFileSystem: FileSystem

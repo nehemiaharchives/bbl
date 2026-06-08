@@ -64,7 +64,15 @@ class AssetManagerImpl(
         destinationDir: String
     ) {
         var lastFailure: Throwable? = null
-        for (candidateBaseUrl in BblVersion.downloadUrlCandidates(baseUrl)) {
+        val candidateBaseUrls = buildList {
+            add(baseUrl)
+            val legacyBaseUrl = baseUrl.replace(
+                BblVersion.BBL_REPOSITORY,
+                BblVersion.BBL_REPOSITORY_LEGACY
+            )
+            if (legacyBaseUrl != baseUrl) add(legacyBaseUrl)
+        }
+        for (candidateBaseUrl in candidateBaseUrls) {
             val result = runCatching {
                 val url = "${candidateBaseUrl.trimEnd('/')}/$fileName"
                 val destinationPath = destinationDir.toPath() / fileName

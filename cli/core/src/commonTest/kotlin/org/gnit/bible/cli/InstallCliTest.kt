@@ -14,7 +14,6 @@ import org.gnit.bible.Bible
 import org.gnit.bible.BblVersion
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
-import org.gnit.bible.Translation
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.ZipUtil
@@ -95,12 +94,14 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallFallsBackToLegacyRepositoryWhenPrimaryRepositoryUnavailable() {
         val searchHelperName = searchHelperName("kuromoji")
+        val primaryReleasePath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/$searchHelperName"
+        val legacyReleasePath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/$searchHelperName"
         val httpClient = HttpClient(MockEngine { request ->
-            when (request.url.encodedPath) {
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bblpacks/jc.zip") ->
+            when {
+                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" ->
                     respond("", status = HttpStatusCode.NotFound)
 
-                BblVersion.serverResourcePath("nehemiaharchives/bbl-kmp", BblVersion.version, "bblpacks/jc.zip") ->
+                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH_LEGACY}/bblpacks/jc.zip" ->
                     respond(
                         content = TestFixtures.jcMinimalZipBytes,
                         headers = headersOf(
@@ -109,10 +110,10 @@ class InstallCliTest : ResourcesTestBase() {
                         )
                     )
 
-                BblVersion.releaseAssetPath("nehemiaharchives/bbl", BblVersion.version, searchHelperName) ->
+                request.url.encodedPath == primaryReleasePath ->
                     respond("", status = HttpStatusCode.NotFound)
 
-                BblVersion.releaseAssetPath("nehemiaharchives/bbl-kmp", BblVersion.version, searchHelperName) -> {
+                request.url.encodedPath == legacyReleasePath -> {
                     val bytes = "kuromoji helper".encodeToByteArray()
                     respond(
                         content = bytes,
@@ -137,9 +138,11 @@ class InstallCliTest : ResourcesTestBase() {
 
     @Test
     fun testBblInstallUsesBuiltInCatalogWhenFetchedListOmitsEmbeddedTranslation() {
+        val primaryReleasePath =
+            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/${searchHelperName("kuromoji")}"
         val httpClient = HttpClient(MockEngine { request ->
-            when (request.url.encodedPath) {
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bblpacks/jc.zip") -> respond(
+            when {
+                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" -> respond(
                     content = TestFixtures.jcMinimalZipBytes,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
@@ -147,7 +150,7 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                BblVersion.releaseAssetPath("nehemiaharchives/bbl", BblVersion.version, searchHelperName("kuromoji")) -> {
+                request.url.encodedPath == primaryReleasePath -> {
                     val bytes = "kuromoji helper".encodeToByteArray()
                     respond(
                         content = bytes,
@@ -198,7 +201,7 @@ class InstallCliTest : ResourcesTestBase() {
         val result = Bbl(bible = bible).test("install kttv").output.replace("\r\n", "\n")
 
         assertEquals(
-            "kttv installed pack is incompatible with bbl ${BblVersion.version}, reinstalling\n" +
+            "kttv installed pack is incompatible with bbl ${BblVersion.VERSION}, reinstalling\n" +
                 "Installed kttv\n" +
                 "Installed ${searchHelperName("extra")}\n",
             result
@@ -232,8 +235,8 @@ class InstallCliTest : ResourcesTestBase() {
             )
         )
         val httpClient = HttpClient(MockEngine { request ->
-            when (request.url.encodedPath) {
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bbllist.json") -> respond(
+            when {
+                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bbllist.json" -> respond(
                     content = downloadableTranslationsJson,
                     headers = headersOf(
                         "Content-Type" to listOf("application/json"),
@@ -241,7 +244,7 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                BblVersion.serverResourcePath("nehemiaharchives/bbl", BblVersion.version, "bblpacks/jc.zip") -> respond(
+                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" -> respond(
                     content = wrongVersionZip,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
@@ -258,7 +261,7 @@ class InstallCliTest : ResourcesTestBase() {
         val result = Bbl(bible = versionedBible).test("install jc")
 
         assertTrue(result.statusCode != 0)
-        assertTrue(result.output.contains("pack manifest version 0.0.1 is incompatible with bbl ${BblVersion.version}"))
+        assertTrue(result.output.contains("pack manifest version 0.0.1 is incompatible with bbl ${BblVersion.VERSION}"))
         val zipPath = versionedBible.assetManager.platform.packDir.toPath() / "jc.zip"
         assertTrue(!fakeFs.exists(zipPath))
     }

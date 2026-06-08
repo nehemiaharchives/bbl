@@ -57,7 +57,7 @@ data class Translation(
     val customBookNamesConcat: String? = null,
 
     @EncodeDefault
-    val version: String = BblVersion.version,
+    val version: String = BblVersion.VERSION,
 ) {
 
     val language: Language

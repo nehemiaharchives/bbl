@@ -6,7 +6,7 @@ import android.content.ContentProvider
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import okio.FileSystem
-import org.gnit.bible.DOWNLOADABLE_BIBLE_BASE_URL
+import org.gnit.bible.BblVersion
 import org.gnit.bible.Platform
 import org.gnit.bible.getPlatform
 import org.junit.Before
@@ -172,7 +172,7 @@ actual abstract class ResourcesTestBase actual constructor() {
         if (destination.exists() && destination.length() > 0L) {
             return
         }
-        val url = "${DOWNLOADABLE_BIBLE_BASE_URL.trimEnd('/')}/$code.zip"
+        val url = "${BblVersion.DOWNLOADABLE_BIBLE_BASE_URL.trimEnd('/')}/$code.zip"
         runCatching {
             destination.parentFile?.mkdirs()
             java.net.URL(url).openStream().use { input ->

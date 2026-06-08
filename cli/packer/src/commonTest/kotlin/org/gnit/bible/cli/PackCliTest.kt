@@ -107,7 +107,7 @@ class PackCliTest {
 
             val manifestTranslation = zipBibleResourcesReader.getTranslationFromManifest("webus")
             assertEquals("webus", manifestTranslation.code)
-            assertEquals(BblVersion.version, manifestTranslation.version)
+            assertEquals(BblVersion.VERSION, manifestTranslation.version)
 
             // Verify lucene-kmp index files are included in the zip (and lock is not).
             val zipEntries = mutableListOf<String>()
@@ -158,7 +158,7 @@ class PackCliTest {
         )
 
         val manifestTranslation = Translation.fromJson(fileSystem.read(manifestPath) { readUtf8() })
-        assertEquals(BblVersion.version, manifestTranslation.version)
+        assertEquals(BblVersion.VERSION, manifestTranslation.version)
     }
 
     /**

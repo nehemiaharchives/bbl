@@ -59,7 +59,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -101,7 +101,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -147,7 +147,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -197,7 +197,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -239,7 +239,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -281,7 +281,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -327,7 +327,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(0, "ok", "")
             }
@@ -371,7 +371,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val runner = FakeProcessRunner { command ->
             if (command.lastOrNull() == "--version") {
-                ProcessResult(0, BblVersion.version, "")
+                ProcessResult(0, BblVersion.VERSION, "")
             } else {
                 ProcessResult(2, "", "boom")
             }
@@ -439,7 +439,7 @@ class SearchBackendTest : ResourcesTestBase() {
 
         val message = error.message ?: ""
         assertTrue(message.contains("version mismatch"))
-        assertTrue(message.contains(BblVersion.version))
+        assertTrue(message.contains(BblVersion.VERSION))
     }
 
     private class FakeProcessRunner(

@@ -7,7 +7,6 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import org.gnit.bible.MANIFEST_JSON_POSTFIX
-import org.gnit.bible.Translation
 import org.gnit.bible.BblVersion
 import org.gnit.bible.test.ZipUtil
 
@@ -104,12 +103,12 @@ object TestFixtures {
     }
 
     fun bblInstallMockEngine() = MockEngine { request ->
-        val releaseVersion = BblVersion.version
+        val releaseVersion = BblVersion.VERSION
         val path = request.url.encodedPath
         val helperName = path.substringAfterLast('/')
         val helperBytes = "$helperName helper".encodeToByteArray()
         when {
-            path.startsWith(BblVersion.serverResourcePath("nehemiaharchives/bbl", releaseVersion, "bblpacks/")) &&
+            path.startsWith("${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/") &&
                 path.endsWith(".zip") -> {
                 val code = path.substringAfterLast('/').removeSuffix(".zip")
                 respond(
@@ -118,7 +117,7 @@ object TestFixtures {
                     headers = headersOf("Content-Type", "application/zip")
                 )
             }
-            path.startsWith(BblVersion.serverResourcePath("nehemiaharchives/bbl-kmp", releaseVersion, "bblpacks/")) &&
+            path.startsWith("${BblVersion.SERVER_RESOURCE_PATH_LEGACY}/bblpacks/") &&
                 path.endsWith(".zip") -> {
                 val code = path.substringAfterLast('/').removeSuffix(".zip")
                 respond(
