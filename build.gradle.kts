@@ -88,11 +88,11 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
             group = LifecycleBasePlugin.BUILD_GROUP
             description = "Stage ${binary.id} ${platform.id} fixture files for bbl_install Kitchen tests."
 
-            dependsOn("${binary.projectPath}:linkReleaseExecutable${platform.linkTaskSuffix}")
+            dependsOn("${binary.projectPath}:linkDebugExecutable${platform.linkTaskSuffix}")
             dependsOn(stageBblInstallVersionFixture)
 
             into(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}/${binary.id}"))
-            from(project(binary.projectPath).layout.buildDirectory.dir("bin/${platform.nativeTargetName}/releaseExecutable")) {
+            from(project(binary.projectPath).layout.buildDirectory.dir("bin/${platform.nativeTargetName}/debugExecutable")) {
                 include(executableFileName)
                 rename(Regex.escape(executableFileName), binary.binaryName + if (platform.id == "windows") ".exe" else "")
             }
