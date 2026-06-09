@@ -1,13 +1,28 @@
 require 'json'
 require 'stringio'
+require 'tmpdir'
 require 'zip'
-require 'base64'
 
 windows = os.windows?
 macos = %w[darwin mac_os_x].include?(os.name.to_s)
 
-attrs_file = windows ? "#{os_env('TEMP').content}\\bbl-test-attributes.json" : '/tmp/bbl-test-attributes.json'
-attrs = JSON.parse(file(attrs_file).content)
+attrs_file = if windows
+  temp_dirs = [
+    ENV['TEMP'],
+    ENV['TMP'],
+    os_env('TEMP').content,
+    os_env('TMP').content,
+    Dir.tmpdir,
+  ].compact.uniq
+  temp_dirs.map { |dir| File.join(dir, 'bbl-test-attributes.json') }.find { |path| File.file?(path) } ||
+    File.join(Dir.tmpdir, 'bbl-test-attributes.json')
+else
+  '/tmp/bbl-test-attributes.json'
+end
+attrs_content = windows ? (File.read(attrs_file) if File.file?(attrs_file)) : file(attrs_file).content
+raise "Unable to load bbl_install test attributes from #{attrs_file}" if attrs_content.nil? || attrs_content.empty?
+
+attrs = JSON.parse(attrs_content)
 
 install_root = attrs['install_root']
 pack_dir = attrs['pack_dir']
@@ -31,42 +46,26 @@ if windows
 
   bbl = ->(args) { exec.call(bbl_bin, args) }
   helper_run = ->(path, args) { exec.call(path, args) }
-
-  zip_manifest_getter = lambda do |zip_path, manifest_name|
-    escaped_path = zip_path.gsub("'", "''")
-    escaped_name = manifest_name.gsub("'", "''")
-    ps = [
-      "$ProgressPreference = 'SilentlyContinue'",
-      'Add-Type -AssemblyName System.IO.Compression.FileSystem',
-      "$archive = [System.IO.Compression.ZipFile]::OpenRead('#{escaped_path}')",
-      'try {',
-      "  $entry = $archive.GetEntry('#{escaped_name}')",
-      '  if ($null -eq $entry) { exit 2 }',
-      '  $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)',
-      '  try {',
-      '    $manifest = $reader.ReadToEnd() | ConvertFrom-Json',
-      '    Write-Output $manifest.version',
-      '  } finally { $reader.Dispose() }',
-      '} finally { $archive.Dispose() }',
-    ].join("\n")
-    encoded = Base64.strict_encode64(ps.encode('UTF-16LE'))
-    "powershell -NoProfile -ExecutionPolicy Bypass -EncodedCommand #{encoded}"
-  end
-
-  zip_manifest_version = ->(zip_path, manifest_name) { command(zip_manifest_getter.call(zip_path, manifest_name)).stdout.strip }
 else
   bbl = ->(args) { "#{bbl_bin} #{args}" }
   helper_run = ->(path, args) { "#{path} #{args}" }
+end
 
-  zip_manifest_version = lambda do |zip_content, manifest_name|
-    return nil if zip_content.nil? || zip_content.empty?
-    Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
-      while (entry = zip.get_next_entry)
-        return JSON.parse(zip.read)['version'] if entry.name == manifest_name
-      end
+zip_manifest_version = lambda do |zip_content, manifest_name|
+  return nil if zip_content.nil? || zip_content.empty?
+
+  Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
+    while (entry = zip.get_next_entry)
+      next unless entry.name == manifest_name
+
+      manifest = JSON.parse(zip.read)
+      version = manifest['version'] || manifest['bblArtifactCompatibilityVersion']
+      raise "#{manifest_name} is missing version" if version.nil? || version.empty?
+
+      return version
     end
-    nil
   end
+  nil
 end
 
 RSpec.shared_context 'search helpers' do
@@ -136,15 +135,17 @@ end
 
 installed_search_helpers.each do |name|
   path = "#{helper_bin_dir}#{sep}#{name}"
+  expected_name = windows ? name.delete_suffix('.exe') : name
+  expected_version_stdout = "#{expected_name} #{expected_version}#{eol}"
 
   describe command(helper_run.call(path, '--version')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{name} #{expected_version}#{eol}") }
+    its('stdout') { should eq(expected_version_stdout) }
   end
 
   describe command(helper_run.call(path, '-v')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{name} #{expected_version}#{eol}") }
+    its('stdout') { should eq(expected_version_stdout) }
   end
 end
 
@@ -154,7 +155,7 @@ installed_pack_codes.each do |code|
 
   if windows
     describe "#{code}.zip manifest version" do
-      subject(:bbl_version) { zip_manifest_version.call(pack_file, manifest) }
+      subject(:bbl_version) { zip_manifest_version.call(File.binread(pack_file), manifest) }
       it { should eq(expected_version) }
     end
   else
