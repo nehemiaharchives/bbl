@@ -139,12 +139,12 @@ installed_search_helpers.each do |name|
 
   describe command(helper_run.call(path, '--version')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{expected_version}#{eol}") }
+    its('stdout') { should eq("#{name} #{expected_version}#{eol}") }
   end
 
   describe command(helper_run.call(path, '-v')) do
     its('exit_status') { should eq 0 }
-    its('stdout') { should eq("#{expected_version}#{eol}") }
+    its('stdout') { should eq("#{name} #{expected_version}#{eol}") }
   end
 end
 

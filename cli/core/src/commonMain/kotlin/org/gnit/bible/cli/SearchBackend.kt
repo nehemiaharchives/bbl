@@ -71,7 +71,7 @@ class ExternalSearchBackend(
         }
 
         val expected = BblVersion.VERSION
-        val actual = result.stdout.trim()
+        val actual = result.stdout.trim().substringAfterLast(" ")
         if (actual != expected) {
             val actualDisplay = actual.ifBlank { "<blank>" }
             throw SearchBackendException(
