@@ -86,3 +86,7 @@ After the test command finishes, spawn `test_result_reviewer` and give it the co
 ## Fast Mode Option
 
 If I say **"fast mode"**, skip all research unless absolutely required. Focus on rapid code editing, running, and debugging.
+
+##
+IMPORTANT: When applicable, prefer using intellij-index MCP tools for code navigation and refactoring.
+
