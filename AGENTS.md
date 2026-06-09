@@ -87,6 +87,13 @@ After the test command finishes, spawn `test_result_reviewer` and give it the co
 
 If I say **"fast mode"**, skip all research unless absolutely required. Focus on rapid code editing, running, and debugging.
 
-##
-IMPORTANT: When applicable, prefer using intellij-index MCP tools for code navigation and refactoring.
+## jetbrains-index MCP  
+IMPORTANT: When applicable, prefer using jetbrains-index MCP tools for code navigation and refactoring.
 
+## ./bbl_install dir and test kitchen
+* :cli:core binary and :cli:search:xxx binaries are should be tested end to end.
+* ./bbl_install dir contains test kitchen related files.
+* ./bbl_install/kitchen.yml is the testing config
+* ./bbl_install/recipes contains chef cookbook to install bbl and search binaries and bbl packs
+* ./bbl_install/attributes contains chef default attributes and platform overrides
+* ./bbl_install/test contains suites for the InSpec tests
