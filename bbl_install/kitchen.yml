@@ -77,3 +77,39 @@ suites:
   - name: default
     run_list:
       - recipe[bbl_install::default]
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/default
+    excludes:
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04
+
+  - name: pack_install
+    run_list:
+      - recipe[bbl_install::default]
+    attributes:
+      bbl_install:
+        deferred_pack_names:
+          - kjv.zip
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/pack_install
+    excludes:
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04
+
+  - name: search
+    run_list:
+      - recipe[bbl_install::default]
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/search
+    excludes:
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04

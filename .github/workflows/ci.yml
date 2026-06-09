@@ -374,13 +374,62 @@ jobs:
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
 
-  e2e-linux-cli:
-    name: E2E (linux/cli)
+  e2e-cli:
+    name: E2E (${{ matrix.suite }}/${{ matrix.platform }})
     needs: tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
       CHEF_LICENSE: accept-no-persist
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: default
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: default-ubuntu-2604
+          - suite: default
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: default-macos-local
+          - suite: default
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: default-windows-local
+          - suite: pack_install
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: pack-install-ubuntu-2604
+          - suite: pack_install
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: pack-install-macos-local
+          - suite: pack_install
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: pack-install-windows-local
+          - suite: search
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: search-ubuntu-2604
+          - suite: search
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: search-macos-local
+          - suite: search
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: search-windows-local
 
     steps:
       - name: Checkout code
@@ -389,11 +438,12 @@ jobs:
       - name: Download shared install fixtures
         uses: actions/download-artifact@v4
         with:
-          pattern: bbl-install-linux-*-files
+          pattern: ${{ matrix.fixture_pattern }}
           path: bbl_install/files
           merge-multiple: true
 
-      - name: Prepare Kitchen cookbook files
+      - name: Prepare Kitchen cookbook files (Linux)
+        if: ${{ matrix.platform == 'ubuntu' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -404,81 +454,8 @@ jobs:
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: bbl_install
-
-      - name: Restore Dokken Docker image
-        id: cache-dokken-image
-        uses: actions/cache@v4
-        with:
-          path: /tmp/docker-cache/dokken-ubuntu
-          key: dokken-ubuntu-26.04-25.10-24.04-22.04-v1
-
-      - name: Load cached Dokken Docker image
-        if: steps.cache-dokken-image.outputs.cache-hit == 'true'
-        run: |
-          for version in 26.04 25.10 24.04 22.04; do
-            docker load --input "/tmp/docker-cache/dokken-ubuntu/${version}.tar"
-          done
-
-      - name: Pull Dokken Docker image
-        if: steps.cache-dokken-image.outputs.cache-hit != 'true'
-        run: |
-          for version in 26.04 25.10 24.04 22.04; do
-            docker pull "dokken/ubuntu-${version}"
-          done
-
-      - name: Save Dokken Docker image
-        if: steps.cache-dokken-image.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p /tmp/docker-cache/dokken-ubuntu
-          for version in 26.04 25.10 24.04 22.04; do
-            docker save "dokken/ubuntu-${version}" --output "/tmp/docker-cache/dokken-ubuntu/${version}.tar"
-          done
-
-      - name: Kitchen create
-        working-directory: bbl_install
-        run: bundle exec kitchen create 'default-ubuntu-(2604|2510|2404|2204)'
-
-      - name: Kitchen converge
-        working-directory: bbl_install
-        run: bundle exec kitchen converge 'default-ubuntu-(2604|2510|2404|2204)'
-
-      - name: Kitchen verify
-        working-directory: bbl_install
-        run: bundle exec kitchen verify 'default-ubuntu-(2604|2510|2404|2204)'
-
-      - name: Build Summary
-        if: always()
-        run: |
-          echo "### E2E (linux/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-
-  e2e-mingw-cli:
-    name: E2E (mingw/cli)
-    needs: tests
-    runs-on: windows-latest
-    timeout-minutes: 90
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Download shared install fixtures
-        uses: actions/download-artifact@v4
-        with:
-          pattern: bbl-install-windows-*-files
-          path: bbl_install/files
-          merge-multiple: true
-
-      - name: Prepare Kitchen cookbook files
+      - name: Prepare Kitchen cookbook files (Windows)
+        if: ${{ matrix.platform == 'mingw' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -489,52 +466,8 @@ jobs:
           if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
           if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: bbl_install
-
-      - name: Kitchen converge
-        working-directory: bbl_install
-        run: |
-          $env:RUBY_EXE = (Get-Command ruby).Source
-          bundle exec kitchen converge default-windows-local
-
-      - name: Kitchen verify
-        working-directory: bbl_install
-        run: |
-          $env:RUBY_EXE = (Get-Command ruby).Source
-          bundle exec kitchen verify default-windows-local
-
-      - name: Build Summary
-        if: always()
-        run: |
-          echo "### E2E (mingw/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-
-  e2e-macos-cli:
-    name: E2E (macos/cli)
-    needs: tests
-    runs-on: macos-latest
-    timeout-minutes: 90
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Download shared install fixtures
-        uses: actions/download-artifact@v4
-        with:
-          pattern: bbl-install-macos-*-files
-          path: bbl_install/files
-          merge-multiple: true
-
-      - name: Prepare Kitchen cookbook files
+      - name: Prepare Kitchen cookbook files (macOS)
+        if: ${{ matrix.platform == 'macos' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -556,18 +489,60 @@ jobs:
           bundler-cache: true
           working-directory: bbl_install
 
+      - name: Restore Dokken Docker image
+        if: ${{ matrix.platform == 'ubuntu' }}
+        id: cache-dokken-image
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache/dokken-ubuntu
+          key: dokken-ubuntu-26.04-v1
+
+      - name: Load cached Dokken Docker image
+        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit == 'true' }}
+        run: docker load --input /tmp/docker-cache/dokken-ubuntu/26.04.tar
+
+      - name: Pull Dokken Docker image
+        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
+        run: docker pull dokken/ubuntu-26.04
+
+      - name: Save Dokken Docker image
+        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir -p /tmp/docker-cache/dokken-ubuntu
+          docker save dokken/ubuntu-26.04 --output /tmp/docker-cache/dokken-ubuntu/26.04.tar
+
       - name: Kitchen converge
         working-directory: bbl_install
-        run: bundle exec kitchen converge default-macos-local
+        shell: bash
+        if: ${{ matrix.platform != 'mingw' }}
+        run: bundle exec kitchen converge '${{ matrix.kitchen_instance }}'
+
+      - name: Kitchen converge
+        working-directory: bbl_install
+        shell: pwsh
+        if: ${{ matrix.platform == 'mingw' }}
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen converge '${{ matrix.kitchen_instance }}'
 
       - name: Kitchen verify
         working-directory: bbl_install
-        run: bundle exec kitchen verify default-macos-local
+        shell: bash
+        if: ${{ matrix.platform != 'mingw' }}
+        run: bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
+
+      - name: Kitchen verify
+        working-directory: bbl_install
+        shell: pwsh
+        if: ${{ matrix.platform == 'mingw' }}
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
 
       - name: Build Summary
         if: always()
         run: |
-          echo "### E2E (macos/cli) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "### E2E (${{ matrix.suite }}/${{ matrix.platform }}) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY

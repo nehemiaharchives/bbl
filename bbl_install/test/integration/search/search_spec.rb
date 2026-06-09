@@ -25,7 +25,8 @@ RSpec.shared_context 'search helpers' do
   end
 end
 
-describe command($bbl_run.call('search Jesus')) do
+describe 'bbl search Jesus' do
+  subject(:cmd) { command($bbl_run.call('search Jesus')) }
   its('exit_status') { should eq 0 }
   its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
 end
@@ -42,7 +43,8 @@ end
 # webus (English - World English Bible)
 
 ['Jesus', 'Christ', 'Jesus Christ'].each do |search_single_term|
-  describe command($bbl_run.call("search #{search_single_term}")) do
+  describe "bbl search #{search_single_term}" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term}")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/The book of the genealogy of Jesus Christ/) }
   end
@@ -60,7 +62,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in kjv")) do
+  describe "bbl search #{search_single_term} in kjv" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in kjv")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/The book of the generation of Jesus Christ/) }
   end
@@ -78,7 +81,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in romans")) do
+  describe "bbl search #{search_single_term} in romans" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in romans")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/Paul, a servant of Jesus Christ/) }
   end
@@ -96,7 +100,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in romans 5-12")) do
+  describe "bbl search #{search_single_term} in romans 5-12" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in romans 5-12")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/Being therefore justified by faith/) }
   end
@@ -114,7 +119,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in romans 5-12 in kjv")) do
+  describe "bbl search #{search_single_term} in romans 5-12 in kjv" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in romans 5-12 in kjv")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/Therefore being justified by faith/) }
   end
@@ -132,7 +138,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in johns letters")) do
+  describe "bbl search #{search_single_term} in johns letters" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in johns letters")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/1 John 1:3/) }
   end
@@ -150,7 +157,8 @@ end
     end
   end
 
-  describe command($bbl_run.call("search #{search_single_term} in johns letters in kjv")) do
+  describe "bbl search #{search_single_term} in johns letters in kjv" do
+    subject(:cmd) { command($bbl_run.call("search #{search_single_term} in johns letters in kjv")) }
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/1 John 1:3/) }
   end
@@ -3527,4 +3535,3 @@ describe 'bbl search मसीह in johns letters in irvurd exact output' do
   it { expect(result.exit_status).to eq 0 }
   it('starts with expected text') { expect(results.first).to eq('1 यूह 1:3 जो कुछ हम ने देखा और सुना है तुम्हें भी उसकी ख़बर देते है, ताकि तुम भी हमारे शरीक हो, और हमारा मेल मिलाप बाप के साथ और उसके बेटे ईसा मसीह के साथ है।') }
 end
-

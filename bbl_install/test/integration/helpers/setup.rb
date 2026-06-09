@@ -26,6 +26,7 @@ raise "Unable to load bbl_install test attributes from #{$bbl_attrs_file}" if $b
 attrs = JSON.parse($bbl_attrs_content)
 
 $bbl_pack_dir = attrs['pack_dir']
+$bbl_install_source_dir = attrs['install_source_dir']
 $bbl_helper_bin_dir = attrs['helper_bin_dir']
 $bbl_bin = attrs['bbl_binary_path']
 $bbl_version_file = attrs['version_file_path']
