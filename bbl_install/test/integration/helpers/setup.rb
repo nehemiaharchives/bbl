@@ -79,7 +79,7 @@ else
         next unless entry.name == manifest_name
 
         manifest = JSON.parse(zip.read)
-        version = manifest['version'] || manifest['bblArtifactCompatibilityVersion']
+        version = manifest['version']
         raise "#{manifest_name} is missing version" if version.nil? || version.empty?
 
         return version

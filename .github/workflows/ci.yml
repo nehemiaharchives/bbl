@@ -425,11 +425,16 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: search-macos-local
-          - suite: search
+          #- suite: search
+          #  platform: mingw
+          #  os: windows-latest
+          #  fixture_pattern: bbl-install-windows-*-files
+          #  kitchen_instance: search-windows-local
+          - suite: search_script
             platform: mingw
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
-            kitchen_instance: search-windows-local
+            kitchen_instance: search-script-windows-local
 
     steps:
       - name: Checkout code
@@ -488,6 +493,21 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
           working-directory: bbl_install
+
+      - name: Install PowerShell 7+
+        if: ${{ matrix.suite == 'search_script' && matrix.platform == 'mingw' }}
+        uses: PSModule/install-powershell@v1
+        with:
+          Version: 7.6.2
+
+      - name: Verify PowerShell version
+        if: ${{ matrix.suite == 'search_script' && matrix.platform == 'mingw' }}
+        shell: pwsh
+        run: |
+          Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"
+          if ($PSVersionTable.PSVersion.Major -lt 7) {
+            throw "PowerShell 7+ is required for ForEach-Object -Parallel in search tests"
+          }
 
       - name: Restore Dokken Docker image
         if: ${{ matrix.platform == 'ubuntu' }}
