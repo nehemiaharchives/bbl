@@ -389,7 +389,7 @@ jobs:
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: default-ubuntu-2604
+            kitchen_instance: default-ubuntu
           - suite: default
             platform: macos
             os: macos-latest
@@ -400,26 +400,26 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: default-windows-local
-          - suite: pack_install
+          - suite: pack_install_posix
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: pack-install-ubuntu-2604
-          - suite: pack_install
+            kitchen_instance: pack-install-posix-ubuntu
+          - suite: pack_install_posix
             platform: macos
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
-            kitchen_instance: pack-install-macos-local
-          - suite: pack_install
+            kitchen_instance: pack-install-posix-macos-local
+          - suite: pack_install_windows
             platform: mingw
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
-            kitchen_instance: pack-install-windows-local
+            kitchen_instance: pack-install-windows-windows-local
           - suite: search
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: search-ubuntu-2604
+            kitchen_instance: search-ubuntu
           - suite: search
             platform: macos
             os: macos-latest
@@ -499,15 +499,20 @@ jobs:
 
       - name: Load cached Dokken Docker image
         if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit == 'true' }}
-        run: docker load --input /tmp/docker-cache/dokken-ubuntu/26.04.tar
+        run: |
+          echo "Dokken cache hit, loading Docker image"
+          docker load --input /tmp/docker-cache/dokken-ubuntu/26.04.tar
 
       - name: Pull Dokken Docker image
         if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
-        run: docker pull dokken/ubuntu-26.04
+        run: |
+          echo "Dokken cache did not hit, pulling Docker image"
+          docker pull dokken/ubuntu-26.04
 
       - name: Save Dokken Docker image
         if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
         run: |
+          echo "Dokken cache did not hit, saving Docker image"
           mkdir -p /tmp/docker-cache/dokken-ubuntu
           docker save dokken/ubuntu-26.04 --output /tmp/docker-cache/dokken-ubuntu/26.04.tar
 

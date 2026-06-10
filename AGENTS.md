@@ -97,3 +97,6 @@ IMPORTANT: When applicable, prefer using jetbrains-index MCP tools for code navi
 * ./bbl_install/recipes contains chef cookbook to install bbl and search binaries and bbl packs
 * ./bbl_install/attributes contains chef default attributes and platform overrides
 * ./bbl_install/test contains suites for the InSpec tests
+* `bundle exec kitchen list` is the command to list current available test suites
+* if you change kotlin code base, you need to run ./gradlew stageBblInstall[platform name]CliAllFixture task to prepare new binaries in ./bbl_install/files dir before you run `bundle exec kitchen verify xxx` to test
+* When you work on ./bbl_install test kitchen, read ./bbl_install/AGENTS.md first to avoid pitfalls.

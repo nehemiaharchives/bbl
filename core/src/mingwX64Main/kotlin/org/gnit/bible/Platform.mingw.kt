@@ -2,7 +2,7 @@ package org.gnit.bible
 
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.winhttp.WinHttp
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import okio.Path
@@ -41,4 +41,4 @@ class MingwPlatform : Platform() {
 
 actual fun getPlatform(platformContext: Any?): Platform = MingwPlatform()
 
-actual fun createPlatformHttpClient(): HttpClient = HttpClient(CIO)
+actual fun createPlatformHttpClient(): HttpClient = HttpClient(WinHttp)

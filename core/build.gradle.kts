@@ -82,6 +82,10 @@ kotlin {
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)
 
+        mingwX64Main.get().dependencies {
+            implementation(libs.ktor.clientWinHttp)
+        }
+
         jvmMain.get().dependsOn(commonMain)
         jvmTest.get().dependsOn(commonTest)
 

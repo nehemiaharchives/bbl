@@ -81,26 +81,44 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/default
-    excludes:
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
 
-  - name: pack_install
+  - name: pack_install_posix
     run_list:
       - recipe[bbl_install::default]
     attributes:
       bbl_install:
+        install_source_dir: '/tmp/bbl-install-downloads'
+        pack_names:
+          - kjv.zip
         deferred_pack_names:
           - kjv.zip
     verifier:
       inspec_tests:
         - test/integration/helpers
-        - test/integration/pack_install
+        - test/integration/pack_install_posix
     excludes:
+      - windows-local
+
+  - name: pack_install_windows
+    run_list:
+      - recipe[bbl_install::default]
+    attributes:
+      bbl_install:
+        install_source_dir: 'C:/Users/joel/AppData/Local/Temp/bbl-install-downloads'
+        pack_names:
+          - kjv.zip
+        deferred_pack_names:
+          - kjv.zip
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/pack_install_windows
+    excludes:
+      - ubuntu-26.04
       - ubuntu-25.10
       - ubuntu-24.04
       - ubuntu-22.04
+      - macos-local
 
   - name: search
     run_list:
@@ -109,7 +127,4 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/search
-    excludes:
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
+
