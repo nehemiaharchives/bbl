@@ -387,7 +387,7 @@ jobs:
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: default-ubuntu
+            kitchen_instance: default-ubuntu # includes all ubuntu targets
           - suite: default
             platform: macos
             os: macos-latest
@@ -398,11 +398,12 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: default-windows-local
+
           - suite: pack_install_posix
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: pack-install-posix-ubuntu
+            kitchen_instance: pack-install-posix-ubuntu # includes all ubuntu targets
           - suite: pack_install_posix
             platform: macos
             os: macos-latest
@@ -413,11 +414,12 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: pack-install-windows-windows-local
+
           - suite: search_posix
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: search-posix-ubuntu
+            kitchen_instance: search-posix-ubuntu-2604 # only on 26 to save time
           - suite: search_posix
             platform: macos
             os: macos-latest
@@ -427,7 +429,7 @@ jobs:
             platform: mingw
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
-            kitchen_instance: search-script-windows-local
+            kitchen_instance: search-windows-windows-local
 
     steps:
       - name: Checkout code
@@ -447,38 +449,68 @@ jobs:
           set -euo pipefail
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
           find bbl_install/files/linux -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
+          
+          rm -rf bbl_install/files/common
+          rm -rf bbl_install/files/linux
+          rm -rf bbl_install/files/macosArm64
+          rm -rf bbl_install/files/macosX64
+          rm -rf bbl_install/files/windows
+          
           test -f bbl_install/files/version.txt
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
+          
+          du -sh bbl_install/files
 
       - name: Prepare Kitchen cookbook files (Windows)
         if: ${{ matrix.platform == 'mingw' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+
           Copy-Item bbl_install\files\common\version.txt bbl_install\files\version.txt -Force
           Get-ChildItem bbl_install\files\windows -File -Recurse | Copy-Item -Destination bbl_install\files -Force
+
+          Remove-Item bbl_install\files\common -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\linux -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\macosArm64 -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\macosX64 -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\windows -Recurse -Force -ErrorAction SilentlyContinue
+
           if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
           if (-not (Test-Path bbl_install\files\bbl.exe)) { throw 'Missing bbl_install\files\bbl.exe' }
           if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
           if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
+
+          Get-ChildItem bbl_install\files
 
       - name: Prepare Kitchen cookbook files (macOS)
         if: ${{ matrix.platform == 'macos' }}
         shell: bash
         run: |
           set -euo pipefail
+
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+
           for fixture_dir in bbl_install/files/macosArm64 bbl_install/files/macosX64; do
             if [ -d "$fixture_dir" ]; then
               find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
             fi
           done
+
+          rm -rf bbl_install/files/common
+          rm -rf bbl_install/files/linux
+          rm -rf bbl_install/files/macosArm64
+          rm -rf bbl_install/files/macosX64
+          rm -rf bbl_install/files/windows
+
           test -f bbl_install/files/version.txt
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
+
+          du -sh bbl_install/files
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
