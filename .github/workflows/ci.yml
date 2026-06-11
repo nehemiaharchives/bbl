@@ -5,12 +5,10 @@ on:
     branches: [ master ]
     paths-ignore:
       - '**.md'
-      - '**.sh'
   pull_request:
     branches: [ master ]
     paths-ignore:
       - '**.md'
-      - '**.sh'
 
 jobs:
   tests:
@@ -415,22 +413,17 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: pack-install-windows-windows-local
-          - suite: search
+          - suite: search_posix
             platform: ubuntu
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: search-ubuntu
-          - suite: search
+            kitchen_instance: search-posix-ubuntu
+          - suite: search_posix
             platform: macos
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
-            kitchen_instance: search-macos-local
-          #- suite: search
-          #  platform: mingw
-          #  os: windows-latest
-          #  fixture_pattern: bbl-install-windows-*-files
-          #  kitchen_instance: search-windows-local
-          - suite: search_script
+            kitchen_instance: search-posix-macos-local
+          - suite: search_windows
             platform: mingw
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
@@ -495,13 +488,13 @@ jobs:
           working-directory: bbl_install
 
       - name: Install PowerShell 7+
-        if: ${{ matrix.suite == 'search_script' && matrix.platform == 'mingw' }}
+        if: ${{ matrix.suite == 'search_windows' && matrix.platform == 'mingw' }}
         uses: PSModule/install-powershell@v1
         with:
           Version: 7.6.2
 
       - name: Verify PowerShell version
-        if: ${{ matrix.suite == 'search_script' && matrix.platform == 'mingw' }}
+        if: ${{ matrix.suite == 'search_windows' && matrix.platform == 'mingw' }}
         shell: pwsh
         run: |
           Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"

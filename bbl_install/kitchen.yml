@@ -116,21 +116,23 @@ suites:
       - ubuntu-22.04
       - macos-local
 
-  - name: search
+  - name: search_posix
     run_list:
       - recipe[bbl_install::default]
     verifier:
       inspec_tests:
         - test/integration/helpers
-        - test/integration/search
+        - test/integration/search_posix
+    excludes:
+      - windows-local
 
-  - name: search_script
+  - name: search_windows
     run_list:
       - recipe[bbl_install::default]
     verifier:
       inspec_tests:
         - test/integration/helpers
-        - test/integration/search_script
+        - test/integration/search_windows
     excludes:
       - ubuntu-26.04
       - ubuntu-25.10
