@@ -124,6 +124,11 @@ class Bbl(
             return
         }
 
+        val invokedSubcommand = currentContext.invokedSubcommand
+        if (invokedSubcommand != null && invokedSubcommand.commandName != "in") {
+            return
+        }
+
         versePointer = parseVersePointerOrThrow(
             translation = bible.defaultTranslationFromSettings(),
             bookTokens = book,
@@ -131,7 +136,7 @@ class Bbl(
         )
         currentContext.findOrSetObject { versePointer }
 
-        if (currentContext.invokedSubcommand != null) {
+        if (invokedSubcommand != null) {
             return
         }
 

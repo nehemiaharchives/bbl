@@ -144,6 +144,22 @@ class SearchCliTest {
     }
 
     @Test
+    fun `bbl search with explicit translation and verses does not read config settings`() {
+        platform.configSettings.clear()
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(1, it.verses)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv --verses 1")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
     fun `bbl search in christ stays literal search text`() {
         val backend = RecordingBackendFactory {
             assertEquals("in christ", it.term)

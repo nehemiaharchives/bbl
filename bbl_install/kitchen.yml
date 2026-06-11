@@ -119,10 +119,13 @@ suites:
   - name: search_posix
     run_list:
       - recipe[bbl_install::default]
+    provisioner:
+      uploads:
+        test/integration/search_posix/test_search.sh: /tmp/bbl-search-posix-test
     verifier:
-      inspec_tests:
-        - test/integration/helpers
-        - test/integration/search_posix
+      name: shell
+      remote_exec: true
+      command: /tmp/bbl-search-posix-test/test_search.sh -ThrottleLimit 2 -SearchTimeoutSeconds 180
     excludes:
       - windows-local
 

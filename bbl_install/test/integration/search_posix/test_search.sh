@@ -6,6 +6,7 @@ set -u
 
 BblPath=""
 ThrottleLimit=4
+SearchTimeoutSeconds=60
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,8 +26,16 @@ while [[ $# -gt 0 ]]; do
       ThrottleLimit="$2"
       shift 2
       ;;
+    -SearchTimeoutSeconds|--search-timeout-seconds)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: $1 requires a value."
+        exit 1
+      fi
+      SearchTimeoutSeconds="$2"
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: $0 [-BblPath /path/to/bbl] [-ThrottleLimit N]"
+      echo "Usage: $0 [-BblPath /path/to/bbl] [-ThrottleLimit N] [-SearchTimeoutSeconds N]"
       exit 0
       ;;
     *)
@@ -43,6 +52,11 @@ done
 
 if ! [[ "$ThrottleLimit" =~ ^[0-9]+$ ]] || [[ "$ThrottleLimit" -lt 1 ]]; then
   echo "ERROR: -ThrottleLimit must be 1 or greater."
+  exit 1
+fi
+
+if ! [[ "$SearchTimeoutSeconds" =~ ^[0-9]+$ ]] || [[ "$SearchTimeoutSeconds" -lt 1 ]]; then
+  echo "ERROR: -SearchTimeoutSeconds must be 1 or greater."
   exit 1
 fi
 
@@ -316,10 +330,7 @@ EOT
 
 # --- RDV24 ---
 for t in 'Gesù Cristo' 'Gesù' 'Cristo'; do
-  Add_Test 'RDV24' "search $t in rdv24" "$(cat <<'EOT'
-Matteo 1:1 Genealogia di Gesù Cristo figliuolo di Davide, figliuolo d'Abramo.
-EOT
-)" 'search' "$t" 'in' 'rdv24'
+  Add_Test 'RDV24' "search $t in rdv24" "Matteo 1:1 Genealogia di Gesù Cristo figliuolo di Davide, figliuolo d'Abramo." 'search' "$t" 'in' 'rdv24'
 done
 Add_Test 'RDV24' 'search Gesù Cristo --book romans in rdv24' "$(cat <<'EOT'
 EPISTOLE DI S. PAOLO AI~ROMANI 1:4 nato dal seme di Davide secondo la carne, dichiarato Figliuolo di Dio con potenza secondo lo spirito di santità mediante la sua risurrezione dai morti; cioè Gesù Cristo nostro Signore,
@@ -329,14 +340,8 @@ Add_Test 'RDV24' 'search Gesù Cristo in rdv24 --book romans --chapter 2' "$(cat
 EPISTOLE DI S. PAOLO AI~ROMANI 2:16 Tutto ciò si vedrà nel giorno in cui Dio giudicherà i segreti degli uomini per mezzo di Gesù Cristo, secondo il mio Evangelo.
 EOT
 )" 'search' 'Gesù Cristo' 'in' 'rdv24' '--book' 'romans' '--chapter' '2'
-Add_Test 'RDV24' 'search Gesù Cristo in rdv24 --book romans --chapter 3 --end-chapter 5' "$(cat <<'EOT'
-EPISTOLE DI S. PAOLO AI~ROMANI 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;
-EOT
-)" 'search' 'Gesù Cristo' 'in' 'rdv24' '--book' 'romans' '--chapter' '3' '--end-chapter' '5'
-Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in "johns letters"' "$(cat <<'EOT'
-EPISTOLA I DI S. GIOVANNI 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo.
-EOT
-)" 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'johns letters'
+Add_Test 'RDV24' 'search Gesù Cristo in rdv24 --book romans --chapter 3 --end-chapter 5' "EPISTOLE DI S. PAOLO AI~ROMANI 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;" 'search' 'Gesù Cristo' 'in' 'rdv24' '--book' 'romans' '--chapter' '3' '--end-chapter' '5'
+Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in "johns letters"' "EPISTOLA I DI S. GIOVANNI 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo." 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'johns letters'
 
 # --- UBG ---
 for t in 'Jezusa Chrystusa' 'Jezusa' 'Chrystusa'; do
@@ -771,33 +776,84 @@ now_ms() {
   perl -MTime::HiRes=time -e 'printf "%.0f\n", time()*1000' 2>/dev/null || date +%s000
 }
 
+pids=()
 RESULT_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t bbl-search-tests)"
-trap 'rm -rf "$RESULT_DIR"' EXIT INT TERM
+BBL_PID_DIR="$RESULT_DIR/bbl-pids"
+mkdir -p "$BBL_PID_DIR"
+
+terminate_process_group() {
+  local pid="$1"
+  [[ -n "$pid" ]] || return 0
+  kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
+  sleep 1
+  kill -KILL -- "-$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null || true
+}
+
+cleanup() {
+  local pid pid_file
+  for pid_file in "$BBL_PID_DIR"/*.pid; do
+    [[ -e "$pid_file" ]] || continue
+    pid="$(cat "$pid_file" 2>/dev/null || true)"
+    terminate_process_group "$pid"
+  done
+  for pid in "${pids[@]:-}"; do
+    kill "$pid" 2>/dev/null || true
+  done
+  wait 2>/dev/null || true
+  rm -rf "$RESULT_DIR"
+}
+
+trap cleanup EXIT INT TERM
 
 run_one_test() {
   local index="$1"
   local meta_file="$RESULT_DIR/$index.meta"
   local error_file="$RESULT_DIR/$index.error"
   local output_file="$RESULT_DIR/$index.output"
-  local start_ms end_ms elapsed_ms exit_code output first_line expected
+  local start_ms end_ms elapsed_ms exit_code first_line expected timed_out cmd_pid now_s deadline_s
   local -a cli_args
 
   IFS="$US" read -r -a cli_args <<< "${CLI_ARGS_JOINED[$index]}"
   expected="${EXPECTED_LINES[$index]}"
 
+  printf '[RUN] %03d/%03d %s\n' "$((index + 1))" "${#NAMES[@]}" "${NAMES[$index]}" >&2
+
   start_ms="$(now_ms)"
-  output="$("$BblPath" "${cli_args[@]}" 2>&1)"
+  perl -e 'setpgrp(0, 0); exec @ARGV; die "exec failed: $!\n"' "$BblPath" "${cli_args[@]}" --verses 1 > "$output_file" 2>&1 &
+  cmd_pid="$!"
+  printf '%s\n' "$cmd_pid" > "$BBL_PID_DIR/$index.pid"
+  timed_out=0
+  deadline_s=$(($(date +%s) + SearchTimeoutSeconds))
+
+  while kill -0 "$cmd_pid" 2>/dev/null; do
+    now_s="$(date +%s)"
+    if [[ "$now_s" -ge "$deadline_s" ]]; then
+      timed_out=1
+      terminate_process_group "$cmd_pid"
+      break
+    fi
+    sleep 0.1
+  done
+
+  wait "$cmd_pid" 2>/dev/null
   exit_code=$?
+  rm -f "$BBL_PID_DIR/$index.pid"
+  if [[ "$timed_out" -eq 1 ]]; then
+    exit_code=124
+  fi
   end_ms="$(now_ms)"
   elapsed_ms=$((end_ms - start_ms))
 
-  printf '%s' "$output" > "$output_file"
-  first_line="$(printf '%s\n' "$output" | tr -d '\r' | awk 'NF { print; exit }')"
+  first_line="$(awk '{ sub(/\r$/, ""); if (NF) { print; exit } }' "$output_file")"
 
   if [[ $exit_code -ne 0 ]]; then
     {
-      printf 'bbl exited with code %s\n' "$exit_code"
-      printf '%s\n' "$output"
+      if [[ "$timed_out" -eq 1 ]]; then
+        printf 'bbl timed out after %s seconds\n' "$SearchTimeoutSeconds"
+      else
+        printf 'bbl exited with code %s\n' "$exit_code"
+      fi
+      cat "$output_file"
     } > "$error_file"
     printf 'Passed=0\nExitCode=%s\nElapsedMs=%s\n' "$exit_code" "$elapsed_ms" > "$meta_file"
     return 0
@@ -821,10 +877,10 @@ echo "Running bbl install/search E2E tests"
 echo "bbl: $BblPath"
 echo "tests: ${#NAMES[@]}"
 echo "throttle: $ThrottleLimit"
+echo "search timeout: ${SearchTimeoutSeconds}s"
 
 total_start_ms="$(now_ms)"
 
-pids=()
 for ((i = 0; i < ${#NAMES[@]}; i++)); do
   run_one_test "$i" &
   pids+=("$!")

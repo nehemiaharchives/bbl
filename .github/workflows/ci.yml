@@ -493,11 +493,18 @@ jobs:
 
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
 
-          for fixture_dir in bbl_install/files/macosArm64 bbl_install/files/macosX64; do
-            if [ -d "$fixture_dir" ]; then
-              find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
-            fi
-          done
+          case "$(uname -m)" in
+            arm64) fixture_dir=bbl_install/files/macosArm64 ;;
+            x86_64) fixture_dir=bbl_install/files/macosX64 ;;
+            *) echo "Unsupported macOS runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+
+          if [ ! -d "$fixture_dir" ]; then
+            echo "Missing macOS fixture directory for $(uname -m): $fixture_dir" >&2
+            exit 1
+          fi
+
+          find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
 
           rm -rf bbl_install/files/common
           rm -rf bbl_install/files/linux
