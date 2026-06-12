@@ -119,6 +119,7 @@ suites:
   - name: search_posix
     run_list:
       - recipe[bbl_install::default]
+      - recipe[bbl_install::search_posix_test]
     attributes:
       bbl_install:
         search_posix_test_script_path: /tmp/bbl-search-posix-test/test_search.sh

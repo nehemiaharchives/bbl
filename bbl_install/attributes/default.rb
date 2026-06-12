@@ -22,7 +22,6 @@ default['bbl_install']['helper_bin_names'] = %w[
 default['bbl_install']['deferred_helper_bin_names'] = []
 default['bbl_install']['pack_names'] = pack_names
 default['bbl_install']['deferred_pack_names'] = []
-default['bbl_install']['search_posix_test_script_path'] = nil
 
 default['bbl_install']['stat_size_command'] = 'stat -c %s'
 default['bbl_install']['zip_manifest_method'] = 'ruby_zip'
