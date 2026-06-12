@@ -119,9 +119,9 @@ suites:
   - name: search_posix
     run_list:
       - recipe[bbl_install::default]
-    provisioner:
-      uploads:
-        test/integration/search_posix/test_search.sh: /tmp/bbl-search-posix-test
+    attributes:
+      bbl_install:
+        search_posix_test_script_path: /tmp/bbl-search-posix-test/test_search.sh
     verifier:
       name: shell
       remote_exec: true

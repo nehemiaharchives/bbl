@@ -109,6 +109,24 @@ node['bbl_install']['deferred_pack_names'].each do |pack_name|
   end
 end
 
+if node['bbl_install']['search_posix_test_script_path']
+  test_script_path = node['bbl_install']['search_posix_test_script_path']
+
+  directory ::File.dirname(test_script_path) do
+    owner system_owner
+    group install_group
+    mode '0755'
+    recursive true
+  end
+
+  cookbook_file test_script_path do
+    source 'search_posix_test_search.sh'
+    owner system_owner
+    group install_group
+    mode '0755'
+  end
+end
+
 test_attrs_path = '/tmp/bbl-test-attributes.json'
 
 ruby_block 'save bbl_install attributes for InSpec tests' do
