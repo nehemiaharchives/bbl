@@ -2,13 +2,13 @@ package org.gnit.bible
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class BblVersionTest {
 
     @Test
-    fun bblVersionUsesBareNumericTag() {
-        assertFalse(BblVersion.VERSION.startsWith("v"))
+    fun bblVersionUsesGithubReleaseTag() {
+        assertTrue(BblVersion.VERSION.startsWith("v"))
     }
 
     @Test

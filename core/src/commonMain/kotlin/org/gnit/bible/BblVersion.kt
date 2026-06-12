@@ -2,9 +2,9 @@ package org.gnit.bible
 
 object BblVersion {
     /**
-     * The App version number. This string will be used as git tag for the release, note no "v" prefix, just the version number.
+     * The App version number. This string is used as the git tag for the release.
      */
-    const val VERSION = "4.0.0"
+    const val VERSION = "v2.0"
 
     const val BBL_REPOSITORY = "nehemiaharchives/bbl"
 

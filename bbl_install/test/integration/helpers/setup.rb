@@ -74,17 +74,15 @@ else
 
   $bbl_zip_manifest_version = lambda do |zip_content, manifest_name|
     return nil if zip_content.nil? || zip_content.empty?
-    Zip::InputStream.open(StringIO.new(zip_content.b)) do |zip|
-      while (entry = zip.get_next_entry)
-        next unless entry.name == manifest_name
+    Zip::File.open_buffer(StringIO.new(zip_content.b)) do |zip|
+      entry = zip.find_entry(manifest_name)
+      return nil if entry.nil?
 
-        manifest = JSON.parse(zip.read)
-        version = manifest['version']
-        raise "#{manifest_name} is missing version" if version.nil? || version.empty?
+      manifest = JSON.parse(entry.get_input_stream.read)
+      version = manifest['version']
+      raise "#{manifest_name} is missing version" if version.nil? || version.empty?
 
-        return version
-      end
+      return version
     end
-    nil
   end
 end

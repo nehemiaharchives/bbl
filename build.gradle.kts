@@ -1,3 +1,7 @@
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
@@ -59,6 +63,12 @@ val bblVersionProvider = providers.fileContents(
 
 val bblInstallVersionFixtureFile = layout.buildDirectory.file("bblInstallFixtures/common/version.txt")
 val bblInstallCookbookVersionFile = layout.projectDirectory.file("bbl_install/files/version.txt")
+val bblPacksDirectory = layout.projectDirectory.dir("resources/bblpacks")
+val bblPackManifestFiles = fileTree(layout.projectDirectory) {
+    include("resources/bbltexts/**/*.manifest.json")
+    include("app/shared/src/commonMain/composeResources/files/bblpacks/**/*.manifest.json")
+    include("core/src/commonTest/resources/**/*.manifest.json")
+}
 
 val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixture") {
     notCompatibleWithConfigurationCache("Writes staged cookbook version files using script-scoped providers.")
@@ -75,6 +85,161 @@ val stageBblInstallVersionFixture = tasks.register("stageBblInstallVersionFixtur
             parentFile.mkdirs()
             writeText("$version\n")
         }
+    }
+}
+
+tasks.register("updateBblPackManifestVersions") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Update only the version field in existing bbl pack manifest JSON files without rebuilding indexes."
+    notCompatibleWithConfigurationCache("Rewrites existing zip files using script-scoped providers and JDK zip streams.")
+
+    val packFiles = fileTree(bblPacksDirectory) {
+        include("*.zip")
+    }
+
+    inputs.property("bblVersion", bblVersionProvider)
+    inputs.files(packFiles)
+    inputs.files(bblPackManifestFiles)
+    outputs.files(packFiles, bblPackManifestFiles)
+
+    doLast {
+        val version = bblVersionProvider.get()
+        val versionFieldRegex = Regex(""""version"\s*:\s*"[^"]*"""")
+        var updatedZipCount = 0
+        var currentZipCount = 0
+        var updatedManifestFileCount = 0
+        var currentManifestFileCount = 0
+
+        bblPackManifestFiles.files.sortedBy { it.relativeTo(projectDir).path }.forEach { manifestFile ->
+            val manifestJson = manifestFile.readText()
+            require(versionFieldRegex.containsMatchIn(manifestJson)) {
+                "Manifest ${manifestFile.relativeTo(projectDir)} does not contain a version field"
+            }
+            val updatedJson = versionFieldRegex.replace(manifestJson, """"version":"$version"""")
+            if (updatedJson != manifestJson) {
+                manifestFile.writeText(updatedJson)
+                updatedManifestFileCount += 1
+            } else {
+                currentManifestFileCount += 1
+            }
+        }
+
+        packFiles.files.sortedBy { it.name }.forEach { zipFile ->
+            val manifestName = "${zipFile.nameWithoutExtension}.0.manifest.json"
+            val tempFile = temporaryDir.resolve("${zipFile.name}.tmp")
+            var foundManifest = false
+            var changedManifest = false
+
+            ZipInputStream(zipFile.inputStream().buffered()).use { input ->
+                ZipOutputStream(tempFile.outputStream().buffered()).use { output ->
+                    while (true) {
+                        val sourceEntry = input.nextEntry ?: break
+                        val entryBytes = input.readBytes()
+                        val targetEntry = ZipEntry(sourceEntry.name)
+                        targetEntry.comment = sourceEntry.comment
+                        targetEntry.setExtra(sourceEntry.extra)
+                        targetEntry.time = sourceEntry.time
+
+                        val outputBytes = if (sourceEntry.name == manifestName) {
+                            foundManifest = true
+                            val manifestJson = entryBytes.toString(Charsets.UTF_8)
+                            require(versionFieldRegex.containsMatchIn(manifestJson)) {
+                                "Manifest $manifestName in ${zipFile.name} does not contain a version field"
+                            }
+                            val updatedJson = versionFieldRegex.replace(manifestJson, """"version":"$version"""")
+                            changedManifest = updatedJson != manifestJson
+                            updatedJson.toByteArray(Charsets.UTF_8)
+                        } else {
+                            entryBytes
+                        }
+
+                        output.putNextEntry(targetEntry)
+                        output.write(outputBytes)
+                        output.closeEntry()
+                        input.closeEntry()
+                    }
+                }
+            }
+
+            require(foundManifest) {
+                "Manifest $manifestName not found in ${zipFile.name}"
+            }
+
+            if (changedManifest) {
+                tempFile.copyTo(zipFile, overwrite = true)
+                updatedZipCount += 1
+            } else {
+                tempFile.delete()
+                currentZipCount += 1
+            }
+        }
+
+        logger.lifecycle(
+            "Updated $updatedManifestFileCount loose manifest file(s) and $updatedZipCount pack zip manifest(s) to $version; " +
+                "$currentManifestFileCount loose manifest file(s) and $currentZipCount pack zip manifest(s) already current."
+        )
+    }
+}
+
+tasks.register("verifyServerBblPackVersions") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Verify loose bbl pack manifests and pack zip manifests match BblVersion.VERSION."
+    notCompatibleWithConfigurationCache("Reads existing manifest files and zip entries using script-scoped providers.")
+
+    val packFiles = fileTree(bblPacksDirectory) {
+        include("*.zip")
+    }
+
+    inputs.property("bblVersion", bblVersionProvider)
+    inputs.files(packFiles, bblPackManifestFiles)
+
+    doLast {
+        val version = bblVersionProvider.get()
+        val versionFieldRegex = Regex(""""version"\s*:\s*"([^"]*)"""")
+        val mismatches = mutableListOf<String>()
+
+        bblPackManifestFiles.files.sortedBy { it.relativeTo(projectDir).path }.forEach { manifestFile ->
+            val actual = versionFieldRegex.find(manifestFile.readText())?.groupValues?.get(1)
+            if (actual != version) {
+                mismatches += "${manifestFile.relativeTo(projectDir)} has version ${actual ?: "<missing>"}"
+            }
+        }
+
+        packFiles.files.sortedBy { it.name }.forEach { zipFile ->
+            val manifestName = "${zipFile.nameWithoutExtension}.0.manifest.json"
+            var foundManifest = false
+
+            ZipInputStream(zipFile.inputStream().buffered()).use { input ->
+                while (true) {
+                    val sourceEntry = input.nextEntry ?: break
+                    if (sourceEntry.name == manifestName) {
+                        foundManifest = true
+                        val actual = versionFieldRegex.find(input.readBytes().toString(Charsets.UTF_8))
+                            ?.groupValues
+                            ?.get(1)
+                        if (actual != version) {
+                            mismatches += "${zipFile.relativeTo(projectDir)}!/$manifestName has version ${actual ?: "<missing>"}"
+                        }
+                    }
+                    input.closeEntry()
+                }
+            }
+
+            if (!foundManifest) {
+                mismatches += "${zipFile.relativeTo(projectDir)} is missing $manifestName"
+            }
+        }
+
+        if (mismatches.isNotEmpty()) {
+            error(
+                "Expected bbl pack manifest versions to be $version, but found:\n" +
+                    mismatches.joinToString(separator = "\n")
+            )
+        }
+
+        logger.lifecycle(
+            "Verified ${bblPackManifestFiles.files.size} loose manifest file(s) and ${packFiles.files.size} pack zip manifest(s) match $version."
+        )
     }
 }
 

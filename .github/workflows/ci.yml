@@ -420,11 +420,13 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: search-posix-ubuntu-2604 # only on 26 to save time
+            search_throttle: 3
           - suite: search_posix
             platform: macos
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: search-posix-macos-local
+            search_throttle: 2
           - suite: search_windows
             platform: mingw
             os: windows-latest
@@ -586,6 +588,8 @@ jobs:
         working-directory: bbl_install
         shell: bash
         if: ${{ matrix.platform != 'mingw' }}
+        env:
+          BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
         run: bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
 
       - name: Kitchen verify

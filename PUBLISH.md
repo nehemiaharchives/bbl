@@ -12,14 +12,14 @@ Each archive contains `bbl`, the language-specific `bbl-search-*` helper executa
 
 ## Automatic Release
 
-Push a version tag. bbl-kmp uses bare numeric tags, without a `v` prefix:
+Push a version tag. bbl uses GitHub-style release tags with a `v` prefix:
 
 ```sh
-git tag 4.0.0
-git push origin 4.0.0
+git tag v2.0
+git push origin v2.0
 ```
 
-The `Publish` workflow runs automatically for semantic version tags like `4.0.0`. It builds the release archives and creates a published GitHub Release with generated release notes.
+The `Publish` workflow runs automatically for release tags like `v2.0`. It builds the release archives and creates a published GitHub Release with generated release notes.
 
 ## Manual Release
 
@@ -28,7 +28,7 @@ Manual releases can create the release tag from a selected ref.
 1. Open GitHub Actions.
 2. Select the `Publish` workflow.
 3. Click `Run workflow`.
-4. Enter the tag, for example `4.0.0`.
+4. Enter the tag, for example `v2.0`.
 5. Enter the ref to build, for example `master`, an existing tag, or a commit SHA.
 6. Choose whether to create a draft release and whether to mark it as a prerelease.
 
@@ -47,7 +47,7 @@ If a release already exists for the tag, the workflow replaces assets with the s
 
 ## Notes
 
-- The release tag should use the `X.Y.Z` format, without a `v` prefix.
+- The release tag should use the `vX.Y` format, for example `v2.0`.
 - Regenerate packs with `bbl pack` before publishing a version that changes lucene-kmp index compatibility.
 - The workflow does not sign binaries yet.
 - Windows distribution is currently ZIP-first and suitable for Scoop packaging.

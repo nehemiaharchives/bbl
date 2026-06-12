@@ -7,6 +7,7 @@ set -u
 BblPath=""
 ThrottleLimit=4
 SearchTimeoutSeconds=60
+RetryTimeoutFailures=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -34,8 +35,16 @@ while [[ $# -gt 0 ]]; do
       SearchTimeoutSeconds="$2"
       shift 2
       ;;
+    -RetryTimeoutFailures|--retry-timeout-failures)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: $1 requires a value."
+        exit 1
+      fi
+      RetryTimeoutFailures="$2"
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: $0 [-BblPath /path/to/bbl] [-ThrottleLimit N] [-SearchTimeoutSeconds N]"
+      echo "Usage: $0 [-BblPath /path/to/bbl] [-ThrottleLimit N] [-SearchTimeoutSeconds N] [-RetryTimeoutFailures N]"
       exit 0
       ;;
     *)
@@ -57,6 +66,11 @@ fi
 
 if ! [[ "$SearchTimeoutSeconds" =~ ^[0-9]+$ ]] || [[ "$SearchTimeoutSeconds" -lt 1 ]]; then
   echo "ERROR: -SearchTimeoutSeconds must be 1 or greater."
+  exit 1
+fi
+
+if ! [[ "$RetryTimeoutFailures" =~ ^[0-9]+$ ]]; then
+  echo "ERROR: -RetryTimeoutFailures must be 0 or greater."
   exit 1
 fi
 
@@ -776,7 +790,7 @@ now_ms() {
   perl -MTime::HiRes=time -e 'printf "%.0f\n", time()*1000' 2>/dev/null || date +%s000
 }
 
-pids=()
+declare -a pids=()
 RESULT_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t bbl-search-tests)"
 BBL_PID_DIR="$RESULT_DIR/bbl-pids"
 mkdir -p "$BBL_PID_DIR"
@@ -796,9 +810,11 @@ cleanup() {
     pid="$(cat "$pid_file" 2>/dev/null || true)"
     terminate_process_group "$pid"
   done
-  for pid in "${pids[@]:-}"; do
-    kill "$pid" 2>/dev/null || true
-  done
+  if [[ ${#pids[@]} -gt 0 ]]; then
+    for pid in "${pids[@]}"; do
+      kill "$pid" 2>/dev/null || true
+    done
+  fi
   wait 2>/dev/null || true
   rm -rf "$RESULT_DIR"
 }
@@ -811,6 +827,7 @@ run_one_test() {
   local error_file="$RESULT_DIR/$index.error"
   local output_file="$RESULT_DIR/$index.output"
   local start_ms end_ms elapsed_ms exit_code first_line expected timed_out cmd_pid now_s deadline_s
+  local attempt max_attempts
   local -a cli_args
 
   IFS="$US" read -r -a cli_args <<< "${CLI_ARGS_JOINED[$index]}"
@@ -819,28 +836,44 @@ run_one_test() {
   printf '[RUN] %03d/%03d %s\n' "$((index + 1))" "${#NAMES[@]}" "${NAMES[$index]}" >&2
 
   start_ms="$(now_ms)"
-  perl -e 'setpgrp(0, 0); exec @ARGV; die "exec failed: $!\n"' "$BblPath" "${cli_args[@]}" --verses 1 > "$output_file" 2>&1 &
-  cmd_pid="$!"
-  printf '%s\n' "$cmd_pid" > "$BBL_PID_DIR/$index.pid"
-  timed_out=0
-  deadline_s=$(($(date +%s) + SearchTimeoutSeconds))
+  max_attempts=$((RetryTimeoutFailures + 1))
+  attempt=1
 
-  while kill -0 "$cmd_pid" 2>/dev/null; do
-    now_s="$(date +%s)"
-    if [[ "$now_s" -ge "$deadline_s" ]]; then
-      timed_out=1
-      terminate_process_group "$cmd_pid"
+  while true; do
+    if [[ "$attempt" -gt 1 ]]; then
+      printf '[RETRY] %03d/%03d %s after timeout, attempt %d/%d\n' \
+        "$((index + 1))" "${#NAMES[@]}" "${NAMES[$index]}" "$attempt" "$max_attempts" >&2
+    fi
+
+    perl -e 'setpgrp(0, 0); exec @ARGV; die "exec failed: $!\n"' "$BblPath" "${cli_args[@]}" --verses 1 > "$output_file" 2>&1 &
+    cmd_pid="$!"
+    printf '%s\n' "$cmd_pid" > "$BBL_PID_DIR/$index.pid"
+    timed_out=0
+    deadline_s=$(($(date +%s) + SearchTimeoutSeconds))
+
+    while kill -0 "$cmd_pid" 2>/dev/null; do
+      now_s="$(date +%s)"
+      if [[ "$now_s" -ge "$deadline_s" ]]; then
+        timed_out=1
+        terminate_process_group "$cmd_pid"
+        break
+      fi
+      sleep 0.1
+    done
+
+    wait "$cmd_pid" 2>/dev/null
+    exit_code=$?
+    rm -f "$BBL_PID_DIR/$index.pid"
+    if [[ "$timed_out" -eq 1 ]]; then
+      exit_code=124
+    fi
+
+    if [[ "$exit_code" -ne 124 || "$attempt" -ge "$max_attempts" ]]; then
       break
     fi
-    sleep 0.1
-  done
 
-  wait "$cmd_pid" 2>/dev/null
-  exit_code=$?
-  rm -f "$BBL_PID_DIR/$index.pid"
-  if [[ "$timed_out" -eq 1 ]]; then
-    exit_code=124
-  fi
+    attempt=$((attempt + 1))
+  done
   end_ms="$(now_ms)"
   elapsed_ms=$((end_ms - start_ms))
 
@@ -849,7 +882,7 @@ run_one_test() {
   if [[ $exit_code -ne 0 ]]; then
     {
       if [[ "$timed_out" -eq 1 ]]; then
-        printf 'bbl timed out after %s seconds\n' "$SearchTimeoutSeconds"
+        printf 'bbl timed out after %s seconds on %s attempt(s)\n' "$SearchTimeoutSeconds" "$attempt"
       else
         printf 'bbl exited with code %s\n' "$exit_code"
       fi
@@ -878,22 +911,35 @@ echo "bbl: $BblPath"
 echo "tests: ${#NAMES[@]}"
 echo "throttle: $ThrottleLimit"
 echo "search timeout: ${SearchTimeoutSeconds}s"
+echo "timeout retries: $RetryTimeoutFailures"
 
 total_start_ms="$(now_ms)"
 
-for ((i = 0; i < ${#NAMES[@]}; i++)); do
-  run_one_test "$i" &
-  pids+=("$!")
+if [[ "$ThrottleLimit" -eq 1 ]]; then
+  for ((i = 0; i < ${#NAMES[@]}; i++)); do
+    run_one_test "$i"
+  done
+else
+  for ((i = 0; i < ${#NAMES[@]}; i++)); do
+    run_one_test "$i" &
+    pids+=("$!")
 
-  if [[ ${#pids[@]} -ge $ThrottleLimit ]]; then
-    wait "${pids[0]}" || true
-    pids=("${pids[@]:1}")
+    if [[ ${#pids[@]} -ge $ThrottleLimit ]]; then
+      wait "${pids[0]}" || true
+      if [[ ${#pids[@]} -gt 1 ]]; then
+        pids=("${pids[@]:1}")
+      else
+        pids=()
+      fi
+    fi
+  done
+
+  if [[ ${#pids[@]} -gt 0 ]]; then
+    for pid in "${pids[@]}"; do
+      wait "$pid" || true
+    done
   fi
-done
-
-for pid in "${pids[@]}"; do
-  wait "$pid" || true
-done
+fi
 
 total_end_ms="$(now_ms)"
 total_seconds=$(((total_end_ms - total_start_ms) / 1000))

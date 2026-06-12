@@ -478,7 +478,7 @@ Why:
 3. [x] Move/copy generated server packs from `bbl-kmp/server/src/main/resources/files/bblpacks`.
 4. [x] Keep app-specific assets and module-specific test resources owned by each module instead of centralizing them here.
 5. [x] Add Gradle sync tasks only where the shared pack/text buckets need to be consumed.
-6. [x] Add verification that pack manifests match `BblVersion.version`. (Removed in version‑simplification pass — no more `artifactCompatibilityVersion`)
+6. [x] Add verification that pack manifests match `BblVersion.VERSION`.
 
 ### [x] Step 7. Migrate `:server`
 

@@ -23,7 +23,7 @@ class TranslationTest : ResourcesTestBase() {
     }
 
     val webusJsonString = """
-        {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"4.0.0"}
+        {"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"${BblVersion.VERSION}"}
         """.trimIndent()
 
     @Test
@@ -49,9 +49,9 @@ class TranslationTest : ResourcesTestBase() {
         val translationList = listOf(SupportedTranslation.WEBUS.translation, SupportedTranslation.KJV.translation, SupportedTranslation.RVR09.translation)
         val actual = translationList.toJson()
         val expected = """
-            [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"4.0.0"},
-            {"code":"kjv","languageCode":"en","englishName":"King James Version","nativeName":"King James Version","year":1611,"copyright":"Public Domain","version":"4.0.0"},
-            {"code":"rvr09","languageCode":"es","englishName":"Reina-Valera","nativeName":"Reina-Valera","year":1909,"copyright":"Public Domain","version":"4.0.0"}]
+            [{"code":"webus","languageCode":"en","englishName":"World English Bible","nativeName":"World English Bible","year":2000,"copyright":"Public Domain","version":"${BblVersion.VERSION}"},
+            {"code":"kjv","languageCode":"en","englishName":"King James Version","nativeName":"King James Version","year":1611,"copyright":"Public Domain","version":"${BblVersion.VERSION}"},
+            {"code":"rvr09","languageCode":"es","englishName":"Reina-Valera","nativeName":"Reina-Valera","year":1909,"copyright":"Public Domain","version":"${BblVersion.VERSION}"}]
         """.trimIndent().replace("\n", "").replace(" ", "")
         assertEquals(expected, actual.replace("\n", "").replace(" ", ""))
     }

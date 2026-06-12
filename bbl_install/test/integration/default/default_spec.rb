@@ -12,7 +12,7 @@ describe 'bbl version file' do
   subject { file($bbl_version_file) }
   it { should exist }
   it { should be_file }
-  its('content') { should match(/\A\d+\.\d+\.\d+\s*\z/) }
+  its('content') { should match(/\Av\d+\.\d+\s*\z/) }
 end
 
 describe 'bbl -v' do
