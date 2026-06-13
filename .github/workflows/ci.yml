@@ -437,6 +437,11 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: config-posix-macos-local
+          - suite: config_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: config-windows-windows-local
           - suite: search_windows
             platform: mingw
             os: windows-latest
@@ -539,18 +544,18 @@ jobs:
           working-directory: bbl_install
 
       - name: Install PowerShell 7+
-        if: ${{ matrix.suite == 'search_windows' && matrix.platform == 'mingw' }}
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows') && matrix.platform == 'mingw' }}
         uses: PSModule/install-powershell@v1
         with:
           Version: 7.6.2
 
       - name: Verify PowerShell version
-        if: ${{ matrix.suite == 'search_windows' && matrix.platform == 'mingw' }}
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows') && matrix.platform == 'mingw' }}
         shell: pwsh
         run: |
           Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"
           if ($PSVersionTable.PSVersion.Major -lt 7) {
-            throw "PowerShell 7+ is required for ForEach-Object -Parallel in search tests"
+            throw "PowerShell 7+ is required for Windows E2E tests"
           }
 
       - name: Restore Dokken Docker image
