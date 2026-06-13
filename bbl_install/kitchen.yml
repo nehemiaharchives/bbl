@@ -104,7 +104,7 @@ suites:
       - recipe[bbl_install::default]
     attributes:
       bbl_install:
-        install_source_dir: '<%= File.join(ENV.fetch("TEMP"), "bbl-install-downloads").tr("\\", "/") %>'
+        install_source_dir: '<%= File.join(ENV["TEMP"] || ENV["TMP"] || "/tmp", "bbl-install-downloads").tr("\\", "/") %>'
         pack_names:
           - kjv.zip
         deferred_pack_names:
