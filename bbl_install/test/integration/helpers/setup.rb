@@ -7,23 +7,56 @@ require 'base64'
 $bbl_windows = os.windows?
 $bbl_macos = %w[darwin mac_os_x].include?(os.name.to_s)
 
+def bbl_env_value(name)
+  [ENV[name], os_env(name).content].find { |value| value.is_a?(String) && !value.empty? }
+end
+
 $bbl_attrs_file = if $bbl_windows
   temp_dirs = [
-    ENV['TEMP'],
-    ENV['TMP'],
-    os_env('TEMP').content,
-    os_env('TMP').content,
+    bbl_env_value('TEMP'),
+    bbl_env_value('TMP'),
+    bbl_env_value('RUNNER_TEMP'),
     Dir.tmpdir,
+    (File.join(bbl_env_value('USERPROFILE'), '.bbl') if bbl_env_value('USERPROFILE')),
   ].compact.uniq
-  temp_dirs.map { |dir| File.join(dir, 'bbl-test-attributes.json') }.find { |path| File.file?(path) } ||
-    File.join(Dir.tmpdir, 'bbl-test-attributes.json')
+  candidate_files = temp_dirs.map { |dir| File.join(dir, 'bbl-test-attributes.json') }
+  found_file = nil
+  20.times do
+    found_file = candidate_files.find { |path| File.file?(path) }
+    break if found_file
+
+    sleep 0.5
+  end
+  found_file || candidate_files.first || File.join(Dir.tmpdir, 'bbl-test-attributes.json')
 else
   '/tmp/bbl-test-attributes.json'
 end
 $bbl_attrs_content = $bbl_windows ? (File.read($bbl_attrs_file) if File.file?($bbl_attrs_file)) : file($bbl_attrs_file).content
-raise "Unable to load bbl_install test attributes from #{$bbl_attrs_file}" if $bbl_attrs_content.nil? || $bbl_attrs_content.empty?
 
-attrs = JSON.parse($bbl_attrs_content)
+if $bbl_windows && ($bbl_attrs_content.nil? || $bbl_attrs_content.empty?)
+  user_profile = bbl_env_value('USERPROFILE')
+  raise "Unable to load bbl_install test attributes from #{$bbl_attrs_file} and USERPROFILE is not set" if user_profile.nil? || user_profile.empty?
+
+  local_app_data = bbl_env_value('LOCALAPPDATA') || File.join(user_profile, 'AppData', 'Local')
+  install_root = File.join(user_profile, '.bbl')
+  pack_dir = File.join(install_root, 'packs')
+  helper_bin_dir = File.join(install_root, 'bin')
+  temp_dir = bbl_env_value('TEMP') || bbl_env_value('TMP') || bbl_env_value('RUNNER_TEMP') || Dir.tmpdir
+
+  attrs = {
+    'pack_dir' => pack_dir,
+    'install_source_dir' => File.join(temp_dir, 'bbl-install-downloads'),
+    'helper_bin_dir' => helper_bin_dir,
+    'bbl_binary_path' => File.join(local_app_data, 'Programs', 'bbl', 'bbl.exe'),
+    'version_file_path' => File.join(install_root, 'version.txt'),
+    'pack_names' => Dir.glob(File.join(pack_dir, '*.zip')).map { |path| File.basename(path) }.sort,
+    'helper_bin_names' => Dir.glob(File.join(helper_bin_dir, 'bbl-search-*.exe')).map { |path| File.basename(path) }.sort,
+  }
+else
+  raise "Unable to load bbl_install test attributes from #{$bbl_attrs_file}" if $bbl_attrs_content.nil? || $bbl_attrs_content.empty?
+
+  attrs = JSON.parse($bbl_attrs_content)
+end
 
 $bbl_pack_dir = attrs['pack_dir']
 $bbl_install_source_dir = attrs['install_source_dir']

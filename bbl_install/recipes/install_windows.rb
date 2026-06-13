@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'tmpdir'
 
 def install_windows_cookbook_file(path, source_name)
   ruby_block "copy #{source_name} to #{path}" do
@@ -101,12 +102,22 @@ node['bbl_install']['deferred_pack_names'].each do |pack_name|
   end
 end
 
-test_attrs_path = "#{ENV['TEMP']}\\bbl-test-attributes.json"
-
 ruby_block 'save bbl_install attributes for InSpec tests' do
   block do
     require 'json'
-    ::File.write(test_attrs_path, JSON.pretty_generate(node['bbl_install'].to_hash))
+    attrs_json = JSON.pretty_generate(node['bbl_install'].to_hash)
+    candidate_dirs = [
+      ENV['TEMP'],
+      ENV['TMP'],
+      ENV['RUNNER_TEMP'],
+      ::Dir.tmpdir,
+      install_root,
+    ].compact.uniq
+
+    candidate_dirs.each do |dir|
+      ::FileUtils.mkdir_p(dir)
+      ::File.write(::File.join(dir, 'bbl-test-attributes.json'), attrs_json)
+    end
   end
 end
 
