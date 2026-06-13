@@ -36,6 +36,18 @@ directory pack_dir do
   recursive true
 end
 
+if node['bbl_install']['clean_pack_dir']
+  ruby_block "clean #{pack_dir}" do
+    block do
+      if ::Dir.exist?(pack_dir)
+        ::Dir.children(pack_dir).each do |entry|
+          ::FileUtils.rm_rf(::File.join(pack_dir, entry))
+        end
+      end
+    end
+  end
+end
+
 install_windows_cookbook_file(version_file_path, 'version.txt')
 install_windows_cookbook_file(bbl_bin_path, node['bbl_install']['bbl_binary_name'])
 
@@ -52,6 +64,18 @@ end
 if install_source_dir
   directory install_source_dir do
     recursive true
+  end
+
+  if node['bbl_install']['clean_install_source_dir']
+    ruby_block "clean #{install_source_dir}" do
+      block do
+        if ::Dir.exist?(install_source_dir)
+          ::Dir.children(install_source_dir).each do |entry|
+            ::FileUtils.rm_rf(::File.join(install_source_dir, entry))
+          end
+        end
+      end
+    end
   end
 end
 

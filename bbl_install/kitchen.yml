@@ -92,6 +92,8 @@ suites:
           - kjv.zip
         deferred_pack_names:
           - kjv.zip
+        clean_pack_dir: true
+        clean_install_source_dir: true
     verifier:
       inspec_tests:
         - test/integration/helpers
@@ -109,6 +111,8 @@ suites:
           - kjv.zip
         deferred_pack_names:
           - kjv.zip
+        clean_pack_dir: true
+        clean_install_source_dir: true
     verifier:
       inspec_tests:
         - test/integration/helpers
