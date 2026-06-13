@@ -274,6 +274,7 @@ GEM
     ffi-yajl (2.7.7-universal-mingw-ucrt)
       libyajl2 (>= 2.1)
       yajl
+    fiddle (1.1.8)
     fuzzyurl (0.9.0)
     google-apis-admin_directory_v1 (0.46.0)
       google-apis-core (>= 0.11.0, < 2.a)
@@ -688,6 +689,7 @@ PLATFORMS
 DEPENDENCIES
   chef (= 18.10.17)
   chefspec (~> 9.3)
+  fiddle
   inspec-core (>= 5, < 6)
   kitchen-dokken
   kitchen-inspec
@@ -773,6 +775,7 @@ CHECKSUMS
   ffi-win32-extensions (1.0.4) sha256=9d01a511a7ea957d8f73a06892f3ccfa49dcb32be95c4edb86b5ba3103edea00
   ffi-yajl (2.7.7) sha256=0628764711c0eadf00df04512bb6af5ae800275556f1fcc312fcc1739760a812
   ffi-yajl (2.7.7-universal-mingw-ucrt) sha256=0366fd8018ed7ad76478117fba2dcea713d09fdc46b883ef29af7ef27a492706
+  fiddle (1.1.8) sha256=7fa8ee3627271497f3add5503acdbc3f40b32f610fc1cf49634f083ef3f32eee
   fuzzyurl (0.9.0) sha256=542efa80f2bcaadbdc402c2f0b572f2e335a1d53e375aecad68bbb3d86860c0f
   google-apis-admin_directory_v1 (0.46.0) sha256=bd91d9a3fb6be2afff2d916e69ab888c9e8d296f9dc33df46e3f2c421f2717a6
   google-apis-cloudkms_v1 (0.41.0) sha256=7c492f1ab4f4d015bd9d937d6ce75179ec3843e28acfba9726e8c2b27f8b5aea
