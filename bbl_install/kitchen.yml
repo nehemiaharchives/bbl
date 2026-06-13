@@ -130,6 +130,20 @@ suites:
     excludes:
       - windows-local
 
+  - name: config_posix
+    run_list:
+      - recipe[bbl_install::default]
+      - recipe[bbl_install::config_posix_test]
+    attributes:
+      bbl_install:
+        config_posix_test_script_path: /tmp/bbl-config-posix-test/test_config.sh
+    verifier:
+      name: shell
+      remote_exec: true
+      command: /tmp/bbl-config-posix-test/test_config.sh
+    excludes:
+      - windows-local
+
   - name: search_windows
     run_list:
       - recipe[bbl_install::default]

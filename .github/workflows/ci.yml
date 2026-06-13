@@ -427,6 +427,16 @@ jobs:
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: search-posix-macos-local
             search_throttle: 2
+          - suite: config_posix
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: config-posix-ubuntu-2604 # only on 26 to save time
+          - suite: config_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: config-posix-macos-local
           - suite: search_windows
             platform: mingw
             os: windows-latest
