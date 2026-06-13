@@ -104,7 +104,11 @@ suites:
       - recipe[bbl_install::default]
     attributes:
       bbl_install:
-        install_source_dir: 'C:/Users/joel/AppData/Local/Temp/bbl-install-downloads'
+        install_source_dir: '<%= File.join(ENV.fetch("TEMP"), "bbl-install-downloads").tr("\\", "/") %>'
+        pack_names:
+          - kjv.zip
+        deferred_pack_names:
+          - kjv.zip
     verifier:
       inspec_tests:
         - test/integration/helpers

@@ -668,6 +668,7 @@ GEM
     win32-taskscheduler (2.0.4)
       ffi
       structured_warnings
+    win32ole (1.9.3)
     wisper (2.0.1)
     wmi-lite (1.0.7)
     yajl (0.3.4)
@@ -697,6 +698,7 @@ DEPENDENCIES
   rake
   rspec (~> 3.12)
   test-kitchen
+  win32ole
 
 CHECKSUMS
   activesupport (7.2.3.1) sha256=11ebed516a43a0bb47346227a35ebae4d9427465a7c9eb197a03d5c8d283cb34
@@ -932,6 +934,7 @@ CHECKSUMS
   win32-process (0.10.0) sha256=ad2d401c62f56f922f3fabb7a55fd2b65ea85becbad3b5d9093ffe59c386f542
   win32-service (2.3.2) sha256=7325861587aa19d5052279e0c18436ca82a160f11b40be3284614ca0475d281c
   win32-taskscheduler (2.0.4) sha256=889c94843c11065251fb08642bce620495b5a60dac5bb30a45086ab80efcbddf
+  win32ole (1.9.3) sha256=01f43dc5dc13806e6e58204f538b4a28f3d85968ea89074abc9a3cd118e94d96
   wisper (2.0.1) sha256=ce17bc5c3a166f241a2e6613848b025c8146fce2defba505920c1d1f3f88fae6
   wmi-lite (1.0.7) sha256=116ef5bb470dbe60f58c2db9047af3064c16245d6562c646bc0d90877e27ddda
   yajl (0.3.4) sha256=0d718473ec261a817e18eb79648bb68d050baf2624783306a2d4dad5a50431e4

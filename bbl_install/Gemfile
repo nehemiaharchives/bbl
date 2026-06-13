@@ -12,3 +12,4 @@ gem "chefspec", "~> 9.3"
 gem "chef", "18.10.17"
 gem "rake"
 gem "fiddle"
+gem "win32ole", platforms: :windows

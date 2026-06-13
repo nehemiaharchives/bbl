@@ -146,6 +146,7 @@ describe 'bbl_install::default' do
     let(:bin_dir) { ::File.join(local_app_data, 'Programs', 'bbl') }
     let(:helper_bin_dir) { ::File.join(install_root, 'bin') }
     let(:pack_dir) { ::File.join(install_root, 'packs') }
+    let(:install_source_dir) { ::File.join(local_app_data, 'Temp', 'bbl-install-downloads') }
 
     let(:windows_helper_bin_names) do
       %w[
@@ -190,6 +191,8 @@ describe 'bbl_install::default' do
       ]
     end
 
+    let(:windows_deferred_pack_names) { %w[kjv.zip] }
+
     let(:chef_run) do
       stub_const('ENV', ENV.to_hash.merge('LOCALAPPDATA' => local_app_data, 'USERPROFILE' => user_profile))
 
@@ -200,9 +203,11 @@ describe 'bbl_install::default' do
         node.normal['bbl_install']['bin_dir'] = bin_dir
         node.normal['bbl_install']['helper_bin_dir'] = helper_bin_dir
         node.normal['bbl_install']['pack_dir'] = pack_dir
+        node.normal['bbl_install']['install_source_dir'] = install_source_dir
         node.normal['bbl_install']['version_file_path'] = ::File.join(install_root, 'version.txt')
         node.normal['bbl_install']['bbl_binary_path'] = ::File.join(bin_dir, 'bbl.exe')
         node.normal['bbl_install']['bbl_binary_name'] = 'bbl.exe'
+        node.normal['bbl_install']['deferred_pack_names'] = windows_deferred_pack_names
       end.converge(described_recipe)
     end
 
@@ -211,6 +216,7 @@ describe 'bbl_install::default' do
       expect(chef_run).to create_directory(bin_dir).with(recursive: true)
       expect(chef_run).to create_directory(helper_bin_dir).with(recursive: true)
       expect(chef_run).to create_directory(pack_dir).with(recursive: true)
+      expect(chef_run).to create_directory(install_source_dir).with(recursive: true)
     end
 
     it 'copies the native bbl binary' do
@@ -230,6 +236,12 @@ describe 'bbl_install::default' do
     it 'copies the pack fixture zips' do
       windows_pack_names.each do |pack_name|
         expect(chef_run).to run_ruby_block("copy #{pack_name} to #{::File.join(pack_dir, pack_name)}")
+      end
+    end
+
+    it 'copies deferred pack fixture zips to the install source directory' do
+      windows_deferred_pack_names.each do |pack_name|
+        expect(chef_run).to run_ruby_block("copy #{pack_name} to #{install_source_dir}")
       end
     end
 
