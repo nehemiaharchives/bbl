@@ -103,6 +103,7 @@ class ConfigCli(
         } else {
             settings.putString(configKey.value, newValue)
         }
+        echo("${configKey.value} set to $newValue")
     }
 }
 

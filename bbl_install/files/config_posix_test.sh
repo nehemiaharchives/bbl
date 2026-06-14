@@ -192,8 +192,16 @@ assert_equals "default translation renders WEBUS verse" \
   "30 David went up by the ascent of the Mount of Olives, and wept as he went up; and he had his head covered and went barefoot. All the people who were with him each covered his head, and they went up, weeping as they went up." \
   "$webus_2sam"
 
-run_bbl config translation kjv >/dev/null
+set_translation_output="$(run_bbl config translation kjv)"
+assert_equals "config set mode reports translation update" \
+  "translation set to kjv" \
+  "$set_translation_output"
 assert_file_contains "$CONFIG_PATH" "kjv"
+
+show_translation_output="$(run_bbl config translation)"
+assert_equals "config show mode prints translation" \
+  "kjv" \
+  "$show_translation_output"
 
 kjv_2sam="$(run_bbl 2sam 15:30)"
 assert_equals "configured translation renders KJV verse" \

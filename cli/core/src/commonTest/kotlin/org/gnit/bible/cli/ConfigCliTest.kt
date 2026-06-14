@@ -12,11 +12,13 @@ import org.gnit.bible.LoggingSetup
 import org.gnit.bible.SearchQueryText
 import org.gnit.bible.Books
 import org.gnit.bible.BblVersion
+import org.gnit.bible.ConfigKey
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.getPlatform
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ConfigCliTest {
@@ -95,6 +97,31 @@ class ConfigCliTest {
         val write = command.test("config translation jc")
         assertTrue(write.statusCode != 0, "Write should fail when translation isn't installed")
         assertTrue(write.stderr.isNotBlank(), "Should explain why write failed")
+    }
+
+    @Test
+    fun configReadExistingTranslationShowsValue() {
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
+
+        val command = Bbl(bible)
+        val result = command.test("config translation")
+
+        assertEquals(0, result.statusCode, "Read should succeed. stderr=${result.stderr}")
+        assertEquals("webus", result.stdout.trim())
+    }
+
+    @Test
+    fun configSetTranslationShowsConfirmation() {
+        fakeFs.createDirectories(platform.packDir.toPath())
+        fakeFs.write(platform.packDir.toPath() / "webus.zip") {
+            write(TestFixtures.webusMinimalZipBytes)
+        }
+
+        val command = Bbl(bible)
+        val result = command.test("config translation webus")
+
+        assertEquals(0, result.statusCode, "Write should succeed. stderr=${result.stderr}")
+        assertEquals("translation set to webus", result.stdout.trim())
     }
 
     @Test
