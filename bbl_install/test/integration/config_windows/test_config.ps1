@@ -192,8 +192,18 @@ try {
     '30 David went up by the ascent of the Mount of Olives, and wept as he went up; and he had his head covered and went barefoot. All the people who were with him each covered his head, and they went up, weeping as they went up.' `
     $webus2Sam
 
-  Run-Bbl @('config', 'translation', 'kjv') | Out-Null
+  $setTranslationOutput = Run-Bbl @('config', 'translation', 'kjv')
+  Assert-Equals `
+    'config set mode reports translation update' `
+    'translation set to kjv' `
+    $setTranslationOutput
   Assert-FileContains $configPath 'kjv'
+
+  $showTranslationOutput = Run-Bbl @('config', 'translation')
+  Assert-Equals `
+    'config show mode prints translation' `
+    'kjv' `
+    $showTranslationOutput
 
   $kjv2Sam = Run-Bbl @('2sam', '15:30')
   Assert-Equals `
@@ -244,7 +254,7 @@ try {
     $johnWithHeader
 
   Write-Host ""
-  Write-Host "Test Summary: 11 successful, 0 failures"
+  Write-Host "Test Summary: 13 successful, 0 failures"
   exit 0
 } finally {
   $env:USERPROFILE = $originalUserProfile

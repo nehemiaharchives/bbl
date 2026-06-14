@@ -51,8 +51,6 @@ platforms:
       require_chef_omnibus: false
       chef_license: accept-no-persist
       chef_client_path: <%= File.expand_path("support/chef-client-rubygem.bat", __dir__).tr("/", "\\") %>
-      client_rb:
-        auth_key_registry_type: user
 
   - name: macos-local
     driver:
