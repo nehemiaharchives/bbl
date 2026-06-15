@@ -116,11 +116,13 @@ class Bbl(
 
     override fun run() {
         if (versionFlag) {
-            echo("""
+            echo(
+                """
                 bbl version $VERSION
                 While you are in front of your console, you are not alone. God is with you.
                 Always go back to the Word of God especially in difficulty.
-            """.trimIndent())
+            """.trimIndent()
+            )
             return
         }
 
@@ -195,7 +197,8 @@ class In(
 
         if (translations.size == 1) {
             val translatedPointer = versePointer.copy(translation = firstTranslation)
-            val chapterText = bible.verses(translatedPointer.translation.code, translatedPointer.book, translatedPointer.chapter)
+            val chapterText =
+                bible.verses(translatedPointer.translation.code, translatedPointer.book, translatedPointer.chapter)
             validateVerseRangeOrThrow(translatedPointer, chapterText)
 
             selectedVerses = formatSelectedVersesFromChapterText(
@@ -212,45 +215,27 @@ class In(
             return
         }
 
-        val versesByCode = translations.associate { translation ->
-            val chapterText = bible.verses(translation.code, versePointer.book, versePointer.chapter)
-            translation.code to Bible.splitChapterToVerses(chapterText).map { it.trim() }.toTypedArray()
-        }
-
-        val start = versePointer.startVerse
-        val end = versePointer.endVerse
-
-        val verseNumbers = if (start == null) {
-            val maxVerseCount = versesByCode.values.maxOfOrNull { it.size } ?: 0
-            1..maxVerseCount
-        } else {
-            val maxVerseCount = versesByCode.values.maxOfOrNull { it.size } ?: 0
-            val requestedLast = end ?: start
-            val last = minOf(requestedLast, maxVerseCount)
-            if (start > last) IntRange.EMPTY else start..last
-        }
-
         if (bible.showHeaderFromSettings()) {
-            val headerEndVerse = if (end == null) null else verseNumbers.lastOrNull()
             val headerPointer = versePointer.copy(
                 translation = firstTranslation,
                 startVerse = versePointer.startVerse,
-                endVerse = headerEndVerse
+                endVerse = versePointer.endVerse
             )
             echo(Books.formatHeader(headerPointer))
         }
 
-        val lastVerse = verseNumbers.lastOrNull() ?: return
-        for (verseNumber in verseNumbers) {
-            translations.forEach { translation ->
-                val verses = versesByCode.getValue(translation.code)
-                if (verseNumber - 1 < verses.size) {
-                    echo("$verseNumber ${verses[verseNumber - 1]}")
-                }
-            }
-            if (verseNumber != lastVerse) {
-                echo("")
-            }
+        translations.forEach { translation ->
+            val translatedPointer = versePointer.copy(translation = translation)
+            val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
+            validateVerseRangeOrThrow(translatedPointer, chapterText)
+
+            selectedVerses = formatSelectedVersesFromChapterText(
+                chapterText = chapterText,
+                startVerse = translatedPointer.startVerse,
+                endVerse = translatedPointer.endVerse
+            )
+
+            echo(selectedVerses.trimEnd())
         }
     }
 }

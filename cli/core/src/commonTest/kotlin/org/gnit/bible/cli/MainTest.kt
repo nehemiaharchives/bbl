@@ -198,6 +198,20 @@ class MainTest {
     }
 
     @Test
+    fun testBblGen1InJcWebusStacked() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("gen 1 in jc webus")
+
+        val expected = """
+            ${TestFixtures.genesisOneJc}
+            ${TestFixtures.genesisOneWebus}
+        """.trimIndent()
+
+        assertEquals("$expected\n", result.stdout)
+    }
+
+    @Test
     fun testBblGen1InJcWithHeaderEnabled() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "jc")
         platform.settings.putString(ConfigKey.HEADER.value, "true")
@@ -225,6 +239,20 @@ class MainTest {
         // Keep this test resilient to minor formatting changes (blank lines, headers, etc.)
         assertContains(result.stdout, TestFixtures.JC_JOHN_3_16)
         assertContains(result.stdout, TestFixtures.WEBUS_JOHN_3_16)
+    }
+
+    @Test
+    fun testBblJohn3v16InJcWebusStacked() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("john 3:16 in jc webus")
+
+        val expected = """
+            16 ${TestFixtures.JC_JOHN_3_16}
+            16 ${TestFixtures.WEBUS_JOHN_3_16}
+        """.trimIndent()
+
+        assertEquals("$expected\n", result.stdout)
     }
 
     @Test
@@ -266,6 +294,24 @@ class MainTest {
         assertContains(result.stdout, TestFixtures.WEBUS_MATT_28_19)
         assertContains(result.stdout, TestFixtures.JC_MATT_28_20)
         assertContains(result.stdout, TestFixtures.WEBUS_MATT_28_20)
+    }
+
+    @Test
+    fun testBblMatt28v18to20InJcWebusStacked() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("matt 28:18-20 in jc webus")
+
+        val expected = """
+            18 ${TestFixtures.JC_MATT_28_18}
+            19 ${TestFixtures.JC_MATT_28_19}
+            20 ${TestFixtures.JC_MATT_28_20}
+            18 ${TestFixtures.WEBUS_MATT_28_18}
+            19 ${TestFixtures.WEBUS_MATT_28_19}
+            20 ${TestFixtures.WEBUS_MATT_28_20}
+        """.trimIndent()
+
+        assertEquals("$expected\n", result.stdout)
     }
 
     @Test
