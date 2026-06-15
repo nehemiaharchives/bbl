@@ -420,7 +420,7 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: search-posix-ubuntu-2604 # only on 26 to save time
-            search_throttle: 3
+            search_throttle: 2
           - suite: search_posix
             platform: macos
             os: macos-latest

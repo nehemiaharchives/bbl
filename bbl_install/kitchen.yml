@@ -132,7 +132,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: /tmp/bbl-search-posix-test/test_search.sh -ThrottleLimit <%= ENV.fetch('BBL_SEARCH_POSIX_THROTTLE', '1') %> -SearchTimeoutSeconds 180
+      command: /tmp/bbl-search-posix-test/test_search.sh -ThrottleLimit <%= ENV.fetch('BBL_SEARCH_POSIX_THROTTLE', '8') %> -SearchTimeoutSeconds 180
     excludes:
       - windows-local
 

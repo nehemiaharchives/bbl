@@ -497,6 +497,55 @@ Add_Test 'JC' 'search イエス・キリスト in jc in "johns letters"' "$(cat 
 EOT
 )" 'search' 'イエス・キリスト' 'in' 'jc' 'in' 'johns letters'
 
+Add_Test 'JC full-width spaces' 'bbl search イエス　キリスト　in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search' 'イエス　キリスト　in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl search イエス　キリスト in　jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search' 'イエス　キリスト' 'in　jc'
+Add_Test 'JC full-width spaces' 'bbl sarch　イエス・キリスト in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス・キリスト' 'in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl search　イエス　キリスト in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス　キリスト' 'in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl search　イエス　キリスト　in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス　キリスト　in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl search　イエス　キリスト　in　jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス　キリスト　in　jc'
+Add_Test 'JC full-width spaces' 'bbl search　イエス in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス' 'in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl　search　イエス in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス' 'in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl　search　イエス　in jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス　in' 'jc'
+Add_Test 'JC full-width spaces' 'bbl　search　イエス　in　jc' "$(cat <<'EOT'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+EOT
+)" 'search　イエス　in　jc'
+Add_Test 'JC full-width spaces' 'bbl search イエス in jc in romans' "$(cat <<'EOT'
+ローマ人への手紙 1:1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-
+EOT
+)" 'search' 'イエス' 'in' 'jc' 'in' 'romans'
+Add_Test 'JC full-width spaces' 'bbl search イエス in jc　in romans' "$(cat <<'EOT'
+ローマ人への手紙 1:1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-
+EOT
+)" 'search' 'イエス' 'in' 'jc　in' 'romans'
+
 # --- AYT ---
 for t in 'Yesus Kristus' 'Yesus' 'Kristus'; do
   Add_Test 'AYT' "search $t in ayt" "$(cat <<'EOT'

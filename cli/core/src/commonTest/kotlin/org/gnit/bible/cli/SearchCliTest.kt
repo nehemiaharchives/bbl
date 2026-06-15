@@ -8,9 +8,6 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.LoggingSetup
-import org.gnit.bible.SearchQueryText
-import org.gnit.bible.BblVersion
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.Books
 import org.gnit.bible.InMemorySettings
@@ -375,6 +372,78 @@ class SearchCliTest {
         assertEquals("マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n", result.stdout)
     }
 
+    @Test
+    fun `bbl search accepts full width spaces in Japanese input method command strings`() {
+        val commands = listOf(
+            FullWidthSpaceSearchCommand(
+                command = "search イエス キリスト in jc",
+                term = "イエス キリスト",
+                translationCode = "jc",
+                bookNumber = null,
+                startChapter = null,
+                expectedPointer = VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 1, startVerse = 1),
+                expectedOutput = "マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n"
+            ),
+            FullWidthSpaceSearchCommand(
+                command = "search イエス キリスト in jc in romans",
+                term = "イエス キリスト",
+                translationCode = "jc",
+                bookNumber = Books.bookNumber("romans"),
+                startChapter = null,
+                expectedPointer = VersePointer(translation = SupportedTranslation.JC.translation, book = 45, chapter = 1, startVerse = 1),
+                expectedOutput = "ローマ人への手紙 1:1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-\n"
+            ),
+            FullWidthSpaceSearchCommand(
+                command = "search イエス キリスト in jc in romans 5",
+                term = "イエス キリスト",
+                translationCode = "jc",
+                bookNumber = Books.bookNumber("romans"),
+                startChapter = 5,
+                expectedPointer = VersePointer(translation = SupportedTranslation.JC.translation, book = 45, chapter = 5, startVerse = 1),
+                expectedOutput = "ローマ人への手紙 5:1 このように、わたしたちは、信仰によって義とされたのだから、わたしたちの主イエス・キリストにより、神に対して平和を得ている。\n"
+            ),
+            FullWidthSpaceSearchCommand(
+                command = "search イエス in jc",
+                term = "イエス",
+                translationCode = "jc",
+                bookNumber = null,
+                startChapter = null,
+                expectedPointer = VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 1, startVerse = 1),
+                expectedOutput = "マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n"
+            ),
+            FullWidthSpaceSearchCommand(
+                command = "search イエス in jc in romans",
+                term = "イエス",
+                translationCode = "jc",
+                bookNumber = Books.bookNumber("romans"),
+                startChapter = null,
+                expectedPointer = VersePointer(translation = SupportedTranslation.JC.translation, book = 45, chapter = 1, startVerse = 1),
+                expectedOutput = "ローマ人への手紙 1:1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-\n"
+            )
+        )
+
+        val fullWidthSpaceMixedCommandString: List<FullWidthSpaceSearchCommand> =
+            commands.flatMap { command ->
+                command.fullWidthSpaceCombinations().map { command.copy(command = it) }
+            }
+
+        fullWidthSpaceMixedCommandString.forEach { command ->
+            val backend = RecordingBackendFactory {
+                assertEquals(command.term, it.term, "term for ${command.command}")
+                assertEquals(command.translationCode, it.translation.code, "translation for ${command.command}")
+                assertEquals(command.bookNumber, it.bookNumber, "book for ${command.command}")
+                assertEquals(command.startChapter, it.startChapter, "start chapter for ${command.command}")
+                assertEquals(null, it.endChapter, "end chapter for ${command.command}")
+                listOf(command.expectedPointer)
+            }
+
+            val result = Bbl(bible, searchBackendProvider = backend::backendFor).test(command.command)
+
+            assertEquals(0, result.statusCode, "status for ${command.command}: ${result.stderr}")
+            assertEquals(command.expectedOutput, result.stdout, "stdout for ${command.command}")
+        }
+    }
+
     private class RecordingBackendFactory(
         private val handler: (SearchRequest) -> List<VersePointer>
     ) {
@@ -384,6 +453,35 @@ class SearchCliTest {
                     return SearchOutput(VersePointerJson.encodeList(handler(request)))
                 }
             }
+        }
+    }
+
+    private data class FullWidthSpaceSearchCommand(
+        val command: String,
+        val term: String,
+        val translationCode: String,
+        val bookNumber: Int?,
+        val startChapter: Int?,
+        val expectedPointer: VersePointer,
+        val expectedOutput: String
+    ) {
+        fun fullWidthSpaceCombinations(): List<String> {
+            val separators = command.indices.filter { command[it] == ' ' }
+            val combinations = 1 shl separators.size
+            return (0 until combinations).map { mask ->
+                buildString {
+                    command.forEachIndexed { index, char ->
+                        val separatorIndex = separators.indexOf(index)
+                        append(
+                            if (separatorIndex >= 0 && mask and (1 shl separatorIndex) != 0) {
+                                '\u3000'
+                            } else {
+                                char
+                            }
+                        )
+                    }
+                }
+            }.distinct()
         }
     }
 
@@ -409,6 +507,8 @@ class SearchCliTest {
         private val jcSearchFixtureZipBytes = ZipUtil.buildMinimalZip(
             listOf(
                 "jc.40.1.txt" to "1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n",
+                "jc.45.1.txt" to "1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-\n",
+                "jc.45.5.txt" to "1 このように、わたしたちは、信仰によって義とされたのだから、わたしたちの主イエス・キリストにより、神に対して平和を得ている。\n",
                 "jc$MANIFEST_JSON_POSTFIX" to SupportedTranslation.JC.translation.toJson()
             )
         )

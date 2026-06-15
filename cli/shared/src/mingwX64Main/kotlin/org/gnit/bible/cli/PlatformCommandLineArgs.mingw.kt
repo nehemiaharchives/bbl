@@ -24,7 +24,7 @@ actual fun platformCommandLineArgs(args: Array<String>): Array<String> {
             for (index in 0 until argc.value) {
                 parsed.add(argv[index]?.wideString() ?: "")
             }
-            return parsed.drop(1).toTypedArray()
+            return normalizeCommandLineArgs(parsed.drop(1).toTypedArray())
         } finally {
             LocalFree(argv)
         }

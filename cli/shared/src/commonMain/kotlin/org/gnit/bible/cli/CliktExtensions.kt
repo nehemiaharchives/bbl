@@ -21,6 +21,7 @@ fun CoreCliktCommand.test(argv: List<String>): CliktTestResult {
     val stdout = StringBuilder()
     val stderr = StringBuilder()
     var statusCode = 0
+    val normalizedArgv = normalizeCommandLineArgs(argv.toTypedArray()).toList()
 
     this.context {
         echoMessage = { _, message, trailingNewline, err ->
@@ -32,7 +33,7 @@ fun CoreCliktCommand.test(argv: List<String>): CliktTestResult {
     }
 
     try {
-        this.parse(argv)
+        this.parse(normalizedArgv)
     } catch (e: PrintHelpMessage) {
         stdout.append("Help message printed\n") 
         statusCode = e.statusCode
