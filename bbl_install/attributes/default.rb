@@ -1,14 +1,25 @@
 pack_names = ::Dir.glob(::File.expand_path('../files/*.zip', __dir__)).map { |path| ::File.basename(path) }.sort
 
-# the default.rb expects attributes for Linux
+# Linux defaults. macOS and Windows set their paths in platform-specific
+# attribute files.
 
-default['bbl_install']['install_root'] = '/root/.bbl'
-default['bbl_install']['bin_dir'] = '/root/.bbl/bin'
-default['bbl_install']['helper_bin_dir'] = '/root/.bbl/bin'
-default['bbl_install']['pack_dir'] = '/root/.bbl/packs'
-default['bbl_install']['version_file_path'] = '/root/.bbl/version.txt'
-default['bbl_install']['bbl_binary_path'] = '/usr/bin/bbl'
-default['bbl_install']['install_source_dir'] = '/tmp/bbl-install-downloads'
+unless platform_family?('windows') || platform_family?('mac_os_x')
+  default['bbl_install']['install_user'] = 'ubuntu'
+  default['bbl_install']['install_group'] = 'ubuntu'
+  default['bbl_install']['system_user'] = 'root'
+  default['bbl_install']['system_group'] = 'root'
+  default['bbl_install']['manage_install_user'] = true
+  default['bbl_install']['test_command_user'] = 'ubuntu'
+  default['bbl_install']['test_command_home'] = '/home/ubuntu'
+  default['bbl_install']['home_dir'] = '/home/ubuntu'
+  default['bbl_install']['install_root'] = '/home/ubuntu/.bbl'
+  default['bbl_install']['bin_dir'] = '/home/ubuntu/.bbl/bin'
+  default['bbl_install']['helper_bin_dir'] = '/home/ubuntu/.bbl/bin'
+  default['bbl_install']['pack_dir'] = '/home/ubuntu/.bbl/packs'
+  default['bbl_install']['version_file_path'] = '/home/ubuntu/.bbl/version.txt'
+  default['bbl_install']['bbl_binary_path'] = '/usr/bin/bbl'
+  default['bbl_install']['install_source_dir'] = '/tmp/bbl-install-downloads'
+end
 
 default['bbl_install']['bbl_binary_name'] = 'bbl'
 default['bbl_install']['helper_bin_names'] = %w[

@@ -65,6 +65,8 @@ $bbl_bin = attrs['bbl_binary_path']
 $bbl_version_file = attrs['version_file_path']
 $bbl_installed_pack_codes = attrs['pack_names'].map { |n| n.delete_suffix('.zip') }
 $bbl_installed_search_helpers = attrs['helper_bin_names']
+$bbl_install_user = attrs['install_user']
+$bbl_home_dir = attrs['home_dir']
 $bbl_sep = $bbl_windows ? '\\' : '/'
 $bbl_eol = $bbl_windows ? "\r\n" : "\n"
 
@@ -102,8 +104,22 @@ if $bbl_windows
 
   $bbl_zip_manifest_version = ->(zip_path, manifest_name) { command(zip_manifest_getter.call(zip_path, manifest_name)).stdout.strip }
 else
-  $bbl_run = ->(args) { "#{$bbl_bin} #{args}" }
-  $bbl_helper_run = ->(path, args) { "#{path} #{args}" }
+  shell_escape = lambda { |value| "'#{value.to_s.gsub("'", "'\"'\"'")}'" }
+  shell_env = lambda do |env|
+    env.map { |key, value| "#{key}=#{shell_escape.call(value)}" }.join(' ')
+  end
+  posix_command = lambda do |command|
+    if !$bbl_macos && $bbl_install_user && !$bbl_install_user.empty?
+      home = $bbl_home_dir || File.dirname(File.dirname($bbl_pack_dir))
+      "runuser -u #{shell_escape.call($bbl_install_user)} -- env HOME=#{shell_escape.call(home)} #{command}"
+    else
+      command
+    end
+  end
+
+  $bbl_run = ->(args) { posix_command.call("#{shell_escape.call($bbl_bin)} #{args}") }
+  $bbl_run_with_env = ->(env, args) { posix_command.call("#{shell_env.call(env)} #{shell_escape.call($bbl_bin)} #{args}") }
+  $bbl_helper_run = ->(path, args) { posix_command.call("#{shell_escape.call(path)} #{args}") }
 
   $bbl_zip_manifest_version = lambda do |zip_content, manifest_name|
     return nil if zip_content.nil? || zip_content.empty?

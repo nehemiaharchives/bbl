@@ -15,6 +15,16 @@ describe 'bbl version file' do
   its('content') { should match(/\Av\d+\.\d+\s*\z/) }
 end
 
+describe 'bbl Linux install home' do
+  it 'uses the ubuntu home directory' do
+    skip 'N/A outside Linux' if $bbl_windows || $bbl_macos
+
+    expect($bbl_home_dir).to eq('/home/ubuntu')
+    expect($bbl_pack_dir).to eq('/home/ubuntu/.bbl/packs')
+    expect(file('/home/ubuntu/.bbl')).to be_directory
+  end
+end
+
 describe 'bbl -v' do
   subject(:cmd) { command($bbl_run.call('-v')) }
   its('exit_status') { should eq 0 }
@@ -25,6 +35,12 @@ describe 'bbl pack dir' do
   subject { file($bbl_pack_dir) }
   it { should exist }
   it { should be_directory }
+
+  it 'is owned by the Linux install user' do
+    skip 'N/A outside Linux' if $bbl_windows || $bbl_macos
+
+    expect(subject.owner).to eq($bbl_install_user)
+  end
 end
 
 describe 'bbl pack files' do
@@ -38,6 +54,7 @@ describe 'bbl pack files' do
       expect(pack_file).to exist
       expect(pack_file).to be_file
       expect(pack_file.size).to be > 0
+      expect(pack_file.owner).to eq($bbl_install_user) unless $bbl_windows || $bbl_macos
     end
   end
 end

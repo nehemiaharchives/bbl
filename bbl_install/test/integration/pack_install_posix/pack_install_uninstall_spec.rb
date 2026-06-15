@@ -10,9 +10,12 @@ describe 'bbl pack install and uninstall' do
     expect(kjv_available).not_to be_nil
     expect(kjv_available).to match(/\|\s+Available\s+\|/)
 
-    install = command("BBL_PACK_BASE_URL=file://#{$bbl_install_source_dir} #{$bbl_run.call('install kjv')}")
+    install = command($bbl_run_with_env.call({ 'BBL_PACK_BASE_URL' => "file://#{$bbl_install_source_dir}" }, 'install kjv'))
     expect(install.exit_status).to eq(0)
     expect(install.stdout).to include("Installed kjv#{$bbl_eol}")
+    unless $bbl_windows || $bbl_macos
+      expect(file("#{$bbl_pack_dir}#{$bbl_sep}kjv.zip").owner).to eq($bbl_install_user)
+    end
 
     after_install_list = command("BBL_INSPEC_STEP=after_install #{$bbl_run.call('list translations')}")
     expect(after_install_list.exit_status).to eq(0)
