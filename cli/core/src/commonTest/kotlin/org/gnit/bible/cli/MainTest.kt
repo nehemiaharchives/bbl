@@ -181,6 +181,7 @@ class MainTest {
     @Test
     fun testBblGen1InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.settings.putString(ConfigKey.COMPARE_BY.value, "verse")
         val command = Bbl(bible)
         val result = command.test("gen 1 in jc webus")
         val jcVerses = Bible.splitChapterToVerses(TestFixtures.genesisOneJc)
@@ -284,6 +285,7 @@ class MainTest {
     @Test
     fun testBblMatt28v18to20InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.settings.putString(ConfigKey.COMPARE_BY.value, "verse")
         val command = Bbl(bible)
         val result = command.test("matt 28:18-20 in jc webus")
 

@@ -78,14 +78,14 @@ helper_candidates=(
 )
 
 for candidate in "${pack_candidates[@]}"; do
-  if [[ -d "$candidate" && -f "$candidate/webus.zip" && -f "$candidate/kjv.zip" ]]; then
+  if [[ -d "$candidate" && -f "$candidate/webus.zip" && -f "$candidate/kjv.zip" && -f "$candidate/jc.zip" && -f "$candidate/krv.zip" ]]; then
     PACK_SOURCE="$candidate"
     break
   fi
 done
 
 if [[ -z "$PACK_SOURCE" ]]; then
-  echo "ERROR: installed bbl pack directory with webus.zip and kjv.zip not found." >&2
+  echo "ERROR: installed bbl pack directory with webus.zip, kjv.zip, jc.zip, and krv.zip not found." >&2
   exit 1
 fi
 
@@ -247,5 +247,28 @@ assert_equals "configured header true shows header" \
   $'John 3:16\n16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life.' \
   "$john_with_header"
 
+run_bbl config header false >/dev/null
+default_block_matthew="$(run_bbl matthew 28:18-20 in kjv jc krv)"
+assert_equals "default compareBy block prints translation blocks" \
+  $'18 And Jesus came and spake unto them, saying, All power is given unto me in heaven and in earth.\n19 Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost:\n20 Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, [even] unto the end of the world. Amen.\n18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。\n19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、\n20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。\n18 예수께서 나아와 일러 가라사대 하늘과 땅의 모든 권세를 내게 주셨으니\n19 그러므로 너희는 가서 모든 족속으로 제자를 삼아 아버지와 아들과 성령의 이름으로 세례를 주고\n20 내가 너희에게 분부한 모든 것을 가르쳐 지키게 하라 볼찌어다 내가 세상 끝날까지 너희와 항상 함께 있으리라 하시니라' \
+  "$default_block_matthew"
+
+set_compare_by_output="$(run_bbl config compareBy verse)"
+assert_equals "config set mode reports compareBy update" \
+  "compareBy set to verse" \
+  "$set_compare_by_output"
+assert_file_contains "$CONFIG_PATH" "verse"
+
+verse_compare_matthew="$(run_bbl matthew 28:18-20 in kjv jc krv)"
+assert_equals "configured compareBy verse prints verse by verse" \
+  $'18 And Jesus came and spake unto them, saying, All power is given unto me in heaven and in earth.\n18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。\n18 예수께서 나아와 일러 가라사대 하늘과 땅의 모든 권세를 내게 주셨으니\n19 Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost:\n19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、\n19 그러므로 너희는 가서 모든 족속으로 제자를 삼아 아버지와 아들과 성령의 이름으로 세례를 주고\n20 Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, [even] unto the end of the world. Amen.\n20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。\n20 내가 너희에게 분부한 모든 것을 가르쳐 지키게 하라 볼찌어다 내가 세상 끝날까지 너희와 항상 함께 있으리라 하시니라' \
+  "$verse_compare_matthew"
+
+verse_compare_genesis="$(run_bbl genesis 1 in kjv jc krv)"
+verse_compare_genesis_first_three="$(printf '%s\n' "$verse_compare_genesis" | sed -n '1,3p')"
+assert_equals "configured compareBy verse interleaves whole chapters" \
+  $'1 In the beginning God created the heaven and the earth.\n1 はじめに神は天と地とを創造された。\n1 태초에 하나님이 천지를 창조하시니라' \
+  "$verse_compare_genesis_first_three"
+
 echo ""
-echo "Test Summary: 11 successful, 0 failures"
+echo "Test Summary: 16 successful, 0 failures"

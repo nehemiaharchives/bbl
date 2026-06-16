@@ -15,6 +15,7 @@ import org.gnit.bible.BblVersion
 import org.gnit.bible.BblVersion.VERSION
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
+import org.gnit.bible.CompareBy
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.LoggingSetup
@@ -224,18 +225,50 @@ class In(
             echo(Books.formatHeader(headerPointer))
         }
 
-        translations.forEach { translation ->
-            val translatedPointer = versePointer.copy(translation = translation)
-            val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
-            validateVerseRangeOrThrow(translatedPointer, chapterText)
+        when (bible.compareByFromSettings()) {
+            CompareBy.block -> {
+                translations.forEach { translation ->
+                    val translatedPointer = versePointer.copy(translation = translation)
+                    val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
+                    validateVerseRangeOrThrow(translatedPointer, chapterText)
 
-            selectedVerses = formatSelectedVersesFromChapterText(
-                chapterText = chapterText,
-                startVerse = translatedPointer.startVerse,
-                endVerse = translatedPointer.endVerse
-            )
+                    selectedVerses = formatSelectedVersesFromChapterText(
+                        chapterText = chapterText,
+                        startVerse = translatedPointer.startVerse,
+                        endVerse = translatedPointer.endVerse
+                    )
 
-            echo(selectedVerses.trimEnd())
+                    echo(selectedVerses.trimEnd())
+                }
+            }
+            CompareBy.verse -> {
+                val translatedChapters = translations.map { translation ->
+                    val translatedPointer = versePointer.copy(translation = translation)
+                    val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
+                    validateVerseRangeOrThrow(translatedPointer, chapterText)
+                    Bible.splitChapterToVerses(chapterText)
+                }
+
+                val startVerse = versePointer.startVerse ?: 1
+                val endVerse = versePointer.endVerse
+                    ?: versePointer.startVerse
+                    ?: translatedChapters.maxOf { it.size }
+
+                val compared = buildString {
+                    for (verseNumber in startVerse..endVerse) {
+                        translatedChapters.forEach { verses ->
+                            if (verseNumber <= verses.size) {
+                                append(verseNumber)
+                                append(' ')
+                                append(verses[verseNumber - 1].trimEnd())
+                                append('\n')
+                            }
+                        }
+                    }
+                }
+
+                echo(compared.trimEnd())
+            }
         }
     }
 }

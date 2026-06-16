@@ -133,6 +133,88 @@ class ConfigCliTest {
     }
 
     @Test
+    fun configWriteThenReadCompareBy() {
+        val command = Bbl(bible)
+
+        val write = command.test("config compareBy verse")
+        assertEquals(0, write.statusCode, "Write should succeed. stderr=${write.stderr}")
+        assertEquals("compareBy set to verse", write.stdout.trim())
+
+        val read = command.test("config compareBy")
+        assertEquals(0, read.statusCode, "Read should succeed. stderr=${read.stderr}")
+        assertEquals("verse", read.stdout.trim())
+    }
+
+    @Test
+    fun configWriteInvalidCompareByFails() {
+        val command = Bbl(bible)
+        val result = command.test("config compareBy invalidValue")
+
+        assertTrue(result.statusCode != 0, "Command should fail on invalid compareBy")
+        assertTrue(result.stderr.contains("block"), "Should show allowed values. stderr=${result.stderr}")
+        assertTrue(result.stderr.contains("verse"), "Should show allowed values. stderr=${result.stderr}")
+    }
+
+    @Test
+    fun compareByBlockPrintsMultipleTranslationsByTranslationBlock() {
+        installMinimalPacks()
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.configSettings.putString(ConfigKey.COMPARE_BY.value, "block")
+
+        val command = Bbl(bible)
+        val result = command.test("matt 28:18-20 in jc webus")
+
+        val expected = """
+            18 ${TestFixtures.JC_MATT_28_18}
+            19 ${TestFixtures.JC_MATT_28_19}
+            20 ${TestFixtures.JC_MATT_28_20}
+            18 ${TestFixtures.WEBUS_MATT_28_18}
+            19 ${TestFixtures.WEBUS_MATT_28_19}
+            20 ${TestFixtures.WEBUS_MATT_28_20}
+        """.trimIndent()
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("$expected\n", result.stdout)
+    }
+
+    @Test
+    fun compareByVersePrintsMultipleTranslationsVerseByVerse() {
+        installMinimalPacks()
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.configSettings.putString(ConfigKey.COMPARE_BY.value, "verse")
+
+        val command = Bbl(bible)
+        val result = command.test("matt 28:18-20 in jc webus")
+
+        val expected = """
+            18 ${TestFixtures.JC_MATT_28_18}
+            18 ${TestFixtures.WEBUS_MATT_28_18}
+            19 ${TestFixtures.JC_MATT_28_19}
+            19 ${TestFixtures.WEBUS_MATT_28_19}
+            20 ${TestFixtures.JC_MATT_28_20}
+            20 ${TestFixtures.WEBUS_MATT_28_20}
+        """.trimIndent()
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("$expected\n", result.stdout)
+    }
+
+    @Test
+    fun compareByVersePrintsWholeChapterVerseByVerse() {
+        installMinimalPacks()
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.configSettings.putString(ConfigKey.COMPARE_BY.value, "verse")
+
+        val command = Bbl(bible)
+        val result = command.test("gen 1 in jc webus")
+
+        val expected = """
+            ${TestFixtures.JC_GENESIS_1_1}
+            ${TestFixtures.WEBUS_GENESIS_1_1}
+        """.trimIndent()
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("$expected\n", result.stdout)
+    }
+
+    @Test
     fun configWriteThenReadSearchResult() {
         val command = Bbl(bible)
 
@@ -178,5 +260,15 @@ class ConfigCliTest {
             result.stderr.contains("bbl install", ignoreCase = true),
             "Should suggest installing the translation. Got: ${result.stderr}"
         )
+    }
+
+    private fun installMinimalPacks() {
+        fakeFs.createDirectories(platform.packDir.toPath())
+        fakeFs.write(platform.packDir.toPath() / "webus.zip") {
+            write(TestFixtures.webusMinimalZipBytes)
+        }
+        fakeFs.write(platform.packDir.toPath() / "jc.zip") {
+            write(TestFixtures.jcMinimalZipBytes)
+        }
     }
 }

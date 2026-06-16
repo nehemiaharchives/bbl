@@ -2,11 +2,14 @@ package org.gnit.bible
 
 enum class RandomlyShow { verse, chapter }
 
+enum class CompareBy { block, verse }
+
 enum class ConfigKey(val value: String, val defaultValue: String, val description: String){
     TRANSLATION("translation", SupportedTranslation.WEBUS.code, "default translation of bible, use code e.g. webus, jc"),
     SEARCH_RESULT("searchResult", 100.toString(), "default number of search result verses"),
     RANDOMLY_SHOW("randomlyShow", RandomlyShow.verse.toString(), "[bbl rand] option to show a verse or a chapter"),
-    HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not")
+    HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not"),
+    COMPARE_BY("compareBy", CompareBy.block.toString(), "when showing multiple translations, use block to print the full selected range for each translation, or verse to compare verse by verse")
 }
 
 class Bible(
@@ -102,6 +105,12 @@ class Bible(
         val randomlyShowString = assetManager.platform.configSettings.getStringOrNull(ConfigKey.RANDOMLY_SHOW.value)
             ?: ConfigKey.RANDOMLY_SHOW.defaultValue
         return RandomlyShow.valueOf(randomlyShowString)
+    }
+
+    fun compareByFromSettings(): CompareBy {
+        val compareByString = assetManager.platform.configSettings.getStringOrNull(ConfigKey.COMPARE_BY.value)
+            ?: ConfigKey.COMPARE_BY.defaultValue
+        return CompareBy.valueOf(compareByString)
     }
 
     fun showHeaderFromSettings(): Boolean {

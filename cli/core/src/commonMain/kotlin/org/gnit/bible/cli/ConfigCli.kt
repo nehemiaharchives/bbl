@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.Bible
+import org.gnit.bible.CompareBy
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.CONFIG_FILE_NAME
 import org.gnit.bible.RandomlyShow
@@ -22,8 +23,8 @@ class ConfigCli(
 
     override val invokeWithoutSubcommand: Boolean = true
 
-    private val key: String? by argument(help = "Config key (e.g. translation, searchResult, randomlyShow, header)").optional()
-    private val value: String? by argument(help = "Config value, for translation: webus, for searchResult: 10, for randomlyShow: verse, for header: true").optional()
+    private val key: String? by argument(help = "Config key (e.g. translation, searchResult, randomlyShow, header, compareBy)").optional()
+    private val value: String? by argument(help = "Config value, for translation: webus, for searchResult: 10, for randomlyShow: verse, for header: true, for compareBy: block").optional()
 
     init {
         subcommands(ConfigInitCli(bible))
@@ -66,6 +67,16 @@ class ConfigCli(
                 throw UsageError(
                     "ConfigCli Invalid value '$newValue' for '${configKey.value}'. " +
                         "Valid values: ${RandomlyShow.entries.joinToString(", ") { it.name }}"
+                )
+            }
+        }
+
+        if (configKey == ConfigKey.COMPARE_BY) {
+            val valid = CompareBy.entries.any { it.name == newValue }
+            if (!valid) {
+                throw UsageError(
+                    "ConfigCli Invalid value '$newValue' for '${configKey.value}'. " +
+                        "Valid values: ${CompareBy.entries.joinToString(", ") { it.name }}"
                 )
             }
         }
@@ -130,6 +141,9 @@ private fun generateDefaultConfig(bible: Bible): Path {
     }
     if (settings.getStringOrNull(ConfigKey.HEADER.value) == null) {
         settings.putString(ConfigKey.HEADER.value, ConfigKey.HEADER.defaultValue)
+    }
+    if (settings.getStringOrNull(ConfigKey.COMPARE_BY.value) == null) {
+        settings.putString(ConfigKey.COMPARE_BY.value, ConfigKey.COMPARE_BY.defaultValue)
     }
 
     return platform.packDir.toPath().parent!! / CONFIG_FILE_NAME
