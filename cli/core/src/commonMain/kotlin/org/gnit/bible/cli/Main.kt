@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import org.gnit.bible.BblVersion
 import org.gnit.bible.BblVersion.VERSION
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
@@ -19,6 +18,8 @@ import org.gnit.bible.CompareBy
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.LoggingSetup
+
+private const val OPEN_ENDED_VERSE_RANGE = -1
 
 class Bbl(
     val bible: Bible = Bible(),
@@ -69,11 +70,11 @@ class Bbl(
 
         val chapterVerseSplit = chapterVerse.split(":")
         if (chapterVerseSplit.isEmpty() || chapterVerseSplit.size > 2) {
-            throw UsageError("Invalid reference '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, or CHAPTER:START-END (e.g. '3', '3:16', '3:16-18').")
+            throw UsageError("Invalid reference '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, CHAPTER:START-END, or CHAPTER:START- (e.g. '3', '3:16', '3:16-18', '3:16-').")
         }
 
         val chapterNumber = chapterVerseSplit[0].toIntOrNull()
-            ?: throw UsageError("Invalid chapter in '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, or CHAPTER:START-END (e.g. '3', '3:16', '3:16-18').")
+            ?: throw UsageError("Invalid chapter in '$chapterVerse'. Use CHAPTER, CHAPTER:VERSE, CHAPTER:START-END, or CHAPTER:START- (e.g. '3', '3:16', '3:16-18', '3:16-').")
 
         val maxChapter = Books.maxChapter(bookNumber)
         if (chapterNumber !in 1..maxChapter) {
@@ -84,20 +85,24 @@ class Bbl(
             val versePart = chapterVerseSplit[1]
             val rangeParts = versePart.split("-")
             if (rangeParts.isEmpty() || rangeParts.size > 2) {
-                throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
+                throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE, CHAPTER:START-END, or CHAPTER:START- (e.g. '3:16', '3:16-18', '3:16-').")
             }
 
             val start = rangeParts[0].toIntOrNull()
-                ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
+                ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE, CHAPTER:START-END, or CHAPTER:START- (e.g. '3:16', '3:16-18', '3:16-').")
 
             val end = if (rangeParts.size == 2) {
-                rangeParts[1].toIntOrNull()
-                    ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE or CHAPTER:START-END (e.g. '3:16', '3:16-18').")
+                if (rangeParts[1].isEmpty()) {
+                    OPEN_ENDED_VERSE_RANGE
+                } else {
+                    rangeParts[1].toIntOrNull()
+                        ?: throw UsageError("Invalid verse reference '$chapterVerse'. Use CHAPTER:VERSE, CHAPTER:START-END, or CHAPTER:START- (e.g. '3:16', '3:16-18', '3:16-').")
+                }
             } else {
                 null
             }
 
-            if (end != null && end < start) {
+            if (end != null && end != OPEN_ENDED_VERSE_RANGE && end < start) {
                 throw UsageError("Invalid verse range $start-$end. Start verse must be <= end verse.")
             }
 
@@ -148,6 +153,7 @@ class Bbl(
         }
 
         chapterText = bible.verses(versePointer.translation.code, versePointer.book, versePointer.chapter)
+        versePointer = resolveOpenEndedVerseRange(versePointer, chapterText)
         validateVerseRangeOrThrow(versePointer, chapterText)
 
         selectedVerses = formatSelectedVersesFromChapterText(
@@ -197,9 +203,10 @@ class In(
         val firstTranslation = translations.first()
 
         if (translations.size == 1) {
-            val translatedPointer = versePointer.copy(translation = firstTranslation)
+            var translatedPointer = versePointer.copy(translation = firstTranslation)
             val chapterText =
                 bible.verses(translatedPointer.translation.code, translatedPointer.book, translatedPointer.chapter)
+            translatedPointer = resolveOpenEndedVerseRange(translatedPointer, chapterText)
             validateVerseRangeOrThrow(translatedPointer, chapterText)
 
             selectedVerses = formatSelectedVersesFromChapterText(
@@ -228,8 +235,9 @@ class In(
         when (bible.compareByFromSettings()) {
             CompareBy.block -> {
                 translations.forEach { translation ->
-                    val translatedPointer = versePointer.copy(translation = translation)
+                    var translatedPointer = versePointer.copy(translation = translation)
                     val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
+                    translatedPointer = resolveOpenEndedVerseRange(translatedPointer, chapterText)
                     validateVerseRangeOrThrow(translatedPointer, chapterText)
 
                     selectedVerses = formatSelectedVersesFromChapterText(
@@ -245,18 +253,23 @@ class In(
                 val translatedChapters = translations.map { translation ->
                     val translatedPointer = versePointer.copy(translation = translation)
                     val chapterText = bible.verses(translation.code, translatedPointer.book, translatedPointer.chapter)
-                    validateVerseRangeOrThrow(translatedPointer, chapterText)
-                    Bible.splitChapterToVerses(chapterText)
+                    val resolvedPointer = resolveOpenEndedVerseRange(translatedPointer, chapterText)
+                    validateVerseRangeOrThrow(resolvedPointer, chapterText)
+                    resolvedPointer to Bible.splitChapterToVerses(chapterText)
                 }
 
                 val startVerse = versePointer.startVerse ?: 1
-                val endVerse = versePointer.endVerse
-                    ?: versePointer.startVerse
-                    ?: translatedChapters.maxOf { it.size }
+                val endVerse = if (versePointer.endVerse == OPEN_ENDED_VERSE_RANGE) {
+                    translatedChapters.maxOf { it.second.size }
+                } else {
+                    versePointer.endVerse
+                        ?: versePointer.startVerse
+                        ?: translatedChapters.maxOf { it.second.size }
+                }
 
                 val compared = buildString {
                     for (verseNumber in startVerse..endVerse) {
-                        translatedChapters.forEach { verses ->
+                        translatedChapters.forEach { (_, verses) ->
                             if (verseNumber <= verses.size) {
                                 append(verseNumber)
                                 append(' ')
@@ -292,6 +305,14 @@ private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String
             throw UsageError("Invalid verse range $start-$end for $ref. Start verse must be <= end verse.")
         }
     }
+}
+
+private fun resolveOpenEndedVerseRange(pointer: VersePointer, chapterText: String): VersePointer {
+    if (pointer.endVerse != OPEN_ENDED_VERSE_RANGE) {
+        return pointer
+    }
+
+    return pointer.copy(endVerse = Bible.splitChapterToVerses(chapterText).size)
 }
 
 fun main(args: Array<String>) {

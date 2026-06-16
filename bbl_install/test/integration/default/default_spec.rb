@@ -32,6 +32,32 @@ end
 
 $bbl_normalized_stdout = ->(cmd) { cmd.stdout.gsub("\r\n", "\n").force_encoding('UTF-8') }
 
+$bbl_chapter_from_pack = lambda do |code, book, chapter, start_verse|
+  pack_file = File.join($bbl_pack_dir, "#{code}.zip")
+  zip_content = if $bbl_windows
+    File.binread(pack_file)
+  else
+    file(pack_file).content.b
+  end
+
+  result = nil
+  Zip::File.open_buffer(StringIO.new(zip_content)) do |zip|
+    entry = zip.find_entry("#{code}.#{book}.#{chapter}.txt")
+    raise "Missing #{code}.#{book}.#{chapter}.txt in #{pack_file}" if entry.nil?
+
+    raw_text = entry.get_input_stream.read
+    raw_text = raw_text.read if raw_text.respond_to?(:read)
+
+    verses = raw_text.to_s.force_encoding('UTF-8')
+      .gsub("\r\n", "\n")
+      .lines
+      .map { |line| line.chomp.rstrip }
+      .reject(&:empty?)
+    result = verses.drop(start_verse - 1).join("\n") + "\n"
+  end
+  result
+end
+
 describe 'bbl' do
   subject(:cmd) { command($bbl_run.call('')) }
 
@@ -121,6 +147,32 @@ describe 'bbl john 3:16' do
 
   it 'prints the exact WEBUS John 3:16 output' do
     expect($bbl_normalized_stdout.call(cmd)).to eq("16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life.\n")
+  end
+end
+
+describe 'bbl john 3:16-' do
+  subject(:cmd) { command($bbl_run.call('john 3:16-')) }
+
+  it 'prints WEBUS John 3:16 through the end of the chapter' do
+    expect($bbl_normalized_stdout.call(cmd)).to eq($bbl_chapter_from_pack.call('webus', 43, 3, 16) + "\n")
+  end
+end
+
+describe 'bbl john 3:16- in jc' do
+  subject(:cmd) { command($bbl_run.call('john 3:16- in jc')) }
+
+  it 'prints JC John 3:16 through the end of the chapter' do
+    expect($bbl_normalized_stdout.call(cmd)).to eq($bbl_chapter_from_pack.call('jc', 43, 3, 16))
+  end
+end
+
+describe 'bbl john 3:16- in kjv jc' do
+  subject(:cmd) { command($bbl_run.call('john 3:16- in kjv jc')) }
+
+  it 'prints stacked KJV and JC John 3:16 through the end of the chapter' do
+    expect($bbl_normalized_stdout.call(cmd)).to eq(
+      $bbl_chapter_from_pack.call('kjv', 43, 3, 16) + $bbl_chapter_from_pack.call('jc', 43, 3, 16)
+    )
   end
 end
 

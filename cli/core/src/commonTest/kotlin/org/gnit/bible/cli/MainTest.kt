@@ -1,11 +1,6 @@
 package org.gnit.bible.cli
 
-
 import org.gnit.bible.Bible
-import org.gnit.bible.LoggingSetup
-import org.gnit.bible.SearchQueryText
-import org.gnit.bible.Books
-import org.gnit.bible.BblVersion
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.getPlatform
@@ -52,6 +47,7 @@ class MainTest {
         // Integration-like: write minimal zip packs directly to the configured filesystem for ZipBibleResourcesReader.
         fakeFs.write(packDirPath / "webus.zip") { write(TestFixtures.webusMinimalZipBytes) }
         fakeFs.write(packDirPath / "jc.zip") { write(TestFixtures.jcMinimalZipBytes) }
+        fakeFs.write(packDirPath / "kjv.zip") { write(TestFixtures.kjvMinimalZipBytes) }
 
         bible = Bible(
             assetManager = AssetManagerImpl(
@@ -126,6 +122,15 @@ class MainTest {
         val result = command.test("john 3:16")
         val webusJohn3v16 = TestFixtures.WEBUS_JOHN_3_16
         assertEquals("16 $webusJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16ToEnd() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("john 3:16-")
+
+        assertEquals("${TestFixtures.webusJohnThreeFrom16}\n", result.stdout)
     }
 
     @Test
@@ -229,6 +234,24 @@ class MainTest {
         val result = command.test("john 3:16 in jc")
         val jcJohn3v16 = TestFixtures.JC_JOHN_3_16
         assertEquals("16 $jcJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16ToEndInJc() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("john 3:16- in jc")
+
+        assertEquals(TestFixtures.jcJohnThreeFrom16, result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16ToEndInKjvJcStacked() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("john 3:16- in kjv jc")
+
+        assertEquals(TestFixtures.kjvJohnThreeFrom16 + TestFixtures.jcJohnThreeFrom16, result.stdout)
     }
 
     @Test
