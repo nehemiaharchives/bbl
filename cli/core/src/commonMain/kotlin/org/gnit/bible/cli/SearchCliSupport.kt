@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.UsageError
 import org.gnit.bible.Bible
 import org.gnit.bible.BibleFilter
 import org.gnit.bible.Books
+import org.gnit.bible.CompareBy
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
 import org.gnit.bible.VersePointerJson
@@ -12,7 +13,7 @@ import org.gnit.bible.SearchQueryText
 object SearchCliSupport {
     data class InlineSearchFilters(
         val termParts: List<String>,
-        val translationCode: String?,
+        val translationCodes: List<String>,
         val bookNumber: Int?,
         val startChapter: Int?,
         val endChapter: Int?,
@@ -21,7 +22,7 @@ object SearchCliSupport {
     )
 
     private data class ParsedScopeTokens(
-        val translationCode: String? = null,
+        val translationCodes: List<String> = emptyList(),
         val bookNumber: Int? = null,
         val startChapter: Int? = null,
         val endChapter: Int? = null,
@@ -37,11 +38,11 @@ object SearchCliSupport {
 
     fun parseInlineFilters(tokens: List<String>, bible: Bible): InlineSearchFilters {
         if (tokens.isEmpty()) {
-            return InlineSearchFilters(emptyList(), null, null, null, null, emptyList(), emptyList())
+            return InlineSearchFilters(emptyList(), emptyList(), null, null, null, emptyList(), emptyList())
         }
 
         var remaining = tokens
-        var inlineTranslationCode: String? = null
+        val inlineTranslationCodes = mutableListOf<String>()
         var inlineBookNumber: Int? = null
         var inlineStartChapter: Int? = null
         var inlineEndChapter: Int? = null
@@ -55,11 +56,14 @@ object SearchCliSupport {
             val suffixTokens = remaining.drop(suffixIndex + 1)
             val parsedSuffix = parseScopeTokens(suffixTokens, bible) ?: break
 
-            parsedSuffix.translationCode?.let { code ->
-                if (inlineTranslationCode != null && inlineTranslationCode != code) {
-                    throw UsageError("Conflicting translation scopes: '$inlineTranslationCode' and '$code'")
+            if (parsedSuffix.translationCodes.isNotEmpty()) {
+                if (inlineTranslationCodes.isNotEmpty() && inlineTranslationCodes != parsedSuffix.translationCodes) {
+                    throw UsageError(
+                        "Conflicting translation scopes: '${inlineTranslationCodes.joinToString(" ")}' and '${parsedSuffix.translationCodes.joinToString(" ")}'"
+                    )
                 }
-                inlineTranslationCode = code
+                inlineTranslationCodes.clear()
+                inlineTranslationCodes.addAll(parsedSuffix.translationCodes)
             }
             parsedSuffix.bookNumber?.let { book ->
                 if (inlineBookNumber != null && inlineBookNumber != book) {
@@ -86,7 +90,7 @@ object SearchCliSupport {
 
         return InlineSearchFilters(
             termParts = remaining,
-            translationCode = inlineTranslationCode,
+            translationCodes = inlineTranslationCodes.distinct(),
             bookNumber = inlineBookNumber,
             startChapter = inlineStartChapter,
             endChapter = inlineEndChapter,
@@ -106,6 +110,20 @@ object SearchCliSupport {
 
         return bible.availableTranslations().firstOrNull { it.code == code }
             ?: throw UsageError("Translation '$code' not found. Run 'bbl list translations' to see installed translations.")
+    }
+
+    fun resolveTranslations(
+        bible: Bible,
+        translationCode: String?,
+        inlineTranslationCodes: List<String>
+    ): List<Translation> {
+        val codes = translationCode?.let { listOf(it.lowercase()) }
+            ?: inlineTranslationCodes.ifEmpty { listOf(bible.defaultTranslationFromSettings().code) }
+
+        return codes.distinct().map { code ->
+            bible.availableTranslations().firstOrNull { it.code == code }
+                ?: throw UsageError("Translation '$code' not found. Run 'bbl list translations' to see installed translations.")
+        }
     }
 
     fun renderResults(pointers: List<VersePointer>, bible: Bible, jsonOutput: Boolean): String {
@@ -179,13 +197,40 @@ object SearchCliSupport {
         return renderResults(hits, bible, jsonOutput = false)
     }
 
+    fun renderComparisonHits(
+        bible: Bible,
+        hits: List<VersePointer>,
+        translations: List<Translation>
+    ): String {
+        if (translations.size <= 1) {
+            return renderHits(bible, hits)
+        }
+
+        val comparedHits = when (bible.compareByFromSettings()) {
+            CompareBy.block -> hits.flatMap { hit ->
+                translations.map { translation -> hit.copy(translation = translation) }
+            }
+            CompareBy.verse -> hits.flatMap { hit ->
+                val startVerse = hit.startVerse ?: 1
+                val endVerse = hit.endVerse ?: hit.startVerse ?: startVerse
+                (startVerse..endVerse).flatMap { verseNumber ->
+                    translations.map { translation ->
+                        hit.copy(translation = translation, startVerse = verseNumber, endVerse = null)
+                    }
+                }
+            }
+        }
+
+        return renderHits(bible, comparedHits.filter { bible.hasVerse(it) })
+    }
+
     private fun parseScopeTokens(tokens: List<String>, bible: Bible): ParsedScopeTokens? {
         if (tokens.isEmpty()) return null
 
         val singleToken = tokens.singleOrNull()?.lowercase()
         if (singleToken != null) {
             if (bible.findTranslationByCode(singleToken)) {
-                return ParsedScopeTokens(translationCode = singleToken)
+                return ParsedScopeTokens(translationCodes = listOf(singleToken))
             }
 
             val category = Books.Category.fromKey(singleToken)
@@ -203,6 +248,11 @@ object SearchCliSupport {
                 categoryKeys = listOf(joinedTokens),
                 filters = listOf(category.filter)
             )
+        }
+
+        val translationCodes = tokens.map { it.lowercase() }
+        if (translationCodes.all { bible.findTranslationByCode(it) }) {
+            return ParsedScopeTokens(translationCodes = translationCodes.distinct())
         }
 
         if (tokens.size > 1 && bible.findTranslationByCode(tokens.first().lowercase())) {
@@ -271,5 +321,15 @@ object SearchCliSupport {
         val startVerse = pointer.startVerse ?: return "$header\n$verseText"
         val textWithoutVerseNumber = verseText.replaceFirst(Regex("^$startVerse\\s+"), "")
         return "$header ${textWithoutVerseNumber.trimEnd()}"
+    }
+
+    private fun Bible.hasVerse(pointer: VersePointer): Boolean {
+        val start = pointer.startVerse ?: return true
+        val chapterText = runCatching {
+            verses(pointer.translation.code, pointer.book, pointer.chapter)
+        }.getOrNull() ?: return false
+        val verseCount = Bible.splitChapterToVerses(chapterText).size
+        val end = pointer.endVerse ?: start
+        return start in 1..verseCount && end in start..verseCount
     }
 }

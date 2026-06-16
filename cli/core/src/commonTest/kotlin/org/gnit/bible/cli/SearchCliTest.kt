@@ -56,6 +56,7 @@ class SearchCliTest {
         fakeFs.write(packDirPath / "webus.zip") { write(webusSearchFixtureZipBytes) }
         fakeFs.write(packDirPath / "kjv.zip") { write(kjvSearchFixtureZipBytes) }
         fakeFs.write(packDirPath / "jc.zip") { write(jcSearchFixtureZipBytes) }
+        fakeFs.write(packDirPath / "krv.zip") { write(krvSearchFixtureZipBytes) }
 
         bible = Bible(
             assetManager = AssetManagerImpl(
@@ -152,8 +153,144 @@ class SearchCliTest {
 
         val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv --verses 1")
 
-        assertEquals(0, result.statusCode)
+        assertEquals(0, result.statusCode, result.stderr)
         assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Olivet in kjv jc krv compares multiple translations by block`() {
+        platform.configSettings.putString(ConfigKey.COMPARE_BY.value, "block")
+        val backend = RecordingBackendFactory {
+            assertEquals("Olivet", it.term)
+            assertEquals("kjv", it.translation.code)
+            listOf(
+                VersePointer(translation = SupportedTranslation.KJV.translation, book = 10, chapter = 15, startVerse = 30),
+                VersePointer(translation = SupportedTranslation.KJV.translation, book = 44, chapter = 1, startVerse = 12)
+            )
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Olivet in kjv jc krv")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(olivetComparisonOutput, result.stdout)
+    }
+
+    @Test
+    fun `bbl search Olivet in kjv jc krv compares multiple translations by verse`() {
+        platform.configSettings.putString(ConfigKey.COMPARE_BY.value, "verse")
+        val backend = RecordingBackendFactory {
+            assertEquals("Olivet", it.term)
+            assertEquals("kjv", it.translation.code)
+            listOf(
+                VersePointer(translation = SupportedTranslation.KJV.translation, book = 10, chapter = 15, startVerse = 30),
+                VersePointer(translation = SupportedTranslation.KJV.translation, book = 44, chapter = 1, startVerse = 12)
+            )
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Olivet in kjv jc krv")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(olivetComparisonOutput, result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in kjv jc krv compares first translation hit across translations`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv jc krv")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(
+            """
+            Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.
+            マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。
+            마태복음 1:1 아브라함과 다윗의 자손 예수 그리스도의 세계라
+            
+            """.trimIndent(),
+            result.stdout
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans in kjv jc krv searches first translation and compares hits`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 45, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans in kjv jc krv")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(
+            """
+            Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, separated unto the gospel of God,
+            ローマ人への手紙 1:1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-
+            로마서 1:1 예수 그리스도의 종 바울은 사도로 부르심을 받아 하나님의 복음을 위하여 택정함을 입었으니
+            
+            """.trimIndent(),
+            result.stdout
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans chapter in kjv jc krv keeps chapter filter`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(3, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 45, chapter = 3, startVerse = 22))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 3 in kjv jc krv")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(
+            """
+            Romans 3:22 Even the righteousness of God [which is] by faith of Jesus Christ unto all and upon all them that believe: for there is no difference:
+            ローマ人への手紙 3:22 すなわち、イエス・キリストを信じる信仰による神の義であって、すべて信じる人に与えられるものである。そこにはなんらの差別もない。
+            로마서 3:22 곧 예수 그리스도를 믿음으로 말미암아 모든 믿는 자에게 미치는 하나님의 의니 차별이 없느니라
+            
+            """.trimIndent(),
+            result.stdout
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans chapter range in kjv jc krv keeps chapter range filter`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(3, it.startChapter)
+            assertEquals(5, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 45, chapter = 5, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 3-5 in kjv jc krv")
+
+        assertEquals(0, result.statusCode)
+        assertEquals(
+            """
+            Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:
+            ローマ人への手紙 5:1 このように、わたしたちは、信仰によって義とされたのだから、わたしたちの主イエス・キリストにより、神に対して平和を得ている。
+            로마서 5:1 그러므로 우리가 믿음으로 의롭다 하심을 얻었은즉 우리 주 예수 그리스도로 말미암아 하나님으로 더불어 화평을 누리자
+            
+            """.trimIndent(),
+            result.stdout
+        )
     }
 
     @Test
@@ -499,7 +636,10 @@ class SearchCliTest {
             listOf(
                 "kjv.40.1.txt" to "1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n",
                 "kjv.45.1.txt" to "1 Paul, a servant of Jesus Christ, called to be an apostle, separated unto the gospel of God,\n",
+                "kjv.45.3.txt" to chapterWithVerse(22, "Even the righteousness of God [which is] by faith of Jesus Christ unto all and upon all them that believe: for there is no difference:"),
                 "kjv.45.5.txt" to "1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:\n",
+                "kjv.10.15.txt" to chapterWithVerse(30, "And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up."),
+                "kjv.44.1.txt" to chapterWithVerse(12, "Then returned they unto Jerusalem from the mount called Olivet, which is from Jerusalem a sabbath day's journey."),
                 "kjv$MANIFEST_JSON_POSTFIX" to SupportedTranslation.KJV.translation.toJson()
             )
         )
@@ -508,9 +648,47 @@ class SearchCliTest {
             listOf(
                 "jc.40.1.txt" to "1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n",
                 "jc.45.1.txt" to "1 キリスト・イエスの僕、神の福音のために選び別たれ、召されて使徒となったパウロから-\n",
+                "jc.45.3.txt" to chapterWithVerse(22, "すなわち、イエス・キリストを信じる信仰による神の義であって、すべて信じる人に与えられるものである。そこにはなんらの差別もない。"),
                 "jc.45.5.txt" to "1 このように、わたしたちは、信仰によって義とされたのだから、わたしたちの主イエス・キリストにより、神に対して平和を得ている。\n",
+                "jc.10.15.txt" to chapterWithVerse(30, "ダビデはオリブ山の坂道を登ったが、登る時に泣き、その頭をおおい、はだしで行った。彼と共にいる民もみな頭をおおって登り、泣きながら登った。"),
+                "jc.44.1.txt" to chapterWithVerse(12, "それから彼らは、オリブという山を下ってエルサレムに帰った。この山はエルサレムに近く、安息日に許されている距離のところにある。"),
                 "jc$MANIFEST_JSON_POSTFIX" to SupportedTranslation.JC.translation.toJson()
             )
         )
+
+        private val krvSearchFixtureZipBytes = ZipUtil.buildMinimalZip(
+            listOf(
+                "krv.40.1.txt" to "1 아브라함과 다윗의 자손 예수 그리스도의 세계라\n",
+                "krv.45.1.txt" to "1 예수 그리스도의 종 바울은 사도로 부르심을 받아 하나님의 복음을 위하여 택정함을 입었으니\n",
+                "krv.45.3.txt" to chapterWithVerse(22, "곧 예수 그리스도를 믿음으로 말미암아 모든 믿는 자에게 미치는 하나님의 의니 차별이 없느니라"),
+                "krv.45.5.txt" to "1 그러므로 우리가 믿음으로 의롭다 하심을 얻었은즉 우리 주 예수 그리스도로 말미암아 하나님으로 더불어 화평을 누리자\n",
+                "krv.10.15.txt" to chapterWithVerse(30, "다윗이 감람산 길로 올라갈 때에 머리를 가리우고 맨발로 울며 행하고 저와 함께 가는 백성들도 각각 그 머리를 가리우고 울며 올라가니라"),
+                "krv.44.1.txt" to chapterWithVerse(12, "제자들이 감람원이라 하는 산으로부터 예루살렘에 돌아오니 이 산은 예루살렘에서 가까와 안식일에 가기 알맞은 길이라"),
+                "krv$MANIFEST_JSON_POSTFIX" to SupportedTranslation.KRV.translation.toJson()
+            )
+        )
+
+        private val olivetComparisonOutput = """
+            2 Samuel 15:30 And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up.
+            サムエル記下 15:30 ダビデはオリブ山の坂道を登ったが、登る時に泣き、その頭をおおい、はだしで行った。彼と共にいる民もみな頭をおおって登り、泣きながら登った。
+            사무엘하 15:30 다윗이 감람산 길로 올라갈 때에 머리를 가리우고 맨발로 울며 행하고 저와 함께 가는 백성들도 각각 그 머리를 가리우고 울며 올라가니라
+            Acts 1:12 Then returned they unto Jerusalem from the mount called Olivet, which is from Jerusalem a sabbath day's journey.
+            使徒行伝 1:12 それから彼らは、オリブという山を下ってエルサレムに帰った。この山はエルサレムに近く、安息日に許されている距離のところにある。
+            사도행전 1:12 제자들이 감람원이라 하는 산으로부터 예루살렘에 돌아오니 이 산은 예루살렘에서 가까와 안식일에 가기 알맞은 길이라
+            
+        """.trimIndent()
+
+        private fun chapterWithVerse(verseNumber: Int, verseText: String): String {
+            return buildString {
+                for (number in 1 until verseNumber) {
+                    append(number)
+                    append(" fixture verse\n")
+                }
+                append(verseNumber)
+                append(' ')
+                append(verseText)
+                append('\n')
+            }
+        }
     }
 }

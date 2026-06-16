@@ -43,14 +43,16 @@ function Add-Test(
         [string]$Group,
         [string]$Name,
         [string[]]$CliArgs,
-        [string]$ExpectedLine
+        [string]$ExpectedLine,
+        [string]$ExpectedOutput = ""
 ) {
   $script:tests.Add([pscustomobject]@{
-    Order        = [int]$script:order
-    Group        = [string]$Group
-    Name         = [string]$Name
-    CliArgs      = [string[]]$CliArgs
-    ExpectedLine = [string]$ExpectedLine
+    Order          = [int]$script:order
+    Group          = [string]$Group
+    Name           = [string]$Name
+    CliArgs        = [string[]]$CliArgs
+    ExpectedLine   = [string]$ExpectedLine
+    ExpectedOutput = [string]$ExpectedOutput
   }) | Out-Null
 
   $script:order++
@@ -139,6 +141,20 @@ Add-Test `
   'search Jesus weep in kjv stemming' `
   @('search', 'Jesus', 'weep', 'in', 'kjv') `
   'Matthew 26:75 And Peter remembered the word of Jesus, which said unto him, Before the cock crow, thou shalt deny me thrice. And he went out, and wept bitterly.'
+
+Add-Test `
+  'KJV' `
+  'search Olivet in kjv jc krv compares translations' `
+  @('search', 'Olivet', 'in', 'kjv', 'jc', 'krv') `
+  '2 Samuel 15:30 And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up.' `
+  @'
+2 Samuel 15:30 And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up.
+サムエル記下 15:30 ダビデはオリブ山の坂道を登ったが、登る時に泣き、その頭をおおい、はだしで行った。彼と共にいる民もみな頭をおおって登り、泣きながら登った。
+사무엘하 15:30 다윗이 감람산 길로 올라갈 때에 머리를 가리우고 맨발로 울며 행하고 저와 함께 가는 백성들도 각각 그 머리를 가리우고 울며 올라가니라
+Acts 1:12 Then returned they unto Jerusalem from the mount called Olivet, which is from Jerusalem a sabbath day's journey.
+使徒行伝 1:12 それから彼らは、オリブという山を下ってエルサレムに帰った。この山はエルサレムに近く、安息日に許されている距離のところにある。
+사도행전 1:12 제자들이 감람원이라 하는 산으로부터 예루살렘에 돌아오니 이 산은 예루살렘에서 가까와 안식일에 가기 알맞은 길이라
+'@
 
 # --- RVR09 ---
 $JES = "Jesús"
@@ -1316,6 +1332,7 @@ $results = $parallelTests | ForEach-Object -Parallel {
 
   $cliArgs = @(@($test.CliArgs) | ForEach-Object { [string]$_ })
   $expected = [string]$test.ExpectedLine
+  $expectedOutput = [string]$test.ExpectedOutput
 
   $text = ""
   $errorMessage = $null
@@ -1363,6 +1380,7 @@ $serialResults = foreach ($test in $serialTests) {
 
   $cliArgs = @(@($test.CliArgs) | ForEach-Object { [string]$_ })
   $expected = [string]$test.ExpectedLine
+  $expectedOutput = [string]$test.ExpectedOutput
 
   $errorMessage = $null
   $passed = $false
@@ -1399,7 +1417,13 @@ $serialResults = foreach ($test in $serialTests) {
       throw "bbl exited with code $exitCode`n$allText"
     }
 
-    if ($text -ne $expected) {
+    if ($expectedOutput) {
+      $actualOutput = (($allText -split "`r?`n" | Where-Object { $_.Trim() -ne "" }) -join "`n")
+      $normalizedExpectedOutput = (($expectedOutput -split "`r?`n" | Where-Object { $_.Trim() -ne "" }) -join "`n")
+      if ($actualOutput -ne $normalizedExpectedOutput) {
+        throw "expected output:`n$normalizedExpectedOutput`nactual output:`n$actualOutput"
+      }
+    } elseif ($text -ne $expected) {
       throw "expected first line:`n$expected`nactual first line:`n$text"
     }
 

@@ -32,7 +32,8 @@ class SearchCli(
             throw UsageError("Missing search term")
         }
 
-        val translation = SearchCliSupport.resolveTranslation(bible, translationCode, inlineFilters.translationCode)
+        val translations = SearchCliSupport.resolveTranslations(bible, translationCode, inlineFilters.translationCodes)
+        val translation = translations.first()
         val bookNumber = SearchCliSupport.resolveBookNumber(book, inlineFilters.bookNumber)
         val (startChapter, endChapterValue) = SearchCliSupport.resolveChapterRange(
             bookNumber = bookNumber,
@@ -76,7 +77,7 @@ class SearchCli(
         }
 
         if (hits.isNotEmpty()) {
-            echo(SearchCliSupport.renderHits(bible, hits))
+            echo(SearchCliSupport.renderComparisonHits(bible, hits, translations))
         }
     }
 }

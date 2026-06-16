@@ -107,6 +107,7 @@ fi
 TEST_GROUPS=()
 NAMES=()
 EXPECTED_LINES=()
+EXPECTED_OUTPUTS=()
 CLI_ARGS_JOINED=()
 ORDER=0
 US=$'\037'
@@ -133,6 +134,22 @@ Add_Test() {
   TEST_GROUPS+=("$group")
   NAMES+=("$name")
   EXPECTED_LINES+=("$expected")
+  EXPECTED_OUTPUTS+=("")
+  CLI_ARGS_JOINED+=("$(join_args "$@")")
+  ORDER=$((ORDER + 1))
+}
+
+Add_Test_With_Output() {
+  local group="$1"
+  local name="$2"
+  local expected="$3"
+  local expected_output="$4"
+  shift 4
+
+  TEST_GROUPS+=("$group")
+  NAMES+=("$name")
+  EXPECTED_LINES+=("$expected")
+  EXPECTED_OUTPUTS+=("$expected_output")
   CLI_ARGS_JOINED+=("$(join_args "$@")")
   ORDER=$((ORDER + 1))
 }
@@ -194,6 +211,14 @@ Add_Test 'KJV' 'search Jesus Christ in "johns letters" in kjv' \
 Add_Test 'KJV' 'search Jesus weep in kjv stemming' \
   'Matthew 26:75 And Peter remembered the word of Jesus, which said unto him, Before the cock crow, thou shalt deny me thrice. And he went out, and wept bitterly.' \
   'search' 'Jesus' 'weep' 'in' 'kjv'
+
+Add_Test_With_Output 'KJV' 'search Olivet in kjv jc krv compares translations' \
+  '2 Samuel 15:30 And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up.' "$(cat <<'EOT'
+2 Samuel 15:30 And David went up by the ascent of [mount] Olivet, and wept as he went up, and had his head covered, and he went barefoot: and all the people that [was] with him covered every man his head, and they went up, weeping as they went up.
+サムエル記下 15:30 ダビデはオリブ山の坂道を登ったが、登る時に泣き、その頭をおおい、はだしで行った。彼と共にいる民もみな頭をおおって登り、泣きながら登った。
+사무엘하 15:30 다윗이 감람산 길로 올라갈 때에 머리를 가리우고 맨발로 울며 행하고 저와 함께 가는 백성들도 각각 그 머리를 가리우고 울며 올라가니라
+EOT
+)" 'search' 'Olivet' 'in' 'kjv' 'jc' 'krv'
 
 # --- RVR09 ---
 for t in 'Jesucristo' 'Jesús' 'Cristo'; do
@@ -875,12 +900,13 @@ run_one_test() {
   local meta_file="$RESULT_DIR/$index.meta"
   local error_file="$RESULT_DIR/$index.error"
   local output_file="$RESULT_DIR/$index.output"
-  local start_ms end_ms elapsed_ms exit_code first_line expected timed_out cmd_pid now_s deadline_s
+  local start_ms end_ms elapsed_ms exit_code first_line expected expected_output actual_output normalized_expected_output timed_out cmd_pid now_s deadline_s
   local attempt max_attempts
   local -a cli_args
 
   IFS="$US" read -r -a cli_args <<< "${CLI_ARGS_JOINED[$index]}"
   expected="${EXPECTED_LINES[$index]}"
+  expected_output="${EXPECTED_OUTPUTS[$index]}"
 
   printf '[RUN] %03d/%03d %s\n' "$((index + 1))" "${#NAMES[@]}" "${NAMES[$index]}" >&2
 
@@ -941,7 +967,18 @@ run_one_test() {
     return 0
   fi
 
-  if [[ "$first_line" != "$expected" ]]; then
+  if [[ -n "$expected_output" ]]; then
+    actual_output="$(awk '{ sub(/\r$/, ""); if (NF) print }' "$output_file")"
+    normalized_expected_output="$(printf '%s\n' "$expected_output" | awk '{ sub(/\r$/, ""); if (NF) print }')"
+    if [[ "$actual_output" != "$normalized_expected_output" ]]; then
+      {
+        printf 'expected output:\n%s\n' "$normalized_expected_output"
+        printf 'actual output:\n%s\n' "$actual_output"
+      } > "$error_file"
+      printf 'Passed=0\nExitCode=%s\nElapsedMs=%s\n' "$exit_code" "$elapsed_ms" > "$meta_file"
+      return 0
+    fi
+  elif [[ "$first_line" != "$expected" ]]; then
     {
       printf 'expected first line:\n%s\n' "$expected"
       printf 'actual first line:\n%s\n' "$first_line"
