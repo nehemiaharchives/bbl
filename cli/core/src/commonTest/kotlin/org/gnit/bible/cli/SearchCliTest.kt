@@ -94,6 +94,19 @@ class SearchCliTest {
     }
 
     @Test
+    fun `bbl search records history when history enabled`() {
+        platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "true")
+        val backend = RecordingBackendFactory {
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(listOf("bbl search Jesus Christ"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
     fun `bbl search uses configured search result count`() {
         platform.configSettings.putInt(ConfigKey.SEARCH_RESULT.value, 10)
         val backend = RecordingBackendFactory {

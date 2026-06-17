@@ -38,6 +38,7 @@ class RandCli(
             echo(header)
         }
         echo(result.selection)
+        BblHistory.record(bible, BblHistory.command("bbl rand", narrowDown))
     }
 
     private fun resolveFilter(key: String): BibleFilter {

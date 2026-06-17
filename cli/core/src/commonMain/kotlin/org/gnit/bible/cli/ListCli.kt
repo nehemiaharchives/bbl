@@ -84,12 +84,14 @@ class ListCli(
                     }
 
                 formatTranslationEntries(entries).forEach { line -> echo(line) }
+                BblHistory.record(bible, BblHistory.command("bbl list", target))
             }
 
             "b", "book", "books" -> {
                 (1..66).forEach { book ->
                     echo(Books.allBookNames[book].joinToString(", "))
                 }
+                BblHistory.record(bible, BblHistory.command("bbl list", target))
             }
 
             "c", "category", "categories" -> {
@@ -99,6 +101,7 @@ class ListCli(
                     .forEach { category ->
                         echo(category.name + ": " + category.key.joinToString(", "))
                     }
+                BblHistory.record(bible, BblHistory.command("bbl list", target))
             }
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")

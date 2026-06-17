@@ -4,6 +4,7 @@ const val SERVER_PORT = 8081
 const val MANIFEST_JSON_POSTFIX = ".0.manifest.json"
 
 const val CONFIG_FILE_NAME = "config.json"
+const val HISTORY_FILE_NAME = "history.json"
 
 val webusGenesisChapterOne = """
             1 In the beginning, God created the heavens and the earth.

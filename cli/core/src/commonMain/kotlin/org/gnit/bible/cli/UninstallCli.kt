@@ -46,6 +46,7 @@ class UninstallCli(
                     echo("Uninstalling $translationCode failed")
                 }
         }
+        BblHistory.record(bible, BblHistory.command("bbl uninstall", requestedCodes.joinToString(" ")))
     }
 
     private fun uninstallSearchBinaryIfUnused(

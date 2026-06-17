@@ -146,6 +146,60 @@ class ConfigCliTest {
     }
 
     @Test
+    fun configWriteThenReadHistoryEnabled() {
+        val command = Bbl(bible)
+
+        val write = command.test("config historyEnabled false")
+        assertEquals(0, write.statusCode, "Write should succeed. stderr=${write.stderr}")
+        assertEquals("historyEnabled set to false", write.stdout.trim())
+
+        val read = command.test("config historyEnabled")
+        assertEquals(0, read.statusCode, "Read should succeed. stderr=${read.stderr}")
+        assertEquals("false", read.stdout.trim())
+    }
+
+    @Test
+    fun configWriteThenReadHistoryFormat() {
+        val command = Bbl(bible)
+
+        val write = command.test("config historyFormat datetimeTimezoneCommand")
+        assertEquals(0, write.statusCode, "Write should succeed. stderr=${write.stderr}")
+        assertEquals("historyFormat set to datetimeTimezoneCommand", write.stdout.trim())
+
+        val read = command.test("config historyFormat")
+        assertEquals(0, read.statusCode, "Read should succeed. stderr=${read.stderr}")
+        assertEquals("datetimeTimezoneCommand", read.stdout.trim())
+    }
+
+    @Test
+    fun configWriteInvalidHistoryFormatFails() {
+        val result = Bbl(bible).test("config historyFormat invalidValue")
+
+        assertTrue(result.statusCode != 0, "Command should fail on invalid historyFormat")
+        assertTrue(result.stderr.contains("datetimeTimezoneCommand"), "Should show allowed values. stderr=${result.stderr}")
+    }
+
+    @Test
+    fun configRecordsHistoryWhenHistoryEnabled() {
+        platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "true")
+
+        val result = Bbl(bible).test("config searchResult 10")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals(listOf("bbl config searchResult 10"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
+    fun configDoesNotRecordHistoryWhenHistoryDisabled() {
+        platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "false")
+
+        val result = Bbl(bible).test("config searchResult 10")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertTrue(BblHistory.read(bible).isEmpty(), "History should remain empty when disabled")
+    }
+
+    @Test
     fun configWriteInvalidCompareByFails() {
         val command = Bbl(bible)
         val result = command.test("config compareBy invalidValue")

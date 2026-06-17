@@ -2,7 +2,7 @@ package org.gnit.bible.cli
 
 import org.gnit.bible.SupportedTranslation
 
-import okio.SYSTEM
+import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.InMemorySettings
@@ -23,6 +23,7 @@ class ListCliTest : ResourcesTestBase() {
     private var originalPackDir: String? = null
     private var originalFileSystem: okio.FileSystem? = null
     private var originalSettings: com.russhwolf.settings.Settings? = null
+    private lateinit var fakeFs: FakeFileSystem
 
     @BeforeTest
     fun setup(){
@@ -30,8 +31,9 @@ class ListCliTest : ResourcesTestBase() {
         originalPackDir = platform.overridePlatformPackDir
         originalFileSystem = platform.overrideFileSystem
         originalSettings = platform.overrideSettings
+        fakeFs = FakeFileSystem()
         platform.overridePlatformPackDir = "/tmp/bbl_cli_list_cli_test_dir"
-        platform.overrideFileSystem = null
+        platform.overrideFileSystem = fakeFs
         platform.overrideSettings = InMemorySettings()
 
         val installed = SupportedTranslation.KTTV.translation
@@ -105,6 +107,14 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     }
 
     @Test
+    fun bblListRecordsHistoryWhenHistoryEnabled() {
+        val result = Bbl(bible = bible).test("list books")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals(listOf("bbl list books"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
     fun testBblListCategories() {
         val bbl = Bbl(bible = bible)
 
@@ -147,7 +157,7 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
         private val downloaded: List<Translation>
     ) : org.gnit.bible.AssetManager {
 
-        override val fileSystem: okio.FileSystem = okio.FileSystem.SYSTEM
+        override val fileSystem: okio.FileSystem = platform.fileSystem
 
         override suspend fun download(baseUrl: String, fileName: String) {
             // No-op for list-only tests.

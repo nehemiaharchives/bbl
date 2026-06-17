@@ -1,5 +1,39 @@
 package org.gnit.bible
 
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class HistoryRecord(
+    val date: String,
+    val timezone: String,
+    val command: String
+) {
+    fun format(format: HistoryFormat): String {
+        return when (format) {
+            HistoryFormat.command -> command
+            HistoryFormat.datetimeCommand -> "$date $command"
+            HistoryFormat.datetimeTimezoneCommand -> "$date $timezone $command"
+        }
+    }
+}
+
+enum class HistoryFormat {
+    /**
+     * show only command, e.g. bbl john 3:16
+    */
+    command,
+
+    /**
+     * show datetime and command e.g. 2026-06-17 17:44:46 bbl john 3:16
+    */
+    datetimeCommand,
+
+    /**
+     * show datetime, timezone, command  e.g. 2026-06-17 17:44:46 Asia/Tokyo bbl john 3:16
+     */
+    datetimeTimezoneCommand
+}
+
 enum class RandomlyShow { verse, chapter }
 
 enum class CompareBy { block, verse }
@@ -9,7 +43,9 @@ enum class ConfigKey(val value: String, val defaultValue: String, val descriptio
     SEARCH_RESULT("searchResult", 100.toString(), "default number of search result verses"),
     RANDOMLY_SHOW("randomlyShow", RandomlyShow.verse.toString(), "[bbl rand] option to show a verse or a chapter"),
     HEADER("header", false.toString(), "bbl, bbl rand, bbl search option to show header, such as Genesis 1 or John 3:16 above the verses or not"),
-    COMPARE_BY("compareBy", CompareBy.block.toString(), "when showing multiple translations, use block to print the full selected range for each translation, or verse to compare verse by verse")
+    COMPARE_BY("compareBy", CompareBy.block.toString(), "when showing multiple translations, use block to print the full selected range for each translation, or verse to compare verse by verse"),
+    HISTAORY_ENABLED("historyEnabled", true.toString(), "enables bbl history prints out past bbl command histories"),
+    HISTAORY_FROMAT("historyFormat", HistoryFormat.command.toString(), "history format, either command, datetimeCommand, datetimeTimezoneCommand"),
 }
 
 class Bible(
@@ -111,6 +147,18 @@ class Bible(
         val compareByString = assetManager.platform.configSettings.getStringOrNull(ConfigKey.COMPARE_BY.value)
             ?: ConfigKey.COMPARE_BY.defaultValue
         return CompareBy.valueOf(compareByString)
+    }
+
+    fun historyEnabledFromSettings(): Boolean {
+        val raw = assetManager.platform.configSettings.getStringOrNull(ConfigKey.HISTAORY_ENABLED.value)
+            ?: ConfigKey.HISTAORY_ENABLED.defaultValue
+        return raw.toBooleanStrictOrNull() ?: true
+    }
+
+    fun historyFormatFromSettings(): HistoryFormat {
+        val raw = assetManager.platform.configSettings.getStringOrNull(ConfigKey.HISTAORY_FROMAT.value)
+            ?: ConfigKey.HISTAORY_FROMAT.defaultValue
+        return HistoryFormat.entries.firstOrNull { it.name == raw } ?: HistoryFormat.command
     }
 
     fun showHeaderFromSettings(): Boolean {

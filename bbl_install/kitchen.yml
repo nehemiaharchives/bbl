@@ -150,6 +150,20 @@ suites:
     excludes:
       - windows-local
 
+  - name: history_posix
+    run_list:
+      - recipe[bbl_install::default]
+      - recipe[bbl_install::history_posix_test]
+    attributes:
+      bbl_install:
+        history_posix_test_script_path: /tmp/bbl-history-posix-test/test_history.sh
+    verifier:
+      name: shell
+      remote_exec: true
+      command: /tmp/bbl-history-posix-test/test_history.sh
+    excludes:
+      - windows-local
+
   - name: config_windows
     run_list:
       - recipe[bbl_install::default]
@@ -157,6 +171,20 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/config_windows
+    excludes:
+      - ubuntu-26.04
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04
+      - macos-local
+
+  - name: history_windows
+    run_list:
+      - recipe[bbl_install::default]
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/history_windows
     excludes:
       - ubuntu-26.04
       - ubuntu-25.10

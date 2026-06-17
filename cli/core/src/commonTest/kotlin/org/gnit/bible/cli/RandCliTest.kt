@@ -112,6 +112,16 @@ class RandCliTest {
     }
 
     @Test
+    fun `bbl rand records history when history enabled`() {
+        val picker = stubPickerForSingleVerse("For God so loved the world.")
+
+        val result = RandCli(bible = bible, picker = picker).test(listOf("nt"))
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals(listOf("bbl rand nt"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
     fun `bbl rand ot`() {
         val picker = stubPickerForSingleVerse("In the beginning.")
 

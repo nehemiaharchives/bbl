@@ -61,6 +61,14 @@ class UninstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblUninstallRecordsHistoryWhenHistoryEnabled() {
+        val result = Bbl(bible = bible).test("uninstall kttv")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("bbl uninstall kttv", BblHistory.read(bible).last().command)
+    }
+
+    @Test
     fun testBblAliasRemoveKttv() {
         val result = Bbl(bible = bible).test("remove kttv").stdout
         assertResult(result)

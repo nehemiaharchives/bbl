@@ -27,5 +27,6 @@ node_modules/
 /bbl_install/files/*
 !/bbl_install/files/README.md
 !/bbl_install/files/config_posix_test.sh
+!/bbl_install/files/history_posix_test.sh
 !/bbl_install/files/search_posix_test.sh
 /bbl_install/vendor/bundle/ruby/*

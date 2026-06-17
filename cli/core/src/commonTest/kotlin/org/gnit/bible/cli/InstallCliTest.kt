@@ -64,6 +64,14 @@ class InstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblInstallRecordsHistoryWhenHistoryEnabled() {
+        val result = Bbl(bible = bible).test("install kttv")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals(listOf("bbl install kttv"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
     fun testBblAliasGetKttv(){
         val result = Bbl(bible = bible).test("get kttv").output
         assertInstallResult(result, listOf("kttv"), listOf(searchHelperName("extra")))
@@ -283,7 +291,7 @@ class InstallCliTest : ResourcesTestBase() {
         assertEquals(expectedOutput, result.replace("\r\n", "\n"))
 
         val packDir = bible.assetManager.platform.packDir.toPath()
-        val packFileList = fakeFs.list(packDir)
+        val packFileList = fakeFs.list(packDir).filter { it.name.endsWith(".zip") }
         assertEquals(expectedCodes.size, packFileList.size)
         val actualNames = packFileList.map { it.name }.sorted()
         val expectedNames = expectedCodes.map { "$it.zip" }.sorted()

@@ -57,6 +57,7 @@ class InstallCli(
         val toInstall = requestedCodes.filterNot { it in installedCodes }
         if (toInstall.isEmpty()) {
             requestedCodes.forEach { echo("$it already installed, skipping download") }
+            BblHistory.record(bible, BblHistory.command("bbl install", requestedCodes.joinToString(" ")))
             return
         }
 
@@ -97,6 +98,7 @@ class InstallCli(
             echo("Installed $translationCode")
             installSearchBinaryIfNeeded(translation)
         }
+        BblHistory.record(bible, BblHistory.command("bbl install", requestedCodes.joinToString(" ")))
     }
 
     private fun installSearchBinaryIfNeeded(translation: Translation) {

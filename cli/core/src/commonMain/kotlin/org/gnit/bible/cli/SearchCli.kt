@@ -83,5 +83,6 @@ class SearchCli(
         if (hits.isNotEmpty()) {
             echo(SearchCliSupport.renderComparisonHits(bible, hits, translations))
         }
+        BblHistory.record(bible, BblHistory.command("bbl search", termParts.joinToString(" ")))
     }
 }

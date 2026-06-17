@@ -111,6 +111,17 @@ class MainTest {
     }
 
     @Test
+    fun bblReadRecordsHistoryWhenHistoryEnabled() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "true")
+
+        val result = Bbl(bible).test("gen 1")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals(listOf("bbl gen 1"), BblHistory.read(bible).map { it.command })
+    }
+
+    @Test
     fun testBblGen2() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         val command = Bbl(bible)

@@ -46,6 +46,7 @@ class Bbl(
             InstallCli(bible),
             UninstallCli(bible),
             ConfigCli(bible),
+            HistoryCli(bible),
         )
     }
     override fun help(context: Context): String = """
@@ -208,6 +209,7 @@ class Bbl(
         if (versePointer.startVerse != null && versePointer.endVerse != null) {
             echo("")
         }
+        BblHistory.record(bible, BblHistory.command("bbl", book.joinToString(" "), chapterVerse))
     }
 }
 
@@ -257,6 +259,10 @@ class In(
             }
 
             echo(selectedVerses.trimEnd())
+            BblHistory.record(
+                bible,
+                BblHistory.command("bbl", versePointerBookAndChapter(), "in", codes.joinToString(" "))
+            )
             return
         }
 
@@ -320,6 +326,22 @@ class In(
                 echo(compared.trimEnd())
             }
         }
+        BblHistory.record(
+            bible,
+            BblHistory.command("bbl", versePointerBookAndChapter(), "in", codes.joinToString(" "))
+        )
+    }
+
+    private fun versePointerBookAndChapter(): String {
+        val bookName = Books.allBookNames[versePointer.book].first()
+        val versePart = when {
+            versePointer.startVerse != null && versePointer.endVerse != null -> {
+                "${versePointer.chapter}:${versePointer.startVerse}-${versePointer.endVerse}"
+            }
+            versePointer.startVerse != null -> "${versePointer.chapter}:${versePointer.startVerse}"
+            else -> versePointer.chapter.toString()
+        }
+        return "$bookName $versePart"
     }
 }
 

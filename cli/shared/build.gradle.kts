@@ -25,6 +25,12 @@ kotlin {
             }
         }
 
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
+        }
+
         val nativeMain by creating { dependsOn(commonMain) }
 
         val posixMain by creating { dependsOn(nativeMain) }

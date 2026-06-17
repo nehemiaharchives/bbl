@@ -288,6 +288,7 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     preserve {
         include("README.md")
         include("config_posix_test.sh")
+        include("history_posix_test.sh")
         include("search_posix_test.sh")
     }
 }

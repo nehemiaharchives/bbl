@@ -27,6 +27,7 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlinx.datetime)
                 implementation(libs.multiplatform.settings)
                 implementation(libs.kotlin.logging)
                 implementation(libs.lucene.kmp.core)

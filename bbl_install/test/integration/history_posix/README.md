@@ -1,0 +1,1 @@
+the test script is in bbl_install/files/history_posix_test.sh
