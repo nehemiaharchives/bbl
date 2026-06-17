@@ -70,6 +70,12 @@ class InstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblAliasPullKttv(){
+        val result = Bbl(bible = bible).test("pull kttv").output
+        assertInstallResult(result, listOf("kttv"), listOf(searchHelperName("extra")))
+    }
+
+    @Test
     fun testBblInstallMultipleTranslations() {
         val searchHelperName = searchHelperName("extra")
         val result = Bbl(bible = bible).test("install kttv th1971").output

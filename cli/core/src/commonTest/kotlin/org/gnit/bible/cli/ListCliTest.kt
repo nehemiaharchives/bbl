@@ -85,7 +85,9 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     fun testBblList() {
         val bbl = Bbl(bible = bible)
 
-        arrayOf("bible", "bibles", "translation", "translations", "version", "versions").map { target -> "list $target" }.plus("list").forEach { argv ->
+        val targets = arrayOf("bible", "bibles", "translation", "translations", "version", "versions")
+        val commands = targets.map { "list $it" } + targets.map { "ls $it" } + listOf("list", "ls")
+        commands.forEach { argv ->
             assertEquals(expectedTranslationList, bbl.test(argv = argv).stdout)
         }
     }
@@ -94,7 +96,7 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     fun testBblListBooks(){
         val bbl = Bbl(bible = bible)
 
-        arrayOf("list book", "list books").forEach { argv ->
+        arrayOf("list book", "list books", "ls book", "ls books").forEach { argv ->
             val out = bbl.test(argv).stdout
             assertEquals(66, out.lines().filter { it.isNotBlank() }.size)
             assertTrue(out.contains("genesis"))
@@ -106,7 +108,7 @@ NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बा�
     fun testBblListCategories() {
         val bbl = Bbl(bible = bible)
 
-        arrayOf("list category", "list categories").forEach { argv ->
+        arrayOf("list category", "list categories", "ls category", "ls categories").forEach { argv ->
             val out = bbl.test(argv).stdout
             val lines = out.lines().filter { it.isNotBlank() }
             assertEquals(Books.Category.entries.size - 1, lines.size)

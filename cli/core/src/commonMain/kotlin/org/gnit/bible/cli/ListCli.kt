@@ -64,7 +64,7 @@ class ListCli(
         return "List bibles/translations"
     }
 
-    private val target by argument(help = "What to list: bibles/translations or books")
+    private val target by argument(help = "What to list: translations, books, categories")
         .default("bibles")
 
     override fun run() {
