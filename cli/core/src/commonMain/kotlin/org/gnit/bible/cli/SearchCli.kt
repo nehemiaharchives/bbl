@@ -29,7 +29,8 @@ class SearchCli(
     private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }
 
     override fun run() {
-        val inlineFilters = SearchCliSupport.parseInlineFilters(termParts, bible)
+        val (cleanTermParts, limitOverride) = SearchCliSupport.parseLimitOverride(termParts)
+        val inlineFilters = SearchCliSupport.parseInlineFilters(cleanTermParts, bible)
         val term = SearchCliSupport.parseSearchTerm(inlineFilters.termParts)
         if (term.isBlank()) {
             throw UsageError("Missing search term")
@@ -55,7 +56,7 @@ class SearchCli(
             bookNumber = bookNumber,
             startChapter = startChapter,
             endChapter = endChapterValue,
-            verses = verses ?: bible.searchResultFromSettings(),
+            verses = limitOverride ?: verses ?: bible.searchResultFromSettings(),
             filters = requestFilters,
             categoryKeys = requestCategoryKeys
         )

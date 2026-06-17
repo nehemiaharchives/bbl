@@ -181,6 +181,31 @@ Add_Test 'WEBUS (default)' 'search Jesus weep stemming' \
   'Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.' \
   'search' 'Jesus' 'weep'
 
+# --- Limit ---
+Add_Test 'Limit' 'search Jesus Christ limit 1' \
+  'Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.' \
+  'search' 'Jesus Christ' 'limit' '1'
+
+Add_Test 'Limit' 'search Jesus Christ in kjv limit 1' \
+  'Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.' \
+  'search' 'Jesus Christ' 'in' 'kjv' 'limit' '1'
+
+Add_Test 'Limit' 'search Jesus Christ in romans limit 1' \
+  'Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,' \
+  'search' 'Jesus Christ' 'in' 'romans' 'limit' '1'
+
+Add_Test 'Limit' 'search Jesus Christ in romans 3 limit 1' \
+  'Romans 3:22 even the righteousness of God through faith in Jesus Christ to all and on all those who believe. For there is no distinction,' \
+  'search' 'Jesus Christ' 'in' 'romans' '3' 'limit' '1'
+
+Add_Test 'Limit' 'search Jesus Christ in romans 5-12 limit 1' \
+  'Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;' \
+  'search' 'Jesus Christ' 'in' 'romans' '5-12' 'limit' '1'
+
+Add_Test 'Limit' 'search Jesus Christ in romans 5-12 in kjv limit 1' \
+  'Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:' \
+  'search' 'Jesus Christ' 'in' 'romans' '5-12' 'in' 'kjv' 'limit' '1'
+
 # --- KJV ---
 for t in 'Jesus Christ' 'Jesus' 'Christ'; do
   Add_Test 'KJV' "search $t in kjv" \

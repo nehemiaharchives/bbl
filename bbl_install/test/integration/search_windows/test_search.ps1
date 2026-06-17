@@ -97,6 +97,43 @@ Add-Test `
   @('search', 'Jesus', 'weep') `
   "Matthew 26:75 Peter remembered the word which Jesus had said to him, $([char]0x201C)Before the rooster crows, you will deny me three times.$([char]0x201D) Then he went out and wept bitterly."
 
+# --- Limit ---
+Add-Test `
+  'Limit' `
+  'search Jesus Christ limit 1' `
+  @('search', 'Jesus Christ', 'limit', '1') `
+  'Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.'
+
+Add-Test `
+  'Limit' `
+  'search Jesus Christ in kjv limit 1' `
+  @('search', 'Jesus Christ', 'in', 'kjv', 'limit', '1') `
+  'Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.'
+
+Add-Test `
+  'Limit' `
+  'search Jesus Christ in romans limit 1' `
+  @('search', 'Jesus Christ', 'in', 'romans', 'limit', '1') `
+  'Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,'
+
+Add-Test `
+  'Limit' `
+  'search Jesus Christ in romans 3 limit 1' `
+  @('search', 'Jesus Christ', 'in', 'romans', '3', 'limit', '1') `
+  'Romans 3:22 even the righteousness of God through faith in Jesus Christ to all and on all those who believe. For there is no distinction,'
+
+Add-Test `
+  'Limit' `
+  'search Jesus Christ in romans 5-12 limit 1' `
+  @('search', 'Jesus Christ', 'in', 'romans', '5-12', 'limit', '1') `
+  'Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;'
+
+Add-Test `
+  'Limit' `
+  'search Jesus Christ in romans 5-12 in kjv limit 1' `
+  @('search', 'Jesus Christ', 'in', 'romans', '5-12', 'in', 'kjv', 'limit', '1') `
+  'Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:'
+
 # --- KJV ---
 foreach ($t in @('Jesus Christ', 'Jesus', 'Christ')) {
   Add-Test `

@@ -581,6 +581,129 @@ class SearchCliTest {
         }
     }
 
+    @Test
+    fun `bbl search Jesus Christ limit 10 overrides search result count`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals(10, it.verses)
+            assertEquals(null, it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ limit 10")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in kjv limit 10 combines limit with translation`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(10, it.verses)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv limit 10")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans limit 10 combines limit with book`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals(10, it.verses)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(null, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans limit 10")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Romans 1:1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans 3 limit 10 combines limit with chapter`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals(10, it.verses)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(3, it.startChapter)
+            assertEquals(null, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 3, startVerse = 22))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 3 limit 10")
+
+        assertEquals(0, result.statusCode, "stderr: ${result.stderr}")
+        assertEquals("Romans 3:22 Even the righteousness of God which is by faith in Jesus Christ to all and upon all those who believe; for there is no distinction,\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ in romans 5-12 limit 10 combines limit with range`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals(10, it.verses)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(5, it.startChapter)
+            assertEquals(12, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 45, chapter = 5, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 5-12 limit 10")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Romans 5:1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ limit 10 in romans 5-12 in kjv combines limit with range and translation`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("Jesus Christ", it.term)
+            assertEquals(10, it.verses)
+            assertEquals("kjv", it.translation.code)
+            assertEquals(Books.bookNumber("romans"), it.bookNumber)
+            assertEquals(5, it.startChapter)
+            assertEquals(12, it.endChapter)
+            listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 45, chapter = 5, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in romans 5-12 in kjv limit 10")
+
+        assertEquals(0, result.statusCode)
+        assertEquals("Romans 5:1 Therefore being justified by faith, we have peace with God through our Lord Jesus Christ:\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Jesus Christ limit 0 gives error`() {
+        val result = Bbl(bible).test("search Jesus Christ limit 0")
+
+        assertTrue(result.statusCode != 0, "Command should reject limit 0")
+        assertTrue(
+            result.stderr.contains("positive integer"),
+            "Should mention positive integer. Got: ${result.stderr}"
+        )
+    }
+
+    @Test
+    fun `bbl search Jesus Christ limit abc gives error`() {
+        val result = Bbl(bible).test("search Jesus Christ limit abc")
+
+        assertTrue(result.statusCode != 0, "Command should reject limit abc")
+        assertTrue(
+            result.stderr.contains("Invalid limit"),
+            "Should mention invalid limit. Got: ${result.stderr}"
+        )
+    }
+
     private class RecordingBackendFactory(
         private val handler: (SearchRequest) -> List<VersePointer>
     ) {
@@ -627,6 +750,7 @@ class SearchCliTest {
             listOf(
                 "webus.40.1.txt" to "1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n",
                 "webus.45.1.txt" to "1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,\n",
+                "webus.45.3.txt" to chapterWithVerse(22, "Even the righteousness of God which is by faith in Jesus Christ to all and upon all those who believe; for there is no distinction,"),
                 "webus.45.5.txt" to "1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;\n",
                 "webus$MANIFEST_JSON_POSTFIX" to SupportedTranslation.WEBUS.translation.toJson()
             )

@@ -142,6 +142,21 @@ object SearchCliSupport {
         }
     }
 
+    fun parseLimitOverride(termParts: List<String>): Pair<List<String>, Int?> {
+        if (termParts.size >= 2) {
+            val last = termParts.last()
+            val secondLast = termParts[termParts.lastIndex - 1]
+            if (secondLast.equals("limit", ignoreCase = true)) {
+                val limitValue = last.toIntOrNull()
+                if (limitValue != null && limitValue > 0) {
+                    return termParts.dropLast(2) to limitValue
+                }
+                throw UsageError("Invalid limit value '$last'. Limit must be a positive integer")
+            }
+        }
+        return termParts to null
+    }
+
     fun parseSearchTerm(termParts: List<String>): String = SearchQueryText.searchTermFromArgs(termParts)
 
     fun resolveBookNumber(book: String?, inlineBookNumber: Int?): Int? {
