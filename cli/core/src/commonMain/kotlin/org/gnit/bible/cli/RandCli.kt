@@ -16,7 +16,7 @@ class RandCli(
     )
 ) : CoreCliktCommand(name = "rand") {
 
-    override fun help(context: Context) = "Display a random verse or chapter from the Bible"
+    override fun help(context: Context) = "A random verse or chapter, optionally filtered by category (e.g. bbl rand nt)"
 
     private val narrowDown: String? by argument(
         help = "Narrow down to a category (e.g., nt, ot, prophets, paul, abraham, gospels) for the list of categories, run bbl list category"

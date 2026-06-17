@@ -61,7 +61,7 @@ class ListCli(
 ) : CoreCliktCommand(name = "list") {
 
     override fun help(context: Context): String {
-        return "List bibles/translations"
+        return "List installed and downloadable translations, book names, category filters (alias: ls)"
     }
 
     private val target by argument(help = "What to list: translations, books, categories")
@@ -70,7 +70,7 @@ class ListCli(
     override fun run() {
 
         when (target.lowercase()) {
-            "bible", "bibles", "translation", "translations", "version", "versions" -> {
+            "bible", "bibles", "t", "translation", "translations", "v", "version", "versions" -> {
                 val downloaded = bible.assetManager.downloadedTranslations()
                 val downloadedCodes = downloaded.map { it.code }.toSet()
                 val downloadedEntries = downloaded.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
@@ -86,13 +86,13 @@ class ListCli(
                 formatTranslationEntries(entries).forEach { line -> echo(line) }
             }
 
-            "book", "books" -> {
+            "b", "book", "books" -> {
                 (1..66).forEach { book ->
                     echo(Books.allBookNames[book].joinToString(", "))
                 }
             }
 
-            "category", "categories" -> {
+            "c", "category", "categories" -> {
                 Books.Category.entries
                     .asSequence()
                     .filterNot { it == Books.Category.ALL }

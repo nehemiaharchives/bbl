@@ -48,8 +48,37 @@ class Bbl(
             ConfigCli(bible),
         )
     }
+    override fun help(context: Context): String = """
+        Read, search Holy Bible in command line
+        
+        bbl gen 1
+        bbl john 3:16
+        bbl matt 7:24-
+        bbl matt 28:18-20
+        bbl john 3:16 in kjv
+        bbl john 3:16 in kjv tb
+        bbl john 3:16 in kjv tb lsg
 
-    override fun help(context: Context): String = "Read, search Holy Bible in command line"
+        bbl search Jesus Christ
+        bbl search Jesus Christ in kjv
+        bbl search Jesus Christ in romans
+        bbl search Jesus Christ in romans 3
+        bbl search Jesus Christ in romans 5-12
+        bbl search Jesus Christ in romans 5-12 in kjv
+        bbl search righteous servant justify many in webus tb lsg
+        bbl search riding on a donkey in minor prophets
+        bbl search love one another in johns letters
+        bbl search jews gentiles in paul
+        bbl search Goliath in david
+        bbl search Adam in nt
+        bbl search "Jesus wept"
+        bbl search "your faith" in gospels
+
+        bbl rand (gospels|nt|ot|[categories])
+        bbl list (translations|books|categories)
+        bbl (install|uninstall) kjv
+    """.trimIndent()
+
 
     override fun aliases(): Map<String, List<String>> = mapOf(
         // alias of install
@@ -192,7 +221,7 @@ class In(
 
     lateinit var selectedVerses: String
 
-    override fun help(context: Context): String = "Read verses from the Bible in one or more translations."
+    override fun help(context: Context): String = "Read verses in one or more translations. (e.g. bbl ex 20 in kjv)"
 
     override fun run() {
         val codes = translationOverrides

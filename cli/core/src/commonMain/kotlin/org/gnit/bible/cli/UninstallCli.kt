@@ -12,7 +12,7 @@ class UninstallCli(
     private val bible: Bible
 ) : CoreCliktCommand(name = "uninstall") {
     override fun help(context: Context): String {
-        return "Delete one or more downloaded bible translation packs from your computer"
+        return "Delete one or more downloaded bible translation packs from your computer (alias: rm|remove|del|delete)"
     }
 
     private val targets: List<String> by argument(help = "translation code(s) to uninstall (e.g., kttv th1971)")

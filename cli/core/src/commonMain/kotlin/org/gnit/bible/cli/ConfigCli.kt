@@ -19,7 +19,7 @@ class ConfigCli(
     private val bible: Bible
 ) : CoreCliktCommand(name = "config") {
 
-    override fun help(context: Context): String = "Manage bbl config"
+    override fun help(context: Context): String = "Create, view or change settings (e.g. bbl config init, bbl config translation kjv, bbl config searchResult 10)"
 
     override val invokeWithoutSubcommand: Boolean = true
 

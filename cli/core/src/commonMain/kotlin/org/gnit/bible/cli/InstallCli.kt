@@ -26,10 +26,10 @@ class InstallCli(
     private val logger = KotlinLogging.logger {}
 
     override fun help(context: Context): String {
-        return "Download and install one or more translations by code (e.g. bbl install kttv th1971)"
+        return "Download and install one or more translations by code (e.g. bbl install kjv rvr09, alias: get|pull)"
     }
 
-    private val targets: List<String> by argument(help = "translation code(s) to download and install (e.g., kttv th1971)")
+    private val targets: List<String> by argument(help = "translation code(s) to download and install (e.g., kjv rvr09)")
         .multiple()
 
     override fun run() {

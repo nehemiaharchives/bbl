@@ -1,5 +1,6 @@
 package org.gnit.bible.cli
 
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -16,6 +17,8 @@ class SearchCli(
     private val processRunner: ProcessRunner = PlatformProcessRunner(),
     private val backendProvider: ((Translation) -> SearchBackend)? = null
 ) : CoreCliktCommand(name = "search") {
+
+    override fun help(context: Context): String = "Search Bible text by word or exact phrase with book or category filters"
 
     private val termParts by argument(help = "search term").multiple()
     private val translationCode by option("-t", "--translation", help = "translation code (e.g. webus)")

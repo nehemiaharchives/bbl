@@ -1,5 +1,6 @@
 package org.gnit.bible.cli
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.InMemorySettings
@@ -16,6 +17,8 @@ import okio.fakefilesystem.FakeFileSystem
 import kotlin.test.AfterTest
 
 class MainTest {
+
+    private val logger = KotlinLogging.logger {}
 
     private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_main_test_dir"}"
 
@@ -73,6 +76,16 @@ class MainTest {
         val command = Bbl(bible)
         val result = command.test(listOf("-v"))
         assertContains(result.stdout, "While you are in front of your console, you are not alone. God is with you.")
+    }
+
+    @Test
+    fun testBblWithHelpFlag(){
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test(listOf("-h"))
+        logger.info {  "\n\nbbl -h \n\n" + result.stdout }
+
+        assertContains(result.stdout, "Read, search Holy Bible in command line")
     }
 
     @Test

@@ -35,7 +35,10 @@ fun CoreCliktCommand.test(argv: List<String>): CliktTestResult {
     try {
         this.parse(normalizedArgv)
     } catch (e: PrintHelpMessage) {
-        stdout.append("Help message printed\n") 
+        val helpText = this.getFormattedHelp(e)
+        if (helpText != null) {
+            stdout.append(helpText).append("\n")
+        }
         statusCode = e.statusCode
     } catch (e: PrintCompletionMessage) {
         stdout.append(e.message).append("\n")
