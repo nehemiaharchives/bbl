@@ -3,7 +3,7 @@ package org.gnit.bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class VersePointerJsonTest {
+class VersePointerTest {
 
     @Test
     fun encodesAndDecodesVersePointerList() {
