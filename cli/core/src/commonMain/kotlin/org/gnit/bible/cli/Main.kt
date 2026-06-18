@@ -6,6 +6,8 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.completion.CompletionCommand
+import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -28,7 +30,7 @@ class Bbl(
 
     override val invokeWithoutSubcommand = true
 
-    val book: List<String> by argument().multiple(default = listOf("gen"))
+    val book: List<String> by argument(completionCandidates = CompletionCandidates.Fixed(subCommands + aliases)).multiple(default = listOf("gen"))
     val chapterVerse: String by argument().default("1")
 
     val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
@@ -48,11 +50,14 @@ class Bbl(
             ConfigCli(bible),
             HistoryCli(bible),
             HelpCli(),
+            CompletionCommand(),
         )
     }
 
     override fun help(context: Context): String = """
         Read, search Holy Bible in command line
+        
+        Examples:
         
         bbl gen 1
         bbl john 3:16
@@ -86,6 +91,11 @@ class Bbl(
         bbl help (search|rand|list|install|uninstall|config|history)
     """.trimIndent()
 
+    companion object {
+        val subCommands = setOf("search", "rand", "list", "install", "uninstall", "config", "history", "help", "generate-completion")
+        private val aliases = setOf("ls", "get", "pull", "rm", "del", "delete", "conf", "completion")
+    }
+
     override fun aliases(): Map<String, List<String>> = mapOf(
 
         "s" to listOf("search"),
@@ -104,6 +114,8 @@ class Bbl(
         "c" to listOf("config"),
 
         "h" to listOf("history"),
+
+        "completion" to listOf("generate-completion"),
     )
 
     private fun parseVersePointerOrThrow(

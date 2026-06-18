@@ -12,6 +12,7 @@ install_root = node['bbl_install']['install_root']
 bin_dir = node['bbl_install']['bin_dir']
 helper_bin_dir = node['bbl_install']['helper_bin_dir'] || bin_dir
 pack_dir = node['bbl_install']['pack_dir']
+completion_dir = node['bbl_install']['completion_dir']
 version_file_path = node['bbl_install']['version_file_path']
 install_source_dir = node['bbl_install']['install_source_dir']
 bbl_bin_path = node['bbl_install']['bbl_binary_path']
@@ -60,6 +61,12 @@ if helper_bin_dir != bin_dir
 end
 
 directory pack_dir do
+  owner install_owner
+  group install_group
+  mode '0755'
+end
+
+directory completion_dir do
   owner install_owner
   group install_group
   mode '0755'
@@ -125,6 +132,15 @@ node['bbl_install']['pack_names'].each do |pack_name|
   target_path = ::File.join(pack_dir, pack_name)
   cookbook_file target_path do
     source pack_name
+    owner install_owner
+    group install_group
+    mode '0644'
+  end
+end
+
+%w[bbl.bash _bbl bbl.fish].each do |completion_file|
+  cookbook_file ::File.join(completion_dir, completion_file) do
+    source completion_file
     owner install_owner
     group install_group
     mode '0644'

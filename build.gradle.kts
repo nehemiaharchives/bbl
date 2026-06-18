@@ -271,9 +271,65 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
     }
 }
 
+val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
+    .filter { it.id != "windows" }
+    .map { platform ->
+        val cliCoreFixtureTask = stageBblInstallFixtureTasks.single {
+            it.name == "stageBblInstall${platform.taskNamePart}CliCoreFixture"
+        }
+        val completionOutputDirectory = layout.buildDirectory.dir("bblInstallFixtures/${platform.id}/cli-core")
+        val bblExecutable = completionOutputDirectory.map { it.file("bbl") }
+
+        tasks.register("stageBblInstall${platform.taskNamePart}CliCoreCompletionFixtures") {
+            group = LifecycleBasePlugin.BUILD_GROUP
+            description = "Generate ${platform.id} shell completion fixtures for bbl_install Kitchen tests."
+
+            dependsOn(cliCoreFixtureTask)
+
+            inputs.file(bblExecutable)
+            outputs.files(
+                completionOutputDirectory.map { it.file("bbl.bash") },
+                completionOutputDirectory.map { it.file("_bbl") },
+                completionOutputDirectory.map { it.file("bbl.fish") },
+            )
+
+            doLast {
+                val binaryFile = bblExecutable.get().asFile
+                require(binaryFile.exists()) {
+                    "Expected staged bbl executable at ${binaryFile.absolutePath}"
+                }
+                binaryFile.setExecutable(true)
+
+                listOf(
+                    "bash" to "bbl.bash",
+                    "zsh" to "_bbl",
+                    "fish" to "bbl.fish",
+                ).forEach { (shell, fileName) ->
+                    val outputFile = completionOutputDirectory.get().file(fileName).asFile
+                    outputFile.parentFile.mkdirs()
+                    val process = ProcessBuilder(binaryFile.absolutePath, "generate-completion", shell)
+                        .redirectOutput(outputFile)
+                        .redirectError(ProcessBuilder.Redirect.INHERIT)
+                        .start()
+                    val exitCode = process.waitFor()
+                    require(exitCode == 0) {
+                        "Failed to generate $shell completion for ${binaryFile.absolutePath} (exit $exitCode)"
+                    }
+                    require(outputFile.length() > 0L) {
+                        "Generated completion file is empty: ${outputFile.absolutePath}"
+                    }
+                }
+            }
+        }
+    }
+
 fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     val platformFixtureTasks = stageBblInstallFixtureTasks.filter { it.name.contains(platform.taskNamePart) }
+    val platformCompletionFixtureTasks = stageBblInstallCompletionFixtureTasks.filter {
+        it.name.contains(platform.taskNamePart)
+    }
     dependsOn(platformFixtureTasks)
+    dependsOn(platformCompletionFixtureTasks)
     dependsOn(stageBblInstallVersionFixture)
 
     into(layout.projectDirectory.dir("bbl_install/files"))
@@ -290,6 +346,7 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
         include("config_posix_test.sh")
         include("history_posix_test.sh")
         include("search_posix_test.sh")
+        include("completion_posix_test.sh")
     }
 }
 
@@ -333,10 +390,12 @@ tasks.register("stageBblInstallFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all fixture files for bbl_install Kitchen tests."
     dependsOn(stageBblInstallFixtureTasks)
+    dependsOn(stageBblInstallCompletionFixtureTasks)
 }
 
 tasks.register("stageBblInstallCommonFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage Linux and Windows fixture files for bbl_install Kitchen tests."
     dependsOn(stageBblInstallFixtureTasks.filter { !it.name.contains("Macos") })
+    dependsOn(stageBblInstallCompletionFixtureTasks.filter { !it.name.contains("Macos") })
 }

@@ -150,6 +150,22 @@ suites:
     excludes:
       - windows-local
 
+  - name: completion_posix
+    run_list:
+      - recipe[bbl_install::default]
+      - recipe[bbl_install::install_shell_ubuntu]
+      - recipe[bbl_install::install_shell_macos]
+      - recipe[bbl_install::completion_posix_test]
+    attributes:
+      bbl_install:
+        completion_posix_test_script_path: /tmp/bbl-completion-posix-test/test_completion.sh
+    verifier:
+      name: shell
+      remote_exec: true
+      command: /tmp/bbl-completion-posix-test/test_completion.sh
+    excludes:
+      - windows-local
+
   - name: history_posix
     run_list:
       - recipe[bbl_install::default]

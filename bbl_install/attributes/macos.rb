@@ -13,6 +13,7 @@ if platform_family?('mac_os_x')
   default['bbl_install']['bin_dir'] = bin_dir
   default['bbl_install']['helper_bin_dir'] = bin_dir
   default['bbl_install']['pack_dir'] = ::File.join(install_root, 'packs')
+  default['bbl_install']['completion_dir'] = ::File.join(install_root, 'completions')
   default['bbl_install']['version_file_path'] = ::File.join(install_root, 'version.txt')
   default['bbl_install']['bbl_binary_path'] = ::File.join(bin_dir, 'bbl')
   default['bbl_install']['bbl_binary_name'] = 'bbl'

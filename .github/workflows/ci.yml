@@ -52,7 +52,7 @@ jobs:
             timeout: 60
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
-            fixture_task: stageBblInstallLinuxCliCoreFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallLinuxCliCoreCompletionFixtures "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-core-files
             fixture_path: build/bblInstallFixtures/linux/cli-core
             job_type: Test
@@ -64,7 +64,7 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
-            fixture_task: stageBblInstallMacosArm64CliCoreFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallMacosArm64CliCoreCompletionFixtures "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-core-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-core
             job_type: Test
@@ -437,6 +437,16 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: config-posix-macos-local
+          - suite: completion_posix
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: completion-posix-ubuntu-2604
+          - suite: completion_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: completion-posix-macos-local
           - suite: config_windows
             platform: mingw
             os: windows-latest
@@ -477,6 +487,9 @@ jobs:
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
+          test -f bbl_install/files/bbl.bash
+          test -f bbl_install/files/_bbl
+          test -f bbl_install/files/bbl.fish
           
           du -sh bbl_install/files
 
@@ -533,6 +546,9 @@ jobs:
           test -f bbl_install/files/bbl
           test -f bbl_install/files/bbl-search-common
           test -f bbl_install/files/kjv.zip
+          test -f bbl_install/files/bbl.bash
+          test -f bbl_install/files/_bbl
+          test -f bbl_install/files/bbl.fish
 
           du -sh bbl_install/files
 

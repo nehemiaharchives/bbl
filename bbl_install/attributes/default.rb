@@ -16,6 +16,7 @@ unless platform_family?('windows') || platform_family?('mac_os_x')
   default['bbl_install']['bin_dir'] = '/home/ubuntu/.bbl/bin'
   default['bbl_install']['helper_bin_dir'] = '/home/ubuntu/.bbl/bin'
   default['bbl_install']['pack_dir'] = '/home/ubuntu/.bbl/packs'
+  default['bbl_install']['completion_dir'] = '/home/ubuntu/.bbl/completions'
   default['bbl_install']['version_file_path'] = '/home/ubuntu/.bbl/version.txt'
   default['bbl_install']['bbl_binary_path'] = '/usr/bin/bbl'
   default['bbl_install']['install_source_dir'] = '/tmp/bbl-install-downloads'
