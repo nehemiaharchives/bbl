@@ -61,6 +61,7 @@ class Bbl(
         bbl john 3:16 in kjv tb lsg
 
         bbl search Jesus Christ
+        bbl search Jesus Christ limit 3
         bbl search Jesus Christ in kjv
         bbl search Jesus Christ in romans
         bbl search Jesus Christ in romans 3
@@ -75,9 +76,11 @@ class Bbl(
         bbl search "Jesus wept"
         bbl search "your faith" in gospels
 
-        bbl rand (gospels|nt|ot|[categories])
+        bbl rand (gospels|nt|ot|[category])
         bbl list (translations|books|categories)
         bbl (install|uninstall) kjv
+        bbl config (translation kjv|searchResult 20|[key] [value])
+        bbl hisotry (read|search|config)
     """.trimIndent()
 
 
