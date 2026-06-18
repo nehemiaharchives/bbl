@@ -2,6 +2,7 @@ package org.gnit.bible.cli
 
 import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import org.gnit.bible.Bible
@@ -54,7 +55,10 @@ class ListCli(
         """.trimIndent()
     }
 
-    private val target by argument(help = "What to list: translations, books, categories")
+    private val target by argument(
+        help = "What to list: translations, books, categories",
+        completionCandidates = CompletionCandidates.Fixed(targetCompletions)
+    )
         .default("bibles")
 
     override fun run() {
@@ -96,6 +100,10 @@ class ListCli(
 
             else -> echo("Unknown list target '$target'. Try one of: bibles, translations.")
         }
+    }
+
+    companion object {
+        private val targetCompletions = setOf("translations", "books", "categories")
     }
 
     private fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {

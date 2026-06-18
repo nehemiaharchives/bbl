@@ -198,10 +198,30 @@ contains_completion() {
   printf "%s\n" "$output" | sed "s/[[:space:]]*$//" | grep -Fx -- "$expected" >/dev/null
 }
 
+assert_completion_contains() {
+  local name="$1"
+  local expected="$2"
+  shift 2
+  local output
+  output="$(run_completion "$@")"
+  if ! contains_completion "$output" "$expected"; then
+    echo "FAIL: $name did not include $expected" >&2
+    printf "%s\n" "$output" >&2
+    exit 1
+  fi
+}
+
 root_output="$(run_completion "bbl " bbl "")"
 for expected in search rand list install uninstall config history; do
   if ! contains_completion "$root_output" "$expected"; then
     echo "FAIL: root bash completions did not include $expected" >&2
+    printf "%s\n" "$root_output" >&2
+    exit 1
+  fi
+done
+for expected in genesis 1john; do
+  if ! contains_completion "$root_output" "$expected"; then
+    echo "FAIL: root bash completions did not include book name $expected" >&2
     printf "%s\n" "$root_output" >&2
     exit 1
   fi
@@ -213,6 +233,33 @@ if ! contains_completion "$prefix_output" "search"; then
   printf "%s\n" "$prefix_output" >&2
   exit 1
 fi
+
+for expected in translations books categories; do
+  assert_completion_contains "bbl list completion" "$expected" "bbl list " bbl list ""
+done
+assert_completion_contains "bbl list prefix completion" "translations" "bbl list tr" bbl list tr
+
+for expected in translation searchResult randomlyShow header compareBy historyEnabled historyFormat; do
+  assert_completion_contains "bbl config key completion" "$expected" "bbl config " bbl config ""
+done
+assert_completion_contains "bbl config key prefix completion" "translation" "bbl config tr" bbl config tr
+assert_completion_contains "bbl config randomlyShow value completion" "verse" "bbl config randomlyShow " bbl config randomlyShow ""
+assert_completion_contains "bbl config randomlyShow value completion" "chapter" "bbl config randomlyShow " bbl config randomlyShow ""
+assert_completion_contains "bbl config header value completion" "true" "bbl config header " bbl config header ""
+assert_completion_contains "bbl config header value completion" "false" "bbl config header " bbl config header ""
+assert_completion_contains "bbl config compareBy value completion" "block" "bbl config compareBy " bbl config compareBy ""
+assert_completion_contains "bbl config compareBy value completion" "verse" "bbl config compareBy " bbl config compareBy ""
+assert_completion_contains "bbl config historyFormat value completion" "datetimeCommand" "bbl config historyFormat " bbl config historyFormat ""
+
+for expected in read search config; do
+  assert_completion_contains "bbl history completion" "$expected" "bbl history " bbl history ""
+done
+assert_completion_contains "bbl history prefix completion" "search" "bbl history se" bbl history se
+
+for expected in search rand list install uninstall config history help generate-completion; do
+  assert_completion_contains "bbl help completion" "$expected" "bbl help " bbl help ""
+done
+assert_completion_contains "bbl help prefix completion" "search" "bbl help se" bbl help se
 
 echo "[PASS] bash completion behavior"
 ' _ "$BashCompletionPath"
@@ -234,11 +281,22 @@ fi
 
 if command -v fish >/dev/null 2>&1; then
   fish -n "$FishCompletionPath"
+  FishCompletionLog="$TestHome/fish-completion.stderr"
   fish -c '
     set -l dir $argv[1]
     set fish_complete_path $dir $fish_complete_path
     complete -C "bbl " | string match -q "*search*"
-  ' "$(dirname "$FishCompletionPath")"
+    complete -C "bbl list " | string match -q "*translations*"
+    complete -C "bbl config " | string match -q "*translation*"
+    complete -C "bbl config randomlyShow " | string match -q "*verse*"
+    complete -C "bbl history " | string match -q "*search*"
+    complete -C "bbl help " | string match -q "*search*"
+  ' "$(dirname "$FishCompletionPath")" 2>"$FishCompletionLog"
+  if [[ -s "$FishCompletionLog" ]]; then
+    echo "FAIL: fish completion emitted stderr" >&2
+    cat "$FishCompletionLog" >&2
+    exit 1
+  fi
   echo "[PASS] fish completion syntax/load"
 else
   echo "[SKIP] fish completion load check: fish not installed"

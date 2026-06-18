@@ -3,6 +3,7 @@ package org.gnit.bible.cli
 import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.UsageError
+import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 
@@ -22,7 +23,8 @@ class HelpCli : CoreCliktCommand(name = "help") {
 
     private val commandArg: String? by argument(
         "command",
-        help = "The command to show help for, e.g. search, rand, list, install, uninstall, config, history"
+        help = "The command to show help for, e.g. search, rand, list, install, uninstall, config, history",
+        completionCandidates = CompletionCandidates.Fixed(Bbl.subCommands)
     ).optional()
 
     override fun run() {

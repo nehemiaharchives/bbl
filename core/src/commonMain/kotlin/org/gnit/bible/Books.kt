@@ -160,8 +160,8 @@ object Books {
         "joshua", "josh", "jos", "jsh" -> 6
         "judges", "judg", "jdg", "jg", "jdgs" -> 7
         "ruth", "rth", "ru" -> 8
-        "1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam" -> 9
-        "2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam" -> 10
+        "1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "1stsam", "first samuel", "first sam" -> 9
+        "2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2samuel", "2nd sam", "2ndsam", "second samuel", "second sam" -> 10
         "1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs" -> 11
         "2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs" -> 12
         "1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr" -> 13
@@ -173,7 +173,7 @@ object Books {
         "psalms", "ps", "psalm", "pslm", "psa", "psm", "pss" -> 19
         "proverbs", "prov", "pro", "prv", "pr" -> 20
         "ecclesiastes", "eccles", "eccle", "ecc", "ec", "qoh" -> 21
-        "song of solomon", "song", "song of songs", "sos", "so", "canticle of canticles", "canticles", "cant" -> 22
+        "song of solomon", "songofsolomon", "song", "song of songs", "sos", "so", "canticle of canticles", "canticles", "cant" -> 22
         "isaiah", "isa", "is" -> 23
         "jeremiah", "jer", "je", "jr" -> 24
         "lamentations", "lam", "la" -> 25
@@ -328,8 +328,8 @@ object Books {
         arrayOf("joshua", "josh", "jos", "jsh"),
         arrayOf("judges", "judg", "jdg", "jg", "jdgs"),
         arrayOf("ruth", "rth", "ru"),
-        arrayOf("1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "first samuel", "first sam"),
-        arrayOf("2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2ndsam", "2nd sam", "second samuel", "second sam"),
+        arrayOf("1st samuel", "1 sam", "1sam", "1sm", "1sa", "1s", "1 samuel", "1samuel", "1st sam", "1stsam", "first samuel", "first sam"),
+        arrayOf("2nd samuel", "2 sam", "2sam", "2sm", "2sa", "2s", "2 samuel", "2samuel", "2nd sam", "2ndsam", "second samuel", "second sam"),
         arrayOf("1st kings", "1kings", "1 kings", "1kgs", "1 kgs", "1ki", "1k", "1stkgs", "first kings", "first kgs"),
         arrayOf("2nd kings", "2kings", "2 kings", "2kgs", "2 kgs", "2ki", "2k", "2ndkgs", "second kings", "second kgs"),
         arrayOf("1st chronicles", "1chronicles", "1 chronicles", "1chr", "1 chr", "1ch", "1stchr", "1st chr", "first chronicles", "first chr"),
@@ -341,7 +341,7 @@ object Books {
         arrayOf("psalms", "ps", "psalm", "pslm", "psa", "psm", "pss"),
         arrayOf("proverbs", "prov", "pro", "prv", "pr"),
         arrayOf("ecclesiastes", "eccles", "eccle", "ecc", "ec", "qoh"),
-        arrayOf("song of solomon", "song", "song of songs", "sos", "so", "canticle of canticles", "canticles", "cant"),
+        arrayOf("song of solomon", "songofsolomon", "song", "song of songs", "sos", "so", "canticle of canticles", "canticles", "cant"),
         arrayOf("isaiah", "isa", "is"),
         arrayOf("jeremiah", "jer", "je", "jr"),
         arrayOf("lamentations", "lam", "la"),

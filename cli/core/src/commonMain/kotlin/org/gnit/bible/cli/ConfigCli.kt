@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import okio.Path
@@ -122,8 +123,14 @@ class ConfigCli(
 
     override val invokeWithoutSubcommand: Boolean = true
 
-    private val key: String? by argument(help = "Config key (e.g. translation, searchResult, randomlyShow, header, compareBy, historyEnabled, historyFormat)").optional()
-    private val value: String? by argument(help = "Config value, for translation: webus, for searchResult: 10, for randomlyShow: verse, for header/historyEnabled: true, for compareBy: block, for historyFormat: command").optional()
+    private val key: String? by argument(
+        help = "Config key (e.g. translation, searchResult, randomlyShow, header, compareBy, historyEnabled, historyFormat)",
+        completionCandidates = CompletionCandidates.Fixed(configKeyCompletions)
+    ).optional()
+    private val value: String? by argument(
+        help = "Config value, for translation: webus, for searchResult: 10, for randomlyShow: verse, for header/historyEnabled: true, for compareBy: block, for historyFormat: command",
+        completionCandidates = configValueCompletionCandidates
+    ).optional()
 
     init {
         subcommands(ConfigInitCli(bible))
@@ -235,6 +242,65 @@ class ConfigCli(
         }
         echo("${configKey.value} set to $newValue")
         BblHistory.record(bible, BblHistory.command("bbl config", configKey.value, newValue), force = historyWasEnabled)
+    }
+
+    companion object {
+        private val configKeyCompletions = ConfigKey.entries
+            .flatMap { key -> listOf(key.value) + key.aliases }
+            .toSet()
+
+        private val configValueCompletionCandidates = CompletionCandidates.Custom { shell ->
+            when (shell) {
+                CompletionCandidates.Custom.ShellType.BASH -> bashConfigValueCompletion()
+                CompletionCandidates.Custom.ShellType.FISH -> fishConfigValueCompletion()
+            }
+        }
+
+        private fun valuesForConfigKey(rawKey: String): Set<String> {
+            return when (ConfigKey.entries.firstOrNull { key -> key.value == rawKey || rawKey in key.aliases }) {
+                ConfigKey.TRANSLATION -> SupportedTranslation.all.map { it.code }.toSet()
+                ConfigKey.RANDOMLY_SHOW -> RandomlyShow.entries.map { it.name }.toSet()
+                ConfigKey.HEADER -> setOf("true", "false")
+                ConfigKey.COMPARE_BY -> CompareBy.entries.map { it.name }.toSet()
+                ConfigKey.HISTAORY_ENABLED -> setOf("true", "false")
+                ConfigKey.HISTAORY_FROMAT -> HistoryFormat.entries.map { it.name }.toSet()
+                ConfigKey.SEARCH_RESULT, null -> emptySet()
+            }
+        }
+
+        private fun bashConfigValueCompletion(): String {
+            val cases = configKeyValueCases { key, values ->
+                """        $key) COMPREPLY=(${ '$' }(compgen -W '$values' -- "${ '$' }word")) ;;"""
+            }
+            return """
+                local word="${ '$' }{COMP_WORDS[${ '$' }COMP_CWORD]}"
+                local key="${ '$' }{COMP_WORDS[${ '$' }((COMP_CWORD - 1))]}"
+                case "${ '$' }key" in
+                $cases
+                esac
+            """.trimIndent()
+        }
+
+        private fun fishConfigValueCompletion(): String {
+            val cases = configKeyValueCases { key, values ->
+                "case $key; echo $values"
+            }
+            return """
+                "(switch (commandline -opc)[-1]
+                $cases
+                end)"
+            """.trimIndent()
+        }
+
+        private fun configKeyValueCases(caseFactory: (String, String) -> String): String {
+            return ConfigKey.entries
+                .filter { key -> key != ConfigKey.SEARCH_RESULT }
+                .flatMap { key ->
+                    val values = valuesForConfigKey(key.value).joinToString(" ")
+                    (listOf(key.value) + key.aliases).map { caseKey -> caseFactory(caseKey, values) }
+                }
+                .joinToString("\n")
+        }
     }
 }
 
