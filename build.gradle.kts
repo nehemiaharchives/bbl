@@ -318,6 +318,17 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
                     require(outputFile.length() > 0L) {
                         "Generated completion file is empty: ${outputFile.absolutePath}"
                     }
+
+                    // bash 3.2 (macOS default) does not support "compgen -F".
+                    // Replace the Clikt-generated pattern:
+                    //   COMPREPLY=($(compgen -F function_name 2>/dev/null))
+                    // with a direct function call so completions work on all bash versions.
+                    if (shell == "bash") {
+                        val fixed = outputFile.readText().replace(Regex("""COMPREPLY=\(\$\(compgen -F (\w+) 2>/dev/null\)\)""")) {
+                            it.groupValues[1]
+                        }
+                        outputFile.writeText(fixed)
+                    }
                 }
             }
         }
