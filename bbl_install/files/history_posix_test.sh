@@ -172,6 +172,13 @@ history_config="$(run_bbl history c)"
 assert_contains "history config includes config command" "$history_config" "bbl config searchResult 10"
 assert_not_contains "history config excludes search command" "$history_config" "bbl search"
 
+# Test open-ended verse range is recorded correctly
+run_bbl john 3:16- in jc >/dev/null
+
+history_open_ended="$(run_bbl history)"
+assert_contains "history records open-ended verse range correctly" "$history_open_ended" "bbl john 3:16- in jc"
+assert_not_contains "history does not contain --1 in open-ended verse" "$history_open_ended" "bbl john 3:16--1 in jc"
+
 # Test book name normalization in history
 run_bbl gn 4 >/dev/null
 run_bbl 2john 1 >/dev/null

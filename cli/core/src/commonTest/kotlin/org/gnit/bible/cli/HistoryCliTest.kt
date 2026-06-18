@@ -187,6 +187,30 @@ class HistoryCliTest {
     }
 
     @Test
+    fun historyFormatBookChapterVerseOpenEndedRange() {
+        val result = formatBookChapterVerse(43, 3, 16, -1)
+        assertEquals("john 3:16-", result)
+    }
+
+    @Test
+    fun historyFormatBookChapterVerseClosedRange() {
+        val result = formatBookChapterVerse(43, 3, 16, 18)
+        assertEquals("john 3:16-18", result)
+    }
+
+    @Test
+    fun historyFormatBookChapterVerseSingleVerse() {
+        val result = formatBookChapterVerse(43, 3, 16, null)
+        assertEquals("john 3:16", result)
+    }
+
+    @Test
+    fun historyFormatBookChapterVerseWholeChapter() {
+        val result = formatBookChapterVerse(43, 3, null, null)
+        assertEquals("john 3", result)
+    }
+
+    @Test
     fun historyDisabledSkipsRecording() {
         platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "false")
 

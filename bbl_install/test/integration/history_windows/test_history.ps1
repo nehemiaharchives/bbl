@@ -239,6 +239,13 @@ try {
   Assert-Contains 'history re-enabled records later command' $historyReenabled 'bbl config historyEnabled true'
   Assert-Contains 'history re-enabled records read command' $historyReenabled 'bbl genesis 1'
 
+  # Test open-ended verse range is recorded correctly
+  Run-Bbl @('john', '3:16-', 'in', 'jc') | Out-Null
+
+  $historyOpenEnded = Run-Bbl @('history')
+  Assert-Contains 'history records open-ended verse range correctly' $historyOpenEnded 'bbl john 3:16- in jc'
+  Assert-NotContains 'history does not contain --1 in open-ended verse' $historyOpenEnded 'bbl john 3:16--1 in jc'
+
   # Test book name normalization in history
   Run-Bbl @('gn', '4') | Out-Null
   Run-Bbl @('2john', '1') | Out-Null

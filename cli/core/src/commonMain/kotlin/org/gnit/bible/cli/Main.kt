@@ -343,16 +343,30 @@ class In(
     }
 
     private fun versePointerBookAndChapter(): String {
-        val bookName = Books.allBookNames[versePointer.book].first()
-        val versePart = when {
-            versePointer.startVerse != null && versePointer.endVerse != null -> {
-                "${versePointer.chapter}:${versePointer.startVerse}-${versePointer.endVerse}"
-            }
-            versePointer.startVerse != null -> "${versePointer.chapter}:${versePointer.startVerse}"
-            else -> versePointer.chapter.toString()
-        }
-        return "$bookName $versePart"
+        return formatBookChapterVerse(
+            versePointer.book, versePointer.chapter,
+            versePointer.startVerse, versePointer.endVerse
+        )
     }
+}
+
+internal fun formatBookChapterVerse(
+    bookNumber: Int, chapter: Int,
+    startVerse: Int?, endVerse: Int?
+): String {
+    val bookName = Books.allBookNames[bookNumber].first()
+    val versePart = when {
+        startVerse != null && endVerse != null -> {
+            if (endVerse == OPEN_ENDED_VERSE_RANGE) {
+                "$chapter:$startVerse-"
+            } else {
+                "$chapter:$startVerse-$endVerse"
+            }
+        }
+        startVerse != null -> "$chapter:$startVerse"
+        else -> chapter.toString()
+    }
+    return "$bookName $versePart"
 }
 
 private fun validateVerseRangeOrThrow(pointer: VersePointer, chapterText: String) {
