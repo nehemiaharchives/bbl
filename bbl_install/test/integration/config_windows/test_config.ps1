@@ -253,8 +253,47 @@ try {
     "John 3:16`n16 For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life." `
     $johnWithHeader
 
+  # Test config key aliases
+  Run-Bbl @('config', 'tr', 'webus') | Out-Null
+  $showTr = Run-Bbl @('config', 'tr')
+  Assert-Equals 'alias tr writes and reads translation' 'webus' $showTr
+
+  Run-Bbl @('config', 'sr', '5') | Out-Null
+  $showSr = Run-Bbl @('config', 'sr')
+  Assert-Equals 'alias sr writes and reads searchResult' '5' $showSr
+
+  Run-Bbl @('config', 'he', 'false') | Out-Null
+  $showHe = Run-Bbl @('config', 'he')
+  Assert-Equals 'alias he writes and reads historyEnabled' 'false' $showHe
+
+  Run-Bbl @('config', 'he', 'true') | Out-Null
+
+  Run-Bbl @('config', 'hd', 'true') | Out-Null
+  $showHd = Run-Bbl @('config', 'hd')
+  Assert-Equals 'alias hd writes and reads header' 'true' $showHd
+
+  Run-Bbl @('config', 'hd', 'false') | Out-Null
+
+  Run-Bbl @('config', 'rs', 'chapter') | Out-Null
+  $showRs = Run-Bbl @('config', 'rs')
+  Assert-Equals 'alias rs writes and reads randomlyShow' 'chapter' $showRs
+
+  Run-Bbl @('config', 'rs', 'verse') | Out-Null
+
+  Run-Bbl @('config', 'cb', 'verse') | Out-Null
+  $showCb = Run-Bbl @('config', 'cb')
+  Assert-Equals 'alias cb writes and reads compareBy' 'verse' $showCb
+
+  Run-Bbl @('config', 'cb', 'block') | Out-Null
+
+  Run-Bbl @('config', 'hf', 'datetimeTimezoneCommand') | Out-Null
+  $showHf = Run-Bbl @('config', 'hf')
+  Assert-Equals 'alias hf writes and reads historyFormat' 'datetimeTimezoneCommand' $showHf
+
+  Run-Bbl @('config', 'hf', 'command') | Out-Null
+
   Write-Host ""
-  Write-Host "Test Summary: 13 successful, 0 failures"
+  Write-Host "Test Summary: config E2E successful"
   exit 0
 } finally {
   $env:USERPROFILE = $originalUserProfile

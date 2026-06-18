@@ -48,7 +48,7 @@ class ConfigCli(
             return
         }
 
-        val configKey = ConfigKey.entries.firstOrNull { it.value == nonNullKey }
+        val configKey = ConfigKey.entries.firstOrNull { it.value == nonNullKey || it.aliases.contains(nonNullKey) }
             ?: throw UsageError(
                 "ConfigCli Unknown config key '$nonNullKey'. Available keys: ${ConfigKey.entries.joinToString(", ") { it.value }}"
             )

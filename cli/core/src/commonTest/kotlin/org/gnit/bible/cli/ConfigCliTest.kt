@@ -305,6 +305,87 @@ class ConfigCliTest {
     }
 
     @Test
+    fun configAliasTranslationWorksForWrite() {
+        fakeFs.createDirectories(platform.packDir.toPath())
+        fakeFs.write(platform.packDir.toPath() / "webus.zip") {
+            write(TestFixtures.webusMinimalZipBytes)
+        }
+
+        val command = Bbl(bible)
+        val result = command.test("config tr webus")
+        assertEquals(0, result.statusCode, "Alias 'tr' should work for write. stderr=${result.stderr}")
+        assertEquals("translation set to webus", result.stdout.trim())
+    }
+
+    @Test
+    fun configAliasTranslationWorksForRead() {
+        platform.configSettings.putString(ConfigKey.TRANSLATION.value, "webus")
+
+        val result = Bbl(bible).test("config tr")
+
+        assertEquals(0, result.statusCode, "Alias 'tr' should work for read. stderr=${result.stderr}")
+        assertEquals("webus", result.stdout.trim())
+    }
+
+    @Test
+    fun configAliasSearchResultWorks() {
+        val command = Bbl(bible)
+
+        val write = command.test("config sr 10")
+        assertEquals(0, write.statusCode, "Alias 'sr' should work for write. stderr=${write.stderr}")
+        assertEquals("searchResult set to 10", write.stdout.trim())
+
+        val read = command.test("config sr")
+        assertEquals(0, read.statusCode, "Alias 'sr' should work for read. stderr=${read.stderr}")
+        assertEquals("10", read.stdout.trim())
+    }
+
+    @Test
+    fun configAliasHistoryEnabledWorksWithAliasHe() {
+        val command = Bbl(bible)
+
+        val write = command.test("config he false")
+        assertEquals(0, write.statusCode, "Alias 'he' should work. stderr=${write.stderr}")
+        assertEquals("historyEnabled set to false", write.stdout.trim())
+    }
+
+    @Test
+    fun configAliasHeaderWorksWithAliasHd() {
+        val command = Bbl(bible)
+
+        val write = command.test("config hd true")
+        assertEquals(0, write.statusCode, "Alias 'hd' should work. stderr=${write.stderr}")
+        assertEquals("header set to true", write.stdout.trim())
+    }
+
+    @Test
+    fun configAliasHistoryFormatWorksWithAliasHf() {
+        val command = Bbl(bible)
+
+        val write = command.test("config hf datetimeTimezoneCommand")
+        assertEquals(0, write.statusCode, "Alias 'hf' should work. stderr=${write.stderr}")
+        assertEquals("historyFormat set to datetimeTimezoneCommand", write.stdout.trim())
+    }
+
+    @Test
+    fun configAliasCompareByWorksWithAliasCb() {
+        val command = Bbl(bible)
+
+        val write = command.test("config cb verse")
+        assertEquals(0, write.statusCode, "Alias 'cb' should work. stderr=${write.stderr}")
+        assertEquals("compareBy set to verse", write.stdout.trim())
+    }
+
+    @Test
+    fun configAliasRandomlyShowWorksWithAliasRs() {
+        val command = Bbl(bible)
+
+        val write = command.test("config rs chapter")
+        assertEquals(0, write.statusCode, "Alias 'rs' should work. stderr=${write.stderr}")
+        assertEquals("randomlyShow set to chapter", write.stdout.trim())
+    }
+
+    @Test
     fun configWriteDownloadableButNotInstalledTranslationSuggestsInstall() {
         val command = Bbl(bible)
         val result = command.test("config translation ayt")

@@ -270,5 +270,44 @@ assert_equals "configured compareBy verse interleaves whole chapters" \
   $'1 In the beginning God created the heaven and the earth.\n1 はじめに神は天と地とを創造された。\n1 태초에 하나님이 천지를 창조하시니라' \
   "$verse_compare_genesis_first_three"
 
+# Test config key aliases
+run_bbl config tr webus >/dev/null
+show_tr="$(run_bbl config tr)"
+assert_equals "alias tr writes and reads translation" "webus" "$show_tr"
+
+run_bbl config sr 5 >/dev/null
+show_sr="$(run_bbl config sr)"
+assert_equals "alias sr writes and reads searchResult" "5" "$show_sr"
+
+run_bbl config he false >/dev/null
+show_he="$(run_bbl config he)"
+assert_equals "alias he writes and reads historyEnabled" "false" "$show_he"
+
+run_bbl config he true >/dev/null
+
+run_bbl config hd true >/dev/null
+show_hd="$(run_bbl config hd)"
+assert_equals "alias hd writes and reads header" "true" "$show_hd"
+
+run_bbl config hd false >/dev/null
+
+run_bbl config rs chapter >/dev/null
+show_rs="$(run_bbl config rs)"
+assert_equals "alias rs writes and reads randomlyShow" "chapter" "$show_rs"
+
+run_bbl config rs verse >/dev/null
+
+run_bbl config cb verse >/dev/null
+show_cb="$(run_bbl config cb)"
+assert_equals "alias cb writes and reads compareBy" "verse" "$show_cb"
+
+run_bbl config cb block >/dev/null
+
+run_bbl config hf datetimeTimezoneCommand >/dev/null
+show_hf="$(run_bbl config hf)"
+assert_equals "alias hf writes and reads historyFormat" "datetimeTimezoneCommand" "$show_hf"
+
+run_bbl config hf command >/dev/null
+
 echo ""
-echo "Test Summary: 16 successful, 0 failures"
+echo "Test Summary: config E2E successful"
