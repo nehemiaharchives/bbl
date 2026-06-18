@@ -3,6 +3,7 @@ package org.gnit.bible
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import okio.FileSystem
+import okio.Path.Companion.toPath
 import okio.SYSTEM
 
 abstract class Platform {
@@ -15,11 +16,17 @@ abstract class Platform {
         get() = "packs"
 
     /**
-     * resolves to $HOME/.bbl/packs on posix (linux/macos)
+     * resolves to $HOME/.bbl on posix (linux/macos)
      * platform specific data dir for iOS and Android
      */
-    abstract val platformPackDir: String
+    abstract val platformBblDirPath: String
 
+    var overridePlatformBblDirPath: String? = null
+
+    /**
+     * Allows tests to replace the default pack directory.
+     * When set, packDir uses this value directly instead of deriving from bblDirPath.
+     */
     var overridePlatformPackDir: String? = null
 
     /**
@@ -30,8 +37,11 @@ abstract class Platform {
     val fileSystem: FileSystem
         get() = overrideFileSystem ?: FileSystem.SYSTEM
 
+    val bblDirPath: String
+        get() = overridePlatformBblDirPath ?: platformBblDirPath
+
     val packDir: String
-        get() = overridePlatformPackDir ?: platformPackDir
+        get() = overridePlatformPackDir ?: (bblDirPath.toPath() / packBaseDir).toString()
 
     var overrideSettings: Settings? = null
 

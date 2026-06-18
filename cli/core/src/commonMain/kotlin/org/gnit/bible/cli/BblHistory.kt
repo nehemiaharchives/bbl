@@ -14,7 +14,7 @@ object BblHistory {
         prettyPrint = true
     }
 
-    fun historyPath(bible: Bible): Path = bible.assetManager.platform.packDir.toPath() / HISTORY_FILE_NAME
+    fun historyPath(bible: Bible): Path = bible.assetManager.platform.bblDirPath.toPath() / HISTORY_FILE_NAME
 
     fun read(bible: Bible): List<HistoryRecord> {
         val fileSystem = bible.assetManager.fileSystem

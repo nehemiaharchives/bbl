@@ -83,7 +83,7 @@ cp "$HELPER_SOURCE/bbl-search-common" "$TEST_HOME/.bbl/bin/"
 chmod +x "$TEST_HOME/.bbl/bin/bbl-search-common" || true
 export HOME="$TEST_HOME"
 
-HISTORY_PATH="$HOME/.bbl/packs/history.json"
+HISTORY_PATH="$HOME/.bbl/history.json"
 
 run_bbl() {
   local output status

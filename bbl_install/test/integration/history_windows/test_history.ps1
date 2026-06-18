@@ -68,7 +68,7 @@ $testHome = Join-Path ([System.IO.Path]::GetTempPath()) ("bbl-history-windows-te
 $testBblDir = Join-Path $testHome '.bbl'
 $testPackDir = Join-Path $testBblDir 'packs'
 $testHelperDir = Join-Path $testBblDir 'bin'
-$historyPath = Join-Path $testPackDir 'history.json'
+$historyPath = Join-Path $testBblDir 'history.json'
 
 function Remove-TestHome {
   if (Test-Path -LiteralPath $testHome) {

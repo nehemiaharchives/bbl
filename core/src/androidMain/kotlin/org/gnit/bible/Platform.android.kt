@@ -11,14 +11,14 @@ import java.io.File
 class AndroidPlatform(val platformContext: Any?) : Platform() {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
 
-    override val platformPackDir: String by lazy {
+    override val platformBblDirPath: String by lazy {
         requireNotNull(platformContext){
-            "platformContext is required to get packDir"
+            "platformContext is required to get bblDirPath"
         }
         require(platformContext is Context){
             "platformContext must be a android.content.Context"
         }
-        File(platformContext.filesDir, "$bblDir/$packBaseDir").absolutePath
+        File(platformContext.filesDir, bblDir).absolutePath
     }
 
     override val platformSettings: Settings by lazy {

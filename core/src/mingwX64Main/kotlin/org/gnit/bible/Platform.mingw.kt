@@ -27,8 +27,8 @@ private fun windowsHomeDir(): Path {
 class MingwPlatform : Platform() {
     override val name: String = "Windows"
 
-    override val platformPackDir: String by lazy {
-        (windowsHomeDir() / bblDir / packBaseDir).toString()
+    override val platformBblDirPath: String by lazy {
+        (windowsHomeDir() / bblDir).toString()
     }
 
     override val platformSettings: Settings

@@ -6,6 +6,7 @@ import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
 import org.gnit.bible.ConfigKey
+import org.gnit.bible.HISTORY_FILE_NAME
 import org.gnit.bible.HistoryFormat
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.getPlatform
@@ -14,12 +15,14 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class HistoryCliTest {
     private val platform = getPlatform()
     private val testPackDir = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "bbl_cli_history_test_dir"}"
     private var originalPackDir: String? = null
+    private var originalBblDirPath: String? = null
     private var originalFileSystem = platform.overrideFileSystem
     private var originalSettings = platform.overrideSettings
     private var originalConfigSettings = platform.overrideConfigSettings
@@ -29,6 +32,7 @@ class HistoryCliTest {
     @BeforeTest
     fun setup() {
         originalPackDir = platform.overridePlatformPackDir
+        originalBblDirPath = platform.overridePlatformBblDirPath
         originalFileSystem = platform.overrideFileSystem
         originalSettings = platform.overrideSettings
         originalConfigSettings = platform.overrideConfigSettings
@@ -45,6 +49,7 @@ class HistoryCliTest {
     fun restorePlatformOverrides() {
         platform.settings.clear()
         platform.overridePlatformPackDir = originalPackDir
+        platform.overridePlatformBblDirPath = originalBblDirPath
         platform.overrideFileSystem = originalFileSystem
         platform.overrideSettings = originalSettings
         platform.overrideConfigSettings = originalConfigSettings
@@ -217,6 +222,15 @@ class HistoryCliTest {
         BblHistory.record(bible, "bbl gen 1")
 
         assertTrue(BblHistory.read(bible).isEmpty())
+    }
+
+    @Test
+    fun historyFileStoredInBblDirNotPackDir() {
+        BblHistory.record(bible, "bbl gen 1")
+        val packPath = platform.packDir.toPath() / HISTORY_FILE_NAME
+        assertFalse(fakeFs.exists(packPath), "History file should NOT be stored in packDir")
+        val bblPath = platform.bblDirPath.toPath() / HISTORY_FILE_NAME
+        assertTrue(fakeFs.exists(bblPath), "History file SHOULD be stored in bblDir")
     }
 
     private fun seedHistory() {

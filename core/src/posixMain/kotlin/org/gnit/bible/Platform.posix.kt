@@ -22,9 +22,9 @@ class PosixPlatform : Platform() {
     override val name: String = "Posix"
 
     @OptIn(ExperimentalForeignApi::class)
-    override val platformPackDir: String by lazy {
+    override val platformBblDirPath: String by lazy {
         val home = getenv("HOME")?.toKString() ?: error("HOME environment variable not defined")
-        "$home/$bblDir/$packBaseDir"
+        "$home/$bblDir"
     }
 
     override val platformSettings: Settings

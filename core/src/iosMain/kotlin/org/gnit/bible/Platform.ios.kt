@@ -13,10 +13,10 @@ import platform.UIKit.UIDevice
 
 class IOSPlatform : Platform() {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
-    override val platformPackDir: String by lazy {
+    override val platformBblDirPath: String by lazy {
         val paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true)
         val base = (paths.firstOrNull() as? String) ?: NSHomeDirectory()
-        "$base/$bblDir/$packBaseDir"
+        "$base/$bblDir"
     }
 
     override val platformSettings: Settings by lazy {

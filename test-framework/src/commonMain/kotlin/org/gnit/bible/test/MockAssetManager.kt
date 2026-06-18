@@ -12,7 +12,7 @@ class MockAssetManager() : AssetManager {
     override val platform: Platform = object : Platform() {
         override val name: String
             get() = "Mock Platform"
-        override val platformPackDir: String
+        override val platformBblDirPath: String
             get() = TODO("Not yet implemented")
         override val settings: Settings
             get() = TODO("Not yet implemented")
