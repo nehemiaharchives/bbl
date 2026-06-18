@@ -47,8 +47,10 @@ class Bbl(
             UninstallCli(bible),
             ConfigCli(bible),
             HistoryCli(bible),
+            HelpCli(),
         )
     }
+
     override fun help(context: Context): String = """
         Read, search Holy Bible in command line
         
@@ -81,8 +83,8 @@ class Bbl(
         bbl (install|uninstall) kjv
         bbl config (translation kjv|searchResult 20|[key] [value])
         bbl hisotry (read|search|config)
+        bbl help (search|rand|list|install|uninstall|config|history)
     """.trimIndent()
-
 
     override fun aliases(): Map<String, List<String>> = mapOf(
         // alias of install
