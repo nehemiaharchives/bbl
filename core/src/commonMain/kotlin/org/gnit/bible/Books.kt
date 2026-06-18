@@ -196,7 +196,7 @@ object Books {
         "luke", "luk", "lk" -> 42
         "john", "joh", "jhn", "jn" -> 43
         "acts", "act", "ac" -> 44
-        "romans", "rom", "ro", "rm" -> 45
+        "romans", "rom", "ro" -> 45
         "1 corinthians", "1corinthians", "1 cor", "1cor", "1 co", "1co", "1st corinthians", "first corinthians" -> 46
         "2 corinthians", "2corinthians", "2 cor", "2cor", "2 co", "2co", "2nd corinthians", "second corinthians" -> 47
         "galatians", "gal", "ga" -> 48
@@ -364,7 +364,7 @@ object Books {
         arrayOf("luke", "luk", "lk"),
         arrayOf("john", "joh", "jhn", "jn"),
         arrayOf("acts", "act", "ac"),
-        arrayOf("romans", "rom", "ro", "rm"),
+        arrayOf("romans", "rom", "ro"),
         arrayOf("1 corinthians", "1corinthians", "1 cor", "1cor", "1 co", "1co", "1st corinthians", "first corinthians"),
         arrayOf("2 corinthians", "2corinthians", "2 cor", "2cor", "2 co", "2co", "2nd corinthians", "second corinthians"),
         arrayOf("galatians", "gal", "ga"),
