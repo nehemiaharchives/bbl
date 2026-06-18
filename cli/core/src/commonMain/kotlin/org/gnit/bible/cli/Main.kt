@@ -87,18 +87,23 @@ class Bbl(
     """.trimIndent()
 
     override fun aliases(): Map<String, List<String>> = mapOf(
-        // alias of install
+
+        "s" to listOf("search"),
+        "r" to listOf("rand"),
+        "ls" to listOf("list"),
+
         "get" to listOf("install"),
         "pull" to listOf("install"),
 
-        // alias of uninstall
         "rm" to listOf("uninstall"),
         "remove" to listOf("uninstall"),
         "del" to listOf("uninstall"),
         "delete" to listOf("uninstall"),
 
-        // alias of list
-        "ls" to listOf("list")
+        "conf" to listOf("config"),
+        "c" to listOf("config"),
+
+        "h" to listOf("history"),
     )
 
     private fun parseVersePointerOrThrow(

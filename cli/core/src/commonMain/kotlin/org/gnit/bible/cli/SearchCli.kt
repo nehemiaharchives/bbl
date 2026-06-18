@@ -18,7 +18,45 @@ class SearchCli(
     private val backendProvider: ((Translation) -> SearchBackend)? = null
 ) : CoreCliktCommand(name = "search") {
 
-    override fun help(context: Context): String = "Search Bible text by word or exact phrase with book or category filters"
+    override fun help(context: Context): String = """
+        Search Bible text by word or exact phrase with book or category filters
+        
+        Examples:
+        
+        # simple search terms
+        bbl search Jesus Christ
+        
+        # specify number of search results just like SQL's limit
+        bbl search Jesus Christ limit 3
+        
+        # search in other translation
+        bbl search Jesus Christ in kjv
+        
+        # filter by a book, a chapter or range of chapters
+        bbl search Jesus Christ in romans
+        bbl search Jesus Christ in romans 3
+        bbl search Jesus Christ in romans 5-12
+        
+        # combine filter and specify translation
+        bbl search Jesus Christ in romans 5-12 in kjv
+        
+        # search with first translation, then search result with 2nd and 3rd translations below for comparison
+        bbl search righteous servant justify many in webus tb lsg
+        
+        # search filter by book category, (ref: bbl list category)
+        bbl search riding on a donkey in minor prophets
+        bbl search love one another in johns letters
+        bbl search jews gentiles in paul
+        bbl search Goliath in david
+        bbl search Adam in nt
+        
+        # exact search
+        bbl search "Jesus wept"
+        bbl search "your faith" in gospels
+                
+        # shortcut
+        bbl s Jesus Christ
+    """.trimIndent()
 
     private val termParts by argument(help = "search term").multiple()
     private val translationCode by option("-t", "--translation", help = "translation code (e.g. webus)")

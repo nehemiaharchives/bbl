@@ -19,7 +19,7 @@ class HistoryCli(
 ) : CoreCliktCommand(name = "history") {
 
     private val filter: String? by argument(
-        help = "Optional filter: read/r, search/s, config/c"
+        help = "Optional filter: read/r, search/s, config/c (shortcut: bbl h)"
     ).optional()
 
     override fun help(context: Context): String = "Show bbl command history"
@@ -30,7 +30,7 @@ class HistoryCli(
             "r", "read" -> BblHistory.read(bible).filter { isReadCommand(it.command) }
             "s", "search", "saerch" -> BblHistory.read(bible).filter { it.command.startsWith("bbl search") }
             "c", "config" -> BblHistory.read(bible).filter { it.command.startsWith("bbl config") }
-            else -> throw UsageError("Unknown history filter '$filter'. Use one of: read, search, config")
+            else -> throw UsageError("Unknown history filter '$filter'. Use one ]of: read, search, config")
         }
 
         BblHistory.render(records, bible.historyFormatFromSettings()).forEach { echo(it) }
