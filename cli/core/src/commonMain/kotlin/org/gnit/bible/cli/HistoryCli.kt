@@ -19,10 +19,41 @@ class HistoryCli(
 ) : CoreCliktCommand(name = "history") {
 
     private val filter: String? by argument(
-        help = "Optional filter: read/r, search/s, config/c (shortcut: bbl h)"
+        help = "Optional filter: read/r, search/s, config/c"
     ).optional()
 
-    override fun help(context: Context): String = "Show bbl command history"
+    override fun help(context: Context): String = """
+        Show bbl command history
+        
+        Examples:
+        
+        # show history
+        bbl history
+        bbl h
+        
+        # show read history
+        bbl history read
+        bbl h read
+        bbl h r
+        
+        # show search history
+        bbl history search
+        bbl h search
+        bbl h s
+        
+        # show config history
+        bbl history config
+        bbl h config
+        bbl h c
+               
+        # change hisoty format (default: command)
+        bbl config historyFormat command
+        bbl config historyFormat datetimeCommand
+        bbl config historyFormat datetimeTimezoneCommand
+        
+        # shortcut
+        bbl c hf datetimeCommand
+    """.trimIndent()
 
     override fun run() {
         val records = when (filter?.lowercase()) {
