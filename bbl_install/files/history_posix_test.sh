@@ -187,7 +187,7 @@ assert_not_contains "history does not contain raw rev" "$history_normalized" "bb
 
 run_bbl config historyFormat datetimeCommand >/dev/null
 history_datetime="$(run_bbl history)"
-if [[ ! "$history_datetime" =~ [[:space:]]1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]bbl[[:space:]]config[[:space:]]init ]]; then
+if [[ ! "$history_datetime" =~ [[:space:]]1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]bbl[[:space:]]config[[:space:]]init ]]; then
   echo "FAIL: history datetimeCommand format" >&2
   printf '%s\n' "$history_datetime" >&2
   exit 1
@@ -195,7 +195,7 @@ fi
 
 run_bbl config historyFormat datetimeTimezoneCommand >/dev/null
 history_datetime_timezone="$(run_bbl history)"
-if [[ ! "$history_datetime_timezone" =~ [[:space:]]1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]+[^[:space:]]+[[:space:]]bbl[[:space:]]config[[:space:]]init ]]; then
+if [[ ! "$history_datetime_timezone" =~ [[:space:]]1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]+[^[:space:]]+[[:space:]]bbl[[:space:]]config[[:space:]]init ]]; then
   echo "FAIL: history datetimeTimezoneCommand format" >&2
   printf '%s\n' "$history_datetime_timezone" >&2
   exit 1

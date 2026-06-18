@@ -120,7 +120,7 @@ class HistoryCliTest {
         val result = Bbl(bible).test("history")
 
         assertTrue(
-            Regex("""\s*1  \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2} bbl gen 1\n""").matches(result.stdout),
+            Regex("""\s*1  \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} bbl gen 1\n""").matches(result.stdout),
             "Expected datetimeCommand history output. stdout=${result.stdout}"
         )
     }
@@ -134,7 +134,7 @@ class HistoryCliTest {
 
         assertContains(result.stdout, " bbl gen 1")
         assertTrue(
-            Regex(""".*\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2} .+ bbl gen 1\n""").matches(result.stdout),
+            Regex(""".*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} .+ bbl gen 1\n""").matches(result.stdout),
             "Expected datetimeTimezoneCommand history output. stdout=${result.stdout}"
         )
     }

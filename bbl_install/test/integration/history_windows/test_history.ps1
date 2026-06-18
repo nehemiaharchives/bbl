@@ -211,7 +211,7 @@ try {
 
   Run-Bbl @('config', 'historyFormat', 'datetimeCommand') | Out-Null
   $historyDatetime = Run-Bbl @('history')
-  if ($historyDatetime -notmatch '\s1\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\s+bbl\s+config\s+init') {
+  if ($historyDatetime -notmatch '\s1\s+\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s+bbl\s+config\s+init') {
     Write-Host "FAIL: history datetimeCommand format"
     Write-Host $historyDatetime
     exit 1
@@ -220,7 +220,7 @@ try {
 
   Run-Bbl @('config', 'historyFormat', 'datetimeTimezoneCommand') | Out-Null
   $historyDatetimeTimezone = Run-Bbl @('history')
-  if ($historyDatetimeTimezone -notmatch '\s1\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\s+\S+\s+bbl\s+config\s+init') {
+  if ($historyDatetimeTimezone -notmatch '\s1\s+\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s+\S+\s+bbl\s+config\s+init') {
     Write-Host "FAIL: history datetimeTimezoneCommand format"
     Write-Host $historyDatetimeTimezone
     exit 1

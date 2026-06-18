@@ -65,7 +65,7 @@ class HistoryCli(
             monthNumber()
             char('-')
             day()
-            char('T')
+            char(' ')
             hour()
             char(':')
             minute()
