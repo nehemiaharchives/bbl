@@ -192,18 +192,18 @@ try {
 
   $historyAll = Run-Bbl @('history')
   Assert-Contains 'history all contains config init' $historyAll 'bbl config init'
-  Assert-Contains 'history all contains read command' $historyAll 'bbl gen 1'
+  Assert-Contains 'history all contains read command' $historyAll 'bbl genesis 1'
   Assert-Contains 'history all contains search command' $historyAll 'bbl search Jesus Christ limit 1'
   Assert-Contains 'history all contains config command' $historyAll 'bbl config searchResult 10'
 
   $historyRead = Run-Bbl @('history', 'read')
-  Assert-Contains 'history read includes read command' $historyRead 'bbl gen 1'
+  Assert-Contains 'history read includes read command' $historyRead 'bbl genesis 1'
   Assert-NotContains 'history read excludes search command' $historyRead 'bbl search'
   Assert-NotContains 'history read excludes config command' $historyRead 'bbl config'
 
   $historySearch = Run-Bbl @('history', 's')
   Assert-Contains 'history search includes search command' $historySearch 'bbl search Jesus Christ limit 1'
-  Assert-NotContains 'history search excludes read command' $historySearch 'bbl gen 1'
+  Assert-NotContains 'history search excludes read command' $historySearch 'bbl genesis 1'
 
   $historyConfig = Run-Bbl @('history', 'c')
   Assert-Contains 'history config includes config command' $historyConfig 'bbl config searchResult 10'
@@ -237,7 +237,20 @@ try {
   Run-Bbl @('gen', '1') | Out-Null
   $historyReenabled = Run-Bbl @('history')
   Assert-Contains 'history re-enabled records later command' $historyReenabled 'bbl config historyEnabled true'
-  Assert-Contains 'history re-enabled records read command' $historyReenabled 'bbl gen 1'
+  Assert-Contains 'history re-enabled records read command' $historyReenabled 'bbl genesis 1'
+
+  # Test book name normalization in history
+  Run-Bbl @('gn', '4') | Out-Null
+  Run-Bbl @('2john', '1') | Out-Null
+  Run-Bbl @('rev', '21:1-4') | Out-Null
+
+  $historyNormalized = Run-Bbl @('history')
+  Assert-Contains 'history normalizes gn to genesis' $historyNormalized 'bbl genesis 4'
+  Assert-NotContains 'history does not contain raw gn' $historyNormalized 'bbl gn 4'
+  Assert-Contains 'history normalizes 2john to 2 john' $historyNormalized 'bbl 2 john 1'
+  Assert-NotContains 'history does not contain raw 2john' $historyNormalized 'bbl 2john 1'
+  Assert-Contains 'history normalizes rev to revelation' $historyNormalized 'bbl revelation 21:1-4'
+  Assert-NotContains 'history does not contain raw rev' $historyNormalized 'bbl rev 21:1-4'
 
   Write-Host ""
   Write-Host "Test Summary: history E2E successful"

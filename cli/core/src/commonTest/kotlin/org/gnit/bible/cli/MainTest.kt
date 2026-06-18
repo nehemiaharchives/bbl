@@ -118,7 +118,7 @@ class MainTest {
         val result = Bbl(bible).test("gen 1")
 
         assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
-        assertEquals(listOf("bbl gen 1"), BblHistory.read(bible).map { it.command })
+        assertEquals(listOf("bbl genesis 1"), BblHistory.read(bible).map { it.command })
     }
 
     @Test

@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import okio.Path
 import okio.Path.Companion.toPath
 import org.gnit.bible.Bible
+import org.gnit.bible.Books
 import org.gnit.bible.HISTORY_FILE_NAME
 import org.gnit.bible.HistoryRecord
 
@@ -43,6 +44,14 @@ object BblHistory {
         return records.mapIndexed { index, record ->
             "${(index + 1).toString().padStart(width)}  ${record.format(format)}"
         }
+    }
+
+    fun normalizeReadCommand(bookTokens: List<String>, chapterVerse: String): String {
+        val bookString = bookTokens.joinToString(separator = " ") { it.lowercase() }
+        val normalizedBook = runCatching {
+            Books.bookNameEnglish(Books.bookNumber(bookString)) ?: bookString
+        }.getOrDefault(bookString)
+        return command("bbl", normalizedBook, chapterVerse)
     }
 
     fun command(vararg parts: String?): String {

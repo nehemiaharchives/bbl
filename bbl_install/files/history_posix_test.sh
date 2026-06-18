@@ -155,22 +155,35 @@ fi
 
 history_all="$(run_bbl history)"
 assert_contains "history all contains config init" "$history_all" "bbl config init"
-assert_contains "history all contains read command" "$history_all" "bbl gen 1"
+assert_contains "history all contains read command" "$history_all" "bbl genesis 1"
 assert_contains "history all contains search command" "$history_all" "bbl search Jesus Christ limit 1"
 assert_contains "history all contains config command" "$history_all" "bbl config searchResult 10"
 
 history_read="$(run_bbl history read)"
-assert_contains "history read includes read command" "$history_read" "bbl gen 1"
+assert_contains "history read includes read command" "$history_read" "bbl genesis 1"
 assert_not_contains "history read excludes search command" "$history_read" "bbl search"
 assert_not_contains "history read excludes config command" "$history_read" "bbl config"
 
 history_search="$(run_bbl history s)"
 assert_contains "history search includes search command" "$history_search" "bbl search Jesus Christ limit 1"
-assert_not_contains "history search excludes read command" "$history_search" "bbl gen 1"
+assert_not_contains "history search excludes read command" "$history_search" "bbl genesis 1"
 
 history_config="$(run_bbl history c)"
 assert_contains "history config includes config command" "$history_config" "bbl config searchResult 10"
 assert_not_contains "history config excludes search command" "$history_config" "bbl search"
+
+# Test book name normalization in history
+run_bbl gn 4 >/dev/null
+run_bbl 2john 1 >/dev/null
+run_bbl rev 21:1-4 >/dev/null
+
+history_normalized="$(run_bbl history)"
+assert_contains "history normalizes gn to genesis" "$history_normalized" "bbl genesis 4"
+assert_not_contains "history does not contain raw gn" "$history_normalized" "bbl gn 4"
+assert_contains "history normalizes 2john to 2 john" "$history_normalized" "bbl 2 john 1"
+assert_not_contains "history does not contain raw 2john" "$history_normalized" "bbl 2john 1"
+assert_contains "history normalizes rev to revelation" "$history_normalized" "bbl revelation 21:1-4"
+assert_not_contains "history does not contain raw rev" "$history_normalized" "bbl rev 21:1-4"
 
 run_bbl config historyFormat datetimeCommand >/dev/null
 history_datetime="$(run_bbl history)"
@@ -198,6 +211,6 @@ run_bbl config historyEnabled true >/dev/null
 run_bbl gen 1 >/dev/null
 history_reenabled="$(run_bbl history)"
 assert_contains "history re-enabled records later command" "$history_reenabled" "bbl config historyEnabled true"
-assert_contains "history re-enabled records read command" "$history_reenabled" "bbl gen 1"
+assert_contains "history re-enabled records read command" "$history_reenabled" "bbl genesis 1"
 
 echo "Test Summary: history E2E successful"

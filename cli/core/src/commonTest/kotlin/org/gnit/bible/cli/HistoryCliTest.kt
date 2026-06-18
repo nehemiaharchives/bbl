@@ -148,6 +148,45 @@ class HistoryCliTest {
     }
 
     @Test
+    fun historyNormalizesBookNameAliases() {
+        assertEquals("bbl genesis 4", BblHistory.normalizeReadCommand(listOf("gn"), "4"))
+        assertEquals("bbl genesis 4", BblHistory.normalizeReadCommand(listOf("gen"), "4"))
+        assertEquals("bbl genesis 4", BblHistory.normalizeReadCommand(listOf("genesis"), "4"))
+        assertEquals("bbl genesis 3:1-2", BblHistory.normalizeReadCommand(listOf("gen"), "3:1-2"))
+        assertEquals("bbl genesis 5:2", BblHistory.normalizeReadCommand(listOf("gen"), "5:2"))
+        assertEquals("bbl 2 john 1", BblHistory.normalizeReadCommand(listOf("2john"), "1"))
+        assertEquals("bbl 2 john 1", BblHistory.normalizeReadCommand(listOf("2", "john"), "1"))
+        assertEquals("bbl 3 john 1", BblHistory.normalizeReadCommand(listOf("3john"), "1"))
+        assertEquals("bbl 1 john 1", BblHistory.normalizeReadCommand(listOf("1john"), "1"))
+        assertEquals("bbl ecclesiastes 3:1-8", BblHistory.normalizeReadCommand(listOf("eccles"), "3:1-8"))
+        assertEquals("bbl song of solomon 2", BblHistory.normalizeReadCommand(listOf("song", "of", "solomon"), "2"))
+        assertEquals("bbl matthew 5:3-7", BblHistory.normalizeReadCommand(listOf("matt"), "5:3-7"))
+        assertEquals("bbl psalms 23", BblHistory.normalizeReadCommand(listOf("ps"), "23"))
+        assertEquals("bbl 1st samuel 17", BblHistory.normalizeReadCommand(listOf("1sam"), "17"))
+        assertEquals("bbl 1st samuel 17", BblHistory.normalizeReadCommand(listOf("1", "samuel"), "17"))
+        assertEquals("bbl revelation 21:1-4", BblHistory.normalizeReadCommand(listOf("rev"), "21:1-4"))
+    }
+
+    @Test
+    fun historyRecordingNormalizesReadCommands() {
+        BblHistory.record(bible, BblHistory.normalizeReadCommand(listOf("gn"), "4"))
+        BblHistory.record(bible, BblHistory.normalizeReadCommand(listOf("2john"), "1"))
+        BblHistory.record(bible, BblHistory.normalizeReadCommand(listOf("eccles"), "3:1-8"))
+
+        val records = BblHistory.read(bible)
+        assertEquals(3, records.size)
+        assertEquals("bbl genesis 4", records[0].command)
+        assertEquals("bbl 2 john 1", records[1].command)
+        assertEquals("bbl ecclesiastes 3:1-8", records[2].command)
+
+        val result = Bbl(bible).test("history")
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertContains(result.stdout, "bbl genesis 4")
+        assertContains(result.stdout, "bbl 2 john 1")
+        assertContains(result.stdout, "bbl ecclesiastes 3:1-8")
+    }
+
+    @Test
     fun historyDisabledSkipsRecording() {
         platform.configSettings.putString(ConfigKey.HISTAORY_ENABLED.value, "false")
 

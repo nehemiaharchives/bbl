@@ -212,7 +212,7 @@ class Bbl(
         if (versePointer.startVerse != null && versePointer.endVerse != null) {
             echo("")
         }
-        BblHistory.record(bible, BblHistory.command("bbl", book.joinToString(" "), chapterVerse))
+        BblHistory.record(bible, BblHistory.normalizeReadCommand(book, chapterVerse))
     }
 }
 
