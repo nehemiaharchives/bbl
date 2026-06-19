@@ -245,6 +245,77 @@ tasks.register("verifyServerBblPackVersions") {
 
 val bblInstallCommonFixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/common")
 
+val macosPkgId = "org.gnit.bbl"
+val macosPkgOutputDirectory = layout.buildDirectory.dir("distributions")
+
+fun registerMacosPkgTasks(platformId: String, taskNamePart: String, architecture: String) {
+    val pkgRoot = layout.buildDirectory.dir("macosPkg/$platformId/root")
+    val pkgOutputFile = bblVersionProvider.map { version ->
+        macosPkgOutputDirectory.get().file("bbl-$version-macos-$architecture.pkg")
+    }
+    val buildTask = tasks.register<Exec>("build${taskNamePart}Pkg") {
+        group = LifecycleBasePlugin.BUILD_GROUP
+        description = "Build the unsigned macOS $architecture .pkg installer for bbl."
+        notCompatibleWithConfigurationCache("Builds a pkg using script-scoped providers and filesystem preparation.")
+        onlyIf("pkgbuild is available only on macOS") {
+            System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+        }
+        dependsOn("stageBblInstall${taskNamePart}CliCoreFixture")
+        dependsOn(stageBblInstallVersionFixture)
+
+        val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/bbl")
+        inputs.file(stagedBbl)
+        inputs.property("bblVersion", bblVersionProvider)
+        outputs.file(pkgOutputFile)
+        environment("COPYFILE_DISABLE", "1")
+
+        doFirst {
+            val source = stagedBbl.get().asFile
+            require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
+            val root = pkgRoot.get().asFile
+            val target = root.resolve("usr/local/bin/bbl")
+            root.deleteRecursively()
+            target.parentFile.mkdirs()
+            source.copyTo(target, overwrite = true)
+            require(target.setExecutable(true, false)) { "Unable to make ${target.absolutePath} executable" }
+            val xattrExitCode = ProcessBuilder("xattr", "-cr", root.absolutePath).inheritIO().start().waitFor()
+            require(xattrExitCode == 0) { "Unable to clear extended attributes from ${root.absolutePath}" }
+
+            macosPkgOutputDirectory.get().asFile.mkdirs()
+            commandLine(
+                "pkgbuild", "--root", root.absolutePath,
+                "--identifier", macosPkgId, "--version", bblVersionProvider.get(),
+                "--install-location", "/", "--filter", ".*\\._.*",
+                pkgOutputFile.get().asFile.absolutePath,
+            )
+        }
+    }
+
+    tasks.register<Sync>("stageBblInstall${taskNamePart}PkgFixture") {
+        group = LifecycleBasePlugin.BUILD_GROUP
+        description = "Stage the macOS $architecture .pkg installer fixture for Kitchen tests."
+        dependsOn(buildTask, stageBblInstallVersionFixture)
+        into(layout.buildDirectory.dir("bblInstallFixtures/$platformId/pkg"))
+        from(pkgOutputFile) { rename { "bbl.pkg" } }
+        from(bblInstallCommonFixtureDirectory) { include("version.txt") }
+    }
+}
+
+registerMacosPkgTasks("macosArm64", "MacosArm64", "arm64")
+registerMacosPkgTasks("macosX64", "MacosX64", "x64")
+
+val hostMacosTaskNamePart = if (System.getProperty("os.arch") == "aarch64") "MacosArm64" else "MacosX64"
+tasks.register("buildMacosPkg") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Build the unsigned macOS .pkg installer for the current host architecture."
+    dependsOn("build${hostMacosTaskNamePart}Pkg")
+}
+tasks.register("stageBblInstallMacosPkgFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the macOS .pkg fixture for the current host architecture."
+    dependsOn("stageBblInstall${hostMacosTaskNamePart}PkgFixture")
+}
+
 val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
     bblInstallBinaries.map { binary ->
         val taskName = "stageBblInstall${platform.taskNamePart}${binary.taskNamePart}Fixture"
@@ -355,7 +426,9 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     dependsOn(stageBblInstallVersionFixture)
 
     into(layout.projectDirectory.dir("bbl_install/files"))
-    from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") })
+    from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") }) {
+        exclude("pkg/**")
+    }
     from(bblInstallCommonFixtureDirectory)
     include("**/*")
     eachFile {
@@ -400,12 +473,16 @@ tasks.register<Sync>("stageBblInstallMacosArm64CliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS Arm64 CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosArm64" })
+    dependsOn("stageBblInstallMacosArm64PkgFixture")
+    from(layout.buildDirectory.file("bblInstallFixtures/macosArm64/pkg/bbl.pkg"))
 }
 
 tasks.register<Sync>("stageBblInstallMacosX64CliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all macOS X64 CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "macosX64" })
+    dependsOn("stageBblInstallMacosX64PkgFixture")
+    from(layout.buildDirectory.file("bblInstallFixtures/macosX64/pkg/bbl.pkg"))
 }
 
 tasks.register("stageBblInstallFixtures") {

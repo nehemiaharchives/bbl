@@ -68,6 +68,18 @@ jobs:
             fixture_artifact_name: bbl-install-macos-cli-core-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-core
             job_type: Test
+          - platform: macos
+            module_name: installer-pkg
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosArm64PkgFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-pkg-files
+            fixture_path: build/bblInstallFixtures/macosArm64/pkg
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -393,6 +405,11 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: default-macos-local
+          - suite: pkg_install_macos
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-pkg-files
+            kitchen_instance: pkg-install-macos-macos-local
           - suite: default
             platform: mingw
             os: windows-latest
@@ -526,6 +543,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ "${{ matrix.suite }}" = "pkg_install_macos" ]; then
+            if [ -f bbl_install/files/bbl.pkg ]; then
+              :
+            elif [ -f bbl_install/files/macosArm64/pkg/bbl.pkg ]; then
+              cp bbl_install/files/macosArm64/pkg/bbl.pkg bbl_install/files/bbl.pkg
+            else
+              echo "Missing bbl.pkg" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+            test -f bbl_install/files/bbl.pkg
+            du -sh bbl_install/files
+            exit 0
+          fi
 
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
 
