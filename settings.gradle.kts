@@ -25,6 +25,8 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
@@ -50,6 +52,19 @@ if (/*useLocalLuceneKmp && file("../lucene-kmp").isDirectory*/ // this is commen
             substitute(module("org.gnit.lucene-kmp:lucene-kmp-analysis-nori")).using(project(":analysis:nori"))
             substitute(module("org.gnit.lucene-kmp:lucene-kmp-analysis-smartcn")).using(project(":analysis:smartcn"))
             substitute(module("org.gnit.lucene-kmp:lucene-kmp-test-framework")).using(project(":test-framework"))
+        }
+    }
+}
+
+val useLocalClikt = providers.gradleProperty("useLocalClikt").orNull == "true" ||
+    providers.environmentVariable("USE_LOCAL_CLIKT").orNull == "true"
+
+if (useLocalClikt && file("../clikt").isDirectory) {
+    logger.lifecycle("Using sibling clikt composite build via useLocalClikt=true")
+    includeBuild("../clikt") {
+        name = "clikt-fork"
+        dependencySubstitution {
+            substitute(module("com.github.nehemiaharchives.clikt:clikt-core")).using(project(":clikt"))
         }
     }
 }

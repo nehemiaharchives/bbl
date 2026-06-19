@@ -272,13 +272,13 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
 }
 
 val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
-    .filter { it.id != "windows" }
     .map { platform ->
         val cliCoreFixtureTask = stageBblInstallFixtureTasks.single {
             it.name == "stageBblInstall${platform.taskNamePart}CliCoreFixture"
         }
         val completionOutputDirectory = layout.buildDirectory.dir("bblInstallFixtures/${platform.id}/cli-core")
-        val bblExecutable = completionOutputDirectory.map { it.file("bbl") }
+        val executableSuffix = if (platform.id == "windows") ".exe" else ""
+        val bblExecutable = completionOutputDirectory.map { it.file("bbl$executableSuffix") }
 
         tasks.register("stageBblInstall${platform.taskNamePart}CliCoreCompletionFixtures") {
             group = LifecycleBasePlugin.BUILD_GROUP
@@ -287,24 +287,35 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
             dependsOn(cliCoreFixtureTask)
 
             inputs.file(bblExecutable)
-            outputs.files(
+            val outputsList = mutableListOf(
                 completionOutputDirectory.map { it.file("bbl.bash") },
                 completionOutputDirectory.map { it.file("_bbl") },
                 completionOutputDirectory.map { it.file("bbl.fish") },
             )
+            if (platform.id == "windows") {
+                outputsList.add(completionOutputDirectory.map { it.file("_bbl.ps1") })
+            }
+            outputs.files(outputsList)
 
             doLast {
                 val binaryFile = bblExecutable.get().asFile
                 require(binaryFile.exists()) {
                     "Expected staged bbl executable at ${binaryFile.absolutePath}"
                 }
-                binaryFile.setExecutable(true)
+                if (platform.id != "windows") {
+                    binaryFile.setExecutable(true)
+                }
 
-                listOf(
+                val shells = mutableListOf(
                     "bash" to "bbl.bash",
                     "zsh" to "_bbl",
                     "fish" to "bbl.fish",
-                ).forEach { (shell, fileName) ->
+                )
+                if (platform.id == "windows") {
+                    shells.add("powershell" to "_bbl.ps1")
+                }
+
+                shells.forEach { (shell, fileName) ->
                     val outputFile = completionOutputDirectory.get().file(fileName).asFile
                     outputFile.parentFile.mkdirs()
                     val process = ProcessBuilder(binaryFile.absolutePath, "generate-completion", shell)

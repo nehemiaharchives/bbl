@@ -23,7 +23,7 @@ logback = "1.5.32"
 material3 = "1.11.0-alpha07"
 okio = "3.17.0"
 kmpio = "0.3.0"
-clikt = "5.1.0"
+clikt = "powershell-SNAPSHOT"
 lucene-kmp = "10.2.0-alpha13"
 kotlin-logging = "8.0.02"
 multiplatform-settings = "1.3.0"
@@ -70,7 +70,7 @@ ktor-clientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kmpio = { module = "io.github.skolson:kmp-io", version.ref = "kmpio" }
-clikt = { module = "com.github.ajalt.clikt:clikt-core", version.ref = "clikt" }
+clikt = { module = "com.github.nehemiaharchives.clikt:clikt-core", version.ref = "clikt" }
 lucene-kmp-core = { module = "org.gnit.lucene-kmp:lucene-kmp-core", version.ref = "lucene-kmp" }
 lucene-kmp-queryparser = { module = "org.gnit.lucene-kmp:lucene-kmp-queryparser", version.ref = "lucene-kmp" }
 lucene-kmp-analysis-common = { module = "org.gnit.lucene-kmp:lucene-kmp-analysis-common", version.ref = "lucene-kmp" }

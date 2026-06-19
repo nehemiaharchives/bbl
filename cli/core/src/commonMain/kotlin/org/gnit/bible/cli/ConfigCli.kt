@@ -253,6 +253,7 @@ class ConfigCli(
             when (shell) {
                 CompletionCandidates.Custom.ShellType.BASH -> bashConfigValueCompletion()
                 CompletionCandidates.Custom.ShellType.FISH -> fishConfigValueCompletion()
+                CompletionCandidates.Custom.ShellType.POWERSHELL -> powershellConfigValueCompletion()
             }
         }
 
@@ -289,6 +290,22 @@ class ConfigCli(
                 "(switch (commandline -opc)[-1]
                 $cases
                 end)"
+            """.trimIndent()
+        }
+
+        private fun powershellConfigValueCompletion(): String {
+            val cases = configKeyValueCases { key, values ->
+                val items = values.split(" ").joinToString("; ") { "'$it'" }
+                "'$key' { $items }"
+            }
+            return """
+                ${'$'}(
+                    ${'$'}keyOffset = if ([string]::IsNullOrEmpty(${'$'}wordToComplete)) { 1 } else { 2 }
+                    ${'$'}key = ${'$'}commandAst.CommandElements[${'$'}commandAst.CommandElements.Count - ${'$'}keyOffset].Value
+                    switch (${'$'}key) {
+                $cases
+                    }
+                )
             """.trimIndent()
         }
 

@@ -221,3 +221,17 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+
+  - name: completion_windows
+    run_list:
+      - recipe[bbl_install::default]
+    verifier:
+      inspec_tests:
+        - test/integration/helpers
+        - test/integration/completion_windows
+    excludes:
+      - ubuntu-26.04
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04
+      - macos-local

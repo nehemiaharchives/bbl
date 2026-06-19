@@ -74,7 +74,7 @@ jobs:
             timeout: 75
             task: :cli:core:mingwX64Test
             needs_konan_cache: true
-            fixture_task: stageBblInstallWindowsCliCoreFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsCliCoreCompletionFixtures "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-cli-core-files
             fixture_path: build/bblInstallFixtures/windows/cli-core
             job_type: Test
@@ -457,6 +457,11 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: search-windows-windows-local
+          - suite: completion_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: completion-windows-windows-local
 
     steps:
       - name: Checkout code
@@ -512,6 +517,7 @@ jobs:
           if (-not (Test-Path bbl_install\files\bbl.exe)) { throw 'Missing bbl_install\files\bbl.exe' }
           if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
           if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
+          if (-not (Test-Path bbl_install\files\_bbl.ps1)) { throw 'Missing bbl_install\files\_bbl.ps1' }
 
           Get-ChildItem bbl_install\files
 
@@ -560,13 +566,13 @@ jobs:
           working-directory: bbl_install
 
       - name: Install PowerShell 7+
-        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows') && matrix.platform == 'mingw' }}
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows' || matrix.suite == 'completion_windows') && matrix.platform == 'mingw' }}
         uses: PSModule/install-powershell@v1
         with:
           Version: 7.6.2
 
       - name: Verify PowerShell version
-        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows') && matrix.platform == 'mingw' }}
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows' || matrix.suite == 'completion_windows') && matrix.platform == 'mingw' }}
         shell: pwsh
         run: |
           Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"
