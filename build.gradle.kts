@@ -1,3 +1,4 @@
+import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -29,6 +30,23 @@ data class BblInstallBinary(
     val binaryName: String,
     val includePacks: Boolean = false,
 )
+
+data class BblHomebrewMacosFixture(
+    val platformId: String,
+    val taskNamePart: String,
+    val archiveSuffix: String,
+)
+
+fun File.sha256Hex(): String = inputStream().buffered().use { input ->
+    val digest = MessageDigest.getInstance("SHA-256")
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    while (true) {
+        val read = input.read(buffer)
+        if (read < 0) break
+        digest.update(buffer, 0, read)
+    }
+    digest.digest().joinToString("") { "%02x".format(it) }
+}
 
 val bblInstallPlatforms = listOf(
     BblInstallPlatform("linux", "Linux", "linuxX64", "LinuxX64", ".kexe"),
@@ -303,6 +321,111 @@ fun registerMacosPkgTasks(platformId: String, taskNamePart: String, architecture
 
 registerMacosPkgTasks("macosArm64", "MacosArm64", "arm64")
 registerMacosPkgTasks("macosX64", "MacosX64", "x64")
+
+val bblHomebrewMacosFixtures = listOf(
+    BblHomebrewMacosFixture("macosArm64", "MacosArm64", "macos-arm64"),
+    BblHomebrewMacosFixture("macosX64", "MacosX64", "macos-x64"),
+)
+
+bblHomebrewMacosFixtures.forEach { fixture ->
+    tasks.register("stageBblInstall${fixture.taskNamePart}HomebrewFixture") {
+        group = LifecycleBasePlugin.BUILD_GROUP
+        description = "Stage the ${fixture.platformId} Homebrew formula fixture for Kitchen tests."
+        notCompatibleWithConfigurationCache("Creates a tar archive and formula from script-scoped providers.")
+        dependsOn(
+            "stageBblInstall${fixture.taskNamePart}CliCoreFixture",
+            "stageBblInstall${fixture.taskNamePart}CliSearchCommonFixture",
+            stageBblInstallVersionFixture,
+        )
+
+        val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl")
+        val stagedSearchCommon = layout.buildDirectory.file(
+            "bblInstallFixtures/${fixture.platformId}/cli-search-common/bbl-search-common"
+        )
+        val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+        val fixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/${fixture.platformId}/homebrew")
+        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+        inputs.property("bblVersion", bblVersionProvider)
+        outputs.dir(fixtureDirectory)
+
+        doLast {
+            val version = bblVersionProvider.get()
+            val source = stagedBbl.get().asFile
+            val searchCommon = stagedSearchCommon.get().asFile
+            val webusPack = stagedWebusPack.asFile
+            require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
+            require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
+            require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+
+            val output = fixtureDirectory.get().asFile
+            val formulaDirectory = output.resolve("Formula")
+            val archive = output.resolve("bbl-$version-${fixture.archiveSuffix}.tar.gz")
+            output.deleteRecursively()
+            formulaDirectory.mkdirs()
+
+            val archiveRoot = temporaryDir.resolve("${fixture.platformId}-homebrew")
+            archiveRoot.deleteRecursively()
+            archiveRoot.mkdirs()
+            source.copyTo(archiveRoot.resolve("bbl"), overwrite = true)
+            searchCommon.copyTo(archiveRoot.resolve("bbl-search-common"), overwrite = true)
+            webusPack.copyTo(archiveRoot.resolve("webus.zip"), overwrite = true)
+            require(archiveRoot.resolve("bbl").setExecutable(true, false)) {
+                "Unable to make staged Homebrew bbl executable"
+            }
+            require(archiveRoot.resolve("bbl-search-common").setExecutable(true, false)) {
+                "Unable to make staged Homebrew bbl-search-common executable"
+            }
+            val process = ProcessBuilder(
+                "tar", "-czf", archive.absolutePath,
+                "bbl", "bbl-search-common", "webus.zip",
+            )
+                .directory(archiveRoot)
+                .inheritIO()
+                .apply { environment()["COPYFILE_DISABLE"] = "1" }
+                .start()
+            require(process.waitFor() == 0) { "Failed to create ${archive.absolutePath}" }
+            archive.copyTo(output.resolve("bbl.tar.gz"), overwrite = true)
+
+            formulaDirectory.resolve("bbl.rb").writeText(
+                """
+                class Bbl < Formula
+                  desc "Read/search Holy Bible in your terminal"
+                  homepage "https://github.com/nehemiaharchives/bbl"
+                  version "$version"
+                  license "Apache-2.0"
+
+                  url "file://__BBL_HOMEBREW_ARCHIVE__"
+                  sha256 "${archive.sha256Hex()}"
+
+                  def install
+                    libexec.install "bbl", "bbl-search-common"
+                    (prefix/"packs").install "webus.zip"
+                    (bin/"bbl").write <<~SH
+                      #!/bin/bash
+                      set -e
+                      mkdir -p "${'$'}HOME/.bbl/bin" "${'$'}HOME/.bbl/packs"
+                      if ! cmp -s "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"; then
+                        install -m 0755 "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"
+                      fi
+                      if ! cmp -s "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"; then
+                        install -m 0644 "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"
+                      fi
+                      exec "#{libexec}/bbl" "${'$'}@"
+                    SH
+                  end
+
+                  test do
+                    assert_match(/God|god/, shell_output("#{bin}/bbl john 3:16"))
+                    assert_match(/God|god/, shell_output("#{bin}/bbl search God limit 1"))
+                  end
+                end
+                """.trimIndent() + "\n"
+            )
+            bblInstallCommonFixtureDirectory.get().asFile.resolve("version.txt")
+                .copyTo(output.resolve("version.txt"), overwrite = true)
+        }
+    }
+}
 
 val hostMacosTaskNamePart = if (System.getProperty("os.arch") == "aarch64") "MacosArm64" else "MacosX64"
 tasks.register("buildMacosPkg") {

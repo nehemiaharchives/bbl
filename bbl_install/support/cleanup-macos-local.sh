@@ -11,6 +11,9 @@ fi
 install_root="$target_home/.bbl"
 install_source_dir="/tmp/bbl-install-downloads"
 
+brew uninstall --force bbl >/dev/null 2>&1 || true
+brew untap --force bbl-kmp-e2e/local >/dev/null 2>&1 || true
+
 has_bbl=false
 has_receipt=false
 [ -e /usr/local/bin/bbl ] && has_bbl=true
@@ -29,6 +32,7 @@ fi
 [ "$has_receipt" = true ] && echo "Forgot package receipt org.gnit.bbl" || echo "Package receipt org.gnit.bbl does not exist"
 
 rm -f /tmp/bbl.pkg
+rm -rf /tmp/bbl-homebrew-fixture
 
 if [ -d "$install_root" ]; then
   rm -rf "$install_root"

@@ -72,6 +72,15 @@ platforms:
       sudo: false
 
 suites:
+  - name: homebrew_install_macos
+    run_list:
+      - recipe[bbl_install::homebrew_install_macos]
+    verifier:
+      inspec_tests:
+        - test/integration/homebrew_install_macos
+    includes:
+      - macos-local
+
   - name: pkg_install_macos
     run_list:
       - recipe[bbl_install::pkg_install_macos]

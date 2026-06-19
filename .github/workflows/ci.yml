@@ -80,6 +80,18 @@ jobs:
             fixture_artifact_name: bbl-install-macos-pkg-files
             fixture_path: build/bblInstallFixtures/macosArm64/pkg
             job_type: Package
+          - platform: macos
+            module_name: homebrew
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '16.4'
+            fixture_task: stageBblInstallMacosArm64HomebrewFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-homebrew-files
+            fixture_path: build/bblInstallFixtures/macosArm64/homebrew
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -410,6 +422,11 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-pkg-files
             kitchen_instance: pkg-install-macos-macos-local
+          - suite: homebrew_install_macos
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-homebrew-files
+            kitchen_instance: homebrew-install-macos-macos-local
           - suite: default
             platform: mingw
             os: windows-latest
@@ -543,6 +560,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ "${{ matrix.suite }}" = "homebrew_install_macos" ]; then
+            fixture_dir=bbl_install/files/macosArm64/homebrew
+            test -d "$fixture_dir"
+            mkdir -p bbl_install/files/Formula
+            cp "$fixture_dir/bbl.tar.gz" bbl_install/files/bbl.tar.gz
+            cp "$fixture_dir/Formula/bbl.rb" bbl_install/files/Formula/bbl.rb
+            cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            grep -q 'homepage "https://github.com/nehemiaharchives/bbl"' bbl_install/files/Formula/bbl.rb
+            grep -q 'libexec.install "bbl", "bbl-search-common"' bbl_install/files/Formula/bbl.rb
+            grep -q '(bin/"bbl").write' bbl_install/files/Formula/bbl.rb
+            tar -tzf bbl_install/files/bbl.tar.gz | tee /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'bbl' /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'bbl-search-common' /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'webus.zip' /tmp/bbl-homebrew-tar-list.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
 
           if [ "${{ matrix.suite }}" = "pkg_install_macos" ]; then
             if [ -f bbl_install/files/bbl.pkg ]; then
