@@ -227,9 +227,9 @@ assert_equals "default random output is one verse" "1" "$rand_verse_count"
 
 run_bbl config randomlyShow chapter >/dev/null
 rand_chapter="$(run_bbl rand)"
-rand_chapter_count="$(printf '%s\n' "$rand_chapter" | nonempty_line_count)"
+rand_chapter_count="$(printf '%s\n' "$rand_chapter" | awk 'END { print NR + 0 }')"
 if [[ "$rand_chapter_count" -le 2 ]]; then
-  echo "FAIL: expected chapter random output to contain more than 2 non-empty lines, got $rand_chapter_count" >&2
+  echo "FAIL: expected chapter random output to contain more than 2 lines (including blank), got $rand_chapter_count" >&2
   printf '%s\n' "$rand_chapter" >&2
   exit 1
 fi

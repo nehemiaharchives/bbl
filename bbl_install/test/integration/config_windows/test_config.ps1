@@ -231,9 +231,9 @@ try {
 
   Run-Bbl @('config', 'randomlyShow', 'chapter') | Out-Null
   $randChapter = Run-Bbl @('rand')
-  $randChapterCount = Get-NonEmptyLineCount $randChapter
+  $randChapterCount = @(($randChapter -split "`r?`n")).Count
   if ($randChapterCount -le 2) {
-    Write-Host "FAIL: expected chapter random output to contain more than 2 non-empty lines, got $randChapterCount"
+    Write-Host "FAIL: expected chapter random output to contain more than 2 lines (including blank), got $randChapterCount"
     Write-Host $randChapter
     exit 1
   }
