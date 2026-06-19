@@ -20,38 +20,16 @@ class ListCli(
         return """
             List translations, book names, categories (shortcut: bbl ls)
             
-            # list translations installed and downloadable
-            bbl list translations
-            bbl list translation
-            bbl list t
-            bbl list
-            bbl ls t
+            bbl list <target>
             
-            # shortcut
-            bbl ls
+            list translations installed and downloadable            
+            bbl list (t|translation|translations|bible|bibles|version|versions)
             
-            # aliases
-            bbl list bibles
-            bbl list bible
-            bbl list versions
-            bbl list version
+            list book names to to specify in `bbl` or `bbl sarch`
+            bbl list (b|book|books)
             
-            # list book names to to specify in `bbl` or `bbl sarch`
-            bbl list books
-            bbl list book
-            bbl list b
-            
-            # shortcut
-            bbl ls b
-            
-            # list category filters for `bbl search` and `bbl rand`
-            bbl list categories
-            bbl list category
-            bbl list cat
-            bbl list c
-            
-            # shortcut
-            bbl ls c
+            list category filters for `bbl search` and `bbl rand`
+            bbl list (c|cat|category|categories)
         """.trimIndent()
     }
 

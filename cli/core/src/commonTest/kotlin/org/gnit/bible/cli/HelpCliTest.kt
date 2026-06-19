@@ -60,7 +60,7 @@ class HelpCliTest {
     fun `bbl help history prints history help`() {
         val result = Bbl().test("help history")
         assertEquals(0, result.statusCode)
-        assertContains(result.stdout, "bbl command history")
+        assertContains(result.stdout, "Show command history")
     }
 
     @Test

@@ -25,36 +25,16 @@ class HistoryCli(
     ).optional()
 
     override fun help(context: Context): String = """
-        Show bbl command history
-        
-        Examples:
-        
-        # show history
-        bbl history
-        bbl h
-        
-        # show read history
-        bbl history read
-        bbl h read
-        bbl h r
-        
-        # show search history
-        bbl history search
-        bbl h search
-        bbl h s
-        
-        # show config history
-        bbl history config
-        bbl h config
-        bbl h c
-               
-        # change hisoty format (default: command)
-        bbl config historyFormat command
-        bbl config historyFormat datetimeCommand
-        bbl config historyFormat datetimeTimezoneCommand
-        
-        # shortcut
-        bbl c hf datetimeCommand
+        Show command history (shortcut: bbl h)
+
+        bbl history                  Show all commands
+        bbl history read (r)         Show Bible reading commands
+        bbl history search (s)       Show search commands
+        bbl history config (c)       Show config commands
+
+        Change the output format:
+        bbl config historyFormat command|datetimeCommand|datetimeTimezoneCommand
+            Show commands alone, with date/time, or with date/time and timezone. Default: command
     """.trimIndent()
 
     override fun run() {

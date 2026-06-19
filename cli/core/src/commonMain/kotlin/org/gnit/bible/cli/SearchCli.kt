@@ -5,9 +5,6 @@ import com.github.ajalt.clikt.core.CoreCliktCommand
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.option
 import org.gnit.bible.Bible
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointerJson
@@ -21,50 +18,21 @@ class SearchCli(
     override fun help(context: Context): String = """
         Search Bible text by word or exact phrase with book or category filters
         
-        Examples:
+        bbl search <terms> in [book|chapter|chapter range] in <translation> limit <count>
         
-        # simple search terms
-        bbl search Jesus Christ
-        
-        # specify number of search results just like SQL's limit
-        bbl search Jesus Christ limit 3
-        
-        # search in other translation
-        bbl search Jesus Christ in kjv
-        
-        # filter by a book, a chapter or range of chapters
-        bbl search Jesus Christ in romans
-        bbl search Jesus Christ in romans 3
-        bbl search Jesus Christ in romans 5-12
-        
-        # combine filter and specify translation
-        bbl search Jesus Christ in romans 5-12 in kjv
-        
-        # search with first translation, then search result with 2nd and 3rd translations below for comparison
-        bbl search righteous servant justify many in webus tb lsg
-        
-        # search filter by book category, (ref: bbl list category)
-        bbl search riding on a donkey in minor prophets
-        bbl search love one another in johns letters
-        bbl search jews gentiles in paul
-        bbl search Goliath in david
-        bbl search Adam in nt
-        
-        # exact search
-        bbl search "Jesus wept"
-        bbl search "your faith" in gospels
-                
-        # shortcut
-        bbl s Jesus Christ
+        bbl search Jesus Christ         search entire bible by terms
+        bbl s Jesus Christ limit 3      specify number of search results
+        bbl s Jesus Christ in kjv       search in other version of bible
+        bbl s Jesus Christ in romans    filter by a book
+        bbl s Jesus Christ in rom 3     filter by a chapter
+        bbl s Jesus in rom 5-12         filter by chapter range
+        bbl s Jesus in rom 5-12 in kjv  chapter range and in other bible
+        bbl s jews gentiles in paul     filter by category i.e. set of books
+        bbl s "Jesus wept"              exact search by double quotation
+        bbl s "your faith" in gospels   exact search filtered by category
     """.trimIndent()
 
     private val termParts by argument(help = "search term").multiple()
-    private val translationCode by option("-t", "--translation", help = "translation code (e.g. webus)")
-    private val book by option("-b", "--book", help = "book name or number")
-    private val chapter by option("--chapter", help = "chapter number").convert { it.toInt() }
-    private val endChapter by option("--end-chapter", help = "end chapter number").convert { it.toInt() }
-    private val categoryKeys by option("--category", help = "category key").multiple()
-    private val verses by option("--verses", help = "max number of verses").convert { it.toInt() }
 
     override fun run() {
         val (cleanTermParts, limitOverride) = SearchCliSupport.parseLimitOverride(termParts)
@@ -74,19 +42,16 @@ class SearchCli(
             throw UsageError("Missing search term")
         }
 
-        val translations = SearchCliSupport.resolveTranslations(bible, translationCode, inlineFilters.translationCodes)
+        val translations = SearchCliSupport.resolveTranslations(bible, null, inlineFilters.translationCodes)
         val translation = translations.first()
-        val bookNumber = SearchCliSupport.resolveBookNumber(book, inlineFilters.bookNumber)
+        val bookNumber = inlineFilters.bookNumber
         val (startChapter, endChapterValue) = SearchCliSupport.resolveChapterRange(
             bookNumber = bookNumber,
-            explicitStartChapter = chapter,
-            explicitEndChapter = endChapter,
+            explicitStartChapter = null,
+            explicitEndChapter = null,
             inlineStartChapter = inlineFilters.startChapter,
             inlineEndChapter = inlineFilters.endChapter
         )
-        val (explicitCategoryKeys, explicitCategoryFilters) = SearchCliSupport.resolveCategoryFilters(categoryKeys)
-        val requestCategoryKeys = (inlineFilters.categoryKeys + explicitCategoryKeys).distinct()
-        val requestFilters = (inlineFilters.filters + explicitCategoryFilters).distinct()
 
         val request = SearchRequest(
             term = term,
@@ -94,9 +59,9 @@ class SearchCli(
             bookNumber = bookNumber,
             startChapter = startChapter,
             endChapter = endChapterValue,
-            verses = limitOverride ?: verses ?: bible.searchResultFromSettings(),
-            filters = requestFilters,
-            categoryKeys = requestCategoryKeys
+            verses = limitOverride ?: bible.searchResultFromSettings(),
+            filters = inlineFilters.filters,
+            categoryKeys = inlineFilters.categoryKeys
         )
 
         val backend = backendProvider ?: { requestedTranslation ->

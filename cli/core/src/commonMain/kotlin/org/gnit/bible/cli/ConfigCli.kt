@@ -13,7 +13,6 @@ import org.gnit.bible.Bible
 import org.gnit.bible.CompareBy
 import org.gnit.bible.ConfigKey
 import org.gnit.bible.CONFIG_FILE_NAME
-import org.gnit.bible.HISTORY_FILE_NAME
 import org.gnit.bible.HistoryFormat
 import org.gnit.bible.RandomlyShow
 import org.gnit.bible.SupportedTranslation
@@ -23,102 +22,27 @@ class ConfigCli(
 ) : CoreCliktCommand(name = "config") {
 
     override fun help(context: Context): String = """
-        Create, view or change settings
-        
-        Available keys and values with example command:
-        
-        # generate default config file in [USER HOME]/.bbl/$CONFIG_FILE_NAME
-        bbl config init  to generate a default config file
-        
-        # view config
-        bbl config [key]
-        
-        # change config
-        bbl config [key] [value]
-        
-        # view current translation
-        bbl config translation
-        
-        # change translation ref: bbl list translation
-        bbl config translation kjv
-        bbl john 3:16
-            16 For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.
+        View or change settings (shortcuts: bbl conf, bbl c)
 
-        # shortuct
-        bbl conf tr kjv
-        bbl c t kjv
-        
-        # number of search result verses (default: 100)
-        bbl config searchResult 3
-        bbl search Jesus Christ
-            Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
-            Matthew 1:16 Jacob became the father of Joseph, the husband of Mary, from whom was born Jesus, who is called Christ.
-            Matthew 1:18 Now the birth of Jesus Christ was like this: After his mother, Mary, was engaged to Joseph, before they came together, she was found pregnant by the Holy Spirit.
+        bbl config init                 Create the default config file
+        bbl config <key>                Show the current value
+        bbl config <key> <value>        Set a value
 
-        # shortuct
-        bbl c sr 3
-        
-        # bbl rand to show a verse or a chapter (default: verse)
-        bbl config randomlyShow chapter
-        bbl rand 
-            (outputs a random chapter)
-        
-        # shortcut
-        bbl c rs chapter
-        
-        # bbl, bbl rand, bbl search to enable/disable header, e.g. "Genesis 1". "John 3:16" (default: false)
-        bbl config header true
-        bbl matt 28:18-20
-            Matthew 28:18-20
-            18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
-            19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
-            20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
-        
-        # shortcut
-        bbl c hd true
-            
-        # multiple translation comparison layout, either block or verse (default: block)        
-        bbl config compareBy verse
-        bbl matt 28:18-20 in webus jc
-            18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
-            18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。
-            19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
-            19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、
-            20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
-            20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
-
-        bbl config compareBy block  
-        bbl matt 28:18-20 in webus jc
-            18 Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.
-            19 Go  and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,
-            20 teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.
-            18 イエスは彼らに近づいてきて言われた、「わたしは、天においても地においても、いっさいの権威を授けられた。
-            19 それゆえに、あなたがたは行って、すべての国民を弟子として、父と子と聖霊との名によって、彼らにバプテスマを施し、
-            20 あなたがたに命じておいたいっさいのことを守るように教えよ。見よ、わたしは世の終りまで、いつもあなたがたと共にいるのである」。
-        
-        # shortuct
-        bbl c cb verse
-        
-        # enables history stored in [USER HOME]/.bbl/$HISTORY_FILE_NAME (default: true)
-        bbl config historyEnabled true
-        bbl history
-            1  bbl genesis 1
-            2  bbl john 3:16 
-            3  bbl matthew 28:18-20 in kjv
-            4  bbl search Jesus
-        # shortuct
-        bbl c he false
-        
-        # history format, either command, datetimeCommand, datetimeTimezoneCommand (default: command)
-        bbl config historyFormat datetimeCommand
-        bbl history
-            1  2026-06-18 02:20:45 bbl genesis 1
-            2  2026-06-18 02:20:46 bbl john 3:16 
-            3  2026-06-18 02:20:46 bbl matthew 28:18-20 in kjv
-            4  2026-06-18 03:25:22 bbl search Jesus
-        
-        # shortuct
-        bbl c hf command
+        Keys:
+        translation (t, tr) <code>
+            Default Bible translation. Run `bbl list translations` for codes. Default: webus
+        searchResult (sr) <positive integer>
+            Maximum verses returned by search. Default: 100
+        randomlyShow (rs) verse|chapter
+            What `bbl rand` displays. Default: verse
+        header (hd) true|false
+            Show a reference heading above verses. Default: false
+        compareBy (cb) block|verse
+            Multiple translations grouped by translation or by verse. Default: block
+        historyEnabled (he) true|false
+            Save commands for `bbl history`. Default: true
+        historyFormat (hf) command|datetimeCommand|datetimeTimezoneCommand
+            Show commands alone, with date/time, or with date/time and timezone. Default: command
     """.trimIndent()
 
     override val invokeWithoutSubcommand: Boolean = true
@@ -246,7 +170,7 @@ class ConfigCli(
 
     companion object {
         private val configKeyCompletions = ConfigKey.entries
-            .flatMap { key -> listOf(key.value) + key.aliases }
+            .flatMap { key -> listOf(key.value) }
             .toSet()
 
         private val configValueCompletionCandidates = CompletionCandidates.Custom { shell ->

@@ -155,7 +155,7 @@ class SearchCliTest {
     }
 
     @Test
-    fun `bbl search with explicit translation and verses does not read config settings`() {
+    fun `bbl search with inline translation and limit does not read config settings`() {
         platform.configSettings.clear()
         val backend = RecordingBackendFactory {
             assertEquals("Jesus Christ", it.term)
@@ -164,7 +164,7 @@ class SearchCliTest {
             listOf(VersePointer(translation = SupportedTranslation.KJV.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
-        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv --verses 1")
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search Jesus Christ in kjv limit 1")
 
         assertEquals(0, result.statusCode, result.stderr)
         assertEquals("Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
@@ -436,7 +436,7 @@ class SearchCliTest {
     }
 
     @Test
-    fun `bbl search gospel category option resolves category filter`() {
+    fun `bbl search gospel inline category resolves category filter`() {
         val backend = RecordingBackendFactory {
             assertEquals("gospel", it.term)
             assertEquals("webus", it.translation.code)
@@ -448,7 +448,7 @@ class SearchCliTest {
             listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 40, chapter = 1, startVerse = 1))
         }
 
-        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search gospel --category paul")
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search gospel in paul")
 
         assertEquals(0, result.statusCode)
         assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)

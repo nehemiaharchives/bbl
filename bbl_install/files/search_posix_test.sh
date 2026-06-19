@@ -213,10 +213,6 @@ for t in 'Jesus Christ' 'Jesus' 'Christ'; do
     'search' "$t" 'in' 'kjv'
 done
 
-Add_Test 'KJV' 'search Jesus Christ --translation kjv' \
-  'Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.' \
-  'search' 'Jesus Christ' '--translation' 'kjv'
-
 Add_Test 'KJV' 'search "Jesus wept" in kjv exact' \
   'John 11:35 Jesus wept.' \
   'search' 'Jesus wept' 'in' 'kjv'
@@ -926,10 +922,15 @@ run_one_test() {
   local error_file="$RESULT_DIR/$index.error"
   local output_file="$RESULT_DIR/$index.output"
   local start_ms end_ms elapsed_ms exit_code first_line expected expected_output actual_output normalized_expected_output timed_out cmd_pid now_s deadline_s
-  local attempt max_attempts
-  local -a cli_args
+  local attempt max_attempts arg_count
+  local -a cli_args run_args
 
   IFS="$US" read -r -a cli_args <<< "${CLI_ARGS_JOINED[$index]}"
+  run_args=("${cli_args[@]}")
+  arg_count=${#cli_args[@]}
+  if ((arg_count < 2)) || [[ "${cli_args[$((arg_count - 2))]}" != 'limit' ]]; then
+    run_args+=('limit' '1')
+  fi
   expected="${EXPECTED_LINES[$index]}"
   expected_output="${EXPECTED_OUTPUTS[$index]}"
 
@@ -945,7 +946,7 @@ run_one_test() {
         "$((index + 1))" "${#NAMES[@]}" "${NAMES[$index]}" "$attempt" "$max_attempts" >&2
     fi
 
-    perl -e 'setpgrp(0, 0); exec @ARGV; die "exec failed: $!\n"' "$BblPath" "${cli_args[@]}" --verses 1 > "$output_file" 2>&1 &
+    perl -e 'setpgrp(0, 0); exec @ARGV; die "exec failed: $!\n"' "$BblPath" "${run_args[@]}" > "$output_file" 2>&1 &
     cmd_pid="$!"
     printf '%s\n' "$cmd_pid" > "$BBL_PID_DIR/$index.pid"
     timed_out=0

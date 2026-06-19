@@ -30,7 +30,7 @@ class Bbl(
 
     override val invokeWithoutSubcommand = true
 
-    val book: List<String> by argument(completionCandidates = CompletionCandidates.Fixed(bookNames + subCommands + aliases)).multiple(default = listOf("gen"))
+    val book: List<String> by argument(completionCandidates = CompletionCandidates.Fixed(bookNames + subCommands)).multiple(default = listOf("gen"))
     val chapterVerse: String by argument().default("1")
 
     val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
@@ -57,44 +57,35 @@ class Bbl(
     override fun help(context: Context): String = """
         Read, search Holy Bible in command line
         
-        Examples:
-        
-        bbl gen 1
-        bbl john 3:16
-        bbl matt 7:24-
-        bbl matt 28:18-20
-        bbl john 3:16 in kjv
-        bbl john 3:16 in kjv tb
-        bbl john 3:16 in kjv tb lsg
-
-        bbl search Jesus Christ
-        bbl search Jesus Christ limit 3
-        bbl search Jesus Christ in kjv
-        bbl search Jesus Christ in romans
-        bbl search Jesus Christ in romans 3
-        bbl search Jesus Christ in romans 5-12
-        bbl search Jesus Christ in romans 5-12 in kjv
-        bbl search righteous servant justify many in webus tb lsg
-        bbl search riding on a donkey in minor prophets
-        bbl search love one another in johns letters
-        bbl search jews gentiles in paul
-        bbl search Goliath in david
-        bbl search Adam in nt
-        bbl search "Jesus wept"
-        bbl search "your faith" in gospels
-
-        bbl rand (gospels|nt|ot|[category])
-        bbl list (translations|books|categories)
-        bbl (install|uninstall) kjv
-        bbl config (translation kjv|searchResult 20|[key] [value])
-        bbl hisotry (read|search|config)
-        bbl help (search|rand|list|install|uninstall|config|history)
+        bbl gen 1                                   read a chapter of default bible
+        bbl john 3:16                               show a specific verse
+        bbl matt 7:24-                              from a verse to end of the chapter
+        bbl matt 28:18-20                           read range of verses
+        bbl john 3:16 in kjv                        read a verse in specific bible
+        bbl john 3:16 in kjv tb                     compare kjv and tb
+        bbl john 3:16 in kjv tb lsg ..              compare 3 or more translations
+        bbl search Jesus Christ                     search entire bible by terms
+        bbl s Jesus Christ limit 3                  specify number of search results
+        bbl s Jesus Christ in kjv                   search in other version of bible
+        bbl s Jesus Christ in romans                filter by a book
+        bbl s Jesus Christ in rom 3                 filter by a chapter
+        bbl s Jesus in rom 5-12                     filter by chapter range
+        bbl s Jesus in rom 5-12 in kjv              chapter range and in other bible
+        bbl s jews gentiles in paul                 filter by category i.e. set of books
+        bbl s "Jesus wept"                          exact search by double quotation
+        bbl s "your faith" in gospels               exact search filtered by category
+        bbl rand (gospels|nt|ot|[category])         random verse from all or part of bible
+        bbl list (translations|books|categories)    list bibles and filters
+        bbl (install|uninstall) kjv                 download/delete one or more bible(s)
+        bbl config ([key]|translation)              show config value of [key]
+        bbl config ([key] [value]|translation kjv)  set config [key] to [value]
+        bbl hisotry (read|search|config)            show or filter past commands
+        bbl help [sub command]                      learn how to use bbl and sub commands
     """.trimIndent()
 
     companion object {
         val bookNames = setOf( "genesis", "exodus", "leviticus", "numbers", "deuteronomy", "joshua", "judges", "ruth", "1samuel", "2samuel", "1kings", "2kings", "1chronicles", "2chronicles", "ezra", "nehemiah", "esther", "job", "psalms", "proverbs", "ecclesiastes", "songofsolomon", "isaiah", "jeremiah", "lamentations", "ezekiel", "daniel", "hosea", "joel", "amos", "obadiah", "jonah", "micah", "nahum", "habakkuk", "zephaniah", "haggai", "zechariah", "malachi", "matthew", "mark", "luke", "john", "acts", "romans", "1corinthians", "2corinthians", "galatians", "ephesians", "philippians", "colossians", "1thessalonians", "2thessalonians", "1timothy", "2timothy", "titus", "philemon", "hebrews", "james", "1peter", "2peter", "1john", "2john", "3john", "jude", "revelation")
         val subCommands = setOf("search", "rand", "list", "install", "uninstall", "config", "history", "help", "generate-completion")
-        private val aliases = setOf("s", "r", "ls", "get", "pull", "rm", "remove", "del", "delete", "conf", "c", "h", "completion")
     }
 
     override fun aliases(): Map<String, List<String>> = mapOf(

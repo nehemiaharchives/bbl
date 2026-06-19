@@ -145,12 +145,6 @@ foreach ($t in @('Jesus Christ', 'Jesus', 'Christ')) {
 
 Add-Test `
   'KJV' `
-  'search Jesus Christ --translation kjv' `
-  @('search', 'Jesus Christ', '--translation', 'kjv') `
-  'Matthew 1:1 The book of the generation of Jesus Christ, the son of David, the son of Abraham.'
-
-Add-Test `
-  'KJV' `
   'search "Jesus wept" in kjv exact' `
   @('search', 'Jesus wept', 'in', 'kjv') `
   'John 11:35 Jesus wept.'
