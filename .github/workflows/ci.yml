@@ -806,41 +806,25 @@ jobs:
             throw "PowerShell 7+ is required for Windows E2E tests"
           }
 
-      - name: Restore Dokken Docker image
-        if: ${{ matrix.platform == 'ubuntu' }}
-        id: cache-dokken-image
-        uses: actions/cache@v5
-        with:
-          path: /tmp/docker-cache/dokken-ubuntu
-          key: dokken-ubuntu-26.04-v1
-
-      - name: Load cached Dokken Docker image
-        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit == 'true' }}
-        run: |
-          echo "Dokken cache hit, loading Docker image"
-          docker load --input /tmp/docker-cache/dokken-ubuntu/26.04.tar
-
-      - name: Pull Dokken Docker image
-        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
-        run: |
-          echo "Dokken cache did not hit, pulling Docker image"
-          docker pull dokken/ubuntu-26.04
-
-      - name: Save Dokken Docker image
-        if: ${{ matrix.platform == 'ubuntu' && steps.cache-dokken-image.outputs.cache-hit != 'true' }}
-        run: |
-          echo "Dokken cache did not hit, saving Docker image"
-          mkdir -p /tmp/docker-cache/dokken-ubuntu
-          docker save dokken/ubuntu-26.04 --output /tmp/docker-cache/dokken-ubuntu/26.04.tar
-
-      - name: Pull Fedora Dokken Docker image
-        if: ${{ matrix.platform == 'fedora' }}
-        run: docker pull dokken/fedora-latest
+      # A standard GitHub-hosted Linux runner has 14 GB of storage. Some matrix
+      # patterns select four Ubuntu instances, and keeping every converged
+      # container alive until a later verify step duplicates the cookbook files
+      # in each container. Run instances serially and destroy each one even when
+      # it fails so the next instance starts with the released Docker space.
+      # Let Dokken pull images directly: caching a docker-save tar keeps both the
+      # archive and the loaded image on disk during the most space-intensive step.
+      - name: Kitchen test
+        working-directory: bbl_install
+        shell: bash
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
+        env:
+          BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
+        run: bundle exec kitchen test '${{ matrix.kitchen_instance }}' --concurrency=1 --destroy=always
 
       - name: Kitchen converge
         working-directory: bbl_install
         shell: bash
-        if: ${{ matrix.platform != 'mingw' }}
+        if: ${{ matrix.platform == 'macos' }}
         run: bundle exec kitchen converge '${{ matrix.kitchen_instance }}'
 
       - name: Kitchen converge
@@ -854,7 +838,7 @@ jobs:
       - name: Kitchen verify
         working-directory: bbl_install
         shell: bash
-        if: ${{ matrix.platform != 'mingw' }}
+        if: ${{ matrix.platform == 'macos' }}
         env:
           BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
         run: bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
