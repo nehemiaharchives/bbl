@@ -8,7 +8,7 @@ The workflow creates GitHub Release assets for:
 - `macos-arm64`
 - `windows-x64`
 
-Each archive contains `bbl`, the language-specific `bbl-search-*` helper executables, and the bundled `.zip` bblpack files from `server/src/main/resources/files/bblpacks`.
+  Each archive contains `bbl`, the language-specific `bbl-search-*` helper executables, and the bundled `.zip` bblpack files from `/resources/files/bblpacks`.
 
 ## Automatic Release
 
