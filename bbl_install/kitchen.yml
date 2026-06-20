@@ -38,6 +38,12 @@ platforms:
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
+  - name: fedora-latest
+    driver:
+      image: dokken/fedora-latest
+      privileged: true
+      pid_one_command: /usr/lib/systemd/systemd
+
   - name: windows-local
     driver:
       name: local
@@ -101,6 +107,15 @@ suites:
       - ubuntu-25.10
       - ubuntu-24.04
       - ubuntu-22.04
+
+  - name: rpm_install_fedora
+    run_list:
+      - recipe[bbl_install::rpm_install_fedora]
+    verifier:
+      inspec_tests:
+        - test/integration/rpm_install_fedora
+    includes:
+      - fedora-latest
 
   - name: default
     run_list:

@@ -105,6 +105,17 @@ jobs:
             fixture_artifact_name: bbl-install-linux-deb-files
             fixture_path: build/bblInstallFixtures/linux/deb
             job_type: Package
+          - platform: fedora
+            module_name: installer-rpm
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxRpmFixture "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
+            fixture_artifact_name: bbl-install-linux-rpm-files
+            fixture_path: build/bblInstallFixtures/linux/rpm
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -465,6 +476,11 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-deb-files
             kitchen_instance: deb-install-ubuntu-2604
+          - suite: rpm_install_fedora
+            platform: fedora
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-rpm-files
+            kitchen_instance: rpm-install-fedora-fedora-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -547,10 +563,35 @@ jobs:
           merge-multiple: true
 
       - name: Prepare Kitchen cookbook files (Linux)
-        if: ${{ matrix.platform == 'ubuntu' }}
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' }}
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ matrix.suite }}" = "rpm_install_fedora" ]; then
+            fixture_dir=bbl_install/files/linux/rpm
+
+            if [ -f bbl_install/files/bbl.rpm ]; then
+              :
+            elif [ -f "$fixture_dir/bbl.rpm" ]; then
+              cp "$fixture_dir/bbl.rpm" bbl_install/files/bbl.rpm
+            else
+              echo "Missing bbl.rpm" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+
+            if [ -f "$fixture_dir/version.txt" ]; then
+              cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            elif [ -f bbl_install/files/common/version.txt ]; then
+              cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+            fi
+
+            test -f bbl_install/files/bbl.rpm
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
           if [ "${{ matrix.suite }}" = "deb_install_ubuntu" ]; then
             fixture_dir=bbl_install/files/linux/deb
             if [ -f bbl_install/files/bbl.deb ]; then
@@ -746,6 +787,10 @@ jobs:
           echo "Dokken cache did not hit, saving Docker image"
           mkdir -p /tmp/docker-cache/dokken-ubuntu
           docker save dokken/ubuntu-26.04 --output /tmp/docker-cache/dokken-ubuntu/26.04.tar
+
+      - name: Pull Fedora Dokken Docker image
+        if: ${{ matrix.platform == 'fedora' }}
+        run: docker pull dokken/fedora-latest
 
       - name: Kitchen converge
         working-directory: bbl_install

@@ -518,6 +518,15 @@ val bblDebInstallHome = providers.gradleProperty("bblDebInstallHome")
 val linuxDebOutputFile = bblVersionProvider.flatMap { version ->
     linuxDebOutputDirectory.map { it.file("bbl-$version-linux-amd64.deb") }
 }
+val bblRpmInstallUser = providers.gradleProperty("bblRpmInstallUser")
+    .orElse("fedora")
+val bblRpmInstallGroup = providers.gradleProperty("bblRpmInstallGroup")
+    .orElse(bblRpmInstallUser)
+val bblRpmInstallHome = providers.gradleProperty("bblRpmInstallHome")
+    .orElse("/home/fedora")
+val linuxRpmOutputFile = bblVersionProvider.flatMap { version ->
+    linuxDebOutputDirectory.map { it.file("bbl-$version-linux-x86_64.rpm") }
+}
 
 fun String.asYamlString(): String = "'${replace("'", "''")}'"
 
@@ -539,7 +548,7 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
         "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
-    val nfpmConfig = layout.buildDirectory.file("nfpm/linux-amd64/nfpm.yaml")
+    val nfpmConfig = layout.buildDirectory.file("nfpm/deb-amd64/nfpm.yaml")
 
     inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
     inputs.property("bblVersion", bblVersionProvider)
@@ -643,12 +652,144 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
     }
 }
 
-tasks.register<Sync>("stageBblInstallLinuxDebFixture") {
+tasks.register<Copy>("stageBblInstallLinuxDebFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage the Linux amd64 .deb installer fixture for Kitchen tests."
     dependsOn(buildLinuxDeb, stageBblInstallVersionFixture)
     into(layout.buildDirectory.dir("bblInstallFixtures/linux/deb"))
     from(linuxDebOutputFile) { rename { "bbl.deb" } }
+    from(bblInstallCommonFixtureDirectory) { include("version.txt") }
+}
+
+val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Build the Linux x86_64 .rpm installer for bbl using nFPM."
+    notCompatibleWithConfigurationCache("Generates an nFPM config from script-scoped providers.")
+    onlyIf("Linux-only package task") {
+        System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
+    }
+    dependsOn(
+        "stageBblInstallLinuxCliCoreFixture",
+        "stageBblInstallLinuxCliSearchCommonFixture",
+        stageBblInstallVersionFixture,
+    )
+
+    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
+    val stagedSearchCommon = layout.buildDirectory.file(
+        "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
+    )
+    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val nfpmConfig = layout.buildDirectory.file("nfpm/rpm-x86_64/nfpm.yaml")
+
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.property("bblVersion", bblVersionProvider)
+    inputs.property("bblRpmInstallUser", bblRpmInstallUser)
+    inputs.property("bblRpmInstallGroup", bblRpmInstallGroup)
+    inputs.property("bblRpmInstallHome", bblRpmInstallHome)
+    outputs.file(linuxRpmOutputFile)
+
+    doFirst {
+        val installUser = bblRpmInstallUser.get()
+        val installGroup = bblRpmInstallGroup.get()
+        val installHome = bblRpmInstallHome.get()
+        require(installHome.startsWith("/")) {
+            "bblRpmInstallHome must be an absolute path: $installHome"
+        }
+
+        val checkNfpm = ProcessBuilder("nfpm", "--version").inheritIO().start().waitFor()
+        require(checkNfpm == 0) {
+            "nFPM is required. Install it from https://nfpm.goreleaser.com/docs/install/"
+        }
+
+        val bbl = stagedBbl.get().asFile
+        val searchCommon = stagedSearchCommon.get().asFile
+        val webusPack = stagedWebusPack.asFile
+        require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
+        require(searchCommon.isFile) {
+            "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
+        }
+        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
+        require(searchCommon.setExecutable(true, false)) {
+            "Unable to make ${searchCommon.absolutePath} executable"
+        }
+
+        val configFile = nfpmConfig.get().asFile
+        configFile.parentFile.mkdirs()
+        configFile.writeText(
+            """
+            name: bbl
+            arch: amd64
+            platform: linux
+            version: ${bblVersionProvider.get().asYamlString()}
+            version_schema: semver
+            release: "1"
+            section: utils
+            priority: optional
+            maintainer: "$bblAuthorName <$bblAuthorEmail>"
+            homepage: "$bblGitHubRepositoryUrl"
+            license: "Apache-2.0"
+            description: |-
+              $bblDescription
+            umask: 0o002
+            rpm:
+              group: Applications/System
+            contents:
+              - src: ${bbl.absolutePath.asYamlString()}
+                dst: /usr/bin/bbl
+                file_info:
+                  mode: 0755
+                  owner: root
+                  group: root
+              - dst: ${(installHome + "/.bbl").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - dst: ${(installHome + "/.bbl/bin").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - dst: ${(installHome + "/.bbl/packs").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - src: ${searchCommon.absolutePath.asYamlString()}
+                dst: ${(installHome + "/.bbl/bin/bbl-search-common").asYamlString()}
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - src: ${webusPack.absolutePath.asYamlString()}
+                dst: ${(installHome + "/.bbl/packs/webus.zip").asYamlString()}
+                file_info:
+                  mode: 0644
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+            """.trimIndent() + "\n"
+        )
+
+        linuxDebOutputDirectory.get().asFile.mkdirs()
+        commandLine(
+            "nfpm", "package",
+            "--config", configFile.absolutePath,
+            "--packager", "rpm",
+            "--target", linuxRpmOutputFile.get().asFile.absolutePath,
+        )
+    }
+}
+
+tasks.register<Copy>("stageBblInstallLinuxRpmFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the Linux x86_64 .rpm installer fixture for Kitchen tests."
+    dependsOn(buildLinuxRpm, stageBblInstallVersionFixture)
+    into(layout.buildDirectory.dir("bblInstallFixtures/linux/rpm"))
+    from(linuxRpmOutputFile) { rename { "bbl.rpm" } }
     from(bblInstallCommonFixtureDirectory) { include("version.txt") }
 }
 
@@ -738,7 +879,6 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     into(layout.projectDirectory.dir("bbl_install/files"))
     from(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}")) {
         exclude("pkg/**")
-        exclude("deb/**")
         exclude("**/version.txt")
     }
     from(bblInstallCommonFixtureDirectory)
@@ -761,12 +901,16 @@ tasks.register<Sync>("stageBblInstallLinuxFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Linux fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "linux" })
+    dependsOn("stageBblInstallLinuxDebFixture")
+    dependsOn("stageBblInstallLinuxRpmFixture")
 }
 
 tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Linux CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "linux" })
+    dependsOn("stageBblInstallLinuxDebFixture")
+    dependsOn("stageBblInstallLinuxRpmFixture")
 }
 
 tasks.register<Sync>("stageBblInstallWindowsFixtures") {
