@@ -116,6 +116,17 @@ jobs:
             fixture_artifact_name: bbl-install-linux-rpm-files
             fixture_path: build/bblInstallFixtures/linux/rpm
             job_type: Package
+          - platform: archlinux
+            module_name: installer-archlinux
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArchlinuxFixture "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
+            fixture_artifact_name: bbl-install-linux-archlinux-files
+            fixture_path: build/bblInstallFixtures/linux/archlinux
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -481,6 +492,11 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-rpm-files
             kitchen_instance: rpm-install-fedora-fedora-latest
+          - suite: pacman_install_archlinux
+            platform: archlinux
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-archlinux-files
+            kitchen_instance: pacman-install-archlinux-archlinux-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -563,10 +579,35 @@ jobs:
           merge-multiple: true
 
       - name: Prepare Kitchen cookbook files (Linux)
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' }}
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ matrix.suite }}" = "pacman_install_archlinux" ]; then
+            fixture_dir=bbl_install/files/linux/archlinux
+
+            if [ -f bbl_install/files/bbl.pkg.tar.zst ]; then
+              :
+            elif [ -f "$fixture_dir/bbl.pkg.tar.zst" ]; then
+              cp "$fixture_dir/bbl.pkg.tar.zst" bbl_install/files/bbl.pkg.tar.zst
+            else
+              echo "Missing bbl.pkg.tar.zst" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+
+            if [ -f "$fixture_dir/version.txt" ]; then
+              cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            elif [ -f bbl_install/files/common/version.txt ]; then
+              cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+            fi
+
+            test -f bbl_install/files/bbl.pkg.tar.zst
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
           if [ "${{ matrix.suite }}" = "rpm_install_fedora" ]; then
             fixture_dir=bbl_install/files/linux/rpm
 
@@ -645,6 +686,10 @@ jobs:
           test -f bbl_install/files/bbl.fish
           
           du -sh bbl_install/files
+
+      - name: Pull Arch Linux Docker image
+        if: ${{ matrix.platform == 'archlinux' }}
+        run: docker pull archlinux/archlinux:latest
 
       - name: Prepare Kitchen cookbook files (Windows)
         if: ${{ matrix.platform == 'mingw' }}
