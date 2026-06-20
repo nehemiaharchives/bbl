@@ -90,6 +90,18 @@ suites:
     includes:
       - macos-local
 
+  - name: deb_install
+    run_list:
+      - recipe[bbl_install::deb_install_ubuntu]
+    verifier:
+      inspec_tests:
+        - test/integration/deb_install_ubuntu
+    includes:
+      - ubuntu-26.04
+      - ubuntu-25.10
+      - ubuntu-24.04
+      - ubuntu-22.04
+
   - name: default
     run_list:
       - recipe[bbl_install::default]

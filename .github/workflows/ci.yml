@@ -92,6 +92,17 @@ jobs:
             fixture_artifact_name: bbl-install-macos-homebrew-files
             fixture_path: build/bblInstallFixtures/macosArm64/homebrew
             job_type: Package
+          - platform: linux
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxDebFixture "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-deb-files
+            fixture_path: build/bblInstallFixtures/linux/deb
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -372,6 +383,15 @@ jobs:
       - name: Run task
         run: ./gradlew ${{ matrix.task }}
 
+      - name: Install nFPM
+        if: ${{ matrix.needs_nfpm }}
+        run: |
+          set -euo pipefail
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+          nfpm --version
+
       - name: Run fixture task
         if: ${{ matrix.fixture_task }}
         run: ./gradlew ${{ matrix.fixture_task }}
@@ -427,6 +447,11 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-homebrew-files
             kitchen_instance: homebrew-install-macos-macos-local
+          - suite: deb_install_ubuntu
+            platform: ubuntu
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-deb-files
+            kitchen_instance: deb-install-ubuntu-2604
           - suite: default
             platform: mingw
             os: windows-latest
@@ -513,6 +538,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ matrix.suite }}" = "deb_install_ubuntu" ]; then
+            fixture_dir=bbl_install/files/linux/deb
+            if [ -f bbl_install/files/bbl.deb ]; then
+              :
+            elif [ -f "$fixture_dir/bbl.deb" ]; then
+              cp "$fixture_dir/bbl.deb" bbl_install/files/bbl.deb
+            else
+              echo "Missing bbl.deb" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+
+            if [ -f "$fixture_dir/version.txt" ]; then
+              cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            elif [ -f bbl_install/files/common/version.txt ]; then
+              cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+            fi
+
+            test -f bbl_install/files/bbl.deb
+            dpkg-deb --info bbl_install/files/bbl.deb
+            dpkg-deb --contents bbl_install/files/bbl.deb | tee /tmp/bbl-deb-contents.txt
+
+            grep -qE '/usr/bin/bbl$' /tmp/bbl-deb-contents.txt
+            grep -qE '/home/ubuntu/.bbl/bin/bbl-search-common$' /tmp/bbl-deb-contents.txt
+            grep -qE '/home/ubuntu/.bbl/packs/webus.zip$' /tmp/bbl-deb-contents.txt
+
+            if grep -qE '/usr/lib/bbl|/usr/share/bbl|/usr/local|/home/ubuntu/.bbl/webus.zip$' /tmp/bbl-deb-contents.txt; then
+              echo "Deb package contains rejected install locations" >&2
+              exit 1
+            fi
+
+            du -sh bbl_install/files
+            exit 0
+          fi
+
           cp bbl_install/files/common/version.txt bbl_install/files/version.txt
           find bbl_install/files/linux -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
           
