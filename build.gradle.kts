@@ -536,6 +536,15 @@ val bblArchInstallHome = providers.gradleProperty("bblArchInstallHome")
 val linuxArchlinuxOutputFile = bblVersionProvider.flatMap { version ->
     linuxDebOutputDirectory.map { it.file("bbl-$version-linux-x86_64.pkg.tar.zst") }
 }
+val bblAlpineInstallUser = providers.gradleProperty("bblAlpineInstallUser")
+    .orElse("alpine")
+val bblAlpineInstallGroup = providers.gradleProperty("bblAlpineInstallGroup")
+    .orElse(bblAlpineInstallUser)
+val bblAlpineInstallHome = providers.gradleProperty("bblAlpineInstallHome")
+    .orElse("/home/alpine")
+val linuxAlpineOutputFile = bblVersionProvider.flatMap { version ->
+    linuxDebOutputDirectory.map { it.file("bbl-$version-linux-x86_64.apk") }
+}
 
 fun String.asYamlString(): String = "'${replace("'", "''")}'"
 
@@ -943,6 +952,155 @@ tasks.register<Sync>("stageBblInstallLinuxArchlinuxFixture") {
     from(bblInstallCommonFixtureDirectory) { include("version.txt") }
 }
 
+val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Build the Linux x86_64 Alpine Linux APK package for bbl using nFPM."
+    notCompatibleWithConfigurationCache("Generates an nFPM config from script-scoped providers.")
+    onlyIf("Linux-only package task") {
+        System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
+    }
+    dependsOn(
+        "stageBblInstallLinuxCliCoreFixture",
+        "stageBblInstallLinuxCliSearchCommonFixture",
+        stageBblInstallVersionFixture,
+    )
+
+    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
+    val stagedSearchCommon = layout.buildDirectory.file(
+        "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
+    )
+    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val nfpmConfig = layout.buildDirectory.file("nfpm/apk-x86_64/nfpm.yaml")
+    val postInstallScript = layout.buildDirectory.file("nfpm/apk-x86_64/postinstall.sh")
+
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.property("bblVersion", bblVersionProvider)
+    inputs.property("bblAlpineInstallUser", bblAlpineInstallUser)
+    inputs.property("bblAlpineInstallGroup", bblAlpineInstallGroup)
+    inputs.property("bblAlpineInstallHome", bblAlpineInstallHome)
+    outputs.file(linuxAlpineOutputFile)
+
+    doFirst {
+        val installUser = bblAlpineInstallUser.get()
+        val installGroup = bblAlpineInstallGroup.get()
+        val installHome = bblAlpineInstallHome.get()
+        require(installHome.startsWith("/")) {
+            "bblAlpineInstallHome must be an absolute path: $installHome"
+        }
+
+        val checkNfpm = ProcessBuilder("nfpm", "--version").inheritIO().start().waitFor()
+        require(checkNfpm == 0) {
+            "nFPM is required. Install it from https://nfpm.goreleaser.com/docs/install/"
+        }
+
+        val bbl = stagedBbl.get().asFile
+        val searchCommon = stagedSearchCommon.get().asFile
+        val webusPack = stagedWebusPack.asFile
+        require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
+        require(searchCommon.isFile) {
+            "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
+        }
+        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
+        require(searchCommon.setExecutable(true, false)) {
+            "Unable to make ${searchCommon.absolutePath} executable"
+        }
+
+        val configFile = nfpmConfig.get().asFile
+        configFile.parentFile.mkdirs()
+        val postInstallFile = postInstallScript.get().asFile
+        postInstallFile.writeText(
+            """
+            #!/bin/sh
+            set -e
+            if [ -d '${installHome}/.bbl' ]; then
+              chown -R '${installUser}:${installGroup}' '${installHome}/.bbl' || true
+            fi
+            """.trimIndent() + "\n"
+        )
+        postInstallFile.setExecutable(true, false)
+
+        configFile.writeText(
+            """
+            name: bbl
+            arch: amd64
+            platform: linux
+            version: ${bblVersionProvider.get().asYamlString()}
+            version_schema: semver
+            release: "1"
+            maintainer: "$bblAuthorName <$bblAuthorEmail>"
+            homepage: "$bblGitHubRepositoryUrl"
+            license: "Apache-2.0"
+            description: |-
+              $bblDescription
+            umask: 0o002
+            depends:
+              - gcompat
+              - libgcc
+              - libstdc++
+            apk:
+              arch: x86_64
+            scripts:
+              postinstall: ${postInstallFile.absolutePath.asYamlString()}
+            contents:
+              - src: ${bbl.absolutePath.asYamlString()}
+                dst: /usr/bin/bbl
+                file_info:
+                  mode: 0755
+                  owner: root
+                  group: root
+              - dst: ${("$installHome/.bbl").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - dst: ${("$installHome/.bbl/bin").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - dst: ${("$installHome/.bbl/packs").asYamlString()}
+                type: dir
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - src: ${searchCommon.absolutePath.asYamlString()}
+                dst: ${("$installHome/.bbl/bin/bbl-search-common").asYamlString()}
+                file_info:
+                  mode: 0755
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+              - src: ${webusPack.absolutePath.asYamlString()}
+                dst: ${("$installHome/.bbl/packs/webus.zip").asYamlString()}
+                file_info:
+                  mode: 0644
+                  owner: ${installUser.asYamlString()}
+                  group: ${installGroup.asYamlString()}
+            """.trimIndent() + "\n"
+        )
+
+        linuxDebOutputDirectory.get().asFile.mkdirs()
+        commandLine(
+            "nfpm", "package",
+            "--config", configFile.absolutePath,
+            "--packager", "apk",
+            "--target", linuxAlpineOutputFile.get().asFile.absolutePath,
+        )
+    }
+}
+
+tasks.register<Sync>("stageBblInstallLinuxAlpineFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the Linux x86_64 Alpine Linux APK package fixture for Kitchen tests."
+    dependsOn(buildLinuxAlpine, stageBblInstallVersionFixture)
+    into(layout.buildDirectory.dir("bblInstallFixtures/linux/alpine"))
+    from(linuxAlpineOutputFile) { rename { "bbl.apk" } }
+    from(bblInstallCommonFixtureDirectory) { include("version.txt") }
+}
+
 val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
     .map { platform ->
         val cliCoreFixtureTask = stageBblInstallFixtureTasks.single {
@@ -1054,6 +1212,7 @@ tasks.register<Sync>("stageBblInstallLinuxFixtures") {
     dependsOn("stageBblInstallLinuxDebFixture")
     dependsOn("stageBblInstallLinuxRpmFixture")
     dependsOn("stageBblInstallLinuxArchlinuxFixture")
+    dependsOn("stageBblInstallLinuxAlpineFixture")
 }
 
 tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
@@ -1063,6 +1222,7 @@ tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
     dependsOn("stageBblInstallLinuxDebFixture")
     dependsOn("stageBblInstallLinuxRpmFixture")
     dependsOn("stageBblInstallLinuxArchlinuxFixture")
+    dependsOn("stageBblInstallLinuxAlpineFixture")
 }
 
 tasks.register<Sync>("stageBblInstallWindowsFixtures") {

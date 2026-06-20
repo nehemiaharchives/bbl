@@ -127,6 +127,19 @@ jobs:
             fixture_artifact_name: bbl-install-linux-archlinux-files
             fixture_path: build/bblInstallFixtures/linux/archlinux
             job_type: Package
+
+          # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
+          # - platform: alpine
+          #   module_name: installer-apk
+          #   os: ubuntu-latest
+          #   timeout: 45
+          #   task: :cli:core:linuxX64Test
+          #   needs_konan_cache: true
+          #   needs_nfpm: true
+          #   fixture_task: stageBblInstallLinuxAlpineFixture "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+          #   fixture_artifact_name: bbl-install-linux-alpine-files
+          #   fixture_path: build/bblInstallFixtures/linux/alpine
+          #   job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -497,6 +510,13 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-archlinux-files
             kitchen_instance: pacman-install-archlinux-archlinux-latest
+
+          # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
+          # - suite: apk_install_alpine
+          #   platform: alpine
+          #   os: ubuntu-latest
+          #   fixture_pattern: bbl-install-linux-alpine-files
+          #   kitchen_instance: apk-install-alpine-alpine-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -579,10 +599,34 @@ jobs:
           merge-multiple: true
 
       - name: Prepare Kitchen cookbook files (Linux)
+        # Add `|| matrix.platform == 'alpine'` when lucene-kmp issue #262 is fixed.
         if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
         shell: bash
         run: |
           set -euo pipefail
+          # Enable this branch together with the Alpine matrix rows after issue #262 is fixed:
+          # if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
+          #   fixture_dir=bbl_install/files/linux/alpine
+          #   if [ -f bbl_install/files/bbl.apk ]; then
+          #     :
+          #   elif [ -f "$fixture_dir/bbl.apk" ]; then
+          #     cp "$fixture_dir/bbl.apk" bbl_install/files/bbl.apk
+          #   else
+          #     echo "Missing bbl.apk" >&2
+          #     find bbl_install/files -maxdepth 5 -type f | sort
+          #     exit 1
+          #   fi
+          #   if [ -f "$fixture_dir/version.txt" ]; then
+          #     cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+          #   elif [ -f bbl_install/files/common/version.txt ]; then
+          #     cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          #   fi
+          #   test -f bbl_install/files/bbl.apk
+          #   test -f bbl_install/files/version.txt
+          #   du -sh bbl_install/files
+          #   exit 0
+          # fi
+
           if [ "${{ matrix.suite }}" = "pacman_install_archlinux" ]; then
             fixture_dir=bbl_install/files/linux/archlinux
 
@@ -690,6 +734,11 @@ jobs:
       - name: Pull Arch Linux Docker image
         if: ${{ matrix.platform == 'archlinux' }}
         run: docker pull archlinux/archlinux:latest
+
+      # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
+      # - name: Pull Alpine Docker image
+      #   if: ${{ matrix.platform == 'alpine' }}
+      #   run: docker pull alpine:latest
 
       - name: Prepare Kitchen cookbook files (Windows)
         if: ${{ matrix.platform == 'mingw' }}
@@ -816,6 +865,7 @@ jobs:
       - name: Kitchen test
         working-directory: bbl_install
         shell: bash
+        # Add `|| matrix.platform == 'alpine'` when lucene-kmp issue #262 is fixed.
         if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
         env:
           BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}

@@ -51,6 +51,13 @@ platforms:
       intermediate_instructions:
         - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
 
+  - name: alpine-latest
+    driver:
+      image: alpine:latest
+      privileged: true
+      intermediate_instructions:
+        - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
+
   - name: windows-local
     driver:
       name: local
@@ -133,6 +140,15 @@ suites:
     includes:
       - archlinux-latest
 
+  - name: apk_install_alpine
+    run_list:
+      - recipe[bbl_install::apk_install_alpine]
+    verifier:
+      inspec_tests:
+        - test/integration/apk_install_alpine
+    includes:
+      - alpine-latest
+
   - name: default
     run_list:
       - recipe[bbl_install::default]
@@ -140,6 +156,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/default
+    excludes:
+      - alpine-latest
 
   - name: pack_install_posix
     run_list:
@@ -159,6 +177,7 @@ suites:
         - test/integration/pack_install_posix
     excludes:
       - windows-local
+      - alpine-latest
 
   - name: pack_install_windows
     run_list:
@@ -182,6 +201,7 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+      - alpine-latest
 
   - name: search_posix
     run_list:
@@ -196,6 +216,7 @@ suites:
       command: /tmp/bbl-search-posix-test/test_search.sh -ThrottleLimit <%= ENV.fetch('BBL_SEARCH_POSIX_THROTTLE', '8') %> -SearchTimeoutSeconds 180
     excludes:
       - windows-local
+      - alpine-latest
 
   - name: config_posix
     run_list:
@@ -210,6 +231,7 @@ suites:
       command: /tmp/bbl-config-posix-test/test_config.sh
     excludes:
       - windows-local
+      - alpine-latest
 
   - name: completion_posix
     run_list:
@@ -226,6 +248,7 @@ suites:
       command: /tmp/bbl-completion-posix-test/test_completion.sh
     excludes:
       - windows-local
+      - alpine-latest
 
   - name: history_posix
     run_list:
@@ -240,6 +263,7 @@ suites:
       command: /tmp/bbl-history-posix-test/test_history.sh
     excludes:
       - windows-local
+      - alpine-latest
 
   - name: config_windows
     run_list:
@@ -254,6 +278,7 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+      - alpine-latest
 
   - name: history_windows
     run_list:
@@ -268,6 +293,7 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+      - alpine-latest
 
   - name: search_windows
     run_list:
@@ -282,6 +308,7 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+      - alpine-latest
 
   - name: completion_windows
     run_list:
@@ -296,3 +323,4 @@ suites:
       - ubuntu-24.04
       - ubuntu-22.04
       - macos-local
+      - alpine-latest
