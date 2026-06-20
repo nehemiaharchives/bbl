@@ -278,24 +278,59 @@ fun registerMacosPkgTasks(platformId: String, taskNamePart: String, architecture
         onlyIf("pkgbuild is available only on macOS") {
             System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
         }
-        dependsOn("stageBblInstall${taskNamePart}CliCoreFixture")
+        dependsOn(
+            "stageBblInstall${taskNamePart}CliCoreFixture",
+            "stageBblInstall${taskNamePart}CliSearchCommonFixture",
+        )
         dependsOn(stageBblInstallVersionFixture)
 
         val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/bbl")
-        inputs.file(stagedBbl)
+        val stagedSearchCommon = layout.buildDirectory.file(
+            "bblInstallFixtures/$platformId/cli-search-common/bbl-search-common"
+        )
+        val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
         inputs.property("bblVersion", bblVersionProvider)
         outputs.file(pkgOutputFile)
         environment("COPYFILE_DISABLE", "1")
 
         doFirst {
             val source = stagedBbl.get().asFile
+            val searchCommon = stagedSearchCommon.get().asFile
+            val webusPack = stagedWebusPack.asFile
             require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
+            require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
+            require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
             val root = pkgRoot.get().asFile
-            val target = root.resolve("usr/local/bin/bbl")
+            val libexec = root.resolve("usr/local/libexec/bbl")
+            val target = libexec.resolve("bbl")
+            val wrapper = root.resolve("usr/local/bin/bbl")
             root.deleteRecursively()
             target.parentFile.mkdirs()
             source.copyTo(target, overwrite = true)
+            searchCommon.copyTo(libexec.resolve("bbl-search-common"), overwrite = true)
+            webusPack.copyTo(libexec.resolve("webus.zip"), overwrite = true)
             require(target.setExecutable(true, false)) { "Unable to make ${target.absolutePath} executable" }
+            require(libexec.resolve("bbl-search-common").setExecutable(true, false)) {
+                "Unable to make packaged bbl-search-common executable"
+            }
+            wrapper.parentFile.mkdirs()
+            wrapper.writeText(
+                """
+                #!/bin/bash
+                set -e
+                assets=/usr/local/libexec/bbl
+                mkdir -p "${'$'}HOME/.bbl/bin" "${'$'}HOME/.bbl/packs"
+                if ! cmp -s "${'$'}assets/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"; then
+                  install -m 0755 "${'$'}assets/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"
+                fi
+                if ! cmp -s "${'$'}assets/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"; then
+                  install -m 0644 "${'$'}assets/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"
+                fi
+                exec "${'$'}assets/bbl" "${'$'}@"
+                """.trimIndent() + "\n"
+            )
+            require(wrapper.setExecutable(true, false)) { "Unable to make ${wrapper.absolutePath} executable" }
             val xattrExitCode = ProcessBuilder("xattr", "-cr", root.absolutePath).inheritIO().start().waitFor()
             require(xattrExitCode == 0) { "Unable to clear extended attributes from ${root.absolutePath}" }
 
@@ -549,8 +584,9 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     dependsOn(stageBblInstallVersionFixture)
 
     into(layout.projectDirectory.dir("bbl_install/files"))
-    from(platformFixtureTasks.map { layout.buildDirectory.dir("bblInstallFixtures/${platform.id}") }) {
+    from(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}")) {
         exclude("pkg/**")
+        exclude("**/version.txt")
     }
     from(bblInstallCommonFixtureDirectory)
     include("**/*")
