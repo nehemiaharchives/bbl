@@ -305,6 +305,26 @@ data class Language(
         )
 
         val downloadableLanguages = arrayOf(hi, bn, mr, te, ta, gu, ur, vi, tl, ne, id, th, zht)
+
+        /**
+         * converts user input to specify translation by language name or language code
+         *
+         * @param language language name or code e.g. English, en, Japanese, japanese, JA, ja
+         */
+        fun parse(language: String): Language? {
+            val languages = embeddedLanguages + downloadableLanguages
+
+            val normalized = language.lowercase()
+
+            languages.forEach { lang ->
+                if (lang.code == normalized) {
+                    return lang
+                } else if (lang.englishName.lowercase() == normalized) {
+                    return lang
+                }
+            }
+            return null
+        }
     }
 }
 

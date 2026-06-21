@@ -184,6 +184,22 @@ describe 'bbl john 3:16 in kjv' do
   end
 end
 
+describe 'bbl john 3:16 in Japanese' do
+  subject(:cmd) { command($bbl_run.call('john 3:16 in Japanese')) }
+
+  it 'uses JC as the default Japanese translation' do
+    expect($bbl_normalized_stdout.call(cmd)).to eq($bbl_chapter_from_pack.call('jc', 43, 3, 16).lines.first)
+  end
+end
+
+describe 'bbl gen 1 in ja' do
+  subject(:cmd) { command($bbl_run.call('gen 1 in ja')) }
+
+  it 'uses JC as the default ja translation' do
+    expect($bbl_normalized_stdout.call(cmd)).to eq($bbl_chapter_from_pack.call('jc', 1, 1, 1))
+  end
+end
+
 describe 'bbl matthew 28:18-20' do
   subject(:cmd) { command($bbl_run.call('matthew 28:18-20')) }
 

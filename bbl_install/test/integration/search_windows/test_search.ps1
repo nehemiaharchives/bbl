@@ -74,6 +74,16 @@ Add-Test `
   'John 11:35 Jesus wept.'
 
 Add-Test `
+  'Language aliases' `
+  'search "Jesus wept" in en de' `
+  @('search', 'Jesus wept', 'in', 'en', 'de') `
+  'John 11:35 Jesus wept.' `
+  @'
+John 11:35 Jesus wept.
+Johannes 11:35 Und Jesus gingen die Augen über.
+'@
+
+Add-Test `
   'WEBUS (default)' `
   'search Jesus wept unquoted' `
   @('search', 'Jesus', 'wept') `
@@ -672,6 +682,22 @@ Add-Test `
 '@
 
 # --- JC ---
+Add-Test `
+  'JC language aliases' `
+  'search イエス in Japanese' `
+  @('search', 'イエス', 'in', 'Japanese') `
+  @'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+'@
+
+Add-Test `
+  'JC language aliases' `
+  'search イエス in ja' `
+  @('search', 'イエス', 'in', 'ja') `
+  @'
+マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
+'@
+
 foreach ($t in @('イエス・キリスト', 'イエス', 'キリスト')) {
   Add-Test `
     'JC' `

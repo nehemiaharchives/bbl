@@ -1,25 +1,15 @@
 package org.gnit.bible.cli
 
-import com.github.ajalt.clikt.core.CoreCliktCommand
-import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.UsageError
-import com.github.ajalt.clikt.core.main
-import com.github.ajalt.clikt.core.requireObject
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.completion.CompletionCommand
 import com.github.ajalt.clikt.completion.CompletionCandidates
+import com.github.ajalt.clikt.completion.CompletionCommand
+import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import org.gnit.bible.*
 import org.gnit.bible.BblVersion.VERSION
-import org.gnit.bible.Bible
-import org.gnit.bible.Books
-import org.gnit.bible.CompareBy
-import org.gnit.bible.Translation
-import org.gnit.bible.VersePointer
-import org.gnit.bible.LoggingSetup
 
 private const val OPEN_ENDED_VERSE_RANGE = -1
 
@@ -64,6 +54,7 @@ class Bbl(
         bbl john 3:16 in kjv                        read a verse in specific bible
         bbl john 3:16 in kjv tb                     compare kjv and tb
         bbl john 3:16 in kjv tb lsg ..              compare 3 or more translations
+        bbl john 3:16 in en de fr es                specify language name or lang code
         bbl search Jesus Christ                     search entire bible by terms
         bbl s Jesus Christ limit 3                  specify number of search results
         bbl s Jesus Christ in kjv                   search in other version of bible
@@ -240,17 +231,22 @@ class In(
     override fun help(context: Context): String = "Read verses in one or more translations. (e.g. bbl ex 20 in kjv)"
 
     override fun run() {
-        val codes = translationOverrides
+        val translationCodeOrLanguages = translationOverrides
             .map { it.lowercase() }
             .distinct()
 
-        val translations = codes.map { code ->
-            bible.availableTranslations().firstOrNull { it.code == code }
-                ?: throw UsageError("Translation code '$code' not found")
+        val translations: List<Translation> = translationCodeOrLanguages.map { translationCodeOrLanguage ->
+            var found: Translation? = bible.availableTranslations().firstOrNull { it.code == translationCodeOrLanguage }
+            if (found == null){
+                val foundLanguage: Language = Language.parse(translationCodeOrLanguage)
+                    ?: throw UsageError("$translationCodeOrLanguage is not either translation code or language")
+                found = SupportedTranslation.defaultTranslationOf(foundLanguage)
+            }
+            found
         }
 
         if (translations.isEmpty()) {
-            throw UsageError("Missing translation code(s)")
+            throw UsageError("Missing translation code(s) or language")
         }
 
         val firstTranslation = translations.first()
@@ -275,7 +271,7 @@ class In(
             echo(selectedVerses.trimEnd())
             BblHistory.record(
                 bible,
-                BblHistory.command("bbl", versePointerBookAndChapter(), "in", codes.joinToString(" "))
+                BblHistory.command("bbl", versePointerBookAndChapter(), "in", translationCodeOrLanguages.joinToString(" "))
             )
             return
         }
@@ -342,7 +338,7 @@ class In(
         }
         BblHistory.record(
             bible,
-            BblHistory.command("bbl", versePointerBookAndChapter(), "in", codes.joinToString(" "))
+            BblHistory.command("bbl", versePointerBookAndChapter(), "in", translationCodeOrLanguages.joinToString(" "))
         )
     }
 

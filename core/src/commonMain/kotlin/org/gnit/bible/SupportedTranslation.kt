@@ -42,5 +42,37 @@ enum class SupportedTranslation(
         val embeddedCodes: Array<String> get() = embeddedTranslations.map { it.code }.toTypedArray()
         val downloadableCodes: List<String> get() = downloadableTranslations.map { it.code }
         val byCode: Map<String, SupportedTranslation> get() = entries.associateBy { it.code }
+
+        fun defaultTranslationOf(language: Language): Translation {
+            return when(language){
+                Language.en -> WEBUS.translation
+                Language.es -> RVR09.translation
+                Language.pt -> TB.translation
+                Language.de -> DELUT.translation
+                Language.fr -> LSG.translation
+                Language.ru -> SINOD.translation
+                Language.nl -> SVRJ.translation
+                Language.it -> RDV24.translation
+                Language.pl -> UBG.translation
+                Language.uk -> UBIO.translation
+                Language.sv -> SVEN.translation
+                Language.zh -> CUNP.translation
+                Language.ko -> KRV.translation
+                Language.ja -> JC.translation
+                Language.id -> AYT.translation
+                Language.th -> TH1971.translation
+                Language.hi -> IRVHIN.translation
+                Language.bn -> IRVBEN.translation
+                Language.ta -> IRVTAM.translation
+                Language.ne -> NPIULB.translation
+                Language.tl -> ABTAG.translation
+                Language.vi -> KTTV.translation
+                Language.gu -> IRVGUJ.translation
+                Language.mr -> IRVMAR.translation
+                Language.te -> IRVTEL.translation
+                Language.ur -> IRVURD.translation
+                else -> throw IllegalArgumentException("$language is not recognized as supported Language")
+            }
+        }
     }
 }

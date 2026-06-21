@@ -57,6 +57,7 @@ class SearchCliTest {
         fakeFs.write(packDirPath / "kjv.zip") { write(kjvSearchFixtureZipBytes) }
         fakeFs.write(packDirPath / "jc.zip") { write(jcSearchFixtureZipBytes) }
         fakeFs.write(packDirPath / "krv.zip") { write(krvSearchFixtureZipBytes) }
+        fakeFs.write(packDirPath / "delut.zip") { write(delutSearchFixtureZipBytes) }
 
         bible = Bible(
             assetManager = AssetManagerImpl(
@@ -135,6 +136,23 @@ class SearchCliTest {
 
         assertEquals(0, result.statusCode)
         assertEquals("Matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search quoted Jesus wept in en de uses both default language translations`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("\"Jesus wept\"", it.term)
+            assertEquals("webus", it.translation.code)
+            listOf(VersePointer(translation = SupportedTranslation.WEBUS.translation, book = 43, chapter = 11, startVerse = 35))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search \"Jesus wept\" in en de")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals(
+            "John 11:35 Jesus wept.\nJohannes 11:35 Und Jesus gingen die Augen über.\n",
+            result.stdout
+        )
     }
 
     @Test
@@ -523,6 +541,34 @@ class SearchCliTest {
     }
 
     @Test
+    fun `bbl search Japanese term in Japanese uses default Japanese translation`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("イエス", it.term)
+            assertEquals("jc", it.translation.code)
+            listOf(VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search イエス in Japanese")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals("マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n", result.stdout)
+    }
+
+    @Test
+    fun `bbl search Japanese term in ja uses default Japanese translation`() {
+        val backend = RecordingBackendFactory {
+            assertEquals("イエス", it.term)
+            assertEquals("jc", it.translation.code)
+            listOf(VersePointer(translation = SupportedTranslation.JC.translation, book = 40, chapter = 1, startVerse = 1))
+        }
+
+        val result = Bbl(bible, searchBackendProvider = backend::backendFor).test("search イエス in ja")
+
+        assertEquals(0, result.statusCode, result.stderr)
+        assertEquals("マタイによる福音書 1:1 イエス・キリストの系図である。ダビデの子、アブラハムの子である。\n", result.stdout)
+    }
+
+    @Test
     fun `bbl search accepts full width spaces in Japanese input method command strings`() {
         val commands = listOf(
             FullWidthSpaceSearchCommand(
@@ -765,7 +811,15 @@ class SearchCliTest {
                 "webus.45.1.txt" to "1 Paul, a servant of Jesus Christ, called to be an apostle, set apart for the Good News of God,\n",
                 "webus.45.3.txt" to chapterWithVerse(22, "Even the righteousness of God which is by faith in Jesus Christ to all and upon all those who believe; for there is no distinction,"),
                 "webus.45.5.txt" to "1 Being therefore justified by faith, we have peace with God through our Lord Jesus Christ;\n",
+                "webus.43.11.txt" to chapterWithVerse(35, "Jesus wept."),
                 "webus$MANIFEST_JSON_POSTFIX" to SupportedTranslation.WEBUS.translation.toJson()
+            )
+        )
+
+        private val delutSearchFixtureZipBytes = ZipUtil.buildMinimalZip(
+            listOf(
+                "delut.43.11.txt" to chapterWithVerse(35, "Und Jesus gingen die Augen über."),
+                "delut$MANIFEST_JSON_POSTFIX" to SupportedTranslation.DELUT.translation.toJson()
             )
         )
 

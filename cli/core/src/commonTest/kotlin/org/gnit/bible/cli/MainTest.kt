@@ -208,6 +208,14 @@ class MainTest {
     }
 
     @Test
+    fun testBblGen1InJapaneseLanguageCode() {
+        val result = Bbl(bible).test("gen 1 in ja")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
+    }
+
+    @Test
     fun testBblGen1InJcWebusComparison() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         platform.settings.putString(ConfigKey.COMPARE_BY.value, "verse")
@@ -258,6 +266,14 @@ class MainTest {
         val result = command.test("john 3:16 in jc")
         val jcJohn3v16 = TestFixtures.JC_JOHN_3_16
         assertEquals("16 $jcJohn3v16\n", result.stdout)
+    }
+
+    @Test
+    fun testBblJohn3v16InJapaneseLanguageName() {
+        val result = Bbl(bible).test("john 3:16 in Japanese")
+
+        assertEquals(0, result.statusCode, "Command should succeed. stderr=${result.stderr}")
+        assertEquals("16 ${TestFixtures.JC_JOHN_3_16}\n", result.stdout)
     }
 
     @Test

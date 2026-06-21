@@ -165,6 +165,12 @@ Add_Test 'WEBUS (default)' 'search "Jesus wept" exact' \
   'John 11:35 Jesus wept.' \
   'search' 'Jesus wept'
 
+Add_Test_With_Output 'Language aliases' 'search "Jesus wept" in en de' 'John 11:35 Jesus wept.' "$(cat <<'EOT'
+John 11:35 Jesus wept.
+Johannes 11:35 Und Jesus gingen die Augen über.
+EOT
+)" 'search' 'Jesus wept' 'in' 'en' 'de'
+
 Add_Test 'WEBUS (default)' 'search Jesus wept unquoted' \
   'Matthew 26:75 Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.' \
   'search' 'Jesus' 'wept'
@@ -520,6 +526,8 @@ EOT
 )" 'search' '예수그리스도' 'in' 'krv' 'in' 'johns letters'
 
 # --- JC ---
+Add_Test 'JC language aliases' 'search イエス in Japanese' 'マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。' 'search' 'イエス' 'in' 'Japanese'
+Add_Test 'JC language aliases' 'search イエス in ja' 'マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。' 'search' 'イエス' 'in' 'ja'
 for t in 'イエス・キリスト' 'イエス' 'キリスト'; do
   Add_Test 'JC' "search $t in jc" "$(cat <<'EOT'
 マタイによる福音書 1:1 アブラハムの子であるダビデの子、イエス・キリストの系図。
