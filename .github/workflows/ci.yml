@@ -452,6 +452,16 @@ jobs:
           sudo apt-get install -y nfpm
           nfpm --version
 
+      - name: Setup .NET SDK
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install WiX Toolset
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        run: dotnet tool install --global wix
+
       - name: Run fixture task
         if: ${{ matrix.fixture_task }}
         run: ./gradlew ${{ matrix.fixture_task }}
