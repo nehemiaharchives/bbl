@@ -1409,8 +1409,7 @@ tasks.register<Exec>("buildWindowsMsi") {
         "bblInstallFixtures/windows/cli-search-common/bbl-search-common.exe"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
-    val wxsSource = layout.projectDirectory.file("resources/wix/installer.wxs")
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, wxsSource)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
     inputs.property("bblVersion", bblVersionProvider)
 
     val msiOutputFile = bblVersionProvider.map { version ->
@@ -1422,11 +1421,9 @@ tasks.register<Exec>("buildWindowsMsi") {
         val source = stagedBbl.get().asFile
         val searchCommon = stagedSearchCommon.get().asFile
         val webusPack = stagedWebusPack.asFile
-        val wxsFile = wxsSource.asFile
         require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
         require(searchCommon.isFile) { "Missing staged bbl-search-common: ${searchCommon.absolutePath}" }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
-        require(wxsFile.isFile) { "Missing WiX source: ${wxsFile.absolutePath}" }
 
         val staging = layout.buildDirectory.dir("msiStaging/windows").get().asFile.also { it.mkdirs() }
         staging.resolve("bbl.exe").also { source.copyTo(it, overwrite = true) }
@@ -1436,6 +1433,45 @@ tasks.register<Exec>("buildWindowsMsi") {
         val msiVersion = bblVersionProvider.get().removePrefix("v") + ".0"
         val output = msiOutputFile.get().asFile
         output.parentFile.mkdirs()
+
+        val wxsFile = staging.resolve("installer.wxs")
+        wxsFile.writeText(
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+                <Package Name="bbl"
+                         Language="1033"
+                         Manufacturer="GNIT"
+                         Version="$(var.BblVersion)"
+                         Scope="perUser"
+                         UpgradeCode="$windowsMsiUpgradeCode">
+                    <MajorUpgrade DowngradeErrorMessage="A newer version of bbl is already installed." />
+                    <Media Id="1" Cabinet="bbl.cab" EmbedCab="yes" />
+
+                    <StandardDirectory Id="LocalAppDataFolder">
+                        <Directory Id="INSTALLDIR" Name="bbl">
+                            <Component Id="bbl_exe" Guid="*">
+                                <File Id="bbl_exe" Source="$(var.BblSourceDir)\bbl.exe" />
+                                <Environment Id="bbl_PATH" Name="PATH" Value="[INSTALLDIR]" Permanent="no" Part="last" Action="set" System="no" />
+                            </Component>
+                            <Component Id="bbl_search_common_exe" Guid="*">
+                                <File Id="bbl_search_common_exe" Source="$(var.BblSourceDir)\bbl-search-common.exe" />
+                            </Component>
+                            <Component Id="webus_zip" Guid="*">
+                                <File Id="webus_zip" Source="$(var.BblSourceDir)\webus.zip" />
+                            </Component>
+                        </Directory>
+                    </StandardDirectory>
+
+                    <Feature Id="ProductFeature" Title="bbl" Level="1">
+                        <ComponentRef Id="bbl_exe" />
+                        <ComponentRef Id="bbl_search_common_exe" />
+                        <ComponentRef Id="webus_zip" />
+                    </Feature>
+                </Package>
+            </Wix>
+            """.trimIndent() + "\n"
+        )
 
         val pathDirs = (System.getenv("PATH") ?: "").split(File.pathSeparator)
         val wixExe = pathDirs
