@@ -78,7 +78,7 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
-            fixture_task: stageBblInstallMacosArm64PkgFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallMacosArm64PkgFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-pkg-files
             fixture_path: build/bblInstallFixtures/macosArm64/pkg
             job_type: Package
@@ -90,7 +90,7 @@ jobs:
             needs_konan_cache: true
             needs_xcode: true
             xcode_version: '16.4'
-            fixture_task: stageBblInstallMacosArm64HomebrewFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallMacosArm64HomebrewFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-homebrew-files
             fixture_path: build/bblInstallFixtures/macosArm64/homebrew
             job_type: Package
@@ -101,7 +101,7 @@ jobs:
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
             needs_nfpm: true
-            fixture_task: stageBblInstallLinuxDebFixture "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_task: stageBblInstallLinuxDebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
             fixture_artifact_name: bbl-install-linux-deb-files
             fixture_path: build/bblInstallFixtures/linux/deb
             job_type: Package
@@ -112,7 +112,7 @@ jobs:
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
             needs_nfpm: true
-            fixture_task: stageBblInstallLinuxRpmFixture "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
+            fixture_task: stageBblInstallLinuxRpmFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
             fixture_artifact_name: bbl-install-linux-rpm-files
             fixture_path: build/bblInstallFixtures/linux/rpm
             job_type: Package
@@ -123,7 +123,7 @@ jobs:
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
             needs_nfpm: true
-            fixture_task: stageBblInstallLinuxArchlinuxFixture "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
+            fixture_task: stageBblInstallLinuxArchlinuxFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
             fixture_artifact_name: bbl-install-linux-archlinux-files
             fixture_path: build/bblInstallFixtures/linux/archlinux
             job_type: Package
@@ -136,7 +136,7 @@ jobs:
           #   task: :cli:core:linuxX64Test
           #   needs_konan_cache: true
           #   needs_nfpm: true
-          #   fixture_task: stageBblInstallLinuxAlpineFixture "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+           #   fixture_task: stageBblInstallLinuxAlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
           #   fixture_artifact_name: bbl-install-linux-alpine-files
           #   fixture_path: build/bblInstallFixtures/linux/alpine
           #   job_type: Package
@@ -157,7 +157,7 @@ jobs:
             timeout: 75
             task: :cli:core:mingwX64Test
             needs_konan_cache: true
-            fixture_task: stageBblInstallWindowsMsiFixture "-Pbblpacks.embed=false"
+            fixture_task: stageBblInstallWindowsMsiFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-windows-msi-files
             fixture_path: build/bblInstallFixtures/windows/msi
             job_type: Package

@@ -48,6 +48,13 @@ fun File.sha256Hex(): String = inputStream().buffered().use { input ->
     digest.digest().joinToString("") { "%02x".format(it) }
 }
 
+enum class ExecutableType { debug, release }
+
+val executableType = providers.gradleProperty("ExecutableType")
+    .orElse("debug")
+    .map { ExecutableType.valueOf(it.lowercase()) }
+    .get()
+
 val bblInstallPlatforms = listOf(
     BblInstallPlatform("linux", "Linux", "linuxX64", "LinuxX64", ".kexe"),
     BblInstallPlatform("macosArm64", "MacosArm64", "macosArm64", "MacosArm64", ".kexe"),
@@ -490,11 +497,13 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
             group = LifecycleBasePlugin.BUILD_GROUP
             description = "Stage ${binary.id} ${platform.id} fixture files for bbl_install Kitchen tests."
 
-            dependsOn("${binary.projectPath}:linkDebugExecutable${platform.linkTaskSuffix}")
+            val linkExecutablePrefix = if (executableType == ExecutableType.release) "linkReleaseExecutable" else "linkDebugExecutable"
+            val executableBuildDir = if (executableType == ExecutableType.release) "releaseExecutable" else "debugExecutable"
+            dependsOn("${binary.projectPath}:$linkExecutablePrefix${platform.linkTaskSuffix}")
             dependsOn(stageBblInstallVersionFixture)
 
             into(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}/${binary.id}"))
-            from(project(binary.projectPath).layout.buildDirectory.dir("bin/${platform.nativeTargetName}/debugExecutable")) {
+            from(project(binary.projectPath).layout.buildDirectory.dir("bin/${platform.nativeTargetName}/$executableBuildDir")) {
                 include(executableFileName)
                 rename(Regex.escape(executableFileName), binary.binaryName + if (platform.id == "windows") ".exe" else "")
             }
