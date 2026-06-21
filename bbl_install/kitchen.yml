@@ -324,3 +324,21 @@ suites:
       - ubuntu-22.04
       - macos-local
       - alpine-latest
+
+  - name: winget_install_windows
+    run_list:
+      - recipe[bbl_install::winget_install_windows]
+    verifier:
+      inspec_tests:
+        - test/integration/winget_install_windows
+    includes:
+      - windows-local
+
+  - name: msi_install_windows
+    run_list:
+      - recipe[bbl_install::msi_install_windows]
+    verifier:
+      inspec_tests:
+        - test/integration/msi_install_windows
+    includes:
+      - windows-local

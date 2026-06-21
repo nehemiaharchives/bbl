@@ -548,6 +548,10 @@ val linuxAlpineOutputFile = bblVersionProvider.flatMap { version ->
 
 fun String.asYamlString(): String = "'${replace("'", "''")}'"
 
+fun String.asWingetYamlString(): String = "'${replace("'", "''")}'"
+
+fun File.sha256UpperHex(): String = sha256Hex().uppercase()
+
 val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Build the Linux amd64 .deb installer for bbl using nFPM."
@@ -1187,6 +1191,7 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     into(layout.projectDirectory.dir("bbl_install/files"))
     from(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}")) {
         exclude("pkg/**")
+        exclude("msi/**")
         exclude("**/version.txt")
     }
     from(bblInstallCommonFixtureDirectory)
@@ -1229,12 +1234,238 @@ tasks.register<Sync>("stageBblInstallWindowsFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
+    dependsOn("stageBblInstallWindowsWingetFixture")
+    dependsOn("stageBblInstallWindowsMsiFixture")
+    from(layout.buildDirectory.file("bblInstallFixtures/windows/msi/bbl.msi"))
 }
 
 tasks.register<Sync>("stageBblInstallWindowsCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
+    dependsOn("stageBblInstallWindowsWingetFixture")
+    dependsOn("stageBblInstallWindowsMsiFixture")
+    from(layout.buildDirectory.file("bblInstallFixtures/windows/msi/bbl.msi"))
+}
+
+val bblWingetPackageIdentifier = "Gnit.Bbl"
+val bblWingetPublisher = "GNIT"
+val bblWingetPackageName = "bbl"
+val bblWingetLocale = "en-US"
+val bblWingetManifestVersion = "1.10.0"
+
+val windowsWingetFixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/windows/winget")
+val windowsWingetArchiveFile = windowsWingetFixtureDirectory.map { it.file("bbl-winget.zip") }
+
+tasks.register("stageBblInstallWindowsWingetFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the Windows WinGet local manifest + portable ZIP fixture for Kitchen tests."
+    notCompatibleWithConfigurationCache("Creates local WinGet manifests and ZIP from script-scoped providers.")
+
+    dependsOn(
+        "stageBblInstallWindowsCliCoreFixture",
+        "stageBblInstallWindowsCliSearchCommonFixture",
+        stageBblInstallVersionFixture,
+    )
+
+    val stagedCliCoreDir = layout.buildDirectory.dir("bblInstallFixtures/windows/cli-core")
+    val stagedHelperDirs = listOf(
+        "cli-search-common" to "bbl-search-common.exe",
+    )
+
+    inputs.dir(stagedCliCoreDir)
+    inputs.property("bblVersion", bblVersionProvider)
+    outputs.dir(windowsWingetFixtureDirectory)
+
+    doLast {
+        val version = bblVersionProvider.get()
+        val outputDir = windowsWingetFixtureDirectory.get().asFile
+        outputDir.deleteRecursively()
+        outputDir.mkdirs()
+
+        val packageRoot = temporaryDir.resolve("winget-package")
+        packageRoot.deleteRecursively()
+        packageRoot.mkdirs()
+
+        val cliCore = stagedCliCoreDir.get().asFile
+        val bblExe = cliCore.resolve("bbl.exe")
+        require(bblExe.isFile) { "Missing staged bbl.exe: ${bblExe.absolutePath}" }
+        bblExe.copyTo(packageRoot.resolve("bbl.exe"), overwrite = true)
+
+        stagedHelperDirs.forEach { (fixtureId, fileName) ->
+            val source = layout.buildDirectory.file("bblInstallFixtures/windows/$fixtureId/$fileName").get().asFile
+            require(source.isFile) { "Missing staged helper: ${source.absolutePath}" }
+            source.copyTo(packageRoot.resolve(fileName), overwrite = true)
+        }
+
+        val webusPack = cliCore.resolve("webus.zip")
+        require(webusPack.isFile) { "Missing staged webus.zip: ${webusPack.absolutePath}" }
+        webusPack.copyTo(packageRoot.resolve("webus.zip"), overwrite = true)
+
+        val archive = windowsWingetArchiveFile.get().asFile
+        archive.parentFile.mkdirs()
+        ZipOutputStream(archive.outputStream().buffered()).use { zip ->
+            packageRoot.walkTopDown()
+                .filter { it.isFile }
+                .sortedBy { it.relativeTo(packageRoot).invariantSeparatorsPath }
+                .forEach { file ->
+                    val entry = ZipEntry(file.relativeTo(packageRoot).invariantSeparatorsPath)
+                    entry.time = 0L
+                    zip.putNextEntry(entry)
+                    file.inputStream().buffered().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
+        }
+
+        val sha256 = archive.sha256UpperHex()
+        val manifestDir = outputDir.resolve("manifests/g/Gnit/Bbl/$version")
+        manifestDir.mkdirs()
+
+        manifestDir.resolve("Gnit.Bbl.yaml").writeText(
+            """
+            # Created for local Kitchen/CI testing. Do not submit this file unchanged to microsoft/winget-pkgs.
+            PackageIdentifier: Gnit.Bbl
+            PackageVersion: ${version.asWingetYamlString()}
+            DefaultLocale: en-US
+            ManifestType: version
+            ManifestVersion: $bblWingetManifestVersion
+            """.trimIndent() + "\n"
+        )
+
+        manifestDir.resolve("Gnit.Bbl.locale.en-US.yaml").writeText(
+            """
+            # Created for local Kitchen/CI testing. Do not submit this file unchanged to microsoft/winget-pkgs.
+            PackageIdentifier: Gnit.Bbl
+            PackageVersion: ${version.asWingetYamlString()}
+            PackageLocale: en-US
+            Publisher: Hokuto Joel Ide, a member of GNIT
+            PublisherUrl: $bblGitHubRepositoryUrl
+            PublisherSupportUrl: $bblGitHubRepositoryUrl/issues
+            Author: GNIT
+            PackageName: bbl
+            PackageUrl: $bblGitHubRepositoryUrl
+            License: Apache-2.0
+            LicenseUrl: $bblGitHubRepositoryUrl/blob/master/LICENSE
+            ShortDescription: $bblDescription
+            Description: $bblDescription
+            Moniker: bbl
+            Tags:
+              - bible
+              - cli
+              - command-line
+              - search
+            ManifestType: defaultLocale
+            ManifestVersion: $bblWingetManifestVersion
+            """.trimIndent() + "\n"
+        )
+
+        manifestDir.resolve("Gnit.Bbl.installer.yaml").writeText(
+            """
+            # Created for local Kitchen/CI testing. Do not submit this file unchanged to microsoft/winget-pkgs.
+            PackageIdentifier: Gnit.Bbl
+            PackageVersion: ${version.asWingetYamlString()}
+            MinimumOSVersion: 10.0.17763.0
+            InstallerType: zip
+            NestedInstallerType: portable
+            ArchiveBinariesDependOnPath: true
+            Installers:
+              - Architecture: x64
+                InstallerUrl: __BBL_WINGET_INSTALLER_URL__
+                InstallerSha256: $sha256
+                NestedInstallerFiles:
+                  - RelativeFilePath: bbl.exe
+                    PortableCommandAlias: bbl
+                  - RelativeFilePath: bbl-search-common.exe
+            ManifestType: installer
+            ManifestVersion: $bblWingetManifestVersion
+            """.trimIndent() + "\n"
+        )
+
+        bblInstallCommonFixtureDirectory.get().asFile.resolve("version.txt")
+            .copyTo(outputDir.resolve("version.txt"), overwrite = true)
+    }
+}
+
+val windowsMsiOutputDirectory = layout.buildDirectory.dir("distributions")
+val windowsMsiUpgradeCode = "32199fde-1c09-447f-a22d-e8b23a4083bb"
+
+tasks.register<Exec>("buildWindowsMsi") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Build the MSI installer for bbl on Windows."
+    notCompatibleWithConfigurationCache(
+        "Builds an MSI using script-scoped providers and filesystem preparation."
+    )
+    onlyIf("wix is available only on Windows") {
+        System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+    }
+    dependsOn(
+        "stageBblInstallWindowsCliCoreFixture",
+        "stageBblInstallWindowsCliSearchCommonFixture",
+    )
+    dependsOn(stageBblInstallVersionFixture)
+
+    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/windows/cli-core/bbl.exe")
+    val stagedSearchCommon = layout.buildDirectory.file(
+        "bblInstallFixtures/windows/cli-search-common/bbl-search-common.exe"
+    )
+    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val wxsSource = layout.projectDirectory.file("resources/wix/installer.wxs")
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, wxsSource)
+    inputs.property("bblVersion", bblVersionProvider)
+
+    val msiOutputFile = bblVersionProvider.map { version ->
+        windowsMsiOutputDirectory.get().file("bbl-${version.removePrefix("v")}-windows-x64.msi")
+    }
+    outputs.file(msiOutputFile)
+
+    doFirst {
+        val source = stagedBbl.get().asFile
+        val searchCommon = stagedSearchCommon.get().asFile
+        val webusPack = stagedWebusPack.asFile
+        val wxsFile = wxsSource.asFile
+        require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
+        require(searchCommon.isFile) { "Missing staged bbl-search-common: ${searchCommon.absolutePath}" }
+        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(wxsFile.isFile) { "Missing WiX source: ${wxsFile.absolutePath}" }
+
+        val staging = layout.buildDirectory.dir("msiStaging/windows").get().asFile.also { it.mkdirs() }
+        staging.resolve("bbl.exe").also { source.copyTo(it, overwrite = true) }
+        staging.resolve("bbl-search-common.exe").also { searchCommon.copyTo(it, overwrite = true) }
+        staging.resolve("webus.zip").also { webusPack.copyTo(it, overwrite = true) }
+
+        val msiVersion = bblVersionProvider.get().removePrefix("v") + ".0"
+        val output = msiOutputFile.get().asFile
+        output.parentFile.mkdirs()
+
+        val pathDirs = (System.getenv("PATH") ?: "").split(File.pathSeparator)
+        val wixExe = pathDirs
+            .map { File(it, "wix.exe") }
+            .firstOrNull { it.isFile }
+            ?: listOf(
+                "${System.getenv("USERPROFILE")}\\.dotnet\\tools\\wix.exe",
+                "${System.getenv("HOME")}\\.dotnet\\tools\\wix.exe",
+            ).firstOrNull { File(it).isFile }
+            ?: error("wix not found on PATH. Install with: dotnet tool install --global wix")
+        commandLine(
+            wixExe, "build", "-arch", "x64", "-pdbtype", "none",
+            "-o", output.absolutePath,
+            "-d", "BblVersion=$msiVersion",
+            "-d", "BblSourceDir=${staging.absolutePath}",
+            wxsFile.absolutePath,
+        )
+    }
+}
+
+tasks.register<Sync>("stageBblInstallWindowsMsiFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the Windows MSI installer fixture for Kitchen tests."
+    dependsOn("buildWindowsMsi", stageBblInstallVersionFixture)
+    into(layout.buildDirectory.dir("bblInstallFixtures/windows/msi"))
+    val msiFile = bblVersionProvider.map { version ->
+        windowsMsiOutputDirectory.get().file("bbl-${version.removePrefix("v")}-windows-x64.msi")
+    }
+    from(msiFile) { rename { "bbl.msi" } }
+    from(bblInstallCommonFixtureDirectory) { include("version.txt") }
 }
 
 tasks.register<Sync>("stageBblInstallMacosArm64CliAllFixture") {

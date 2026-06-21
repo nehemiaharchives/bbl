@@ -151,6 +151,27 @@ jobs:
             fixture_artifact_name: bbl-install-windows-cli-core-files
             fixture_path: build/bblInstallFixtures/windows/cli-core
             job_type: Test
+          - platform: mingw
+            module_name: installer-winget
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallWindowsWingetFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-windows-winget-files
+            fixture_path: build/bblInstallFixtures/windows/winget
+            job_type: Package
+
+          - platform: mingw
+            module_name: installer-msi
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallWindowsMsiFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-windows-msi-files
+            fixture_path: build/bblInstallFixtures/windows/msi
+            job_type: Package
 
           - platform: jvm
             module_name: cli-search-common
@@ -586,6 +607,16 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: completion-windows-windows-local
+          - suite: winget_install_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-winget-files
+            kitchen_instance: winget-install-windows-windows-local
+          - suite: msi_install_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-msi-files
+            kitchen_instance: msi-install-windows-windows-local
 
     steps:
       - name: Checkout code
@@ -745,6 +776,51 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+
+          if ('${{ matrix.suite }}' -eq 'winget_install_windows') {
+              $fixtureDir = 'bbl_install\files\windows\winget'
+
+              if (-not (Test-Path "$fixtureDir\bbl-winget.zip")) { throw "Missing $fixtureDir\bbl-winget.zip" }
+              if (-not (Test-Path "$fixtureDir\manifests")) { throw "Missing $fixtureDir\manifests" }
+              if (-not (Test-Path "$fixtureDir\version.txt")) { throw "Missing $fixtureDir\version.txt" }
+
+              Copy-Item "$fixtureDir\bbl-winget.zip" bbl_install\files\bbl-winget.zip -Force
+              Copy-Item "$fixtureDir\version.txt" bbl_install\files\version.txt -Force
+              Copy-Item "$fixtureDir\manifests" bbl_install\files\manifests -Recurse -Force
+
+              Remove-Item bbl_install\files\common -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\linux -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosArm64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosX64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\windows -Recurse -Force -ErrorAction SilentlyContinue
+
+              if (-not (Test-Path bbl_install\files\bbl-winget.zip)) { throw 'Missing bbl_install\files\bbl-winget.zip' }
+              if (-not (Test-Path bbl_install\files\manifests)) { throw 'Missing bbl_install\files\manifests' }
+              if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+              Get-ChildItem bbl_install\files -Recurse
+              exit 0
+          }
+
+          if ('${{ matrix.suite }}' -eq 'msi_install_windows') {
+              $fixtureDir = 'bbl_install\files\windows\msi'
+
+              if (-not (Test-Path "$fixtureDir\bbl.msi")) { throw "Missing $fixtureDir\bbl.msi" }
+              if (-not (Test-Path "$fixtureDir\version.txt")) { throw "Missing $fixtureDir\version.txt" }
+
+              Copy-Item "$fixtureDir\bbl.msi" bbl_install\files\bbl.msi -Force
+              Copy-Item "$fixtureDir\version.txt" bbl_install\files\version.txt -Force
+
+              Remove-Item bbl_install\files\common -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\linux -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosArm64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosX64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\windows -Recurse -Force -ErrorAction SilentlyContinue
+
+              if (-not (Test-Path bbl_install\files\bbl.msi)) { throw 'Missing bbl_install\files\bbl.msi' }
+              if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+              Get-ChildItem bbl_install\files
+              exit 0
+          }
 
           Copy-Item bbl_install\files\common\version.txt bbl_install\files\version.txt -Force
           Get-ChildItem bbl_install\files\windows -File -Recurse | Copy-Item -Destination bbl_install\files -Force
