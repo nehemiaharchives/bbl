@@ -214,6 +214,12 @@ Required next changes:
    sudo apt remove bbl
    ```
 
+## NixOS
+TODO fill this section using https://hub.docker.com/r/nixos/nix as dokken image
+
+## Gentoo Linux
+TODO fill this section using https://hub.docker.com/r/gentoo/portage as dokken image
+
 ## macOS `.pkg`
 
 Current status:
