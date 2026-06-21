@@ -1234,7 +1234,6 @@ tasks.register<Sync>("stageBblInstallWindowsFixtures") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
-    dependsOn("stageBblInstallWindowsWingetFixture")
     dependsOn("stageBblInstallWindowsMsiFixture")
     from(layout.buildDirectory.file("bblInstallFixtures/windows/msi/bbl.msi"))
 }
@@ -1243,7 +1242,6 @@ tasks.register<Sync>("stageBblInstallWindowsCliAllFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage all Windows CLI fixture files for bbl_install Kitchen tests."
     prepareBblInstallCookbookFiles(bblInstallPlatforms.single { it.id == "windows" })
-    dependsOn("stageBblInstallWindowsWingetFixture")
     dependsOn("stageBblInstallWindowsMsiFixture")
     from(layout.buildDirectory.file("bblInstallFixtures/windows/msi/bbl.msi"))
 }
@@ -1483,7 +1481,7 @@ tasks.register<Exec>("buildWindowsMsi") {
             ).firstOrNull { File(it).isFile }
             ?: error("wix not found on PATH. Install with: dotnet tool install --global wix")
         commandLine(
-            wixExe, "build", "-arch", "x64", "-pdbtype", "none",
+            wixExe, "build", "-acceptEula", "wix7", "-arch", "x64", "-pdbtype", "none",
             "-o", output.absolutePath,
             "-d", "BblVersion=$msiVersion",
             "-d", "BblSourceDir=${staging.absolutePath}",
