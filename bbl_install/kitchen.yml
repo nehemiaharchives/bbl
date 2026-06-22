@@ -169,6 +169,9 @@ suites:
           - kjv.zip
         deferred_pack_names:
           - kjv.zip
+          - webus.zip
+        deferred_helper_bin_names:
+          - bbl-search-common
         clean_pack_dir: true
         clean_install_source_dir: true
     verifier:
@@ -189,6 +192,9 @@ suites:
           - kjv.zip
         deferred_pack_names:
           - kjv.zip
+          - webus.zip
+        deferred_helper_bin_names:
+          - bbl-search-common.exe
         clean_pack_dir: true
         clean_install_source_dir: true
     verifier:
