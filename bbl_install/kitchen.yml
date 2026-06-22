@@ -201,13 +201,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/pack_install_windows
-    excludes:
-      - ubuntu-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - macos-local
-      - alpine-latest
+    includes:
+      - windows-local
 
   - name: search_posix
     run_list:
@@ -278,13 +273,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/config_windows
-    excludes:
-      - ubuntu-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - macos-local
-      - alpine-latest
+    includes:
+      - windows-local
 
   - name: history_windows
     run_list:
@@ -293,13 +283,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/history_windows
-    excludes:
-      - ubuntu-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - macos-local
-      - alpine-latest
+    includes:
+      - windows-local
 
   - name: search_windows
     run_list:
@@ -308,13 +293,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/search_windows
-    excludes:
-      - ubuntu-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - macos-local
-      - alpine-latest
+    includes:
+      - windows-local
 
   - name: completion_windows
     run_list:
@@ -323,13 +303,8 @@ suites:
       inspec_tests:
         - test/integration/helpers
         - test/integration/completion_windows
-    excludes:
-      - ubuntu-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - macos-local
-      - alpine-latest
+    includes:
+      - windows-local
 
   - name: msi_install_windows
     run_list:
