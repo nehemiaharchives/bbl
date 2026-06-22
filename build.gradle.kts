@@ -1114,6 +1114,199 @@ tasks.register<Sync>("stageBblInstallLinuxAlpineFixture") {
     from(bblInstallCommonFixtureDirectory) { include("version.txt") }
 }
 
+val linuxNixFixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/linux/nix")
+
+val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage the Linux x86_64 Nix flake package fixture for Nix package-manager tests."
+    notCompatibleWithConfigurationCache("Writes generated Nix flake files and a tar archive from script-scoped providers.")
+    onlyIf("Linux-only package task") {
+        System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
+    }
+    dependsOn(
+        "stageBblInstallLinuxCliCoreFixture",
+        "stageBblInstallLinuxCliSearchCommonFixture",
+        stageBblInstallVersionFixture,
+    )
+
+    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
+    val stagedSearchCommon = layout.buildDirectory.file("bblInstallFixtures/linux/cli-search-common/bbl-search-common")
+    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val fixtureDirectory = linuxNixFixtureDirectory
+
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.property("bblVersion", bblVersionProvider)
+    outputs.dir(fixtureDirectory)
+
+    doLast {
+        val version = bblVersionProvider.get()
+        val bbl = stagedBbl.get().asFile
+        val searchCommon = stagedSearchCommon.get().asFile
+        val webusPack = stagedWebusPack.asFile
+        require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
+        require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
+        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+
+        val output = fixtureDirectory.get().asFile
+        val root = output.resolve("bbl-nix")
+        val assets = root.resolve("assets")
+        output.deleteRecursively()
+        assets.mkdirs()
+
+        bbl.copyTo(assets.resolve("bbl"), overwrite = true)
+        searchCommon.copyTo(assets.resolve("bbl-search-common"), overwrite = true)
+        webusPack.copyTo(assets.resolve("webus.zip"), overwrite = true)
+        require(assets.resolve("bbl").setExecutable(true, false)) { "Unable to make Nix bbl executable" }
+        require(assets.resolve("bbl-search-common").setExecutable(true, false)) { "Unable to make Nix bbl-search-common executable" }
+
+        output.resolve("version.txt").writeText("$version\n")
+
+        val D = "${'$'}"
+        root.resolve("flake.nix").writeText(
+            """
+            {
+              description = "bbl CLI Nix package fixture";
+
+              inputs = {
+                nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+              };
+
+              outputs = { self, nixpkgs }:
+                let
+                  system = "x86_64-linux";
+                  pkgs = import nixpkgs { inherit system; };
+                in {
+                  packages.${D}{system} = {
+                    bbl = pkgs.callPackage ./bbl.nix { };
+                    default = self.packages.${D}{system}.bbl;
+                  };
+
+                  apps.${D}{system} = {
+                    bbl = {
+                      type = "app";
+                      program = "${D}{self.packages.${D}{system}.bbl}/bin/bbl";
+                    };
+                    default = self.apps.${D}{system}.bbl;
+                  };
+
+                  checks.${D}{system} = {
+                    bbl = self.packages.${D}{system}.bbl;
+                  };
+                };
+            }
+            """.trimIndent() + "\n"
+        )
+
+        root.resolve("bbl.nix").writeText(
+            """
+            { lib
+            , stdenv
+            , autoPatchelfHook
+            , bash
+            , coreutils
+            , libxcrypt
+            , zlib
+            }:
+
+            stdenv.mkDerivation {
+              pname = "bbl";
+              version = "$version";
+
+              src = ./assets;
+
+              nativeBuildInputs = [
+                autoPatchelfHook
+              ];
+
+              buildInputs = [
+                coreutils
+                libxcrypt
+                stdenv.cc.cc.lib
+                zlib
+              ];
+
+              dontConfigure = true;
+              dontBuild = true;
+
+              preFixup = ''
+                patchelf --replace-needed libcrypt.so.1 libcrypt.so.2 ${D}out/libexec/bbl/bbl
+                patchelf --replace-needed libcrypt.so.1 libcrypt.so.2 ${D}out/libexec/bbl/bbl-search-common
+              '';
+
+              installPhase = ''
+                runHook preInstall
+
+                install -Dm755 "${D}src/bbl" "${D}out/libexec/bbl/bbl"
+                install -Dm755 "${D}src/bbl-search-common" "${D}out/libexec/bbl/bbl-search-common"
+                install -Dm644 "${D}src/webus.zip" "${D}out/share/bbl/packs/webus.zip"
+
+                mkdir -p "${D}out/bin"
+                cat > "${D}out/bin/bbl" <<'EOF_WRAPPER'
+            #!${D}{bash}/bin/bash
+            set -euo pipefail
+            assets="$(cd "$(dirname "$0")/.." && pwd)"
+            mkdir -p "${D}HOME/.bbl/bin" "${D}HOME/.bbl/packs"
+            if [ ! -f "${D}HOME/.bbl/bin/bbl-search-common" ]; then
+              ${D}{coreutils}/bin/install -m 0755 "${D}assets/libexec/bbl/bbl-search-common" "${D}HOME/.bbl/bin/bbl-search-common"
+            fi
+            if [ ! -f "${D}HOME/.bbl/packs/webus.zip" ]; then
+              ${D}{coreutils}/bin/install -m 0644 "${D}assets/share/bbl/packs/webus.zip" "${D}HOME/.bbl/packs/webus.zip"
+            fi
+            exec "${D}assets/libexec/bbl/bbl" "${D}@"
+            EOF_WRAPPER
+                chmod 0755 "${D}out/bin/bbl"
+
+                runHook postInstall
+              '';
+
+              meta = with lib; {
+                description = "Read/search Holy Bible in your terminal";
+                homepage = "https://github.com/nehemiaharchives/bbl";
+                license = licenses.asl20;
+                mainProgram = "bbl";
+                platforms = [ "x86_64-linux" ];
+              };
+            }
+            """.trimIndent() + "\n"
+        )
+
+        root.resolve("README.md").writeText(
+            """
+            # bbl Nix flake fixture
+
+            This is a generated Nix flake fixture for the bbl CLI.
+
+            Build:
+
+            ```sh
+            NIX_CONFIG='experimental-features = nix-command flakes' nix build .#bbl
+            ```
+
+            Run:
+
+            ```sh
+            NIX_CONFIG='experimental-features = nix-command flakes' nix run .#bbl -- john 3:16
+            ```
+
+            Install into a profile:
+
+            ```sh
+            NIX_CONFIG='experimental-features = nix-command flakes' nix profile install .#bbl
+            ```
+
+            The package stores immutable assets in the Nix store and copies `bbl-search-common` and `webus.zip` into `${D}HOME/.bbl` on first run.
+            """.trimIndent() + "\n"
+        )
+
+        val tarExitCode = ProcessBuilder(
+            "tar", "-C", output.absolutePath,
+            "-czf", output.resolve("bbl-nix.tar.gz").absolutePath,
+            "bbl-nix",
+        ).inheritIO().start().waitFor()
+        require(tarExitCode == 0) { "Failed to create ${output.resolve("bbl-nix.tar.gz").absolutePath}" }
+    }
+}
+
 val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
     .map { platform ->
         val cliCoreFixtureTask = stageBblInstallFixtureTasks.single {

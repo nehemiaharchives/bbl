@@ -211,6 +211,7 @@ jobs:
               stageBblInstallLinuxDebFixture
               stageBblInstallLinuxRpmFixture
               stageBblInstallLinuxArchlinuxFixture
+              stageBblInstallLinuxNixFixture
             excluded_fixture_tasks: >-
               -x stageBblInstallLinuxCliCoreFixture
               -x stageBblInstallLinuxCliSearchCommonFixture
@@ -362,6 +363,9 @@ jobs:
             find build/distributions -maxdepth 1 -type f \
               \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' \) \
               -exec cp {} dist/ \;
+            if [ -f "$staged/nix/bbl-nix.tar.gz" ]; then
+              cp "$staged/nix/bbl-nix.tar.gz" "dist/bbl-$tag-linux-x64-nix-flake.tar.gz"
+            fi
           else
             cp build/distributions/*.pkg dist/
             cp "$staged/homebrew"/bbl-*-"$asset".tar.gz \

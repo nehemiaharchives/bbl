@@ -28,7 +28,7 @@ Legend:
 | TODO      | Arch Linux         | aur [ ]           | pacman  | archlinux[ ]      |
 | Supported | CachyOS            | .pkg.tar.zst [x]  | pacman  | cachyos[ ]        |
 | WIP       | Alpine Linux       | .apk [~]          | apk     | alpine[~]         |
-| TODO      | NixOS              | .nix [ ]          | nix     | nixos/nix[ ]      |
+| Supported | NixOS              | flake tarball [x] | nix     | nixos/nix[x]      |
 | TODO      | Gentoo             | .ebuild [ ]       | portage | gentoo/portage[ ] |
 | TODO      | Void               | .xbps [ ]         | xbps    | gvcatafesta[ ]    |
 | TODO      | FreeBSD            | .pkg [ ]          | pkg     | freebsd[ ]        |
@@ -242,7 +242,23 @@ Required next changes:
    ```
 
 ## NixOS
-TODO fill this section using https://hub.docker.com/r/nixos/nix as dokken image
+
+Current status:
+
+- `[x]` Gradle task `stageBblInstallLinuxNixFixture` exists.
+- `[x]` Nix packaging is a generated flake fixture, not an nFPM package.
+- `[x]` Targets `x86_64-linux` initially.
+- `[x]` CI uses direct Docker (`nixos/nix:latest`) E2E, not Chef/Test Kitchen.
+- `[x]` E2E validates `nix build`, runtime execution, first-run `$HOME/.bbl` asset copy, and `nix profile install`.
+- `[x]` Publish workflow uploads `bbl-<tag>-linux-x64-nix-flake.tar.gz`.
+- `[ ]` True NixOS module/system integration is intentionally not included yet.
+
+Required next changes:
+
+1. Add NixOS module integration when NixOS system-level configuration is needed.
+2. Consider publishing to a Nix flake registry or GitHub flake URL for easy `nix profile install github:nehemiaharchives/bbl`.
+3. Add `aarch64-linux` platform support if there is demand.
+4. Consider adding a NixOS container test after a full NixOS VM approach is available.
 
 ## Gentoo Linux
 TODO fill this section using https://hub.docker.com/r/gentoo/portage as dokken image

@@ -128,6 +128,17 @@ jobs:
             fixture_path: build/bblInstallFixtures/linux/archlinux
             job_type: Package
 
+          - platform: nixos
+            module_name: installer-nix
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxNixFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-nix-files
+            fixture_path: build/bblInstallFixtures/linux/nix
+            job_type: Package
+
           # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
           # - platform: alpine
           #   module_name: installer-apk
@@ -535,6 +546,12 @@ jobs:
             fixture_pattern: bbl-install-linux-archlinux-files
             kitchen_instance: pacman-install-archlinux-archlinux-latest
 
+          - suite: nix_install_nixos
+            platform: nixos
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-nix-files
+            kitchen_instance: nix-install-nixos-nixos-nix-latest
+
           # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
           # - suite: apk_install_alpine
           #   platform: alpine
@@ -629,10 +646,44 @@ jobs:
 
       - name: Prepare Kitchen cookbook files (Linux)
         # Add `|| matrix.platform == 'alpine'` when lucene-kmp issue #262 is fixed.
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
+        # Add nixos to the Linux platform condition for the Nix E2E step.
+        # The Nix suite uses a separate direct Docker step below instead of Kitchen.
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'nixos' }}
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ "${{ matrix.suite }}" = "nix_install_nixos" ]; then
+            fixture_dir=bbl_install/files/linux/nix
+
+            if [ -f bbl_install/files/bbl-nix.tar.gz ]; then
+              :
+            elif [ -f "$fixture_dir/bbl-nix.tar.gz" ]; then
+              cp "$fixture_dir/bbl-nix.tar.gz" bbl_install/files/bbl-nix.tar.gz
+            else
+              echo "Missing bbl-nix.tar.gz" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+
+            if [ -f "$fixture_dir/version.txt" ]; then
+              cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            elif [ -f bbl_install/files/common/version.txt ]; then
+              cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+            fi
+
+            test -f bbl_install/files/bbl-nix.tar.gz
+            test -f bbl_install/files/version.txt
+            tar -tzf bbl_install/files/bbl-nix.tar.gz | tee /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/flake.nix' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/bbl.nix' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/bbl' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/bbl-search-common' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/webus.zip' /tmp/bbl-nix-tar-list.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
           # Enable this branch together with the Alpine matrix rows after issue #262 is fixed:
           # if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
           #   fixture_dir=bbl_install/files/linux/alpine
@@ -764,6 +815,36 @@ jobs:
         if: ${{ matrix.platform == 'archlinux' }}
         run: docker pull archlinux/archlinux:latest
 
+      - name: Pull Nix Docker image
+        if: ${{ matrix.platform == 'nixos' }}
+        run: docker pull nixos/nix:latest
+
+      - name: Nix package E2E
+        if: ${{ matrix.platform == 'nixos' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD/bbl_install/files:/work:ro" \
+            nixos/nix:latest \
+            sh -lc '
+              set -eu
+              rm -rf /tmp/bbl-nix /tmp/bbl-result /tmp/bbl-home /tmp/bbl-profile /tmp/bbl-profile-home
+              mkdir -p /tmp/bbl-nix
+              tar -xzf /work/bbl-nix.tar.gz -C /tmp/bbl-nix --strip-components=1
+              cd /tmp/bbl-nix
+              export NIX_CONFIG="experimental-features = nix-command flakes"
+              nix flake show
+              nix build .#bbl --out-link /tmp/bbl-result
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl --version
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl john 3:16
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl search God limit 1
+              test -x /tmp/bbl-home/.bbl/bin/bbl-search-common
+              test -f /tmp/bbl-home/.bbl/packs/webus.zip
+              nix profile install .#bbl --profile /tmp/bbl-profile
+              HOME=/tmp/bbl-profile-home /tmp/bbl-profile/bin/bbl john 3:16
+            '
+
       # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
       # - name: Pull Alpine Docker image
       #   if: ${{ matrix.platform == 'alpine' }}
@@ -884,6 +965,7 @@ jobs:
           du -sh bbl_install/files
 
       - name: Set up Ruby
+        if: ${{ matrix.platform != 'nixos' }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
