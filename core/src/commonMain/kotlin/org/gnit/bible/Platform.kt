@@ -6,8 +6,54 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
+enum class ReleasePlatform(val assetName: String) {
+    LINUX("linux"),
+    MACOS("macos"),
+    WINDOWS("windows"),
+}
+
+enum class ReleaseArchitecture(val assetName: String) {
+    X64("x64"),
+    ARM64("arm64"),
+}
+
+data class ReleaseTarget(
+    val platform: ReleasePlatform,
+    val architecture: ReleaseArchitecture,
+) {
+    fun assetName(localBinaryName: String): String {
+        val extension = if (platform == ReleasePlatform.WINDOWS) ".exe" else ""
+        val baseName = localBinaryName.removeSuffix(".exe")
+        return "$baseName-${platform.assetName}-${architecture.assetName}$extension"
+    }
+}
+
+fun detectReleaseTarget(osName: String, architectureName: String): ReleaseTarget? {
+    val platform = when (osName.lowercase().replace(Regex("[^a-z0-9]"), "")) {
+        "linux" -> ReleasePlatform.LINUX
+        "mac", "macos", "macosx", "darwin" -> ReleasePlatform.MACOS
+        "windows", "windows10", "windows11", "mingw" -> ReleasePlatform.WINDOWS
+        else -> return null
+    }
+    val architecture = when (architectureName.lowercase().replace(Regex("[^a-z0-9_]"), "")) {
+        "x64", "x8664", "x86_64", "amd64" -> ReleaseArchitecture.X64
+        "arm64", "aarch64" -> ReleaseArchitecture.ARM64
+        else -> return null
+    }
+    return ReleaseTarget(platform, architecture)
+}
+
 abstract class Platform {
     abstract val name: String
+
+    open val releaseTarget: ReleaseTarget? = null
+
+    fun releaseAssetName(localBinaryName: String): String {
+        val target = requireNotNull(releaseTarget) {
+            "GitHub release binaries are not available for platform $name"
+        }
+        return target.assetName(localBinaryName)
+    }
 
     protected val bblDir: String
         get() = ".bbl"

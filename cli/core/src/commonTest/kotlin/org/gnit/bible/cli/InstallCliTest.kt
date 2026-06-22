@@ -64,6 +64,49 @@ class InstallCliTest : ResourcesTestBase() {
     }
 
     @Test
+    fun testBblInstallWebusDownloadsPlatformReleaseAssetAndRenamesItLocally() {
+        val requestedPaths = mutableListOf<String>()
+        val localBinaryName = searchHelperName("common")
+        val releaseAssetName = platform.releaseAssetName(localBinaryName)
+        val httpClient = HttpClient(MockEngine { request ->
+            requestedPaths += request.url.encodedPath
+            when (request.url.encodedPath.substringAfterLast('/')) {
+                "webus.zip" -> respond(
+                    content = TestFixtures.webusMinimalZipBytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/zip"),
+                        "Content-Length" to listOf(TestFixtures.webusMinimalZipBytes.size.toString())
+                    )
+                )
+
+                releaseAssetName -> {
+                    val bytes = "common helper".encodeToByteArray()
+                    respond(
+                        content = bytes,
+                        headers = headersOf(
+                            "Content-Type" to listOf("application/octet-stream"),
+                            "Content-Length" to listOf(bytes.size.toString())
+                        )
+                    )
+                }
+
+                else -> error("Unexpected request for path: ${request.url.encodedPath}")
+            }
+        })
+        val versionedBible = Bible(
+            assetManager = AssetManagerImpl(httpClient = httpClient, platform = platform, fileSystem = fakeFs)
+        )
+
+        val result = Bbl(bible = versionedBible).test("install webus")
+
+        assertEquals("Installed webus\nInstalled $localBinaryName\n", result.output.replace("\r\n", "\n"))
+        assertTrue(requestedPaths.any { it.endsWith("/$releaseAssetName") })
+        val binDir = CliBinaryPaths.binDir(platform.packDir)
+        assertTrue(fakeFs.exists(binDir / localBinaryName))
+        assertTrue(!fakeFs.exists(binDir / releaseAssetName))
+    }
+
+    @Test
     fun testBblInstallRecordsHistoryWhenHistoryEnabled() {
         val result = Bbl(bible = bible).test("install kttv")
 
@@ -85,13 +128,19 @@ class InstallCliTest : ResourcesTestBase() {
 
     @Test
     fun testBblInstallMultipleTranslations() {
-        val searchHelperName = searchHelperName("extra")
+        val extraSearchHelperName = searchHelperName("extra")
+        val commonSearchHelperName = searchHelperName("common")
         val result = Bbl(bible = bible).test("install kttv th1971").output
         assertInstallResult(
             result = result,
             expectedCodes = listOf("kttv", "th1971"),
-            expectedSearchBinaries = listOf(searchHelperName),
-            expectedOutputLines = listOf("Installed kttv", "Installed $searchHelperName", "Installed th1971")
+            expectedSearchBinaries = listOf(extraSearchHelperName, commonSearchHelperName),
+            expectedOutputLines = listOf(
+                "Installed kttv",
+                "Installed $extraSearchHelperName",
+                "Installed th1971",
+                "Installed $commonSearchHelperName",
+            )
         )
     }
 
@@ -108,8 +157,9 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallFallsBackToLegacyRepositoryWhenPrimaryRepositoryUnavailable() {
         val searchHelperName = searchHelperName("kuromoji")
-        val primaryReleasePath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/$searchHelperName"
-        val legacyReleasePath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/$searchHelperName"
+        val releaseAssetName = platform.releaseAssetName(searchHelperName)
+        val primaryReleasePath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/$releaseAssetName"
+        val legacyReleasePath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/$releaseAssetName"
         val primaryPackPath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/jc.zip"
         val legacyPackPath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/jc.zip"
         val httpClient = HttpClient(MockEngine { request ->
@@ -155,7 +205,8 @@ class InstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblInstallUsesBuiltInCatalogWhenFetchedListOmitsEmbeddedTranslation() {
         val primaryReleasePath =
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/${searchHelperName("kuromoji")}"
+            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/" +
+                platform.releaseAssetName(searchHelperName("kuromoji"))
         val httpClient = HttpClient(MockEngine { request ->
             when {
                 request.url.encodedPath ==

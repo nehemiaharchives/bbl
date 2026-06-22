@@ -1,4 +1,39 @@
 describe 'bbl pack install and uninstall' do
+  it 'downloads the platform-qualified common helper and installs it with its local name' do
+    ps_quote = ->(value) { "'#{value.to_s.gsub("'", "''")}'" }
+    bbl_cmd = ps_quote.call($bbl_bin)
+    source_dir = ps_quote.call($bbl_install_source_dir)
+
+    script = <<~POWERSHELL
+      $ErrorActionPreference = 'Stop'
+      $testHome = Join-Path ([System.IO.Path]::GetTempPath()) ('bbl-release-name-test.' + [System.Guid]::NewGuid().ToString('N'))
+      $testRelease = Join-Path $testHome 'release'
+      New-Item -ItemType Directory -Force $testRelease | Out-Null
+      Copy-Item (Join-Path #{source_dir} 'webus.zip') (Join-Path $testRelease 'webus.zip')
+      Copy-Item (Join-Path #{source_dir} 'bbl-search-common.exe') (Join-Path $testRelease 'bbl-search-common-windows-x64.exe')
+      $env:USERPROFILE = $testHome
+      $env:BBL_RELEASE_DOWNLOAD_URL = 'file://' + ($testRelease -replace '\\', '/')
+      try {
+        & #{bbl_cmd} install webus
+        if ($LASTEXITCODE -ne 0) { throw "install exited with $LASTEXITCODE" }
+        $localBinary = Join-Path $testHome '.bbl\bin\bbl-search-common.exe'
+        $releaseBinary = Join-Path $testHome '.bbl\bin\bbl-search-common-windows-x64.exe'
+        if (-not (Test-Path -LiteralPath $localBinary)) { throw "missing local helper $localBinary" }
+        if (Test-Path -LiteralPath $releaseBinary) { throw "release asset was not renamed: $releaseBinary" }
+        & #{bbl_cmd} uninstall webus
+        if ($LASTEXITCODE -ne 0) { throw "uninstall exited with $LASTEXITCODE" }
+        if (Test-Path -LiteralPath $localBinary) { throw "local helper was not uninstalled: $localBinary" }
+      } finally {
+        Remove-Item -LiteralPath $testHome -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    POWERSHELL
+
+    result = powershell(script)
+    expect(result.exit_status).to eq(0), result.stderr
+    expect(result.stdout).to include("Installed bbl-search-common.exe#{$bbl_eol}")
+    expect(result.stdout).to include("Uninstalled bbl-search-common.exe#{$bbl_eol}")
+  end
+
   it 'uninstalls and reinstalls kjv' do
     ps_quote = ->(value) { "'#{value.to_s.gsub("'", "''")}'" }
     bbl_cmd = ps_quote.call($bbl_bin)

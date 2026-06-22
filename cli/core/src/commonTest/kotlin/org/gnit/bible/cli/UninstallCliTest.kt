@@ -89,11 +89,17 @@ class UninstallCliTest : ResourcesTestBase() {
     @Test
     fun testBblUninstallMultipleTranslations() {
         val result = Bbl(bible = bible).test("uninstall kttv th1971").stdout
-        val searchHelperName = searchHelperName("extra")
-        assertEquals("Uninstalled kttv\nUninstalled $searchHelperName\nUninstalled th1971\n", result)
+        val extraSearchHelperName = searchHelperName("extra")
+        val commonSearchHelperName = searchHelperName("common")
+        assertEquals(
+            "Uninstalled kttv\nUninstalled $extraSearchHelperName\n" +
+                "Uninstalled th1971\nUninstalled $commonSearchHelperName\n",
+            result
+        )
         assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/kttv.zip".toPath()))
         assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/th1971.zip".toPath()))
-        assertFalse(fakeFs.exists("/tmp/bin/$searchHelperName".toPath()))
+        assertFalse(fakeFs.exists("/tmp/bin/$extraSearchHelperName".toPath()))
+        assertFalse(fakeFs.exists("/tmp/bin/$commonSearchHelperName".toPath()))
     }
 
     @Test
@@ -106,6 +112,19 @@ class UninstallCliTest : ResourcesTestBase() {
         assertFalse(fakeFs.exists("/tmp/bblpack-cli-uninstall/ubio.zip".toPath()))
         assertEquals(true, fakeFs.exists("/tmp/bblpack-cli-uninstall/ubg.zip".toPath()))
         assertEquals(true, fakeFs.exists("/tmp/bin/${searchHelperName("morfologik")}".toPath()))
+    }
+
+    @Test
+    fun testBblUninstallWebusRemovesLocallyRenamedCommonSearchBinary() {
+        Bbl(bible = bible).test("install webus")
+        Bbl(bible = bible).test("uninstall th1971")
+        val searchHelperName = searchHelperName("common")
+        assertEquals(true, fakeFs.exists("/tmp/bin/$searchHelperName".toPath()))
+
+        val result = Bbl(bible = bible).test("uninstall webus").stdout
+
+        assertEquals("Uninstalled webus\nUninstalled $searchHelperName\n", result)
+        assertFalse(fakeFs.exists("/tmp/bin/$searchHelperName".toPath()))
     }
 
     fun assertResult(result: String){

@@ -26,6 +26,7 @@ private fun windowsHomeDir(): Path {
 
 class MingwPlatform : Platform() {
     override val name: String = "Windows"
+    override val releaseTarget = ReleaseTarget(ReleasePlatform.WINDOWS, ReleaseArchitecture.X64)
 
     override val platformBblDirPath: String by lazy {
         (windowsHomeDir() / bblDir).toString()

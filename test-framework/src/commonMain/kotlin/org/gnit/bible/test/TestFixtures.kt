@@ -388,6 +388,14 @@ object TestFixtures {
                 else -> error("Unexpected translation code: $translationCode")
             }
 
+        val releaseDownloadPath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}"
+        fun releaseAssetPaths(binaryName: String): Set<String> = setOf(
+            "$releaseDownloadPath/$binaryName-linux-x64",
+            "$releaseDownloadPath/$binaryName-macos-arm64",
+            "$releaseDownloadPath/$binaryName-macos-x64",
+            "$releaseDownloadPath/$binaryName-windows-x64.exe",
+        )
+
         when(request.url.encodedPath){
             "/nehemiaharchives/bbl/${BblVersion.VERSION}/bbl/resources/bblpacks/kttv.zip" -> {
                 val bytes = packBytes("kttv")
@@ -455,8 +463,18 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-kuromoji",
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-kuromoji.exe" -> {
+            in releaseAssetPaths("bbl-search-common") -> {
+                val bytes = "common helper".encodeToByteArray()
+                respond(
+                    content = bytes,
+                    headers = headersOf(
+                        "Content-Type" to listOf("application/octet-stream"),
+                        "Content-Length" to listOf(bytes.size.toString())
+                    )
+                )
+            }
+
+            in releaseAssetPaths("bbl-search-kuromoji") -> {
                 val bytes = "kuromoji helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -467,8 +485,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-extra",
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-extra.exe" -> {
+            in releaseAssetPaths("bbl-search-extra") -> {
                 val bytes = "extra helper".encodeToByteArray()
                 respond(
                     content = bytes,
@@ -479,8 +496,7 @@ object TestFixtures {
                 )
             }
 
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-morfologik",
-            "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/bbl-search-morfologik.exe" -> {
+            in releaseAssetPaths("bbl-search-morfologik") -> {
                 val bytes = "morfologik helper".encodeToByteArray()
                 respond(
                     content = bytes,

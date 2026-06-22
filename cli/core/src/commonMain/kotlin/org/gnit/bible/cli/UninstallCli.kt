@@ -55,7 +55,6 @@ class UninstallCli(
         downloadedByCode: Map<String, Translation>,
     ) {
         val moduleId = removedTranslation?.language?.searchModuleId ?: return
-        if (moduleId == SearchModuleId.COMMON) return
 
         val stillNeeded = remainingDownloadedCodes.any { code ->
             downloadedByCode[code]?.language?.searchModuleId == moduleId

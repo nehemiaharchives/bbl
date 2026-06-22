@@ -102,7 +102,6 @@ class InstallCli(
 
     private fun installSearchBinaryIfNeeded(translation: Translation) {
         val moduleId = translation.language.searchModuleId
-        if (moduleId == SearchModuleId.COMMON) return
 
         val am = bible.assetManager
         val binDir = CliBinaryPaths.binDir(am.platform.packDir)
@@ -113,12 +112,24 @@ class InstallCli(
             return
         }
 
-        logger.debug { "InstallCli downloading search helper $binaryName" }
+        val releaseAssetName = am.platform.releaseAssetName(binaryName)
+        val downloadedPath = binDir / releaseAssetName
+        logger.debug {
+            "InstallCli downloading search helper $releaseAssetName for local binary $binaryName"
+        }
         val downloadResult = runBlocking {
-            runCatching { am.downloadTo(releaseDownloadUrl, binaryName, binDir.toString()) }
+            runCatching {
+                am.downloadTo(releaseDownloadUrl, releaseAssetName, binDir.toString())
+                if (!am.fileSystem.exists(downloadedPath)) {
+                    error("file was not found after download")
+                }
+                runCatching { am.fileSystem.delete(binaryPath) }
+                am.fileSystem.atomicMove(downloadedPath, binaryPath)
+            }
         }
 
         downloadResult.onFailure { error ->
+            runCatching { am.fileSystem.delete(downloadedPath) }
             throw CliktError("Installing $binaryName failed: ${error.message}")
         }
 

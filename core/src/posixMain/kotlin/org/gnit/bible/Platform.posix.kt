@@ -8,6 +8,8 @@ import kotlinx.cinterop.toKString
 import platform.posix.getenv
 import okio.Path
 import okio.Path.Companion.toPath
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform as NativePlatform
 
 @OptIn(ExperimentalForeignApi::class)
 fun homeDir(): Path {
@@ -20,6 +22,14 @@ fun homeDir(): Path {
 
 class PosixPlatform : Platform() {
     override val name: String = "Posix"
+
+    @OptIn(ExperimentalNativeApi::class)
+    override val releaseTarget: ReleaseTarget = requireNotNull(
+        detectReleaseTarget(
+            osName = NativePlatform.osFamily.name,
+            architectureName = NativePlatform.cpuArchitecture.name,
+        )
+    )
 
     @OptIn(ExperimentalForeignApi::class)
     override val platformBblDirPath: String by lazy {

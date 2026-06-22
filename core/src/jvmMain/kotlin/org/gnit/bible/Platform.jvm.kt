@@ -7,6 +7,10 @@ import java.nio.file.FileSystems
 
 class JVMPlatform : Platform() {
     override val name: String = "Java ${System.getProperty("java.version")}"
+    override val releaseTarget: ReleaseTarget? = detectReleaseTarget(
+        osName = System.getProperty("os.name").orEmpty(),
+        architectureName = System.getProperty("os.arch").orEmpty(),
+    )
 
     override val platformBblDirPath: String by lazy {
         val home = System.getProperty("user.home") ?: error("user.home not defined")

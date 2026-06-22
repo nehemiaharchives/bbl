@@ -30,8 +30,169 @@ permissions:
   contents: write
 
 jobs:
-  build-cli-assets:
-    name: Build CLI asset (${{ matrix.asset }})
+  link-release-executables:
+    name: Link release executable (${{ matrix.binary }}-${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux-x64, macos-arm64, macos-x64, windows-x64]
+        binary:
+          - cli-core
+          - cli-search-common
+          - cli-search-extra
+          - cli-search-kuromoji
+          - cli-search-morfologik
+          - cli-search-nori
+          - cli-search-smartcn
+        include:
+          - platform: linux-x64
+            os: ubuntu-latest
+            timeout: 45
+            gradle_command: ./gradlew
+            konan_cache_key: linux-x64
+            native_target: linuxX64
+            link_task_suffix: LinuxX64
+            source_suffix: .kexe
+            release_suffix: ''
+            fixture_platform: linux
+            needs_xcode: false
+          - platform: macos-arm64
+            os: macos-latest
+            timeout: 45
+            gradle_command: ./gradlew
+            konan_cache_key: macos-arm64
+            native_target: macosArm64
+            link_task_suffix: MacosArm64
+            source_suffix: .kexe
+            release_suffix: ''
+            fixture_platform: macosArm64
+            needs_xcode: true
+            xcode_version: '16.4'
+          - platform: macos-x64
+            os: macos-26-intel
+            timeout: 45
+            gradle_command: ./gradlew
+            konan_cache_key: macos-x64
+            native_target: macosX64
+            link_task_suffix: MacosX64
+            source_suffix: .kexe
+            release_suffix: ''
+            fixture_platform: macosX64
+            needs_xcode: true
+            xcode_version: latest-stable
+          - platform: windows-x64
+            os: windows-latest
+            timeout: 60
+            gradle_command: ./gradlew.bat
+            konan_cache_key: windows-x64
+            native_target: mingwX64
+            link_task_suffix: MingwX64
+            source_suffix: .exe
+            release_suffix: .exe
+            fixture_platform: windows
+            needs_xcode: false
+          - binary: cli-core
+            project_path: ':cli:core'
+            project_dir: cli/core
+            executable: bbl
+          - binary: cli-search-common
+            project_path: ':cli:search:common'
+            project_dir: cli/search/common
+            executable: bbl-search-common
+          - binary: cli-search-extra
+            project_path: ':cli:search:extra'
+            project_dir: cli/search/extra
+            executable: bbl-search-extra
+          - binary: cli-search-kuromoji
+            project_path: ':cli:search:kuromoji'
+            project_dir: cli/search/kuromoji
+            executable: bbl-search-kuromoji
+          - binary: cli-search-morfologik
+            project_path: ':cli:search:morfologik'
+            project_dir: cli/search/morfologik
+            executable: bbl-search-morfologik
+          - binary: cli-search-nori
+            project_path: ':cli:search:nori'
+            project_dir: cli/search/nori
+            executable: bbl-search-nori
+          - binary: cli-search-smartcn
+            project_path: ':cli:search:smartcn'
+            project_dir: cli/search/smartcn
+            executable: bbl-search-smartcn
+
+    steps:
+      - name: Resolve release ref
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.release.outputs.ref }}
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Konan Cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key }}-konan-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key }}-konan-
+
+      - name: Link release executable
+        shell: bash
+        run: |
+          ${{ matrix.gradle_command }} \
+            "${{ matrix.project_path }}:linkReleaseExecutable${{ matrix.link_task_suffix }}" \
+            "-Pbblpacks.embed=false"
+
+      - name: Stage linked executable
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="${{ matrix.project_dir }}/build/bin/${{ matrix.native_target }}/releaseExecutable/${{ matrix.executable }}${{ matrix.source_suffix }}"
+          staged="artifact/staged/${{ matrix.fixture_platform }}/${{ matrix.binary }}/${{ matrix.executable }}${{ matrix.release_suffix }}"
+          release="artifact/release/${{ matrix.executable }}-${{ matrix.platform }}${{ matrix.release_suffix }}"
+          mkdir -p "$(dirname "$staged")" "$(dirname "$release")"
+          cp "$source" "$staged"
+          cp "$source" "$release"
+          if [ "${{ runner.os }}" != "Windows" ]; then
+            chmod +x "$staged" "$release"
+          fi
+
+      - name: Upload linked executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: linked-${{ matrix.platform }}-${{ matrix.binary }}
+          path: artifact
+          if-no-files-found: error
+          retention-days: 7
+
+  package-cli-assets:
+    name: Package CLI assets (${{ matrix.asset }})
+    needs: link-release-executables
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
@@ -40,57 +201,66 @@ jobs:
         include:
           - asset: linux-x64
             os: ubuntu-latest
-            timeout: 45
-            konan_cache_key: linux
+            timeout: 20
             gradle_command: ./gradlew
             fixture_platform: linux
-            stage_tasks: >-
-              stageBblInstallLinuxCliCoreFixture
-              stageBblInstallLinuxCliSearchCommonFixture
-              stageBblInstallLinuxCliSearchExtraFixture
-              stageBblInstallLinuxCliSearchKuromojiFixture
-              stageBblInstallLinuxCliSearchMorfologikFixture
-              stageBblInstallLinuxCliSearchNoriFixture
-              stageBblInstallLinuxCliSearchSmartcnFixture
+            needs_xcode: false
+            needs_nfpm: true
+            needs_wix: false
+            package_tasks: >-
               stageBblInstallLinuxDebFixture
               stageBblInstallLinuxRpmFixture
               stageBblInstallLinuxArchlinuxFixture
+            excluded_fixture_tasks: >-
+              -x stageBblInstallLinuxCliCoreFixture
+              -x stageBblInstallLinuxCliSearchCommonFixture
           - asset: macos-arm64
             os: macos-latest
-            timeout: 45
-            konan_cache_key: macos
+            timeout: 20
             gradle_command: ./gradlew
             fixture_platform: macosArm64
-            stage_tasks: >-
-              stageBblInstallMacosArm64CliCoreFixture
-              stageBblInstallMacosArm64CliSearchCommonFixture
-              stageBblInstallMacosArm64CliSearchExtraFixture
-              stageBblInstallMacosArm64CliSearchKuromojiFixture
-              stageBblInstallMacosArm64CliSearchMorfologikFixture
-              stageBblInstallMacosArm64CliSearchNoriFixture
-              stageBblInstallMacosArm64CliSearchSmartcnFixture
+            needs_xcode: true
+            xcode_version: '16.4'
+            needs_nfpm: false
+            needs_wix: false
+            package_tasks: >-
               stageBblInstallMacosArm64PkgFixture
               stageBblInstallMacosArm64HomebrewFixture
-            xcode_version: '16.4'
+            excluded_fixture_tasks: >-
+              -x stageBblInstallMacosArm64CliCoreFixture
+              -x stageBblInstallMacosArm64CliSearchCommonFixture
+          - asset: macos-x64
+            os: macos-26-intel
+            timeout: 20
+            gradle_command: ./gradlew
+            fixture_platform: macosX64
+            needs_xcode: true
+            xcode_version: latest-stable
+            needs_nfpm: false
+            needs_wix: false
+            package_tasks: >-
+              stageBblInstallMacosX64PkgFixture
+              stageBblInstallMacosX64HomebrewFixture
+            excluded_fixture_tasks: >-
+              -x stageBblInstallMacosX64CliCoreFixture
+              -x stageBblInstallMacosX64CliSearchCommonFixture
           - asset: windows-x64
             os: windows-latest
-            timeout: 60
-            konan_cache_key: windows
+            timeout: 25
             gradle_command: ./gradlew.bat
             fixture_platform: windows
-            stage_tasks: >-
-              stageBblInstallWindowsCliCoreFixture
-              stageBblInstallWindowsCliSearchCommonFixture
-              stageBblInstallWindowsCliSearchExtraFixture
-              stageBblInstallWindowsCliSearchKuromojiFixture
-              stageBblInstallWindowsCliSearchMorfologikFixture
-              stageBblInstallWindowsCliSearchNoriFixture
-              stageBblInstallWindowsCliSearchSmartcnFixture
+            needs_xcode: false
+            needs_nfpm: false
+            needs_wix: true
+            package_tasks: >-
               stageBblInstallWindowsMsiFixture
               stageBblInstallWindowsWingetFixture
+            excluded_fixture_tasks: >-
+              -x stageBblInstallWindowsCliCoreFixture
+              -x stageBblInstallWindowsCliSearchCommonFixture
 
     steps:
-      - name: Resolve release tag
+      - name: Resolve release
         id: release
         shell: bash
         run: |
@@ -107,6 +277,23 @@ jobs:
         with:
           ref: ${{ steps.release.outputs.ref }}
 
+      - name: Download linked executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: linked-${{ matrix.asset }}-*
+          path: linked
+          merge-multiple: true
+
+      - name: Restore staged executables
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "build/bblInstallFixtures/${{ matrix.fixture_platform }}"
+          cp -R "linked/staged/${{ matrix.fixture_platform }}/." \
+            "build/bblInstallFixtures/${{ matrix.fixture_platform }}/"
+          cp resources/bblpacks/*.zip \
+            "build/bblInstallFixtures/${{ matrix.fixture_platform }}/cli-core/"
+
       - name: Set up JDK 24
         uses: actions/setup-java@v5
         with:
@@ -114,7 +301,7 @@ jobs:
           java-version: '24'
 
       - name: Setup Xcode
-        if: ${{ runner.os == 'macOS' }}
+        if: ${{ matrix.needs_xcode }}
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: ${{ matrix.xcode_version }}
@@ -122,16 +309,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Konan Cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.konan
-          key: ${{ matrix.konan_cache_key }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ matrix.konan_cache_key }}-konan-
-
       - name: Install nFPM
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ matrix.needs_nfpm }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -146,26 +325,20 @@ jobs:
           echo "$RUNNER_TEMP/nfpm" >> "$GITHUB_PATH"
 
       - name: Install WiX
-        if: ${{ runner.os == 'Windows' }}
+        if: ${{ matrix.needs_wix }}
         shell: pwsh
         run: dotnet tool install --global wix
 
-      - name: Stage release executables and packages
+      - name: Build installer packages
         shell: bash
         run: |
-          ${{ matrix.gradle_command }} ${{ matrix.stage_tasks }} \
+          ${{ matrix.gradle_command }} \
+            ${{ matrix.package_tasks }} \
+            ${{ matrix.excluded_fixture_tasks }} \
             "-PExecutableType=release" \
             "-Pbblpacks.embed=false"
 
-          # Alpine APK publishing is blocked by nehemiaharchives/lucene-kmp#262.
-          # Do not add stageBblInstallLinuxAlpineFixture until that issue is resolved.
-
-      - name: Verify bundled bblpack versions
-        shell: bash
-        run: |
-          ${{ matrix.gradle_command }} verifyServerBblPackVersions "-Pbblpacks.embed=false"
-
-      - name: Package Unix CLI asset
+      - name: Assemble Unix release assets
         if: ${{ runner.os != 'Windows' }}
         shell: bash
         run: |
@@ -173,11 +346,8 @@ jobs:
           tag="${{ steps.release.outputs.tag }}"
           asset="${{ matrix.asset }}"
           staged="build/bblInstallFixtures/${{ matrix.fixture_platform }}"
-          package_dir="build/release/bbl-${tag}-${asset}"
-
-          rm -rf build/release dist
+          package_dir="build/release/bbl-$tag-$asset"
           mkdir -p "$package_dir" dist
-
           cp "$staged/cli-core/bbl" "$package_dir/bbl"
           cp "$staged/cli-search-common/bbl-search-common" "$package_dir/bbl-search-common"
           cp "$staged/cli-search-extra/bbl-search-extra" "$package_dir/bbl-search-extra"
@@ -185,22 +355,22 @@ jobs:
           cp "$staged/cli-search-morfologik/bbl-search-morfologik" "$package_dir/bbl-search-morfologik"
           cp "$staged/cli-search-nori/bbl-search-nori" "$package_dir/bbl-search-nori"
           cp "$staged/cli-search-smartcn/bbl-search-smartcn" "$package_dir/bbl-search-smartcn"
-          cp "$staged/cli-core"/*.zip "$package_dir/"
+          cp resources/bblpacks/*.zip "$package_dir/"
           chmod +x "$package_dir"/bbl "$package_dir"/bbl-search-*
-
-          tar -C build/release -czf "dist/bbl-${tag}-${asset}.tar.gz" "bbl-${tag}-${asset}"
-
+          tar -C build/release -czf "dist/bbl-$tag-$asset.tar.gz" "bbl-$tag-$asset"
           if [ "${{ runner.os }}" = "Linux" ]; then
             find build/distributions -maxdepth 1 -type f \
               \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' \) \
               -exec cp {} dist/ \;
           else
             cp build/distributions/*.pkg dist/
-            cp "$staged/homebrew"/bbl-*-${asset}.tar.gz \
-              "dist/bbl-${tag}-${asset}-homebrew.tar.gz"
+            cp "$staged/homebrew"/bbl-*-"$asset".tar.gz \
+              "dist/bbl-$tag-$asset-homebrew.tar.gz"
+            cp "$staged/homebrew/Formula/bbl.rb" \
+              "dist/bbl-$tag-$asset-homebrew.rb"
           fi
 
-      - name: Package Windows CLI asset
+      - name: Assemble Windows release assets
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
@@ -209,10 +379,7 @@ jobs:
           $asset = '${{ matrix.asset }}'
           $staged = 'build/bblInstallFixtures/${{ matrix.fixture_platform }}'
           $packageDir = "build/release/bbl-$tag-$asset"
-
-          Remove-Item -Recurse -Force build/release, dist -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force $packageDir, dist | Out-Null
-
           Copy-Item "$staged/cli-core/bbl.exe" "$packageDir/bbl.exe"
           Copy-Item "$staged/cli-search-common/bbl-search-common.exe" "$packageDir/bbl-search-common.exe"
           Copy-Item "$staged/cli-search-extra/bbl-search-extra.exe" "$packageDir/bbl-search-extra.exe"
@@ -220,22 +387,22 @@ jobs:
           Copy-Item "$staged/cli-search-morfologik/bbl-search-morfologik.exe" "$packageDir/bbl-search-morfologik.exe"
           Copy-Item "$staged/cli-search-nori/bbl-search-nori.exe" "$packageDir/bbl-search-nori.exe"
           Copy-Item "$staged/cli-search-smartcn/bbl-search-smartcn.exe" "$packageDir/bbl-search-smartcn.exe"
-          Copy-Item "$staged/cli-core/*.zip" "$packageDir/"
-
-          Compress-Archive -Path "$packageDir" -DestinationPath "dist/bbl-$tag-$asset.zip" -Force
-          Copy-Item "build/distributions/*.msi" dist/
+          Copy-Item 'resources/bblpacks/*.zip' $packageDir
+          Compress-Archive -Path $packageDir -DestinationPath "dist/bbl-$tag-$asset.zip" -Force
+          Copy-Item 'build/distributions/*.msi' dist/
           Copy-Item "$staged/winget/bbl-winget.zip" "dist/bbl-$tag-$asset-winget.zip"
 
-      - name: Upload release assets
+      - name: Upload packaged CLI assets
         uses: actions/upload-artifact@v7
         with:
-          name: release-${{ matrix.asset }}
+          name: packaged-${{ matrix.asset }}
           path: dist/*
           if-no-files-found: error
           retention-days: 7
 
   build-pack-assets:
     name: Build bbl pack assets
+    needs: link-release-executables
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -270,7 +437,7 @@ jobs:
       - name: Upload bbl pack assets
         uses: actions/upload-artifact@v7
         with:
-          name: release-bblpacks
+          name: packaged-bblpacks
           path: resources/bblpacks/*.zip
           if-no-files-found: error
           retention-days: 7
@@ -278,7 +445,7 @@ jobs:
   publish-release:
     name: Publish GitHub Release
     needs:
-      - build-cli-assets
+      - package-cli-assets
       - build-pack-assets
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -300,12 +467,23 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download release assets
+      - name: Download linked executables
         uses: actions/download-artifact@v8
         with:
-          pattern: release-*
+          pattern: linked-*
+          path: linked
+          merge-multiple: true
+
+      - name: Download packaged assets
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packaged-*
           path: dist
           merge-multiple: true
+
+      - name: Collect raw executables
+        shell: bash
+        run: cp linked/release/* dist/
 
       - name: Generate checksums
         shell: bash
@@ -314,30 +492,14 @@ jobs:
           sha256sum * > SHA256SUMS.txt
 
       - name: Create or update release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-          RELEASE_TARGET: ${{ steps.release.outputs.target }}
-          RELEASE_DRAFT: ${{ steps.release.outputs.draft }}
-          RELEASE_PRERELEASE: ${{ steps.release.outputs.prerelease }}
-        run: |
-          set -euo pipefail
-
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" dist/* --clobber
-            exit 0
-          fi
-
-          args=(--title "$RELEASE_TAG" --generate-notes)
-          if [ -n "$RELEASE_TARGET" ]; then
-            args+=(--target "$RELEASE_TARGET")
-          fi
-          if [ "$RELEASE_DRAFT" = "true" ]; then
-            args+=(--draft)
-          fi
-          if [ "$RELEASE_PRERELEASE" = "true" ]; then
-            args+=(--prerelease)
-          fi
-
-          gh release create "$RELEASE_TAG" dist/* "${args[@]}"
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ github.token }}
+          file: dist/*
+          file_glob: true
+          tag: ${{ steps.release.outputs.tag }}
+          release_name: ${{ steps.release.outputs.tag }}
+          target_commit: ${{ steps.release.outputs.target || github.sha }}
+          draft: ${{ steps.release.outputs.draft }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          overwrite: true
