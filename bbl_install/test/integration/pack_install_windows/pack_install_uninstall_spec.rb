@@ -12,12 +12,13 @@ describe 'bbl pack install and uninstall' do
       Copy-Item (Join-Path #{source_dir} 'webus.zip') (Join-Path $testRelease 'webus.zip')
       Copy-Item (Join-Path #{source_dir} 'bbl-search-common.exe') (Join-Path $testRelease 'bbl-search-common-windows-x64.exe')
       $env:USERPROFILE = $testHome
-      $env:BBL_RELEASE_DOWNLOAD_URL = 'file://' + ($testRelease -replace '\\', '/')
+      $releaseUrlPath = $testRelease.Replace([System.IO.Path]::DirectorySeparatorChar, '/')
+      $env:BBL_RELEASE_DOWNLOAD_URL = 'file://' + $releaseUrlPath
       try {
         & #{bbl_cmd} install webus
         if ($LASTEXITCODE -ne 0) { throw "install exited with $LASTEXITCODE" }
-        $localBinary = Join-Path $testHome '.bbl\bin\bbl-search-common.exe'
-        $releaseBinary = Join-Path $testHome '.bbl\bin\bbl-search-common-windows-x64.exe'
+        $localBinary = Join-Path $testHome '.bbl/bin/bbl-search-common.exe'
+        $releaseBinary = Join-Path $testHome '.bbl/bin/bbl-search-common-windows-x64.exe'
         if (-not (Test-Path -LiteralPath $localBinary)) { throw "missing local helper $localBinary" }
         if (Test-Path -LiteralPath $releaseBinary) { throw "release asset was not renamed: $releaseBinary" }
         & #{bbl_cmd} uninstall webus
