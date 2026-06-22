@@ -43,29 +43,51 @@ jobs:
             timeout: 45
             konan_cache_key: linux
             gradle_command: ./gradlew
-            gradle_target: LinuxX64
-            bin_target: linuxX64
-            executable_extension: .kexe
-            archive_extension: tar.gz
+            fixture_platform: linux
+            stage_tasks: >-
+              stageBblInstallLinuxCliCoreFixture
+              stageBblInstallLinuxCliSearchCommonFixture
+              stageBblInstallLinuxCliSearchExtraFixture
+              stageBblInstallLinuxCliSearchKuromojiFixture
+              stageBblInstallLinuxCliSearchMorfologikFixture
+              stageBblInstallLinuxCliSearchNoriFixture
+              stageBblInstallLinuxCliSearchSmartcnFixture
+              stageBblInstallLinuxDebFixture
+              stageBblInstallLinuxRpmFixture
+              stageBblInstallLinuxArchlinuxFixture
           - asset: macos-arm64
             os: macos-latest
             timeout: 45
             konan_cache_key: macos
             gradle_command: ./gradlew
-            gradle_target: MacosArm64
-            bin_target: macosArm64
-            executable_extension: .kexe
-            archive_extension: tar.gz
+            fixture_platform: macosArm64
+            stage_tasks: >-
+              stageBblInstallMacosArm64CliCoreFixture
+              stageBblInstallMacosArm64CliSearchCommonFixture
+              stageBblInstallMacosArm64CliSearchExtraFixture
+              stageBblInstallMacosArm64CliSearchKuromojiFixture
+              stageBblInstallMacosArm64CliSearchMorfologikFixture
+              stageBblInstallMacosArm64CliSearchNoriFixture
+              stageBblInstallMacosArm64CliSearchSmartcnFixture
+              stageBblInstallMacosArm64PkgFixture
+              stageBblInstallMacosArm64HomebrewFixture
             xcode_version: '16.4'
           - asset: windows-x64
             os: windows-latest
             timeout: 60
             konan_cache_key: windows
             gradle_command: ./gradlew.bat
-            gradle_target: MingwX64
-            bin_target: mingwX64
-            executable_extension: .exe
-            archive_extension: zip
+            fixture_platform: windows
+            stage_tasks: >-
+              stageBblInstallWindowsCliCoreFixture
+              stageBblInstallWindowsCliSearchCommonFixture
+              stageBblInstallWindowsCliSearchExtraFixture
+              stageBblInstallWindowsCliSearchKuromojiFixture
+              stageBblInstallWindowsCliSearchMorfologikFixture
+              stageBblInstallWindowsCliSearchNoriFixture
+              stageBblInstallWindowsCliSearchSmartcnFixture
+              stageBblInstallWindowsMsiFixture
+              stageBblInstallWindowsWingetFixture
 
     steps:
       - name: Resolve release tag
@@ -81,7 +103,7 @@ jobs:
           fi
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.release.outputs.ref }}
 
@@ -98,28 +120,45 @@ jobs:
           xcode-version: ${{ matrix.xcode_version }}
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Konan Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.konan
           key: ${{ matrix.konan_cache_key }}-konan-${{ hashFiles('*.gradle.kts', 'gradle/libs.versions.toml') }}
           restore-keys: |
             ${{ matrix.konan_cache_key }}-konan-
 
-      - name: Build release executables
+      - name: Install nFPM
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nfpm"
+          gh release download v2.47.0 \
+            --repo goreleaser/nfpm \
+            --pattern 'nfpm_2.47.0_Linux_x86_64.tar.gz' \
+            --dir "$RUNNER_TEMP/nfpm"
+          tar -C "$RUNNER_TEMP/nfpm" -xzf "$RUNNER_TEMP/nfpm/nfpm_2.47.0_Linux_x86_64.tar.gz"
+          echo "$RUNNER_TEMP/nfpm" >> "$GITHUB_PATH"
+
+      - name: Install WiX
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: dotnet tool install --global wix
+
+      - name: Stage release executables and packages
         shell: bash
         run: |
-          ${{ matrix.gradle_command }} \
-            :cli:core:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:common:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:extra:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:kuromoji:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:morfologik:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:nori:linkReleaseExecutable${{ matrix.gradle_target }} \
-            :cli:search:smartcn:linkReleaseExecutable${{ matrix.gradle_target }} \
+          ${{ matrix.gradle_command }} ${{ matrix.stage_tasks }} \
+            "-PExecutableType=release" \
             "-Pbblpacks.embed=false"
+
+          # Alpine APK publishing is blocked by nehemiaharchives/lucene-kmp#262.
+          # Do not add stageBblInstallLinuxAlpineFixture until that issue is resolved.
 
       - name: Verify bundled bblpack versions
         shell: bash
@@ -133,24 +172,33 @@ jobs:
           set -euo pipefail
           tag="${{ steps.release.outputs.tag }}"
           asset="${{ matrix.asset }}"
-          target="${{ matrix.bin_target }}"
-          ext="${{ matrix.executable_extension }}"
+          staged="build/bblInstallFixtures/${{ matrix.fixture_platform }}"
           package_dir="build/release/bbl-${tag}-${asset}"
 
           rm -rf build/release dist
           mkdir -p "$package_dir" dist
 
-          cp "cli/core/build/bin/${target}/releaseExecutable/bbl${ext}" "$package_dir/bbl"
-          cp "cli/search/common/build/bin/${target}/releaseExecutable/bbl-search-common${ext}" "$package_dir/bbl-search-common"
-          cp "cli/search/extra/build/bin/${target}/releaseExecutable/bbl-search-extra${ext}" "$package_dir/bbl-search-extra"
-          cp "cli/search/kuromoji/build/bin/${target}/releaseExecutable/bbl-search-kuromoji${ext}" "$package_dir/bbl-search-kuromoji"
-          cp "cli/search/morfologik/build/bin/${target}/releaseExecutable/bbl-search-morfologik${ext}" "$package_dir/bbl-search-morfologik"
-          cp "cli/search/nori/build/bin/${target}/releaseExecutable/bbl-search-nori${ext}" "$package_dir/bbl-search-nori"
-          cp "cli/search/smartcn/build/bin/${target}/releaseExecutable/bbl-search-smartcn${ext}" "$package_dir/bbl-search-smartcn"
-          cp server/src/main/resources/files/bblpacks/*.zip "$package_dir/"
+          cp "$staged/cli-core/bbl" "$package_dir/bbl"
+          cp "$staged/cli-search-common/bbl-search-common" "$package_dir/bbl-search-common"
+          cp "$staged/cli-search-extra/bbl-search-extra" "$package_dir/bbl-search-extra"
+          cp "$staged/cli-search-kuromoji/bbl-search-kuromoji" "$package_dir/bbl-search-kuromoji"
+          cp "$staged/cli-search-morfologik/bbl-search-morfologik" "$package_dir/bbl-search-morfologik"
+          cp "$staged/cli-search-nori/bbl-search-nori" "$package_dir/bbl-search-nori"
+          cp "$staged/cli-search-smartcn/bbl-search-smartcn" "$package_dir/bbl-search-smartcn"
+          cp "$staged/cli-core"/*.zip "$package_dir/"
           chmod +x "$package_dir"/bbl "$package_dir"/bbl-search-*
 
           tar -C build/release -czf "dist/bbl-${tag}-${asset}.tar.gz" "bbl-${tag}-${asset}"
+
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            find build/distributions -maxdepth 1 -type f \
+              \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' \) \
+              -exec cp {} dist/ \;
+          else
+            cp build/distributions/*.pkg dist/
+            cp "$staged/homebrew"/bbl-*-${asset}.tar.gz \
+              "dist/bbl-${tag}-${asset}-homebrew.tar.gz"
+          fi
 
       - name: Package Windows CLI asset
         if: ${{ runner.os == 'Windows' }}
@@ -159,34 +207,79 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $tag = '${{ steps.release.outputs.tag }}'
           $asset = '${{ matrix.asset }}'
-          $target = '${{ matrix.bin_target }}'
+          $staged = 'build/bblInstallFixtures/${{ matrix.fixture_platform }}'
           $packageDir = "build/release/bbl-$tag-$asset"
 
           Remove-Item -Recurse -Force build/release, dist -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force $packageDir, dist | Out-Null
 
-          Copy-Item "cli/core/build/bin/$target/releaseExecutable/bbl.exe" "$packageDir/bbl.exe"
-          Copy-Item "cli/search/common/build/bin/$target/releaseExecutable/bbl-search-common.exe" "$packageDir/bbl-search-common.exe"
-          Copy-Item "cli/search/extra/build/bin/$target/releaseExecutable/bbl-search-extra.exe" "$packageDir/bbl-search-extra.exe"
-          Copy-Item "cli/search/kuromoji/build/bin/$target/releaseExecutable/bbl-search-kuromoji.exe" "$packageDir/bbl-search-kuromoji.exe"
-          Copy-Item "cli/search/morfologik/build/bin/$target/releaseExecutable/bbl-search-morfologik.exe" "$packageDir/bbl-search-morfologik.exe"
-          Copy-Item "cli/search/nori/build/bin/$target/releaseExecutable/bbl-search-nori.exe" "$packageDir/bbl-search-nori.exe"
-          Copy-Item "cli/search/smartcn/build/bin/$target/releaseExecutable/bbl-search-smartcn.exe" "$packageDir/bbl-search-smartcn.exe"
-          Copy-Item "server/src/main/resources/files/bblpacks/*.zip" "$packageDir/"
+          Copy-Item "$staged/cli-core/bbl.exe" "$packageDir/bbl.exe"
+          Copy-Item "$staged/cli-search-common/bbl-search-common.exe" "$packageDir/bbl-search-common.exe"
+          Copy-Item "$staged/cli-search-extra/bbl-search-extra.exe" "$packageDir/bbl-search-extra.exe"
+          Copy-Item "$staged/cli-search-kuromoji/bbl-search-kuromoji.exe" "$packageDir/bbl-search-kuromoji.exe"
+          Copy-Item "$staged/cli-search-morfologik/bbl-search-morfologik.exe" "$packageDir/bbl-search-morfologik.exe"
+          Copy-Item "$staged/cli-search-nori/bbl-search-nori.exe" "$packageDir/bbl-search-nori.exe"
+          Copy-Item "$staged/cli-search-smartcn/bbl-search-smartcn.exe" "$packageDir/bbl-search-smartcn.exe"
+          Copy-Item "$staged/cli-core/*.zip" "$packageDir/"
 
           Compress-Archive -Path "$packageDir" -DestinationPath "dist/bbl-$tag-$asset.zip" -Force
+          Copy-Item "build/distributions/*.msi" dist/
+          Copy-Item "$staged/winget/bbl-winget.zip" "dist/bbl-$tag-$asset-winget.zip"
 
-      - name: Upload CLI asset
-        uses: actions/upload-artifact@v4
+      - name: Upload release assets
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.asset }}
-          path: dist/*.${{ matrix.archive_extension }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  build-pack-assets:
+    name: Build bbl pack assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Resolve release ref
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.release.outputs.ref }}
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Verify bbl pack versions
+        run: ./gradlew verifyServerBblPackVersions
+
+      - name: Upload bbl pack assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-bblpacks
+          path: resources/bblpacks/*.zip
           if-no-files-found: error
           retention-days: 7
 
   publish-release:
     name: Publish GitHub Release
-    needs: build-cli-assets
+    needs:
+      - build-cli-assets
+      - build-pack-assets
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -207,8 +300,8 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download CLI assets
-        uses: actions/download-artifact@v4
+      - name: Download release assets
+        uses: actions/download-artifact@v8
         with:
           pattern: release-*
           path: dist

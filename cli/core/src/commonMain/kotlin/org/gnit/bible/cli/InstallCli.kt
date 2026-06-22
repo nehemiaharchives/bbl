@@ -19,8 +19,7 @@ import org.gnit.bible.ZipBibleResourcesReader
 
 class InstallCli(
     private val bible: Bible,
-    private val packBaseUrl: String = environmentVariable("BBL_PACK_BASE_URL") ?: BblVersion.DOWNLOADABLE_BIBLE_BASE_URL,
-    private val searchBinaryBaseUrl: String = environmentVariable("BBL_SEARCH_BINARY_BASE_URL")
+    private val releaseDownloadUrl: String = environmentVariable("BBL_RELEASE_DOWNLOAD_URL")
         ?: BblVersion.RELEASE_DOWNLOAD_URL
 ) : CoreCliktCommand(name = "install") {
     private val logger = KotlinLogging.logger {}
@@ -79,7 +78,7 @@ class InstallCli(
             val translation = downloadableByCode.getValue(translationCode)
             logger.debug { "InstallCli downloading $translationCode" }
             val downloadResult = runBlocking {
-                runCatching { am.download(packBaseUrl, "${translationCode}.zip") }
+                runCatching { am.download(releaseDownloadUrl, "${translationCode}.zip") }
             }
 
             downloadResult.onFailure { error ->
@@ -116,7 +115,7 @@ class InstallCli(
 
         logger.debug { "InstallCli downloading search helper $binaryName" }
         val downloadResult = runBlocking {
-            runCatching { am.downloadTo(searchBinaryBaseUrl, binaryName, binDir.toString()) }
+            runCatching { am.downloadTo(releaseDownloadUrl, binaryName, binDir.toString()) }
         }
 
         downloadResult.onFailure { error ->

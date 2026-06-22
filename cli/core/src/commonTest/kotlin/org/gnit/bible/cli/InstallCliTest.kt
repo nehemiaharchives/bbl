@@ -110,12 +110,14 @@ class InstallCliTest : ResourcesTestBase() {
         val searchHelperName = searchHelperName("kuromoji")
         val primaryReleasePath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/$searchHelperName"
         val legacyReleasePath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/$searchHelperName"
+        val primaryPackPath = "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/jc.zip"
+        val legacyPackPath = "/nehemiaharchives/bbl-kmp/releases/download/${BblVersion.VERSION}/jc.zip"
         val httpClient = HttpClient(MockEngine { request ->
             when {
-                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" ->
+                request.url.encodedPath == primaryPackPath ->
                     respond("", status = HttpStatusCode.NotFound)
 
-                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH_LEGACY}/bblpacks/jc.zip" ->
+                request.url.encodedPath == legacyPackPath ->
                     respond(
                         content = TestFixtures.jcMinimalZipBytes,
                         headers = headersOf(
@@ -156,7 +158,8 @@ class InstallCliTest : ResourcesTestBase() {
             "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/${searchHelperName("kuromoji")}"
         val httpClient = HttpClient(MockEngine { request ->
             when {
-                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" -> respond(
+                request.url.encodedPath ==
+                    "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/jc.zip" -> respond(
                     content = TestFixtures.jcMinimalZipBytes,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),
@@ -258,7 +261,8 @@ class InstallCliTest : ResourcesTestBase() {
                     )
                 )
 
-                request.url.encodedPath == "${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/jc.zip" -> respond(
+                request.url.encodedPath ==
+                    "/nehemiaharchives/bbl/releases/download/${BblVersion.VERSION}/jc.zip" -> respond(
                     content = wrongVersionZip,
                     headers = headersOf(
                         "Content-Type" to listOf("application/zip"),

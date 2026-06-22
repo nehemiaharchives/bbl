@@ -13,8 +13,6 @@ object BblVersion {
 
     const val RELEASE_DOWNLOAD_URL = "https://github.com/$BBL_REPOSITORY/releases/download/$VERSION"
 
-    const val DOWNLOADABLE_BIBLE_BASE_URL = "https://raw.githubusercontent.com/$BBL_REPOSITORY/$VERSION/resources/bblpacks"
-
     const val SERVER_RESOURCE_PATH = "/$BBL_REPOSITORY/$VERSION/resources"
 
     //TODO remove this after successful repository migration from bbl-kmp to bbl

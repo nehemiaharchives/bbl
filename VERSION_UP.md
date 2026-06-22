@@ -18,14 +18,14 @@ Change `BblVersion.VERSION`. Use the GitHub release tag string, for example `v2.
 
 2. Check the derived URLs in the same file.
 
-   `RELEASE_DOWNLOAD_URL`, `DOWNLOADABLE_BIBLE_BASE_URL`, and server resource paths are built from `VERSION`. Usually they should not be edited directly.
+   `RELEASE_DOWNLOAD_URL` and server resource paths are built from `VERSION`. Usually they should not be edited directly.
 
 3. Run the focused version tests from JetBrains when available.
 
    Existing useful run configurations:
 
    - `BblVersionTest.bblVersionUsesGithubReleaseTag`
-   - `BblVersionTest.searchHelperUrlUsesPinnedReleaseTag`
+   - `BblVersionTest.releaseDownloadUrlUsesPinnedReleaseTag`
 
    If you need wider coverage, run:
 

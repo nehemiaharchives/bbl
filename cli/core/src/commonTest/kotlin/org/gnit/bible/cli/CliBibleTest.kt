@@ -51,8 +51,8 @@ class CliBibleTest : BibleTestBase {
         fs.createDirectories(cliBibleTestPackDir.toPath())
         fs.list(cliBibleTestPackDir.toPath()).forEach { fs.delete(it) }
         runBlocking {
-            bible.assetManager.download(BblVersion.DOWNLOADABLE_BIBLE_BASE_URL, "webus.zip")
-            bible.assetManager.download(BblVersion.DOWNLOADABLE_BIBLE_BASE_URL, "jc.zip")
+            bible.assetManager.download(BblVersion.RELEASE_DOWNLOAD_URL, "webus.zip")
+            bible.assetManager.download(BblVersion.RELEASE_DOWNLOAD_URL, "jc.zip")
         }
     }
 
@@ -81,7 +81,7 @@ class CliBibleTest : BibleTestBase {
         assertTrue(bible.findTranslationByCode("webus"))
         assertTrue(bible.findTranslationByCode("jc"))
         assertFalse(bible.findTranslationByCode("kttv"))
-        runBlocking{ bible.assetManager.download(BblVersion.DOWNLOADABLE_BIBLE_BASE_URL, "kttv.zip") }
+        runBlocking { bible.assetManager.download(BblVersion.RELEASE_DOWNLOAD_URL, "kttv.zip") }
         assertTrue(bible.findTranslationByCode("kttv"))
         assertFalse(bible.findTranslationByCode("unknown_code"))
     }

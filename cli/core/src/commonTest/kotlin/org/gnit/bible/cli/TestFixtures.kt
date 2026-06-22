@@ -192,10 +192,12 @@ object TestFixtures {
     fun bblInstallMockEngine() = MockEngine { request ->
         val releaseVersion = BblVersion.VERSION
         val path = request.url.encodedPath
+        val primaryReleasePath = "/${BblVersion.BBL_REPOSITORY}/releases/download/$releaseVersion/"
+        val legacyReleasePath = "/${BblVersion.BBL_REPOSITORY_LEGACY}/releases/download/$releaseVersion/"
         val helperName = path.substringAfterLast('/')
         val helperBytes = "$helperName helper".encodeToByteArray()
         when {
-            path.startsWith("${BblVersion.SERVER_RESOURCE_PATH}/bblpacks/") &&
+            (path.startsWith(primaryReleasePath) || path.startsWith(legacyReleasePath)) &&
                 path.endsWith(".zip") -> {
                 val code = path.substringAfterLast('/').removeSuffix(".zip")
                 respond(
@@ -204,16 +206,7 @@ object TestFixtures {
                     headers = headersOf("Content-Type", "application/zip")
                 )
             }
-            path.startsWith("${BblVersion.SERVER_RESOURCE_PATH_LEGACY}/bblpacks/") &&
-                path.endsWith(".zip") -> {
-                val code = path.substringAfterLast('/').removeSuffix(".zip")
-                respond(
-                    content = packBytes(code),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf("Content-Type", "application/zip")
-                )
-            }
-            path.contains("/releases/download/$releaseVersion/") -> respond(
+            path.startsWith(primaryReleasePath) || path.startsWith(legacyReleasePath) -> respond(
                 content = helperBytes,
                 status = HttpStatusCode.OK,
                 headers = headersOf("Content-Type", "application/octet-stream")

@@ -172,7 +172,7 @@ actual abstract class ResourcesTestBase actual constructor() {
         if (destination.exists() && destination.length() > 0L) {
             return
         }
-        val url = "${BblVersion.DOWNLOADABLE_BIBLE_BASE_URL.trimEnd('/')}/$code.zip"
+        val url = "${BblVersion.RELEASE_DOWNLOAD_URL.trimEnd('/')}/$code.zip"
         runCatching {
             destination.parentFile?.mkdirs()
             java.net.URL(url).openStream().use { input ->

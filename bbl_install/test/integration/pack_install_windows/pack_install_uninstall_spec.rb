@@ -3,7 +3,7 @@ describe 'bbl pack install and uninstall' do
     ps_quote = ->(value) { "'#{value.to_s.gsub("'", "''")}'" }
     bbl_cmd = ps_quote.call($bbl_bin)
     pack_dir = ps_quote.call($bbl_pack_dir)
-    pack_base_url = ps_quote.call("file://#{$bbl_install_source_dir}")
+    release_download_url = ps_quote.call("file://#{$bbl_install_source_dir}")
 
     # Debug: check environment and packs directory in powershell resource
     env_check = powershell("$env:USERPROFILE = $env:USERPROFILE; Write-Output \"USERPROFILE=$env:USERPROFILE\"; Write-Output \"Packs dir: $(Get-ChildItem -LiteralPath #{pack_dir} -Name)\"; & #{bbl_cmd} list translations")
@@ -25,7 +25,7 @@ describe 'bbl pack install and uninstall' do
     expect(kjv_available).to match(/\|\s+Available\s+\|/)
 
     # Write install script to temp file and execute with powershell -Command
-    script_content = "$env:BBL_PACK_BASE_URL = #{pack_base_url}; $env:USERPROFILE = $env:USERPROFILE; & #{bbl_cmd} install kjv"
+    script_content = "$env:BBL_RELEASE_DOWNLOAD_URL = #{release_download_url}; $env:USERPROFILE = $env:USERPROFILE; & #{bbl_cmd} install kjv"
     install = powershell(script_content)
     puts "INSTALL EXIT STATUS: #{install.exit_status}"
     puts "INSTALL STDOUT: #{install.stdout}"

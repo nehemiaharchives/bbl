@@ -122,7 +122,7 @@ fun TranslationManagerScreen(
                             downloadingCodes = downloadingCodes + entry.translation.code
                             scope.launch(Dispatchers.IO) {
                                 runCatching {
-                                    val url = if (BblVersion.DOWNLOADABLE_BIBLE_BASE_URL.endsWith("/")) BblVersion.DOWNLOADABLE_BIBLE_BASE_URL else "${BblVersion.DOWNLOADABLE_BIBLE_BASE_URL}/"
+                                    val url = "${BblVersion.RELEASE_DOWNLOAD_URL.trimEnd('/')}/"
                                     val fileName = "${entry.translation.code}.zip"
                                     logger.debug {"download button tapped, start download ${entry.translation.code} url=${url}$fileName"}
                                     assetManager.download(url, fileName)

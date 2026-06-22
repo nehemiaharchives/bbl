@@ -12,7 +12,7 @@ class BblVersionTest {
     }
 
     @Test
-    fun searchHelperUrlUsesPinnedReleaseTag() {
+    fun releaseDownloadUrlUsesPinnedReleaseTag() {
         assertEquals(
             "https://github.com/${BblVersion.BBL_REPOSITORY}/releases/download/${BblVersion.VERSION}",
             BblVersion.RELEASE_DOWNLOAD_URL
