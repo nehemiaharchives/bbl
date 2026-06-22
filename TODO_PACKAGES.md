@@ -12,6 +12,33 @@ Legend:
 - `[~]` Partly done or implemented only as a CI/local fixture.
 - `[ ]` Not started or not visible in the repo.
 
+## Overview/Package Type, Manager, Distro matrix
+| Status    | Distro             | Package Generated | Manager | Container[E2E]    |
+|-----------|--------------------|-------------------|---------|-------------------|
+| Supported | Ubuntu 26,25,24,22 | .deb [x]          | apt     | dokken[x]         |
+| TODO      | Ubuntu 26,25,24,22 | ppa [ ]           | apt     | dokken[ ]         |
+| Supported | Debian             | .deb [x]          | apt     | dokken[ ]         |
+| Supported | Linux Mint         | .deb [x]          | apt     | linuxmintd[ ]     |
+| Supported | RHEL               | .rpm [x]          | dnf     | dokken[ ]         |
+| Supported | Fedora             | .rpm [x]          | dnf     | dokken[x]         |
+| Supported | Rocky Linux        | .rpm [x]          | dnf     | dokken[ ]         |
+| Supported | openSUSE           | .rpm [x]          | zypper  | dokken[ ]         |
+| Supported | openSUSE           | obs [ ]           | zypper  | dokken[ ]         |
+| Supported | Arch Linux         | .pkg.tar.zst [x]  | pacman  | archlinux[x]      |
+| TODO      | Arch Linux         | aur [ ]           | pacman  | archlinux[ ]      |
+| Supported | CachyOS            | .pkg.tar.zst [x]  | pacman  | cachyos[ ]        |
+| WIP       | Alpine Linux       | .apk [~]          | apk     | alpine[~]         |
+| TODO      | NixOS              | .nix [ ]          | nix     | nixos/nix[ ]      |
+| TODO      | Gentoo             | .ebuild [ ]       | portage | gentoo/portage[ ] |
+| TODO      | Void               | .xbps [ ]         | xbps    | gvcatafesta[ ]    |
+| TODO      | FreeBSD            | .pkg [ ]          | pkg     | freebsd[ ]        |
+| Supported | macOS              | .pkg [x]          | os      | local[x]          |
+| Supported | macOS              | homebrew formula  | brew    | local[x]          |
+| Supported | Windows            | .msi [x]          | os      | local[x]          |
+| WIP       | Windows            | winget package    | winget  | local[ ]          |
+| TODO      | Windows            | scoop package     | scoop   | local[ ]          |
+| TODO      | Windows            | choco package     | choco   | local[ ]          |
+
 ### Repository and naming
 
 - `[x]` Development repository currently remains `nehemiaharchives/bbl-kmp`.
@@ -403,7 +430,7 @@ Current status:
 - `[ ]` No `packaging/rpm/` directory exists.
 - `[ ]` No `bbl.spec` exists.
 - `[ ]` No COPR project/publish workflow exists.
-- `[~]` nFPM could potentially generate RPM later, but current Gradle task only generates `.deb`.
+- `[x]` nFPM generates rpm
 
 Required next changes:
 
@@ -530,12 +557,12 @@ Required next changes:
 
 ## Recommended Next Order
 
-1. Rename `TOOD_PACKAGES.md` to `TODO_PACKAGES.md`.
+1. [x] Rename `TOOD_PACKAGES.md` to `TODO_PACKAGES.md`.
 2. Fix `PUBLISH.md` path/reference drift.
 3. Decide public `.deb` layout:
     - core-only, or
     - root-owned bundled assets plus first-run copy.
-4. Split `.deb` fixture vs release tasks if needed.
+4. [~] Split `.deb` fixture vs release tasks if needed.
 5. Add `.deb` artifact upload to `publish.yml`.
 6. Run CI and publish first draft GitHub Release for `v2.0`.
 7. Create Homebrew tap using the current formula fixture as the starting point.
