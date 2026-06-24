@@ -38,7 +38,7 @@ val useLocalLuceneKmp = providers.gradleProperty("useLocalLuceneKmp").orNull == 
     providers.environmentVariable("USE_LOCAL_LUCENE_KMP").orNull == "true"
 
 if (/*useLocalLuceneKmp && file("../lucene-kmp").isDirectory*/ // this is commented out for now because we at this point we do not dogfood development of bbl and lucene-kmp
-    false /* this is commented out because we do not work on dog fooding */
+    false /*  dog fooding mode off */
     ) {
     logger.lifecycle("Using sibling lucene-kmp composite build via useLocalLuceneKmp=true")
     includeBuild("../lucene-kmp") {

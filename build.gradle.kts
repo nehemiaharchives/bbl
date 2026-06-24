@@ -518,12 +518,11 @@ val stageBblInstallFixtureTasks = bblInstallPlatforms.flatMap { platform ->
 }
 
 val bblDebInstallUser = providers.gradleProperty("bblDebInstallUser")
-    .orElse(providers.environmentVariable("USER"))
+    .orElse("ubuntu")
 val bblDebInstallGroup = providers.gradleProperty("bblDebInstallGroup")
     .orElse(bblDebInstallUser)
 val bblDebInstallHome = providers.gradleProperty("bblDebInstallHome")
-    .orElse(providers.environmentVariable("HOME"))
-    .orElse(bblDebInstallUser.map { "/home/$it" })
+    .orElse("/home/ubuntu")
 val linuxDebOutputFile = bblVersionProvider.flatMap { version ->
     linuxDebOutputDirectory.map { it.file("bbl-$version-linux-amd64.deb") }
 }
@@ -557,6 +556,8 @@ val linuxAlpineOutputFile = bblVersionProvider.flatMap { version ->
 
 fun String.asYamlString(): String = "'${replace("'", "''")}'"
 
+fun String.asShellSingleQuoted(): String = "'${replace("'", "'\"'\"'")}'"
+
 fun String.asWingetYamlString(): String = "'${replace("'", "''")}'"
 
 fun File.sha256UpperHex(): String = sha256Hex().uppercase()
@@ -580,6 +581,7 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
     val nfpmConfig = layout.buildDirectory.file("nfpm/deb-amd64/nfpm.yaml")
+    val postinstallScript = layout.buildDirectory.file("nfpm/deb-amd64/postinstall.sh")
 
     inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
     inputs.property("bblVersion", bblVersionProvider)
@@ -617,6 +619,34 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
 
         val configFile = nfpmConfig.get().asFile
         configFile.parentFile.mkdirs()
+        val postinstallFile = postinstallScript.get().asFile
+        postinstallFile.writeText(
+            """
+            #!/bin/sh
+            set -e
+
+            install_user=${installUser.asShellSingleQuoted()}
+            install_group=${installGroup.asShellSingleQuoted()}
+            install_home=${installHome.asShellSingleQuoted()}
+            install_root="${'$'}install_home/.bbl"
+
+            if ! getent group "${'$'}install_group" >/dev/null 2>&1; then
+              groupadd "${'$'}install_group"
+            fi
+
+            if ! id -u "${'$'}install_user" >/dev/null 2>&1; then
+              useradd --create-home --home-dir "${'$'}install_home" --gid "${'$'}install_group" --shell /bin/bash "${'$'}install_user"
+            fi
+
+            mkdir -p "${'$'}install_root/bin" "${'$'}install_root/packs"
+            chown -R "${'$'}install_user:${'$'}install_group" "${'$'}install_root"
+            chmod 0755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs" "${'$'}install_root/bin/bbl-search-common"
+            chmod 0644 "${'$'}install_root/packs/webus.zip"
+            """.trimIndent() + "\n"
+        )
+        require(postinstallFile.setExecutable(true, false)) {
+            "Unable to make ${postinstallFile.absolutePath} executable"
+        }
         configFile.writeText(
             """
             name: bbl
@@ -633,6 +663,10 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
             description: |-
               $bblDescription
             umask: 0o002
+            overrides:
+              deb:
+                scripts:
+                  postinstall: ${postinstallFile.absolutePath.asYamlString()}
             contents:
               - src: ${bbl.absolutePath.asYamlString()}
                 dst: /usr/bin/bbl
@@ -1394,6 +1428,7 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     from(layout.buildDirectory.dir("bblInstallFixtures/${platform.id}")) {
         exclude("pkg/**")
         exclude("msi/**")
+        exclude("nix/**")
         exclude("**/version.txt")
     }
     from(bblInstallCommonFixtureDirectory)
@@ -1402,6 +1437,7 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
         relativePath = RelativePath(true, name)
     }
     includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     outputs.upToDateWhen { false }
     preserve {
         include("README.md")

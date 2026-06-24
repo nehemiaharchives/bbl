@@ -34,7 +34,7 @@ kotlin {
              */
             all {
                 disableNativeCache(
-                    DisableCacheInKotlinVersion.`2_3_21`,
+                    DisableCacheInKotlinVersion.`2_4_0`,
                     "Work around CI iOS simulator link failure in cached Compose/Skiko Kotlin/Native artifacts."
                 )
             }
@@ -48,7 +48,7 @@ kotlin {
 
     jvm()
 
-    androidLibrary {
+    android {
         namespace = "org.gnit.bible.app.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()

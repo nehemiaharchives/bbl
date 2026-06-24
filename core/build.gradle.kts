@@ -14,10 +14,11 @@ kotlin {
     macosX64()
     macosArm64()
     linuxX64()
+    linuxArm64()
     mingwX64()
     jvm()
 
-    androidLibrary {
+    android {
         namespace = "org.gnit.bible.core"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
