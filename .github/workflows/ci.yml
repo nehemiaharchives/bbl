@@ -62,18 +62,6 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-core-files
             fixture_path: build/bblInstallFixtures/linux/cli-core
             job_type: Test
-          - platform: linux-arm64
-            module_name: cli-core
-            os: ubuntu-24.04-arm
-            timeout: 60
-            task: :cli:core:linuxArm64Test
-            needs_konan_cache: true
-            saves_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliCoreFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-core-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-core
-            job_type: Test
           - platform: macos
             module_name: cli-core
             os: macos-latest
@@ -206,17 +194,6 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-common-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-common
             job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-common
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:common:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchCommonFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-common-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-common
-            job_type: Test
           - platform: macos
             module_name: cli-search-common
             os: macos-latest
@@ -255,17 +232,6 @@ jobs:
             fixture_task: stageBblInstallLinuxCliSearchExtraFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-extra-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-extra
-            job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-extra
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:extra:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchExtraFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-extra-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-extra
             job_type: Test
           - platform: macos
             module_name: cli-search-extra
@@ -306,17 +272,6 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-kuromoji-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-kuromoji
             job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-kuromoji
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:kuromoji:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchKuromojiFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-kuromoji-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-kuromoji
-            job_type: Test
           - platform: macos
             module_name: cli-search-kuromoji
             os: macos-latest
@@ -355,17 +310,6 @@ jobs:
             fixture_task: stageBblInstallLinuxCliSearchMorfologikFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-morfologik-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-morfologik
-            job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-morfologik
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:morfologik:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchMorfologikFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-morfologik-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-morfologik
             job_type: Test
           - platform: macos
             module_name: cli-search-morfologik
@@ -406,17 +350,6 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-nori-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-nori
             job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-nori
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:nori:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchNoriFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-nori-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-nori
-            job_type: Test
           - platform: macos
             module_name: cli-search-nori
             os: macos-latest
@@ -455,17 +388,6 @@ jobs:
             fixture_task: stageBblInstallLinuxCliSearchSmartcnFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-linux-cli-search-smartcn-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-smartcn
-            job_type: Test
-          - platform: linux-arm64
-            module_name: cli-search-smartcn
-            os: ubuntu-24.04-arm
-            timeout: 20
-            task: :cli:search:smartcn:linuxArm64Test
-            needs_konan_cache: true
-            konan_cache_key: Linux-arm64
-            fixture_task: stageBblInstallLinuxArm64CliSearchSmartcnFixture "-Pbblpacks.embed=false"
-            fixture_artifact_name: bbl-install-linux-arm64-cli-search-smartcn-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-smartcn
             job_type: Test
           - platform: macos
             module_name: cli-search-smartcn
@@ -577,6 +499,177 @@ jobs:
         if: always()
         run: |
           echo "### ${{ matrix.platform }} - ${{ matrix.module_name }} Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+
+  linux-arm64-test-binaries:
+    name: Build linuxArm64 test binary (${{ matrix.module_name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module_name: cli-core
+            timeout: 60
+            task: :cli:core:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliCoreFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-core-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-core
+            test_binary_path: cli/core/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-core-test-binary
+          - module_name: cli-search-common
+            timeout: 20
+            task: :cli:search:common:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchCommonFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-common-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-common
+            test_binary_path: cli/search/common/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-common-test-binary
+          - module_name: cli-search-extra
+            timeout: 20
+            task: :cli:search:extra:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchExtraFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-extra-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-extra
+            test_binary_path: cli/search/extra/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-extra-test-binary
+          - module_name: cli-search-kuromoji
+            timeout: 20
+            task: :cli:search:kuromoji:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchKuromojiFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-kuromoji-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-kuromoji
+            test_binary_path: cli/search/kuromoji/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-kuromoji-test-binary
+          - module_name: cli-search-morfologik
+            timeout: 20
+            task: :cli:search:morfologik:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchMorfologikFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-morfologik-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-morfologik
+            test_binary_path: cli/search/morfologik/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-morfologik-test-binary
+          - module_name: cli-search-nori
+            timeout: 20
+            task: :cli:search:nori:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchNoriFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-nori-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-nori
+            test_binary_path: cli/search/nori/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-nori-test-binary
+          - module_name: cli-search-smartcn
+            timeout: 20
+            task: :cli:search:smartcn:linkDebugTestLinuxArm64
+            fixture_task: stageBblInstallLinuxArm64CliSearchSmartcnFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-smartcn-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-smartcn
+            test_binary_path: cli/search/smartcn/build/bin/linuxArm64/debugTest/test.kexe
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-smartcn-test-binary
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: Linux-arm64-cross-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            Linux-arm64-cross-konan-
+
+      - name: Build linuxArm64 test binary
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Run fixture task
+        run: ./gradlew ${{ matrix.fixture_task }}
+
+      - name: Upload fixture artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.fixture_artifact_name }}
+          path: |
+            ${{ matrix.fixture_path }}
+            build/bblInstallFixtures/common
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload test binary artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.test_binary_artifact_name }}
+          path: ${{ matrix.test_binary_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Save Konan Cache
+        if: ${{ matrix.module_name == 'cli-core' && steps.konan-cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.konan
+          key: ${{ steps.konan-cache-restore.outputs.cache-primary-key }}
+
+  linux-arm64-tests:
+    name: Test (${{ matrix.module_name }}/linux-arm64)
+    needs: linux-arm64-test-binaries
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module_name: cli-core
+            timeout: 60
+            test_binary_artifact_name: bbl-linux-arm64-cli-core-test-binary
+          - module_name: cli-search-common
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-common-test-binary
+          - module_name: cli-search-extra
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-extra-test-binary
+          - module_name: cli-search-kuromoji
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-kuromoji-test-binary
+          - module_name: cli-search-morfologik
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-morfologik-test-binary
+          - module_name: cli-search-nori
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-nori-test-binary
+          - module_name: cli-search-smartcn
+            timeout: 20
+            test_binary_artifact_name: bbl-linux-arm64-cli-search-smartcn-test-binary
+
+    steps:
+      - name: Download linuxArm64 test binary
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.test_binary_artifact_name }}
+          path: test-binary
+
+      - name: Run linuxArm64 test binary
+        run: |
+          set -euo pipefail
+          chmod +x test-binary/test.kexe
+          ./test-binary/test.kexe
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### linux-arm64 - ${{ matrix.module_name }} Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
