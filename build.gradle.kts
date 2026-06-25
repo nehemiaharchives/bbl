@@ -1961,7 +1961,11 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
             description = "Generate ${platform.id} shell completion fixtures for bbl_install Kitchen tests."
 
             dependsOn(cliCoreFixtureTask)
-            if (platform.id != "linux") {
+            if (platform.id == "windows") {
+                // On Windows host, the mingwX64 binary is natively executable
+                // so completions are generated directly without needing the
+                // linux x86_64 binary (which cannot be linked on Windows).
+            } else if (platform.id != "linux") {
                 dependsOn("stageBblInstallLinuxCliCoreCompletionFixtures")
             }
 
