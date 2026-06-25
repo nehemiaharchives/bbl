@@ -51,7 +51,7 @@ jobs:
             timeout: 10
             task: :cli:core:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-core
             os: ubuntu-latest
             timeout: 60
@@ -111,7 +111,7 @@ jobs:
             fixture_artifact_name: bbl-install-macos-homebrew-files
             fixture_path: build/bblInstallFixtures/macosArm64/homebrew
             job_type: Package
-          - platform: linux
+          - platform: linux-x64
             module_name: installer-deb
             os: ubuntu-latest
             timeout: 45
@@ -196,7 +196,7 @@ jobs:
             timeout: 10
             task: :cli:search:common:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-common
             os: ubuntu-latest
             timeout: 20
@@ -246,7 +246,7 @@ jobs:
             timeout: 10
             task: :cli:search:extra:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-extra
             os: ubuntu-latest
             timeout: 20
@@ -296,7 +296,7 @@ jobs:
             timeout: 10
             task: :cli:search:kuromoji:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-kuromoji
             os: ubuntu-latest
             timeout: 20
@@ -346,7 +346,7 @@ jobs:
             timeout: 10
             task: :cli:search:morfologik:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-morfologik
             os: ubuntu-latest
             timeout: 20
@@ -396,7 +396,7 @@ jobs:
             timeout: 10
             task: :cli:search:nori:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-nori
             os: ubuntu-latest
             timeout: 20
@@ -446,7 +446,7 @@ jobs:
             timeout: 10
             task: :cli:search:smartcn:jvmTest
             job_type: Test
-          - platform: linux
+          - platform: linux-x64
             module_name: cli-search-smartcn
             os: ubuntu-latest
             timeout: 20
