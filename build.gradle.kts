@@ -1434,7 +1434,12 @@ fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
     from(bblInstallCommonFixtureDirectory)
     include("**/*")
     eachFile {
-        relativePath = RelativePath(true, name)
+        val path = relativePath.segments.toList()
+        relativePath = if (path.size >= 2 && path[path.lastIndex - 1] == "Formula") {
+            RelativePath(true, "Formula", name)
+        } else {
+            RelativePath(true, name)
+        }
     }
     includeEmptyDirs = false
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
