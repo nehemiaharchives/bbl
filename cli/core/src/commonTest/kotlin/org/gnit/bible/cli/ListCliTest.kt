@@ -54,33 +54,33 @@ class ListCliTest : ResourcesTestBase() {
         platform.overrideSettings = originalSettings
     }
 
-    val expectedTranslationList = """WEBUS  | World English Bible                        | World English Bible              | English    | 2000 | Available | Public Domain
-KJV    | King James Version                         | King James Version               | English    | 1611 | Available | Public Domain
-RVR09  | Reina-Valera                               | Reina-Valera                     | Spanish    | 1909 | Available | Public Domain
-TB     | Brazilian Translation                      | Tradução Brasileira              | Portuguese | 1917 | Available | Public Domain
-DELUT  | Luther Bible                               | Lutherbibel                      | German     | 1912 | Available | Public Domain
-LSG    | Louis Segond                               | Bible Segond                     | French     | 1910 | Available | Public Domain
-SINOD  | Russian Synodal Bible                      | Синодальный перевод              | Russian    | 1876 | Available | Public Domain
-SVRJ   | Statenvertaling Jongbloed edition          | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Available | Public Domain
-RDV24  | Revised Diodati Version                    | Versione Diodati Riveduta        | Italian    | 1924 | Available | Public Domain
-UBG    | Updated Gdansk Bible                       | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Available | © 2017 Fundacja Wrota Nadziei (Non-commercial & unaltered text)
-UBIO   | Ukrainian Bible, Ivan Ogienko              | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Available | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство
-SVEN   | Svenska 1917                               | 1917 års kyrkobibel              | Swedish    | 1917 | Available | Public Domain
-CUNP   | Chinese Union Version with New Punctuation | 新標點和合本                     | Chinese    | 1919 | Available | Public Domain
-KRV    | Korean Revised Version                     | 개역한글                         | Korean     | 1961 | Available | Public Domain
-JC     | Japanese Colloquial Bible                  | 口語訳                           | Japanese   | 1955 | Available | Public Domain
-ABTAG  | Ang Biblia                                 | Ang Biblia                       | Tagalog    | 1905 | Available | Public Domain
-AYT    | The Opened Bible                           | Alkitab Yang Terbuka             | Indonesian | 2024 | Available | CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT
-KTTV   | Vietnamese Bible 1925                      | Kinh Thánh Tiếng Việt            | Vietnamese | 1925 | Installed | Public Domain
-TH1971 | Thai Bible 1925                            | พระคริสตธรรมคัมภีร์ ฉบับ1971          | Thai       | 1971 | Available | Public Domain
-IRVHIN | Indian Revised Version - Hindi             | इंडियन रिवाइज्ड वर्जन (IRV) हिंदी    | Hindi      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVBEN | Indian Revised Version - Bengali           | ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী| Bengali    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVMAR | Indian Revised Version - Marathi           | इंडियन रीवाइज्ड वर्जन (IRV) मराठी   | Marathi    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVTEL | Indian Revised Version - Telugu            | ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు    | Telugu     | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVTAM | Indian Revised Version - Tamil             | இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ் | Tamil      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVGUJ | Indian Revised Version - Gujarati          | ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી        | Gujarati   | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-IRVURD | Indian Revised Version - Urdu              | इंडियन रिवाइज्ड वर्जन (IRV) उर्दू     | Urdu       | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions Pvt. Ltd.
-NPIULB | Nepali language, Unlocked Literal Bible    | पवित्र बाइबल                      | Nepali     | 2019 | Available | CC BY-SA 4.0 © 2019 Door43 World Missions Community
+    val expectedTranslationList = """WEBUS  | World English Bible               | World English Bible              | English    | 2000 | Available | Public Domain
+KJV    | King James Version                | King James Version               | English    | 1611 | Available | Public Domain
+RVR09  | Reina-Valera                      | Reina-Valera                     | Spanish    | 1909 | Available | Public Domain
+TB     | Brazilian Translation             | Tradução Brasileira              | Portuguese | 1917 | Available | Public Domain
+DELUT  | Luther Bible                      | Lutherbibel                      | German     | 1912 | Available | Public Domain
+LSG    | Louis Segond                      | Bible Segond                     | French     | 1910 | Available | Public Domain
+SINOD  | Russian Synodal Bible             | Синодальный перевод              | Russian    | 1876 | Available | Public Domain
+SVRJ   | Statenvertaling Jongbloed edition | Statenvertaling Jongbloed-editie | Dutch      | 1888 | Available | Public Domain
+RDV24  | Revised Diodati Version           | Versione Diodati Riveduta        | Italian    | 1924 | Available | Public Domain
+UBG    | Updated Gdansk Bible              | Uwspółcześniona Biblia gdańska   | Polish     | 2017 | Available | © 2017 Fundacja Wrota Nadziei (Non-commercial)
+UBIO   | Ukrainian Bible, Ivan Ogienko     | Біблія в пер. Івана Огієнка      | Ukrainian  | 1962 | Available | CC BY-SA 4.0 © 1962 Українське Біблійне Товариство
+SVEN   | Svenska 1917                      | 1917 års kyrkobibel              | Swedish    | 1917 | Available | Public Domain
+CUNP   | Chinese Union Version             | 新標點和合本                     | Chinese    | 1919 | Available | Public Domain
+KRV    | Korean Revised Version            | 개역한글                         | Korean     | 1961 | Available | Public Domain
+JC     | Japanese Colloquial Bible         | 口語訳                           | Japanese   | 1955 | Available | Public Domain
+ABTAG  | Ang Biblia                        | Ang Biblia                       | Tagalog    | 1905 | Available | Public Domain
+AYT    | The Opened Bible                  | Alkitab Yang Terbuka             | Indonesian | 2024 | Available | CC BY-NC-SA 4.0 © 2011-2024 YLSA-AYT
+KTTV   | Vietnamese Bible 1925             | Kinh Thánh Tiếng Việt            | Vietnamese | 1925 | Installed | Public Domain
+TH1971 | Thai Bible 1925                   | พระคริสตธรรมคัมภีร์ ฉบับ1971          | Thai       | 1971 | Available | Public Domain
+IRVHIN | Indian Revised Version - Hindi    | इंडियन रिवाइज्ड वर्जन - हिंदी        | Hindi      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVBEN | Indian Revised Version - Bengali  | ইন্ডিয়ান রিভাইজড ভার্সন - বেঙ্গলী    | Bengali    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVMAR | Indian Revised Version - Marathi  | इंडियन रीवाइज्ड वर्जन - मराठी       | Marathi    | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVTEL | Indian Revised Version - Telugu   | ఇండియన్ రివైజ్డ్ వెర్షన్ - తెలుగు          | Telugu     | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVTAM | Indian Revised Version - Tamil    | இண்டியன் ரிவைஸ்டு வெர்ஸன் - தமிழ்      | Tamil      | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVGUJ | Indian Revised Version - Gujarati | ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી        | Gujarati   | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+IRVURD | Indian Revised Version - Urdu     | इंडियन रिवाइज्ड वर्जन - उर्दू         | Urdu       | 2019 | Available | CC BY-SA 4.0 © 2019 Bridge Connectivity Solutions
+NPIULB | Nepali Unlocked Literal Bible     | पवित्र बाइबल                      | Nepali     | 2019 | Available | CC BY-SA 4.0 © 2019 Door43 World Missions Community
 """
 
     @Test

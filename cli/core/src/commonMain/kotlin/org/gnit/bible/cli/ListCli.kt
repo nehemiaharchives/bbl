@@ -86,7 +86,7 @@ class ListCli(
 
     private fun formatTranslationEntries(entries: List<TranslationEntry>): List<String> {
         val codeWidth = 7
-        val englishNameWidth = 43
+        val englishNameWidth = 34
         val nativeNameWidth = 33
         val languageWidth = 11
         val yearWidth = 5
@@ -104,10 +104,10 @@ class ListCli(
         fun Translation.byteDiff(): Int = when (this.code) {
             "th1971" -> -5
             "irvhin" -> -4
-            "irvben" -> -6
+            "irvben" -> -5
             "irvmar" -> -3
             "irvtel" -> -10
-            "irvtam" -> -7
+            "irvtam" -> -6
             "irvguj" -> -5
             "irvurd" -> -5
             "npiulb" -> -1
