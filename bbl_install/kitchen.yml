@@ -32,6 +32,12 @@ platforms:
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
+  - name: ubuntu-arm64-24.04
+    driver:
+      image: dokken/ubuntu-24.04
+      privileged: true
+      pid_one_command: /lib/systemd/systemd
+
   - name: ubuntu-22.04
     driver:
       image: dokken/ubuntu-22.04
@@ -121,6 +127,7 @@ suites:
       - ubuntu-25.10
       - ubuntu-24.04
       - ubuntu-22.04
+      - ubuntu-arm64-24.04
 
   - name: rpm_install_fedora
     run_list:

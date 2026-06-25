@@ -232,11 +232,13 @@ jobs:
             gradle_command: ./gradlew
             fixture_platform: linuxArm64
             needs_xcode: false
-            needs_nfpm: false
+            needs_nfpm: true
             needs_wix: false
             package_tasks: >-
-              stageBblInstallVersionFixture
-            excluded_fixture_tasks: ''
+              stageBblInstallLinuxArm64DebFixture
+            excluded_fixture_tasks: >-
+              -x stageBblInstallLinuxArm64CliCoreFixture
+              -x stageBblInstallLinuxArm64CliSearchCommonFixture
           - asset: macos-arm64
             os: macos-latest
             timeout: 20

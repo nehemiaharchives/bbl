@@ -124,6 +124,17 @@ jobs:
             fixture_artifact_name: bbl-install-linux-deb-files
             fixture_path: build/bblInstallFixtures/linux/deb
             job_type: Package
+          - platform: linux-arm64
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArm64DebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-arm64-deb-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/deb
+            job_type: Package
           - platform: fedora
             module_name: installer-rpm
             os: ubuntu-latest
@@ -645,6 +656,11 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-deb-files
             kitchen_instance: deb-install-ubuntu-2604
+          - suite: deb_install_ubuntu
+            platform: ubuntu-arm64
+            os: ubuntu-24.04-arm
+            fixture_pattern: bbl-install-linux-arm64-deb-files
+            kitchen_instance: deb-install-ubuntu-arm64-2404
           - suite: rpm_install_fedora
             platform: fedora
             os: ubuntu-latest
@@ -662,12 +678,11 @@ jobs:
             fixture_pattern: bbl-install-linux-nix-files
             kitchen_instance: nix-install-nixos-nixos-nix-latest
 
-          # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
-          # - suite: apk_install_alpine
-          #   platform: alpine
-          #   os: ubuntu-latest
-          #   fixture_pattern: bbl-install-linux-alpine-files
-          #   kitchen_instance: apk-install-alpine-alpine-latest
+          - suite: apk_install_alpine
+            platform: alpine
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-alpine-files
+            kitchen_instance: apk-install-alpine-alpine-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -762,7 +777,7 @@ jobs:
       - name: Prepare Kitchen cookbook files (Linux)
         # Add nixos to the Linux platform condition for the Nix E2E step.
         # The Nix suite uses a separate direct Docker step below instead of Kitchen.
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' || matrix.platform == 'nixos' }}
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' || matrix.platform == 'nixos' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -872,6 +887,9 @@ jobs:
 
           if [ "${{ matrix.suite }}" = "deb_install_ubuntu" ]; then
             fixture_dir=bbl_install/files/linux/deb
+            if [ "${{ matrix.platform }}" = "ubuntu-arm64" ]; then
+              fixture_dir=bbl_install/files/linuxArm64/deb
+            fi
             if [ -f bbl_install/files/bbl.deb ]; then
               :
             elif [ -f "$fixture_dir/bbl.deb" ]; then
@@ -958,10 +976,9 @@ jobs:
               HOME=/tmp/bbl-profile-home /tmp/bbl-profile/bin/bbl john 3:16
             '
 
-      # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
-      # - name: Pull Alpine Docker image
-      #   if: ${{ matrix.platform == 'alpine' }}
-      #   run: docker pull alpine:latest
+      - name: Pull Alpine Docker image
+        if: ${{ matrix.platform == 'alpine' }}
+        run: docker pull alpine:latest
 
       - name: Prepare Kitchen cookbook files (Windows)
         if: ${{ matrix.platform == 'mingw' }}
@@ -1110,8 +1127,7 @@ jobs:
       - name: Kitchen test
         working-directory: bbl_install
         shell: bash
-        # Add `|| matrix.platform == 'alpine'` when lucene-kmp issue #262 is fixed.
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' }}
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' }}
         env:
           BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
         run: bundle exec kitchen test '${{ matrix.kitchen_instance }}' --concurrency=1 --destroy=always
