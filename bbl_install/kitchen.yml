@@ -86,8 +86,6 @@ platforms:
     driver:
       image: archlinux/archlinux:latest
       privileged: true
-      intermediate_instructions:
-        - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
 
   - name: alpine-latest
     driver:
