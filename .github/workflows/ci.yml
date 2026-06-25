@@ -554,16 +554,15 @@ jobs:
         if: ${{ matrix.needs_linux_arm64_runtime }}
         run: |
           set -euo pipefail
-          sudo dpkg --add-architecture arm64
           sudo apt-get update
-          sudo apt-get install -y qemu-user qemu-user-binfmt libc6:arm64 libgcc-s1:arm64 libcrypt1:arm64 zlib1g:arm64
+          sudo apt-get install -y qemu-user libc6-arm64-cross libgcc-s1-arm64-cross
 
       - name: Run linuxArm64 test binary
         if: ${{ matrix.test_binary_path }}
         run: |
           set -euo pipefail
           chmod +x "${{ matrix.test_binary_path }}"
-          qemu-aarch64 -L / "${{ matrix.test_binary_path }}"
+          qemu-aarch64 -L /usr/aarch64-linux-gnu "${{ matrix.test_binary_path }}"
       - name: Install nFPM
         if: ${{ matrix.needs_nfpm }}
         run: |
