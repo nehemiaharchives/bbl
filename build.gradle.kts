@@ -299,13 +299,17 @@ fun registerMacosPkgTasks(platformId: String, taskNamePart: String, architecture
             "stageBblInstall${taskNamePart}CliSearchCommonFixture",
         )
         dependsOn(stageBblInstallVersionFixture)
+        dependsOn("stageBblInstall${taskNamePart}CliCoreCompletionFixtures")
 
         val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/bbl")
         val stagedSearchCommon = layout.buildDirectory.file(
             "bblInstallFixtures/$platformId/cli-search-common/bbl-search-common"
         )
         val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
-        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+        val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/bbl.bash")
+        val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/_bbl")
+        val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/$platformId/cli-core/bbl.fish")
+        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
         inputs.property("bblVersion", bblVersionProvider)
         outputs.file(pkgOutputFile)
         environment("COPYFILE_DISABLE", "1")
@@ -314,18 +318,33 @@ fun registerMacosPkgTasks(platformId: String, taskNamePart: String, architecture
             val source = stagedBbl.get().asFile
             val searchCommon = stagedSearchCommon.get().asFile
             val webusPack = stagedWebusPack.asFile
+            val bashCompletion = stagedBashCompletion.get().asFile
+            val zshCompletion = stagedZshCompletion.get().asFile
+            val fishCompletion = stagedFishCompletion.get().asFile
             require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
             require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
             require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+            require(bashCompletion.isFile) { "Missing bash completion: ${bashCompletion.absolutePath}" }
+            require(zshCompletion.isFile) { "Missing zsh completion: ${zshCompletion.absolutePath}" }
+            require(fishCompletion.isFile) { "Missing fish completion: ${fishCompletion.absolutePath}" }
             val root = pkgRoot.get().asFile
             val libexec = root.resolve("usr/local/libexec/bbl")
             val target = libexec.resolve("bbl")
             val wrapper = root.resolve("usr/local/bin/bbl")
+            val bashCompletionDir = root.resolve("usr/local/share/bash-completion/completions")
+            val zshCompletionDir = root.resolve("usr/local/share/zsh/site-functions")
+            val fishCompletionDir = root.resolve("usr/local/share/fish/vendor_completions.d")
             root.deleteRecursively()
             target.parentFile.mkdirs()
             source.copyTo(target, overwrite = true)
             searchCommon.copyTo(libexec.resolve("bbl-search-common"), overwrite = true)
             webusPack.copyTo(libexec.resolve("webus.zip"), overwrite = true)
+            bashCompletionDir.mkdirs()
+            bashCompletion.copyTo(bashCompletionDir.resolve("bbl"), overwrite = true)
+            zshCompletionDir.mkdirs()
+            zshCompletion.copyTo(zshCompletionDir.resolve("_bbl"), overwrite = true)
+            fishCompletionDir.mkdirs()
+            fishCompletion.copyTo(fishCompletionDir.resolve("bbl.fish"), overwrite = true)
             require(target.setExecutable(true, false)) { "Unable to make ${target.absolutePath} executable" }
             require(libexec.resolve("bbl-search-common").setExecutable(true, false)) {
                 "Unable to make packaged bbl-search-common executable"
@@ -387,6 +406,7 @@ bblHomebrewMacosFixtures.forEach { fixture ->
             "stageBblInstall${fixture.taskNamePart}CliCoreFixture",
             "stageBblInstall${fixture.taskNamePart}CliSearchCommonFixture",
             stageBblInstallVersionFixture,
+            "stageBblInstall${fixture.taskNamePart}CliCoreCompletionFixtures",
         )
 
         val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl")
@@ -394,8 +414,11 @@ bblHomebrewMacosFixtures.forEach { fixture ->
             "bblInstallFixtures/${fixture.platformId}/cli-search-common/bbl-search-common"
         )
         val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+        val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl.bash")
+        val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/_bbl")
+        val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl.fish")
         val fixtureDirectory = layout.buildDirectory.dir("bblInstallFixtures/${fixture.platformId}/homebrew")
-        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
         inputs.property("bblVersion", bblVersionProvider)
         outputs.dir(fixtureDirectory)
 
@@ -404,9 +427,15 @@ bblHomebrewMacosFixtures.forEach { fixture ->
             val source = stagedBbl.get().asFile
             val searchCommon = stagedSearchCommon.get().asFile
             val webusPack = stagedWebusPack.asFile
+            val bashCompletion = stagedBashCompletion.get().asFile
+            val zshCompletion = stagedZshCompletion.get().asFile
+            val fishCompletion = stagedFishCompletion.get().asFile
             require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
             require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
             require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+            require(bashCompletion.isFile) { "Missing bash completion: ${bashCompletion.absolutePath}" }
+            require(zshCompletion.isFile) { "Missing zsh completion: ${zshCompletion.absolutePath}" }
+            require(fishCompletion.isFile) { "Missing fish completion: ${fishCompletion.absolutePath}" }
 
             val output = fixtureDirectory.get().asFile
             val formulaDirectory = output.resolve("Formula")
@@ -420,6 +449,9 @@ bblHomebrewMacosFixtures.forEach { fixture ->
             source.copyTo(archiveRoot.resolve("bbl"), overwrite = true)
             searchCommon.copyTo(archiveRoot.resolve("bbl-search-common"), overwrite = true)
             webusPack.copyTo(archiveRoot.resolve("webus.zip"), overwrite = true)
+            bashCompletion.copyTo(archiveRoot.resolve("bbl.bash"), overwrite = true)
+            zshCompletion.copyTo(archiveRoot.resolve("_bbl"), overwrite = true)
+            fishCompletion.copyTo(archiveRoot.resolve("bbl.fish"), overwrite = true)
             require(archiveRoot.resolve("bbl").setExecutable(true, false)) {
                 "Unable to make staged Homebrew bbl executable"
             }
@@ -428,7 +460,7 @@ bblHomebrewMacosFixtures.forEach { fixture ->
             }
             val process = ProcessBuilder(
                 "tar", "-czf", archive.absolutePath,
-                "bbl", "bbl-search-common", "webus.zip",
+                "bbl", "bbl-search-common", "webus.zip", "bbl.bash", "_bbl", "bbl.fish",
             )
                 .directory(archiveRoot)
                 .inheritIO()
@@ -448,29 +480,41 @@ bblHomebrewMacosFixtures.forEach { fixture ->
                   url "file://__BBL_HOMEBREW_ARCHIVE__"
                   sha256 "${archive.sha256Hex()}"
 
-                  def install
-                    libexec.install "bbl", "bbl-search-common"
-                    (prefix/"packs").install "webus.zip"
-                    (bin/"bbl").write <<~SH
-                      #!/bin/bash
-                      set -e
-                      mkdir -p "${'$'}HOME/.bbl/bin" "${'$'}HOME/.bbl/packs"
-                      if ! cmp -s "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"; then
-                        install -m 0755 "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"
-                      fi
-                      if ! cmp -s "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"; then
-                        install -m 0644 "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"
-                      fi
-                      exec "#{libexec}/bbl" "${'$'}@"
-                    SH
-                  end
+                    def install
+                      libexec.install "bbl", "bbl-search-common"
+                      (prefix/"packs").install "webus.zip"
+                      bash_completion.install "bbl.bash"
+                      zsh_completion.install "_bbl"
+                      fish_completion.install "bbl.fish"
+                      (bin/"bbl").write <<~SH
+                        #!/bin/bash
+                        set -e
+                        mkdir -p "${'$'}HOME/.bbl/bin" "${'$'}HOME/.bbl/packs"
+                        if ! cmp -s "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"; then
+                          install -m 0755 "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"
+                        fi
+                        if ! cmp -s "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"; then
+                          install -m 0644 "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"
+                        fi
+                        exec "#{libexec}/bbl" "${'$'}@"
+                      SH
+                    end
 
-                  test do
-                    assert_match(/God|god/, shell_output("#{bin}/bbl john 3:16"))
-                    assert_match(/God|god/, shell_output("#{bin}/bbl search God limit 1"))
+                    test do
+                      assert_match(/God|god/, shell_output("#{bin}/bbl john 3:16"))
+                      assert_match(/God|god/, shell_output("#{bin}/bbl search God limit 1"))
+                    end
+
+                    def caveats
+                      <<~EOS
+                        bbl shell completions installed:
+                          bash: source #{bash_completion}/bbl
+                          zsh:  autoload -Uz compinit && compinit
+                          fish:  auto-sourced from #{fish_completion}/bbl.fish
+                      EOS
+                    end
                   end
-                end
-                """.trimIndent() + "\n"
+                  """.trimIndent() + "\n"
             )
             bblInstallCommonFixtureDirectory.get().asFile.resolve("version.txt")
                 .copyTo(output.resolve("version.txt"), overwrite = true)
@@ -580,6 +624,7 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
         "stageBblInstallLinuxCliCoreFixture",
         "stageBblInstallLinuxCliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
@@ -587,10 +632,13 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
         "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/deb-amd64/nfpm.yaml")
     val postinstallScript = layout.buildDirectory.file("nfpm/deb-amd64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblDebInstallUser", bblDebInstallUser)
     inputs.property("bblDebInstallGroup", bblDebInstallGroup)
@@ -619,6 +667,9 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -649,6 +700,16 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
             chown -R "${'$'}install_user:${'$'}install_group" "${'$'}install_root"
             chmod 0755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs" "${'$'}install_root/bin/bbl-search-common"
             chmod 0644 "${'$'}install_root/packs/webus.zip"
+
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  fpath=(/usr/share/zsh/vendor-completions "${'$'}fpath") && autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
             """.trimIndent() + "\n"
         )
         require(postinstallFile.setExecutable(true, false)) {
@@ -711,9 +772,26 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/vendor-completions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
-
         linuxDebOutputDirectory.get().asFile.mkdirs()
         commandLine(
             "nfpm", "package",
@@ -744,6 +822,7 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
         "stageBblInstallLinuxArm64CliCoreFixture",
         "stageBblInstallLinuxArm64CliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linuxArm64/cli-core/bbl")
@@ -751,10 +830,13 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
         "bblInstallFixtures/linuxArm64/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/deb-arm64/nfpm.yaml")
     val postinstallScript = layout.buildDirectory.file("nfpm/deb-arm64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblDebInstallUser", bblDebInstallUser)
     inputs.property("bblDebInstallGroup", bblDebInstallGroup)
@@ -783,6 +865,9 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -814,6 +899,16 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
             chmod 755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs"
             chmod 755 /usr/bin/bbl "${'$'}install_root/bin/bbl-search-common"
             chmod 644 "${'$'}install_root/packs/webus.zip"
+
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  fpath=(/usr/share/zsh/vendor-completions "${'$'}fpath") && autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
             """.trimIndent() + "\n"
         )
         require(postinstallFile.setExecutable(true, false)) {
@@ -876,9 +971,26 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/vendor-completions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
-
         linuxDebOutputDirectory.get().asFile.mkdirs()
         commandLine(
             "nfpm", "package",
@@ -909,6 +1021,7 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
         "stageBblInstallLinuxCliCoreFixture",
         "stageBblInstallLinuxCliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
@@ -916,9 +1029,13 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
         "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/rpm-x86_64/nfpm.yaml")
+    val postInstallScript = layout.buildDirectory.file("nfpm/rpm-x86_64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblRpmInstallUser", bblRpmInstallUser)
     inputs.property("bblRpmInstallGroup", bblRpmInstallGroup)
@@ -946,6 +1063,9 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -953,6 +1073,23 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
 
         val configFile = nfpmConfig.get().asFile
         configFile.parentFile.mkdirs()
+        val postInstallFile = postInstallScript.get().asFile
+        postInstallFile.writeText(
+            """
+            #!/bin/sh
+            set -e
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
+            """.trimIndent() + "\n"
+        )
+        postInstallFile.setExecutable(true, false)
         configFile.writeText(
             """
             name: bbl
@@ -969,6 +1106,8 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
             description: |-
               $bblDescription
             umask: 0o002
+            scripts:
+              postinstall: ${postInstallFile.absolutePath.asYamlString()}
             rpm:
               group: Applications/System
             contents:
@@ -1008,6 +1147,24 @@ val buildLinuxRpm = tasks.register<Exec>("buildLinuxRpm") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/site-functions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
 
@@ -1042,6 +1199,7 @@ val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
         "stageBblInstallLinuxCliCoreFixture",
         "stageBblInstallLinuxCliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
@@ -1049,10 +1207,13 @@ val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
         "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/archlinux-x86_64/nfpm.yaml")
     val postInstallScript = layout.buildDirectory.file("nfpm/archlinux-x86_64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblArchInstallUser", bblArchInstallUser)
     inputs.property("bblArchInstallGroup", bblArchInstallGroup)
@@ -1080,6 +1241,9 @@ val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -1092,6 +1256,15 @@ val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
             """
             #!/bin/sh
             chown -R ${installUser.asYamlString()}:${installGroup.asYamlString()} ${installHome.asYamlString()}/.bbl
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
             """.trimIndent() + "\n"
         )
         configFile.writeText(
@@ -1150,6 +1323,24 @@ val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/site-functions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
 
@@ -1185,6 +1376,7 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
         "stageBblInstallLinuxCliCoreFixture",
         "stageBblInstallLinuxCliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
@@ -1192,10 +1384,13 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
         "bblInstallFixtures/linux/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/apk-x86_64/nfpm.yaml")
     val postInstallScript = layout.buildDirectory.file("nfpm/apk-x86_64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblAlpineInstallUser", bblAlpineInstallUser)
     inputs.property("bblAlpineInstallGroup", bblAlpineInstallGroup)
@@ -1223,6 +1418,9 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -1238,6 +1436,15 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
             if [ -d '${installHome}/.bbl' ]; then
               chown -R '${installUser}:${installGroup}' '${installHome}/.bbl' || true
             fi
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
             """.trimIndent() + "\n"
         )
         postInstallFile.setExecutable(true, false)
@@ -1257,7 +1464,6 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
               $bblDescription
             umask: 0o002
             depends:
-              - gcompat
               - libgcc
               - libstdc++
             apk:
@@ -1301,6 +1507,24 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/site-functions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
 
@@ -1335,6 +1559,7 @@ val buildLinuxArm64Alpine = tasks.register<Exec>("buildLinuxArm64Alpine") {
         "stageBblInstallLinuxArm64CliCoreFixture",
         "stageBblInstallLinuxArm64CliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linuxArm64/cli-core/bbl")
@@ -1342,10 +1567,13 @@ val buildLinuxArm64Alpine = tasks.register<Exec>("buildLinuxArm64Alpine") {
         "bblInstallFixtures/linuxArm64/cli-search-common/bbl-search-common"
     )
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val nfpmConfig = layout.buildDirectory.file("nfpm/apk-aarch64/nfpm.yaml")
     val postInstallScript = layout.buildDirectory.file("nfpm/apk-aarch64/postinstall.sh")
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     inputs.property("bblAlpineInstallUser", bblAlpineInstallUser)
     inputs.property("bblAlpineInstallGroup", bblAlpineInstallGroup)
@@ -1373,6 +1601,9 @@ val buildLinuxArm64Alpine = tasks.register<Exec>("buildLinuxArm64Alpine") {
             "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
         }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(stagedBashCompletion.get().asFile.isFile) { "Missing bash completion file: ${stagedBashCompletion.get().asFile.absolutePath}" }
+        require(stagedZshCompletion.get().asFile.isFile) { "Missing zsh completion file: ${stagedZshCompletion.get().asFile.absolutePath}" }
+        require(stagedFishCompletion.get().asFile.isFile) { "Missing fish completion file: ${stagedFishCompletion.get().asFile.absolutePath}" }
         require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
         require(searchCommon.setExecutable(true, false)) {
             "Unable to make ${searchCommon.absolutePath} executable"
@@ -1388,6 +1619,15 @@ val buildLinuxArm64Alpine = tasks.register<Exec>("buildLinuxArm64Alpine") {
             if [ -d '${installHome}/.bbl' ]; then
               chown -R '${installUser}:${installGroup}' '${installHome}/.bbl' || true
             fi
+            cat <<'COMPLETION_EOF'
+
+            ───────────────────────────────────────────────────
+            bbl shell completions installed:
+              bash: source /usr/share/bash-completion/completions/bbl
+              zsh:  autoload -Uz compinit && compinit
+              fish:  auto-sourced from /usr/share/fish/vendor_completions.d/bbl.fish
+            ───────────────────────────────────────────────────
+            COMPLETION_EOF
             """.trimIndent() + "\n"
         )
         postInstallFile.setExecutable(true, false)
@@ -1451,6 +1691,24 @@ val buildLinuxArm64Alpine = tasks.register<Exec>("buildLinuxArm64Alpine") {
                   mode: 0644
                   owner: ${installUser.asYamlString()}
                   group: ${installGroup.asYamlString()}
+              - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/bash-completion/completions/bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/zsh/site-functions/_bbl
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
+              - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
+                dst: /usr/share/fish/vendor_completions.d/bbl.fish
+                file_info:
+                  mode: 0644
+                  owner: root
+                  group: root
             """.trimIndent() + "\n"
         )
 
@@ -1486,14 +1744,18 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
         "stageBblInstallLinuxCliCoreFixture",
         "stageBblInstallLinuxCliSearchCommonFixture",
         stageBblInstallVersionFixture,
+        "stageBblInstallLinuxCliCoreCompletionFixtures",
     )
 
     val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl")
     val stagedSearchCommon = layout.buildDirectory.file("bblInstallFixtures/linux/cli-search-common/bbl-search-common")
     val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+    val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.bash")
+    val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/_bbl")
+    val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/linux/cli-core/bbl.fish")
     val fixtureDirectory = linuxNixFixtureDirectory
 
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
+    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
     inputs.property("bblVersion", bblVersionProvider)
     outputs.dir(fixtureDirectory)
 
@@ -1502,9 +1764,15 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
         val bbl = stagedBbl.get().asFile
         val searchCommon = stagedSearchCommon.get().asFile
         val webusPack = stagedWebusPack.asFile
+        val bashCompletion = stagedBashCompletion.get().asFile
+        val zshCompletion = stagedZshCompletion.get().asFile
+        val fishCompletion = stagedFishCompletion.get().asFile
         require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
         require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
         require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+        require(bashCompletion.isFile) { "Missing bash completion: ${bashCompletion.absolutePath}" }
+        require(zshCompletion.isFile) { "Missing zsh completion: ${zshCompletion.absolutePath}" }
+        require(fishCompletion.isFile) { "Missing fish completion: ${fishCompletion.absolutePath}" }
 
         val output = fixtureDirectory.get().asFile
         val root = output.resolve("bbl-nix")
@@ -1515,6 +1783,9 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
         bbl.copyTo(assets.resolve("bbl"), overwrite = true)
         searchCommon.copyTo(assets.resolve("bbl-search-common"), overwrite = true)
         webusPack.copyTo(assets.resolve("webus.zip"), overwrite = true)
+        bashCompletion.copyTo(assets.resolve("bbl.bash"), overwrite = true)
+        zshCompletion.copyTo(assets.resolve("_bbl"), overwrite = true)
+        fishCompletion.copyTo(assets.resolve("bbl.fish"), overwrite = true)
         require(assets.resolve("bbl").setExecutable(true, false)) { "Unable to make Nix bbl executable" }
         require(assets.resolve("bbl-search-common").setExecutable(true, false)) { "Unable to make Nix bbl-search-common executable" }
 
@@ -1561,6 +1832,7 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
             { lib
             , stdenv
             , autoPatchelfHook
+            , installShellFiles
             , bash
             , coreutils
             , libxcrypt
@@ -1575,6 +1847,7 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
 
               nativeBuildInputs = [
                 autoPatchelfHook
+                installShellFiles
               ];
 
               buildInputs = [
@@ -1614,6 +1887,14 @@ val stageBblInstallLinuxNixFixture = tasks.register("stageBblInstallLinuxNixFixt
             exec "${D}assets/libexec/bbl/bbl" "${D}@"
             EOF_WRAPPER
                 chmod 0755 "${D}out/bin/bbl"
+
+                installShellCompletion --bash "${D}src/bbl.bash"
+                installShellCompletion --zsh "${D}src/_bbl"
+                installShellCompletion --fish "${D}src/bbl.fish"
+
+                echo "───────────────────────────────────────────────────"
+                echo "bbl shell completions installed (auto-activated in Nix shell/profile)."
+                echo "───────────────────────────────────────────────────"
 
                 runHook postInstall
               '';
@@ -1680,8 +1961,12 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
             description = "Generate ${platform.id} shell completion fixtures for bbl_install Kitchen tests."
 
             dependsOn(cliCoreFixtureTask)
+            if (platform.id != "linux") {
+                dependsOn("stageBblInstallLinuxCliCoreCompletionFixtures")
+            }
 
             inputs.file(bblExecutable)
+            val x64CompletionDir = layout.buildDirectory.dir("bblInstallFixtures/linux/cli-core")
             val outputsList = mutableListOf(
                 completionOutputDirectory.map { it.file("bbl.bash") },
                 completionOutputDirectory.map { it.file("_bbl") },
@@ -1699,6 +1984,32 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
                 }
                 if (platform.id != "windows") {
                     binaryFile.setExecutable(true)
+                }
+
+                // For non-native architectures (e.g. arm64 on x86_64 host),
+                // the binary cannot be executed directly. Use the x86_64
+                // completion output instead (completions are arch-independent).
+                val canExecute = try {
+                    val test = ProcessBuilder(binaryFile.absolutePath, "generate-completion", "bash")
+                        .redirectError(ProcessBuilder.Redirect.DISCARD)
+                        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                        .start()
+                    test.waitFor() == 0
+                } catch (_: Exception) {
+                    false
+                }
+
+                if (!canExecute && x64CompletionDir.isPresent) {
+                    val x64Dir = x64CompletionDir.get().asFile
+                    val outputDir = completionOutputDirectory.get().asFile
+                    outputDir.mkdirs()
+                    for (file in listOf("bbl.bash", "_bbl", "bbl.fish")) {
+                        val src = x64Dir.resolve(file)
+                        if (src.isFile) {
+                            src.copyTo(outputDir.resolve(file), overwrite = true)
+                        }
+                    }
+                    return@doLast
                 }
 
                 val shells = mutableListOf(

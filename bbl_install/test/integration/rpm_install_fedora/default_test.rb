@@ -46,11 +46,32 @@ control 'bbl-rpm-files' do
     its('group') { should eq 'fedora' }
   end
 
+  describe file('/usr/share/bash-completion/completions/bbl') do
+    it { should exist }
+    it { should be_file }
+    its('mode') { should cmp '0644' }
+  end
+
+  describe file('/usr/share/zsh/site-functions/_bbl') do
+    it { should exist }
+    it { should be_file }
+    its('mode') { should cmp '0644' }
+  end
+
+  describe file('/usr/share/fish/vendor_completions.d/bbl.fish') do
+    it { should exist }
+    it { should be_file }
+    its('mode') { should cmp '0644' }
+  end
+
   describe command('rpm -ql bbl') do
     its('exit_status') { should eq 0 }
     its('stdout') { should include "/usr/bin/bbl\n" }
     its('stdout') { should include "/home/fedora/.bbl/bin/bbl-search-common\n" }
     its('stdout') { should include "/home/fedora/.bbl/packs/webus.zip\n" }
+    its('stdout') { should include "/usr/share/bash-completion/completions/bbl\n" }
+    its('stdout') { should include "/usr/share/zsh/site-functions/_bbl\n" }
+    its('stdout') { should include "/usr/share/fish/vendor_completions.d/bbl.fish\n" }
     its('stdout') { should_not include '/home/ubuntu' }
     its('stdout') { should_not include '/usr/local' }
     its('stdout') { should_not include "/home/fedora/.bbl/webus.zip\n" }

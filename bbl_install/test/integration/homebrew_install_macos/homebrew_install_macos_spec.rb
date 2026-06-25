@@ -7,6 +7,18 @@ describe command('realpath "$(brew --prefix bbl)"') do
   its('stdout') { should match(%r{/Cellar/bbl/}) }
 end
 
+describe command('test -f "$(brew --prefix bbl)/share/bash-completion/completions/bbl"') do
+  its('exit_status') { should eq 0 }
+end
+
+describe command('test -f "$(brew --prefix bbl)/share/zsh/site-functions/_bbl"') do
+  its('exit_status') { should eq 0 }
+end
+
+describe command('test -f "$(brew --prefix bbl)/share/fish/vendor_completions.d/bbl.fish"') do
+  its('exit_status') { should eq 0 }
+end
+
 describe command('brew test bbl-kmp-e2e/local/bbl') do
   its('exit_status') { should eq 0 }
 end
