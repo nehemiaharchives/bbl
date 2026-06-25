@@ -135,7 +135,7 @@ jobs:
             fixture_artifact_name: bbl-install-linux-arm64-deb-files
             fixture_path: build/bblInstallFixtures/linuxArm64/deb
             job_type: Package
-          - platform: fedora
+          - platform: linux-x64
             module_name: installer-rpm
             os: ubuntu-latest
             timeout: 45
@@ -146,7 +146,18 @@ jobs:
             fixture_artifact_name: bbl-install-linux-rpm-files
             fixture_path: build/bblInstallFixtures/linux/rpm
             job_type: Package
-          - platform: archlinux
+          - platform: linux-arm64
+            module_name: installer-rpm
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArm64RpmFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
+            fixture_artifact_name: bbl-install-linux-arm64-rpm-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/rpm
+            job_type: Package
+          - platform: linux-x64
             module_name: installer-archlinux
             os: ubuntu-latest
             timeout: 45
@@ -157,8 +168,19 @@ jobs:
             fixture_artifact_name: bbl-install-linux-archlinux-files
             fixture_path: build/bblInstallFixtures/linux/archlinux
             job_type: Package
+          - platform: linux-arm64
+            module_name: installer-archlinux
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArm64ArchlinuxFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
+            fixture_artifact_name: bbl-install-linux-arm64-archlinux-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/archlinux
+            job_type: Package
 
-          - platform: nixos
+          - platform: linux-x64
             module_name: installer-nix
             os: ubuntu-latest
             timeout: 45
@@ -169,7 +191,7 @@ jobs:
             fixture_path: build/bblInstallFixtures/linux/nix
             job_type: Package
 
-          - platform: alpine
+          - platform: linux-x64
             module_name: installer-apk
             os: ubuntu-latest
             timeout: 45
@@ -179,6 +201,17 @@ jobs:
             fixture_task: stageBblInstallLinuxAlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
             fixture_artifact_name: bbl-install-linux-alpine-files
             fixture_path: build/bblInstallFixtures/linux/alpine
+            job_type: Package
+          - platform: linux-arm64
+            module_name: installer-apk
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArm64AlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+            fixture_artifact_name: bbl-install-linux-arm64-alpine-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/alpine
             job_type: Package
           - platform: mingw
             module_name: cli-core
@@ -635,7 +668,7 @@ jobs:
       matrix:
         include:
           - suite: default
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: default-ubuntu # includes all ubuntu targets
@@ -655,37 +688,52 @@ jobs:
             fixture_pattern: bbl-install-macos-homebrew-files
             kitchen_instance: homebrew-install-macos-macos-local
           - suite: deb_install_ubuntu
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-deb-files
-            kitchen_instance: deb-install-ubuntu-2604
+            kitchen_instance: deb-install-ubuntu-x64-2604
           - suite: deb_install_ubuntu
             platform: ubuntu-arm64
             os: ubuntu-24.04-arm
             fixture_pattern: bbl-install-linux-arm64-deb-files
             kitchen_instance: deb-install-ubuntu-arm64-2404
           - suite: rpm_install_fedora
-            platform: fedora
+            platform: fedora-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-rpm-files
-            kitchen_instance: rpm-install-fedora-fedora-latest
+            kitchen_instance: rpm-install-fedora-fedora-x64-latest
+          - suite: rpm_install_fedora
+            platform: fedora-arm64
+            os: ubuntu-24.04-arm
+            fixture_pattern: bbl-install-linux-arm64-rpm-files
+            kitchen_instance: rpm-install-fedora-fedora-arm64-latest
           - suite: pacman_install_archlinux
-            platform: archlinux
+            platform: archlinux-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-archlinux-files
-            kitchen_instance: pacman-install-archlinux-archlinux-latest
+            kitchen_instance: pacman-install-archlinux-archlinux-x64-latest
+          - suite: pacman_install_archlinux
+            platform: archlinux-arm64
+            os: ubuntu-24.04-arm
+            fixture_pattern: bbl-install-linux-arm64-archlinux-files
+            kitchen_instance: pacman-install-archlinux-archlinux-arm64-latest
 
           - suite: nix_install_nixos
-            platform: nixos
+            platform: nixos-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-nix-files
-            kitchen_instance: nix-install-nixos-nixos-nix-latest
+            kitchen_instance: nix-install-nixos-nixos-x64-nix-latest
 
           - suite: apk_install_alpine
-            platform: alpine
+            platform: alpine-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-alpine-files
-            kitchen_instance: apk-install-alpine-alpine-latest
+            kitchen_instance: apk-install-alpine-alpine-x64-latest
+          - suite: apk_install_alpine
+            platform: alpine-arm64
+            os: ubuntu-24.04-arm
+            fixture_pattern: bbl-install-linux-arm64-alpine-files
+            kitchen_instance: apk-install-alpine-alpine-arm64-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -693,7 +741,7 @@ jobs:
             kitchen_instance: default-windows-local
 
           - suite: pack_install_posix
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: pack-install-posix-ubuntu # includes all ubuntu targets
@@ -708,13 +756,13 @@ jobs:
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: pack-install-windows-windows-local
           - suite: apk_install_alpine
-            platform: alpine
+            platform: alpine-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-alpine-files
-            kitchen_instance: apk-install-alpine-alpine-latest
+            kitchen_instance: apk-install-alpine-alpine-x64-latest
 
           - suite: search_posix
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: search-posix-ubuntu-2604 # only on 26 to save time
@@ -726,7 +774,7 @@ jobs:
             kitchen_instance: search-posix-macos-local
             search_throttle: 2
           - suite: config_posix
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: config-posix-ubuntu-2604 # only on 26 to save time
@@ -736,7 +784,7 @@ jobs:
             fixture_pattern: bbl-install-macos-*-files
             kitchen_instance: config-posix-macos-local
           - suite: completion_posix
-            platform: ubuntu
+            platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
             kitchen_instance: completion-posix-ubuntu-2604
@@ -780,7 +828,7 @@ jobs:
       - name: Prepare Kitchen cookbook files (Linux)
         # Add nixos to the Linux platform condition for the Nix E2E step.
         # The Nix suite uses a separate direct Docker step below instead of Kitchen.
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' || matrix.platform == 'nixos' }}
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'fedora-arm64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'archlinux-arm64' || matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' || matrix.platform == 'nixos-x64' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -818,6 +866,9 @@ jobs:
 
           if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
             fixture_dir=bbl_install/files/linux/alpine
+            if [ "${{ matrix.platform }}" = "alpine-arm64" ]; then
+              fixture_dir=bbl_install/files/linuxArm64/alpine
+            fi
             if [ -f bbl_install/files/bbl.apk ]; then
               :
             elif [ -f "$fixture_dir/bbl.apk" ]; then
@@ -840,6 +891,9 @@ jobs:
 
           if [ "${{ matrix.suite }}" = "pacman_install_archlinux" ]; then
             fixture_dir=bbl_install/files/linux/archlinux
+            if [ "${{ matrix.platform }}" = "archlinux-arm64" ]; then
+              fixture_dir=bbl_install/files/linuxArm64/archlinux
+            fi
 
             if [ -f bbl_install/files/bbl.pkg.tar.zst ]; then
               :
@@ -865,6 +919,9 @@ jobs:
 
           if [ "${{ matrix.suite }}" = "rpm_install_fedora" ]; then
             fixture_dir=bbl_install/files/linux/rpm
+            if [ "${{ matrix.platform }}" = "fedora-arm64" ]; then
+              fixture_dir=bbl_install/files/linuxArm64/rpm
+            fi
 
             if [ -f bbl_install/files/bbl.rpm ]; then
               :
@@ -946,15 +1003,15 @@ jobs:
           du -sh bbl_install/files
 
       - name: Pull Arch Linux Docker image
-        if: ${{ matrix.platform == 'archlinux' }}
+        if: ${{ matrix.platform == 'archlinux-x64' || matrix.platform == 'archlinux-arm64' }}
         run: docker pull archlinux/archlinux:latest
 
       - name: Pull Nix Docker image
-        if: ${{ matrix.platform == 'nixos' }}
+        if: ${{ matrix.platform == 'nixos-x64' }}
         run: docker pull nixos/nix:latest
 
       - name: Nix package E2E
-        if: ${{ matrix.platform == 'nixos' }}
+        if: ${{ matrix.platform == 'nixos-x64' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -980,7 +1037,7 @@ jobs:
             '
 
       - name: Pull Alpine Docker image
-        if: ${{ matrix.platform == 'alpine' }}
+        if: ${{ matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' }}
         run: docker pull alpine:latest
 
       - name: Prepare Kitchen cookbook files (Windows)
@@ -1130,7 +1187,7 @@ jobs:
       - name: Kitchen test
         working-directory: bbl_install
         shell: bash
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' }}
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'fedora-arm64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'archlinux-arm64' || matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' }}
         env:
           BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
         run: bundle exec kitchen test '${{ matrix.kitchen_instance }}' --concurrency=1 --destroy=always

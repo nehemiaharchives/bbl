@@ -20,6 +20,12 @@ platforms:
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
+  - name: ubuntu-x64-26.04
+    driver:
+      image: dokken/ubuntu-26.04
+      privileged: true
+      pid_one_command: /lib/systemd/systemd
+
   - name: ubuntu-25.10
     driver:
       image: dokken/ubuntu-25.10
@@ -50,6 +56,18 @@ platforms:
       privileged: true
       pid_one_command: /usr/lib/systemd/systemd
 
+  - name: fedora-x64-latest
+    driver:
+      image: dokken/fedora-latest
+      privileged: true
+      pid_one_command: /usr/lib/systemd/systemd
+
+  - name: fedora-arm64-latest
+    driver:
+      image: dokken/fedora-latest
+      privileged: true
+      pid_one_command: /usr/lib/systemd/systemd
+
   - name: archlinux-latest
     driver:
       image: archlinux/archlinux:latest
@@ -57,7 +75,35 @@ platforms:
       intermediate_instructions:
         - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
 
+  - name: archlinux-x64-latest
+    driver:
+      image: archlinux/archlinux:latest
+      privileged: true
+      intermediate_instructions:
+        - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
+
+  - name: archlinux-arm64-latest
+    driver:
+      image: archlinux/archlinux:latest
+      privileged: true
+      intermediate_instructions:
+        - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
+
   - name: alpine-latest
+    driver:
+      image: alpine:latest
+      privileged: true
+      intermediate_instructions:
+        - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
+
+  - name: alpine-x64-latest
+    driver:
+      image: alpine:latest
+      privileged: true
+      intermediate_instructions:
+        - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
+
+  - name: alpine-arm64-latest
     driver:
       image: alpine:latest
       privileged: true
@@ -124,6 +170,7 @@ suites:
         - test/integration/deb_install_ubuntu
     includes:
       - ubuntu-26.04
+      - ubuntu-x64-26.04
       - ubuntu-25.10
       - ubuntu-24.04
       - ubuntu-22.04
@@ -137,6 +184,8 @@ suites:
         - test/integration/rpm_install_fedora
     includes:
       - fedora-latest
+      - fedora-x64-latest
+      - fedora-arm64-latest
 
   - name: pacman_install_archlinux
     run_list:
@@ -146,6 +195,8 @@ suites:
         - test/integration/pacman_install_archlinux
     includes:
       - archlinux-latest
+      - archlinux-x64-latest
+      - archlinux-arm64-latest
 
   - name: apk_install_alpine
     run_list:
@@ -155,6 +206,8 @@ suites:
         - test/integration/apk_install_alpine
     includes:
       - alpine-latest
+      - alpine-x64-latest
+      - alpine-arm64-latest
 
   - name: default
     run_list:

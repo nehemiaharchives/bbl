@@ -236,6 +236,9 @@ jobs:
             needs_wix: false
             package_tasks: >-
               stageBblInstallLinuxArm64DebFixture
+              stageBblInstallLinuxArm64RpmFixture
+              stageBblInstallLinuxArm64ArchlinuxFixture
+              stageBblInstallLinuxArm64AlpineFixture
             excluded_fixture_tasks: >-
               -x stageBblInstallLinuxArm64CliCoreFixture
               -x stageBblInstallLinuxArm64CliSearchCommonFixture
@@ -386,7 +389,7 @@ jobs:
           if [ "${{ runner.os }}" = "Linux" ]; then
             mkdir -p build/distributions
             find build/distributions -maxdepth 1 -type f \
-              \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' \) \
+              \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' -o -name '*.apk' \) \
               -exec cp {} dist/ \;
             if [ "$asset" = "linux-x64" ] && [ -f "$staged/nix/bbl-nix.tar.gz" ]; then
               cp "$staged/nix/bbl-nix.tar.gz" "dist/bbl-$tag-$asset-nix-flake.tar.gz"
