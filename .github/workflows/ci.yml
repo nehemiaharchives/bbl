@@ -158,18 +158,17 @@ jobs:
             fixture_path: build/bblInstallFixtures/linux/nix
             job_type: Package
 
-          # Disabled until https://github.com/nehemiaharchives/lucene-kmp/issues/262 is fixed.
-          # - platform: alpine
-          #   module_name: installer-apk
-          #   os: ubuntu-latest
-          #   timeout: 45
-          #   task: :cli:core:linuxX64Test
-          #   needs_konan_cache: true
-          #   needs_nfpm: true
-           #   fixture_task: stageBblInstallLinuxAlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
-          #   fixture_artifact_name: bbl-install-linux-alpine-files
-          #   fixture_path: build/bblInstallFixtures/linux/alpine
-          #   job_type: Package
+          - platform: alpine
+            module_name: installer-apk
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxAlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+            fixture_artifact_name: bbl-install-linux-alpine-files
+            fixture_path: build/bblInstallFixtures/linux/alpine
+            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -690,6 +689,11 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: pack-install-windows-windows-local
+          - suite: apk_install_alpine
+            platform: alpine
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-alpine-files
+            kitchen_instance: apk-install-alpine-alpine-latest
 
           - suite: search_posix
             platform: ubuntu
@@ -756,10 +760,9 @@ jobs:
           merge-multiple: true
 
       - name: Prepare Kitchen cookbook files (Linux)
-        # Add `|| matrix.platform == 'alpine'` when lucene-kmp issue #262 is fixed.
         # Add nixos to the Linux platform condition for the Nix E2E step.
         # The Nix suite uses a separate direct Docker step below instead of Kitchen.
-        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'nixos' }}
+        if: ${{ matrix.platform == 'ubuntu' || matrix.platform == 'fedora' || matrix.platform == 'archlinux' || matrix.platform == 'alpine' || matrix.platform == 'nixos' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -795,28 +798,27 @@ jobs:
             exit 0
           fi
 
-          # Enable this branch together with the Alpine matrix rows after issue #262 is fixed:
-          # if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
-          #   fixture_dir=bbl_install/files/linux/alpine
-          #   if [ -f bbl_install/files/bbl.apk ]; then
-          #     :
-          #   elif [ -f "$fixture_dir/bbl.apk" ]; then
-          #     cp "$fixture_dir/bbl.apk" bbl_install/files/bbl.apk
-          #   else
-          #     echo "Missing bbl.apk" >&2
-          #     find bbl_install/files -maxdepth 5 -type f | sort
-          #     exit 1
-          #   fi
-          #   if [ -f "$fixture_dir/version.txt" ]; then
-          #     cp "$fixture_dir/version.txt" bbl_install/files/version.txt
-          #   elif [ -f bbl_install/files/common/version.txt ]; then
-          #     cp bbl_install/files/common/version.txt bbl_install/files/version.txt
-          #   fi
-          #   test -f bbl_install/files/bbl.apk
-          #   test -f bbl_install/files/version.txt
-          #   du -sh bbl_install/files
-          #   exit 0
-          # fi
+          if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
+            fixture_dir=bbl_install/files/linux/alpine
+            if [ -f bbl_install/files/bbl.apk ]; then
+              :
+            elif [ -f "$fixture_dir/bbl.apk" ]; then
+              cp "$fixture_dir/bbl.apk" bbl_install/files/bbl.apk
+            else
+              echo "Missing bbl.apk" >&2
+              find bbl_install/files -maxdepth 5 -type f | sort
+              exit 1
+            fi
+            if [ -f "$fixture_dir/version.txt" ]; then
+              cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            elif [ -f bbl_install/files/common/version.txt ]; then
+              cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+            fi
+            test -f bbl_install/files/bbl.apk
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
 
           if [ "${{ matrix.suite }}" = "pacman_install_archlinux" ]; then
             fixture_dir=bbl_install/files/linux/archlinux
