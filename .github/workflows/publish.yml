@@ -69,7 +69,7 @@ jobs:
             release_suffix: ''
             fixture_platform: macosArm64
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
           - platform: macos-x64
             os: macos-26-intel
             timeout: 45
@@ -221,7 +221,7 @@ jobs:
             gradle_command: ./gradlew
             fixture_platform: macosArm64
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             needs_nfpm: false
             needs_wix: false
             package_tasks: >-
