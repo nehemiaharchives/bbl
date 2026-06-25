@@ -37,9 +37,12 @@ plugins {
 val useLocalLuceneKmp = providers.gradleProperty("useLocalLuceneKmp").orNull == "true" ||
     providers.environmentVariable("USE_LOCAL_LUCENE_KMP").orNull == "true"
 
-if (/*useLocalLuceneKmp && file("../lucene-kmp").isDirectory*/ // this is commented out for now because we at this point we do not dogfood development of bbl and lucene-kmp
-    false /*  dog fooding mode off */
-    ) {
+if (/* useLocalLuceneKmp && file("../lucene-kmp").isDirectory
+     * Disabled for CI: bbl must consume lucene-kmp from Maven Central while
+     * Android host tests are disabled for the published Android AAR bytecode issue.
+     */
+    false
+) {
     logger.lifecycle("Using sibling lucene-kmp composite build via useLocalLuceneKmp=true")
     includeBuild("../lucene-kmp") {
         dependencySubstitution {
