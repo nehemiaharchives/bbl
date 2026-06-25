@@ -65,7 +65,7 @@ jobs:
             needs_konan_cache: true
             saves_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliCoreCompletionFixtures "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-core-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-core
@@ -77,7 +77,7 @@ jobs:
             task: :cli:core:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64PkgFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-pkg-files
             fixture_path: build/bblInstallFixtures/macosArm64/pkg
@@ -89,7 +89,7 @@ jobs:
             task: :cli:core:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64HomebrewFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-homebrew-files
             fixture_path: build/bblInstallFixtures/macosArm64/homebrew
@@ -196,7 +196,7 @@ jobs:
             task: :cli:search:common:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchCommonFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-common-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-common
@@ -235,7 +235,7 @@ jobs:
             task: :cli:search:extra:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchExtraFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-extra-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-extra
@@ -274,7 +274,7 @@ jobs:
             task: :cli:search:kuromoji:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchKuromojiFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-kuromoji-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-kuromoji
@@ -313,7 +313,7 @@ jobs:
             task: :cli:search:morfologik:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchMorfologikFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-morfologik-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-morfologik
@@ -352,7 +352,7 @@ jobs:
             task: :cli:search:nori:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchNoriFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-nori-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-nori
@@ -391,7 +391,7 @@ jobs:
             task: :cli:search:smartcn:macosArm64Test
             needs_konan_cache: true
             needs_xcode: true
-            xcode_version: '16.4'
+            xcode_version: '26'
             fixture_task: stageBblInstallMacosArm64CliSearchSmartcnFixture "-Pbblpacks.embed=false"
             fixture_artifact_name: bbl-install-macos-cli-search-smartcn-files
             fixture_path: build/bblInstallFixtures/macosArm64/cli-search-smartcn
