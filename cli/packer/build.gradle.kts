@@ -9,6 +9,7 @@ kotlin {
     macosX64()
     macosArm64()
     linuxX64()
+    linuxArm64()
     jvm()
 
     compilerOptions {
@@ -55,6 +56,8 @@ kotlin {
         macosArm64Test.get().dependsOn(posixTest)
         linuxX64Main.get().dependsOn(posixMain)
         linuxX64Test.get().dependsOn(posixTest)
+        linuxArm64Main.get().dependsOn(posixMain)
+        linuxArm64Test.get().dependsOn(posixTest)
 
     }
 

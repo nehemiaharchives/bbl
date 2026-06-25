@@ -45,12 +45,14 @@ kotlin {
         val macosX64Main by getting { dependsOn(posixMain) }
         val macosArm64Main by getting { dependsOn(posixMain) }
         val linuxX64Main by getting { dependsOn(posixMain) }
+        val linuxArm64Main by getting { dependsOn(posixMain) }
         val mingwX64Main by getting { dependsOn(nativeMain) }
 
         val commonTest by getting
         val jvmTest by getting
         val nativeTest by creating { dependsOn(commonTest) }
         val mingwX64Test by getting { dependsOn(nativeTest) }
+        val linuxArm64Test by getting { dependsOn(nativeTest) }
 
         commonMain.dependencies {
             implementation(projects.core)

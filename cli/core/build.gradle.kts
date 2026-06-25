@@ -57,6 +57,8 @@ kotlin {
 
         linuxX64Main.get().dependsOn(posixMain)
         linuxX64Test.get().dependsOn(posixTest)
+        linuxArm64Main.get().dependsOn(posixMain)
+        linuxArm64Test.get().dependsOn(posixTest)
 
         mingwX64Main.get().dependsOn(nativeMain)
         mingwX64Test.get().dependsOn(nativeTest)

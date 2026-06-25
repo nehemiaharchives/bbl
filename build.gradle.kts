@@ -57,6 +57,7 @@ val executableType = providers.gradleProperty("ExecutableType")
 
 val bblInstallPlatforms = listOf(
     BblInstallPlatform("linux", "Linux", "linuxX64", "LinuxX64", ".kexe"),
+    BblInstallPlatform("linuxArm64", "LinuxArm64", "linuxArm64", "LinuxArm64", ".kexe"),
     BblInstallPlatform("macosArm64", "MacosArm64", "macosArm64", "MacosArm64", ".kexe"),
     BblInstallPlatform("macosX64", "MacosX64", "macosX64", "MacosX64", ".kexe"),
     BblInstallPlatform("windows", "Windows", "mingwX64", "MingwX64", ".exe"),
@@ -1471,6 +1472,12 @@ tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
     dependsOn("stageBblInstallLinuxRpmFixture")
     dependsOn("stageBblInstallLinuxArchlinuxFixture")
     dependsOn("stageBblInstallLinuxAlpineFixture")
+}
+
+tasks.register("stageBblInstallLinuxArm64CliAllFixture") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Stage all Linux Arm64 CLI fixture files for release packaging."
+    dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("LinuxArm64") })
 }
 
 tasks.register<Sync>("stageBblInstallWindowsFixtures") {

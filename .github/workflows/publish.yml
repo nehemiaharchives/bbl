@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [linux-x64, macos-arm64, macos-x64, windows-x64]
+        platform: [linux-x64, linux-arm64, macos-arm64, macos-x64, windows-x64]
         binary:
           - cli-core
           - cli-search-common
@@ -57,6 +57,17 @@ jobs:
             source_suffix: .kexe
             release_suffix: ''
             fixture_platform: linux
+            needs_xcode: false
+          - platform: linux-arm64
+            os: ubuntu-latest
+            timeout: 45
+            gradle_command: ./gradlew
+            konan_cache_key: linux-arm64
+            native_target: linuxArm64
+            link_task_suffix: LinuxArm64
+            source_suffix: .kexe
+            release_suffix: ''
+            fixture_platform: linuxArm64
             needs_xcode: false
           - platform: macos-arm64
             os: macos-latest
@@ -215,6 +226,17 @@ jobs:
             excluded_fixture_tasks: >-
               -x stageBblInstallLinuxCliCoreFixture
               -x stageBblInstallLinuxCliSearchCommonFixture
+          - asset: linux-arm64
+            os: ubuntu-latest
+            timeout: 20
+            gradle_command: ./gradlew
+            fixture_platform: linuxArm64
+            needs_xcode: false
+            needs_nfpm: false
+            needs_wix: false
+            package_tasks: >-
+              stageBblInstallVersionFixture
+            excluded_fixture_tasks: ''
           - asset: macos-arm64
             os: macos-latest
             timeout: 20
@@ -360,11 +382,12 @@ jobs:
           chmod +x "$package_dir"/bbl "$package_dir"/bbl-search-*
           tar -C build/release -czf "dist/bbl-$tag-$asset.tar.gz" "bbl-$tag-$asset"
           if [ "${{ runner.os }}" = "Linux" ]; then
+            mkdir -p build/distributions
             find build/distributions -maxdepth 1 -type f \
               \( -name '*.deb' -o -name '*.rpm' -o -name '*.pkg.tar.zst' \) \
               -exec cp {} dist/ \;
-            if [ -f "$staged/nix/bbl-nix.tar.gz" ]; then
-              cp "$staged/nix/bbl-nix.tar.gz" "dist/bbl-$tag-linux-x64-nix-flake.tar.gz"
+            if [ "$asset" = "linux-x64" ] && [ -f "$staged/nix/bbl-nix.tar.gz" ]; then
+              cp "$staged/nix/bbl-nix.tar.gz" "dist/bbl-$tag-$asset-nix-flake.tar.gz"
             fi
           else
             cp build/distributions/*.pkg dist/

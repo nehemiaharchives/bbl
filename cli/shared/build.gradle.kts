@@ -39,6 +39,7 @@ kotlin {
         macosX64Main.get().dependsOn(posixMain)
         macosArm64Main.get().dependsOn(posixMain)
         linuxX64Main.get().dependsOn(posixMain)
+        linuxArm64Main.get().dependsOn(posixMain)
 
         mingwX64Main.get().dependsOn(nativeMain)
     }

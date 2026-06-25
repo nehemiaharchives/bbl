@@ -62,6 +62,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-core-files
             fixture_path: build/bblInstallFixtures/linux/cli-core
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 60
+            task: :cli:core:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliCoreFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-core-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-core
+            job_type: Build
           - platform: macos
             module_name: cli-core
             os: macos-latest
@@ -194,6 +204,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-common-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-common
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-common
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:common:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchCommonFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-common-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-common
+            job_type: Build
           - platform: macos
             module_name: cli-search-common
             os: macos-latest
@@ -233,6 +253,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-extra-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-extra
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-extra
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:extra:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchExtraFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-extra-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-extra
+            job_type: Build
           - platform: macos
             module_name: cli-search-extra
             os: macos-latest
@@ -272,6 +302,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-kuromoji-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-kuromoji
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-kuromoji
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:kuromoji:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchKuromojiFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-kuromoji-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-kuromoji
+            job_type: Build
           - platform: macos
             module_name: cli-search-kuromoji
             os: macos-latest
@@ -311,6 +351,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-morfologik-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-morfologik
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-morfologik
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:morfologik:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchMorfologikFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-morfologik-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-morfologik
+            job_type: Build
           - platform: macos
             module_name: cli-search-morfologik
             os: macos-latest
@@ -350,6 +400,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-nori-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-nori
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-nori
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:nori:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchNoriFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-nori-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-nori
+            job_type: Build
           - platform: macos
             module_name: cli-search-nori
             os: macos-latest
@@ -389,6 +449,16 @@ jobs:
             fixture_artifact_name: bbl-install-linux-cli-search-smartcn-files
             fixture_path: build/bblInstallFixtures/linux/cli-search-smartcn
             job_type: Test
+          - platform: linux-arm64
+            module_name: cli-search-smartcn
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:smartcn:linkDebugExecutableLinuxArm64
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxArm64CliSearchSmartcnFixture "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-arm64-cli-search-smartcn-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/cli-search-smartcn
+            job_type: Build
           - platform: macos
             module_name: cli-search-smartcn
             os: macos-latest
