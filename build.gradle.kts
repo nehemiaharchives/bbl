@@ -539,9 +539,6 @@ val bblRpmInstallHome = providers.gradleProperty("bblRpmInstallHome")
 val linuxRpmOutputFile = bblVersionProvider.flatMap { version ->
     linuxDebOutputDirectory.map { it.file("bbl-$version-linux-x86_64.rpm") }
 }
-val linuxArm64RpmOutputFile = bblVersionProvider.flatMap { version ->
-    linuxDebOutputDirectory.map { it.file("bbl-$version-linux-aarch64.rpm") }
-}
 val bblArchInstallUser = providers.gradleProperty("bblArchInstallUser")
     .orElse("arch")
 val bblArchInstallGroup = providers.gradleProperty("bblArchInstallGroup")
@@ -550,9 +547,6 @@ val bblArchInstallHome = providers.gradleProperty("bblArchInstallHome")
     .orElse("/home/arch")
 val linuxArchlinuxOutputFile = bblVersionProvider.flatMap { version ->
     linuxDebOutputDirectory.map { it.file("bbl-$version-linux-x86_64.pkg.tar.zst") }
-}
-val linuxArm64ArchlinuxOutputFile = bblVersionProvider.flatMap { version ->
-    linuxDebOutputDirectory.map { it.file("bbl-$version-linux-aarch64.pkg.tar.zst") }
 }
 val bblAlpineInstallUser = providers.gradleProperty("bblAlpineInstallUser")
     .orElse("alpine")
@@ -1037,138 +1031,6 @@ tasks.register<Copy>("stageBblInstallLinuxRpmFixture") {
 }
 
 
-val buildLinuxArm64Rpm = tasks.register<Exec>("buildLinuxArm64Rpm") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Build the Linux aarch64 .rpm installer for bbl using nFPM."
-    notCompatibleWithConfigurationCache("Generates an nFPM config from script-scoped providers.")
-    onlyIf("Linux-only package task") {
-        System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
-    }
-    dependsOn(
-        "stageBblInstallLinuxArm64CliCoreFixture",
-        "stageBblInstallLinuxArm64CliSearchCommonFixture",
-        stageBblInstallVersionFixture,
-    )
-
-    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linuxArm64/cli-core/bbl")
-    val stagedSearchCommon = layout.buildDirectory.file(
-        "bblInstallFixtures/linuxArm64/cli-search-common/bbl-search-common"
-    )
-    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
-    val nfpmConfig = layout.buildDirectory.file("nfpm/rpm-aarch64/nfpm.yaml")
-
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
-    inputs.property("bblVersion", bblVersionProvider)
-    inputs.property("bblRpmInstallUser", bblRpmInstallUser)
-    inputs.property("bblRpmInstallGroup", bblRpmInstallGroup)
-    inputs.property("bblRpmInstallHome", bblRpmInstallHome)
-    outputs.file(linuxArm64RpmOutputFile)
-
-    doFirst {
-        val installUser = bblRpmInstallUser.get()
-        val installGroup = bblRpmInstallGroup.get()
-        val installHome = bblRpmInstallHome.get()
-        require(installHome.startsWith("/")) {
-            "bblRpmInstallHome must be an absolute path: $installHome"
-        }
-
-        val checkNfpm = ProcessBuilder("nfpm", "--version").inheritIO().start().waitFor()
-        require(checkNfpm == 0) {
-            "nFPM is required. Install it from https://nfpm.goreleaser.com/docs/install/"
-        }
-
-        val bbl = stagedBbl.get().asFile
-        val searchCommon = stagedSearchCommon.get().asFile
-        val webusPack = stagedWebusPack.asFile
-        require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
-        require(searchCommon.isFile) {
-            "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
-        }
-        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
-        require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
-        require(searchCommon.setExecutable(true, false)) {
-            "Unable to make ${searchCommon.absolutePath} executable"
-        }
-
-        val configFile = nfpmConfig.get().asFile
-        configFile.parentFile.mkdirs()
-        configFile.writeText(
-            """
-            name: bbl
-            arch: amd64
-            platform: linux
-            version: ${bblVersionProvider.get().asYamlString()}
-            version_schema: semver
-            release: "1"
-            section: utils
-            priority: optional
-            maintainer: "$bblAuthorName <$bblAuthorEmail>"
-            homepage: "$bblGitHubRepositoryUrl"
-            license: "Apache-2.0"
-            description: |-
-              $bblDescription
-            umask: 0o002
-            rpm:
-              group: Applications/System
-            contents:
-              - src: ${bbl.absolutePath.asYamlString()}
-                dst: /usr/bin/bbl
-                file_info:
-                  mode: 0755
-                  owner: root
-                  group: root
-              - dst: ${(installHome + "/.bbl").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/bin").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/packs").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - src: ${searchCommon.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/bin/bbl-search-common").asYamlString()}
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - src: ${webusPack.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/packs/webus.zip").asYamlString()}
-                file_info:
-                  mode: 0644
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-            """.trimIndent() + "\n"
-        )
-
-        linuxDebOutputDirectory.get().asFile.mkdirs()
-        commandLine(
-            "nfpm", "package",
-            "--config", configFile.absolutePath,
-            "--packager", "rpm",
-            "--target", linuxArm64RpmOutputFile.get().asFile.absolutePath,
-        )
-    }
-}
-
-tasks.register<Copy>("stageBblInstallLinuxArm64RpmFixture") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Stage the Linux aarch64 .rpm installer fixture for Kitchen tests."
-    dependsOn(buildLinuxArm64Rpm, stageBblInstallVersionFixture)
-    into(layout.buildDirectory.dir("bblInstallFixtures/linuxArm64/rpm"))
-    from(linuxArm64RpmOutputFile) { rename { "bbl.rpm" } }
-    from(bblInstallCommonFixtureDirectory) { include("version.txt") }
-}
-
 val buildLinuxArchlinux = tasks.register<Exec>("buildLinuxArchlinux") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Build the Linux x86_64 Arch Linux pacman package for bbl using nFPM."
@@ -1311,146 +1173,6 @@ tasks.register<Sync>("stageBblInstallLinuxArchlinuxFixture") {
 }
 
 
-val buildLinuxArm64Archlinux = tasks.register<Exec>("buildLinuxArm64Archlinux") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Build the Linux aarch64 Arch Linux pacman package for bbl using nFPM."
-    notCompatibleWithConfigurationCache("Generates an nFPM config from script-scoped providers.")
-    onlyIf("Linux-only package task") {
-        System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
-    }
-    dependsOn(
-        "stageBblInstallLinuxArm64CliCoreFixture",
-        "stageBblInstallLinuxArm64CliSearchCommonFixture",
-        stageBblInstallVersionFixture,
-    )
-
-    val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/linuxArm64/cli-core/bbl")
-    val stagedSearchCommon = layout.buildDirectory.file(
-        "bblInstallFixtures/linuxArm64/cli-search-common/bbl-search-common"
-    )
-    val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
-    val nfpmConfig = layout.buildDirectory.file("nfpm/archlinux-aarch64/nfpm.yaml")
-    val postInstallScript = layout.buildDirectory.file("nfpm/archlinux-aarch64/postinstall.sh")
-
-    inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack)
-    inputs.property("bblVersion", bblVersionProvider)
-    inputs.property("bblArchInstallUser", bblArchInstallUser)
-    inputs.property("bblArchInstallGroup", bblArchInstallGroup)
-    inputs.property("bblArchInstallHome", bblArchInstallHome)
-    outputs.file(linuxArm64ArchlinuxOutputFile)
-
-    doFirst {
-        val installUser = bblArchInstallUser.get()
-        val installGroup = bblArchInstallGroup.get()
-        val installHome = bblArchInstallHome.get()
-        require(installHome.startsWith("/")) {
-            "bblArchInstallHome must be an absolute path: $installHome"
-        }
-
-        val checkNfpm = ProcessBuilder("nfpm", "--version").inheritIO().start().waitFor()
-        require(checkNfpm == 0) {
-            "nFPM is required. Install it from https://nfpm.goreleaser.com/docs/install/"
-        }
-
-        val bbl = stagedBbl.get().asFile
-        val searchCommon = stagedSearchCommon.get().asFile
-        val webusPack = stagedWebusPack.asFile
-        require(bbl.isFile) { "Missing staged bbl binary: ${bbl.absolutePath}" }
-        require(searchCommon.isFile) {
-            "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}"
-        }
-        require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
-        require(bbl.setExecutable(true, false)) { "Unable to make ${bbl.absolutePath} executable" }
-        require(searchCommon.setExecutable(true, false)) {
-            "Unable to make ${searchCommon.absolutePath} executable"
-        }
-
-        val configFile = nfpmConfig.get().asFile
-        configFile.parentFile.mkdirs()
-        val postInstallFile = postInstallScript.get().asFile
-        postInstallFile.writeText(
-            """
-            #!/bin/sh
-            chown -R ${installUser.asYamlString()}:${installGroup.asYamlString()} ${installHome.asYamlString()}/.bbl
-            """.trimIndent() + "\n"
-        )
-        configFile.writeText(
-            """
-            name: bbl
-            arch: amd64
-            platform: linux
-            version: ${bblVersionProvider.get().asYamlString()}
-            version_schema: semver
-            release: "1"
-            maintainer: "$bblAuthorName <$bblAuthorEmail>"
-            homepage: "$bblGitHubRepositoryUrl"
-            license: "Apache-2.0"
-            description: |-
-              $bblDescription
-            umask: 0o002
-            archlinux:
-              arch: aarch64
-              packager: "$bblAuthorName <$bblAuthorEmail>"
-            scripts:
-              postinstall: ${postInstallFile.absolutePath.asYamlString()}
-            contents:
-              - src: ${bbl.absolutePath.asYamlString()}
-                dst: /usr/bin/bbl
-                file_info:
-                  mode: 0755
-                  owner: root
-                  group: root
-              - dst: ${("$installHome/.bbl").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${("$installHome/.bbl/bin").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${("$installHome/.bbl/packs").asYamlString()}
-                type: dir
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - src: ${searchCommon.absolutePath.asYamlString()}
-                dst: ${("$installHome/.bbl/bin/bbl-search-common").asYamlString()}
-                file_info:
-                  mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - src: ${webusPack.absolutePath.asYamlString()}
-                dst: ${("$installHome/.bbl/packs/webus.zip").asYamlString()}
-                file_info:
-                  mode: 0644
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-            """.trimIndent() + "\n"
-        )
-
-        linuxDebOutputDirectory.get().asFile.mkdirs()
-        commandLine(
-            "nfpm", "package",
-            "--config", configFile.absolutePath,
-            "--packager", "archlinux",
-            "--target", linuxArm64ArchlinuxOutputFile.get().asFile.absolutePath,
-        )
-    }
-}
-
-tasks.register<Sync>("stageBblInstallLinuxArm64ArchlinuxFixture") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Stage the Linux aarch64 Arch Linux pacman package fixture for Kitchen tests."
-    dependsOn(buildLinuxArm64Archlinux, stageBblInstallVersionFixture)
-    into(layout.buildDirectory.dir("bblInstallFixtures/linuxArm64/archlinux"))
-    from(linuxArm64ArchlinuxOutputFile) { rename { "bbl.pkg.tar.zst" } }
-    from(bblInstallCommonFixtureDirectory) { include("version.txt") }
-}
 
 val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
     group = LifecycleBasePlugin.BUILD_GROUP
@@ -2081,8 +1803,6 @@ tasks.register("stageBblInstallLinuxArm64CliAllFixture") {
     description = "Stage all Linux Arm64 CLI fixture files for release packaging."
     dependsOn(stageBblInstallFixtureTasks.filter { it.name.contains("LinuxArm64") })
     dependsOn("stageBblInstallLinuxArm64DebFixture")
-    dependsOn("stageBblInstallLinuxArm64RpmFixture")
-    dependsOn("stageBblInstallLinuxArm64ArchlinuxFixture")
     dependsOn("stageBblInstallLinuxArm64AlpineFixture")
 }
 

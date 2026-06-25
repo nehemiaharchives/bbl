@@ -236,8 +236,6 @@ jobs:
             needs_wix: false
             package_tasks: >-
               stageBblInstallLinuxArm64DebFixture
-              stageBblInstallLinuxArm64RpmFixture
-              stageBblInstallLinuxArm64ArchlinuxFixture
               stageBblInstallLinuxArm64AlpineFixture
             excluded_fixture_tasks: >-
               -x stageBblInstallLinuxArm64CliCoreFixture

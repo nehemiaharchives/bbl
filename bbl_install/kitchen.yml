@@ -62,12 +62,6 @@ platforms:
       privileged: true
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: fedora-arm64-latest
-    driver:
-      image: dokken/fedora-latest
-      privileged: true
-      pid_one_command: /usr/lib/systemd/systemd
-
   - name: archlinux-latest
     driver:
       image: archlinux/archlinux:latest
@@ -81,11 +75,6 @@ platforms:
       privileged: true
       intermediate_instructions:
         - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
-
-  - name: archlinux-arm64-latest
-    driver:
-      image: archlinux/archlinux:latest
-      privileged: true
 
   - name: alpine-latest
     driver:
@@ -183,7 +172,6 @@ suites:
     includes:
       - fedora-latest
       - fedora-x64-latest
-      - fedora-arm64-latest
 
   - name: pacman_install_archlinux
     run_list:
@@ -194,7 +182,6 @@ suites:
     includes:
       - archlinux-latest
       - archlinux-x64-latest
-      - archlinux-arm64-latest
 
   - name: apk_install_alpine
     run_list:
