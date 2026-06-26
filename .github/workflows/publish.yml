@@ -266,7 +266,7 @@ jobs:
             needs_wix: false
             package_tasks: >-
               stageBblInstallMacosX64PkgFixture
-              stageBblInstallMacosX64HomebrewFixture
+              stageBblInstallMacosX64HomebrewReleaseArchive
             excluded_fixture_tasks: >-
               -x stageBblInstallMacosX64CliCoreFixture
               -x stageBblInstallMacosX64CliSearchCommonFixture
@@ -394,10 +394,17 @@ jobs:
             fi
           else
             cp build/distributions/*.pkg dist/
-            cp "$staged/homebrew"/bbl-*-"$asset".tar.gz \
-              "dist/bbl-$tag-$asset-homebrew.tar.gz"
-            cp "$staged/homebrew/Formula/bbl.rb" \
-              "dist/bbl-$tag-$asset-homebrew.rb"
+          
+            homebrew_dir="$staged/homebrew-release"
+            homebrew_archive="$(find "$homebrew_dir" -maxdepth 1 -type f -name "bbl-*-$asset.tar.gz" | head -n 1)"
+            
+            test -f "$homebrew_archive"
+            test -f "$homebrew_dir/bbl.rb"
+            
+            cp "$homebrew_archive" \
+            "dist/bbl-$tag-$asset-homebrew.tar.gz"
+            cp "$homebrew_dir/bbl.rb" \
+            "dist/bbl-$tag-$asset-homebrew.rb"
           fi
 
       - name: Assemble Windows release assets
