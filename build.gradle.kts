@@ -1464,6 +1464,7 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
               $bblDescription
             umask: 0o002
             depends:
+              - gcompat
               - libgcc
               - libstdc++
             apk:
