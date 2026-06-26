@@ -7,7 +7,7 @@ describe command('realpath "$(brew --prefix bbl)"') do
   its('stdout') { should match(%r{/Cellar/bbl/}) }
 end
 
-describe command('test -f "$(brew --prefix bbl)/share/bash-completion/completions/bbl"') do
+describe command('test -f "$(brew --prefix bbl)/etc/bash_completion.d/bbl"') do
   its('exit_status') { should eq 0 }
 end
 

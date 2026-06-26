@@ -483,7 +483,7 @@ bblHomebrewMacosFixtures.forEach { fixture ->
                     def install
                       libexec.install "bbl", "bbl-search-common"
                       (prefix/"packs").install "webus.zip"
-                      bash_completion.install "bbl.bash"
+                      bash_completion.install "bbl.bash" => "bbl"
                       zsh_completion.install "_bbl"
                       fish_completion.install "bbl.fish"
                       (bin/"bbl").write <<~SH
