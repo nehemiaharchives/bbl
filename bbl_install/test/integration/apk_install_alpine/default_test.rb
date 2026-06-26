@@ -23,6 +23,21 @@ describe file('/usr/bin/bbl') do
   its('group') { should eq 'root' }
 end
 
+describe file('/usr/lib/bbl/bin/bbl-search-common') do
+  it { should exist }
+  it { should be_file }
+  it { should be_executable }
+  its('owner') { should eq 'root' }
+  its('group') { should eq 'root' }
+end
+
+describe file('/usr/lib/bbl/packs/webus.zip') do
+  it { should exist }
+  it { should be_file }
+  its('owner') { should eq 'root' }
+  its('group') { should eq 'root' }
+end
+
 describe file('/home/alpine/.bbl/bin/bbl-search-common') do
   it { should exist }
   it { should be_file }
@@ -59,8 +74,8 @@ end
 describe command('apk info -L bbl') do
   its('exit_status') { should eq 0 }
   its('stdout') { should match(%r{(^|\n)usr/bin/bbl(\n|$)}) }
-  its('stdout') { should match(%r{(^|\n)home/alpine/.bbl/bin/bbl-search-common(\n|$)}) }
-  its('stdout') { should match(%r{(^|\n)home/alpine/.bbl/packs/webus.zip(\n|$)}) }
+  its('stdout') { should match(%r{(^|\n)usr/lib/bbl/bin/bbl-search-common(\n|$)}) }
+  its('stdout') { should match(%r{(^|\n)usr/lib/bbl/packs/webus.zip(\n|$)}) }
   its('stdout') { should match(%r{(^|\n)usr/share/bash-completion/completions/bbl(\n|$)}) }
   its('stdout') { should match(%r{(^|\n)usr/share/zsh/site-functions/_bbl(\n|$)}) }
   its('stdout') { should match(%r{(^|\n)usr/share/fish/vendor_completions.d/bbl.fish(\n|$)}) }
@@ -68,7 +83,7 @@ describe command('apk info -L bbl') do
   its('stdout') { should_not include '/home/fedora' }
   its('stdout') { should_not include '/home/arch' }
   its('stdout') { should_not include '/usr/local' }
-  its('stdout') { should_not include "home/alpine/.bbl/webus.zip\n" }
+  its('stdout') { should_not include "/home/alpine/.bbl/" }
 end
 
 describe command('file /usr/bin/bbl') do

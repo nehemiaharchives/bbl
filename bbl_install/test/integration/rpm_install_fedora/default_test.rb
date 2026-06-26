@@ -31,6 +31,21 @@ control 'bbl-rpm-files' do
     its('group') { should eq 'root' }
   end
 
+  describe file('/usr/lib/bbl/bin/bbl-search-common') do
+    it { should exist }
+    it { should be_file }
+    it { should be_executable }
+    its('owner') { should eq 'root' }
+    its('group') { should eq 'root' }
+  end
+
+  describe file('/usr/lib/bbl/packs/webus.zip') do
+    it { should exist }
+    it { should be_file }
+    its('owner') { should eq 'root' }
+    its('group') { should eq 'root' }
+  end
+
   describe file('/home/fedora/.bbl/bin/bbl-search-common') do
     it { should exist }
     it { should be_file }
@@ -67,14 +82,14 @@ control 'bbl-rpm-files' do
   describe command('rpm -ql bbl') do
     its('exit_status') { should eq 0 }
     its('stdout') { should include "/usr/bin/bbl\n" }
-    its('stdout') { should include "/home/fedora/.bbl/bin/bbl-search-common\n" }
-    its('stdout') { should include "/home/fedora/.bbl/packs/webus.zip\n" }
+    its('stdout') { should include "/usr/lib/bbl/bin/bbl-search-common\n" }
+    its('stdout') { should include "/usr/lib/bbl/packs/webus.zip\n" }
     its('stdout') { should include "/usr/share/bash-completion/completions/bbl\n" }
     its('stdout') { should include "/usr/share/zsh/site-functions/_bbl\n" }
     its('stdout') { should include "/usr/share/fish/vendor_completions.d/bbl.fish\n" }
     its('stdout') { should_not include '/home/ubuntu' }
     its('stdout') { should_not include '/usr/local' }
-    its('stdout') { should_not include "/home/fedora/.bbl/webus.zip\n" }
+    its('stdout') { should_not include '/home/fedora/.bbl/' }
   end
 end
 

@@ -16,18 +16,20 @@ describe command("head -c 4 /usr/bin/bbl | od -An -tx1 | tr -d ' \\n'") do
   its('stdout') { should eq '7f454c46' }
 end
 
-# System-installed support files (ownership set by postinst to the real user)
+# System-installed support files (under /usr/lib/bbl, owned by root; postinst copies to user home)
 describe file('/usr/lib/bbl/bin/bbl-search-common') do
   it { should exist }
   it { should be_file }
   it { should be_executable }
-  its('owner') { should eq 'ubuntu' }
+  its('owner') { should eq 'root' }
+  its('group') { should eq 'root' }
 end
 
 describe file('/usr/lib/bbl/packs/webus.zip') do
   it { should exist }
   it { should be_file }
-  its('owner') { should eq 'ubuntu' }
+  its('owner') { should eq 'root' }
+  its('group') { should eq 'root' }
 end
 
 # User-local copies (created by postinst script from /usr/lib/bbl/)
