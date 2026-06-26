@@ -683,11 +683,28 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
             #!/bin/sh
             set -e
 
-            install_user=${installUser.asShellSingleQuoted()}
-            install_group=${installGroup.asShellSingleQuoted()}
-            install_home=${installHome.asShellSingleQuoted()}
+            bbl_sysroot='/usr/lib/bbl'
+            install_user_default=${installUser.asShellSingleQuoted()}
+            install_group_default=${installGroup.asShellSingleQuoted()}
+            install_home_default=${installHome.asShellSingleQuoted()}
+
+            # When installed via sudo, detect the real user from ${'$'}SUDO_USER
+            if [ -n "${'$'}SUDO_USER" ] && [ "${'$'}SUDO_USER" != "root" ]; then
+              install_user="${'$'}SUDO_USER"
+              install_group="$(id -gn "${'$'}install_user" 2>/dev/null || echo "${'$'}install_user")"
+              install_home="$(getent passwd "${'$'}install_user" 2>/dev/null | cut -d: -f6)"
+              if [ -z "${'$'}install_home" ]; then
+                install_home="${'$'}install_home_default"
+              fi
+            else
+              install_user="${'$'}install_user_default"
+              install_group="${'$'}install_group_default"
+              install_home="${'$'}install_home_default"
+            fi
+
             install_root="${'$'}install_home/.bbl"
 
+            # Create user and group if they don't exist (for headless/default installs)
             if ! getent group "${'$'}install_group" >/dev/null 2>&1; then
               groupadd "${'$'}install_group"
             fi
@@ -696,7 +713,15 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
               useradd --create-home --home-dir "${'$'}install_home" --gid "${'$'}install_group" --shell /bin/bash "${'$'}install_user"
             fi
 
+            # Create user-local bbl directories
             mkdir -p "${'$'}install_root/bin" "${'$'}install_root/packs"
+
+            # Copy support files from system location to user home
+            cp "${'$'}bbl_sysroot/bin/bbl-search-common" "${'$'}install_root/bin/bbl-search-common"
+            cp "${'$'}bbl_sysroot/packs/webus.zip" "${'$'}install_root/packs/webus.zip"
+
+            # Assign ownership of both system-level and user-local files to the real user
+            chown -R "${'$'}install_user:${'$'}install_group" "${'$'}bbl_sysroot"
             chown -R "${'$'}install_user:${'$'}install_group" "${'$'}install_root"
             chmod 0755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs" "${'$'}install_root/bin/bbl-search-common"
             chmod 0644 "${'$'}install_root/packs/webus.zip"
@@ -742,54 +767,38 @@ val buildLinuxDeb = tasks.register<Exec>("buildLinuxDeb") {
                   mode: 0755
                   owner: root
                   group: root
-              - dst: ${(installHome + "/.bbl").asYamlString()}
+              - dst: /usr/lib/bbl
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/bin").asYamlString()}
+              - dst: /usr/lib/bbl/bin
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/packs").asYamlString()}
+              - dst: /usr/lib/bbl/packs
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${searchCommon.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/bin/bbl-search-common").asYamlString()}
+                dst: /usr/lib/bbl/bin/bbl-search-common
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${webusPack.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/packs/webus.zip").asYamlString()}
+                dst: /usr/lib/bbl/packs/webus.zip
                 file_info:
                   mode: 0644
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/bash-completion/completions/bbl
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
               - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/zsh/vendor-completions/_bbl
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
               - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/fish/vendor_completions.d/bbl.fish
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
             """.trimIndent() + "\n"
         )
         linuxDebOutputDirectory.get().asFile.mkdirs()
@@ -881,11 +890,28 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
             #!/bin/sh
             set -e
 
-            install_user=${installUser.asShellSingleQuoted()}
-            install_group=${installGroup.asShellSingleQuoted()}
-            install_home=${installHome.asShellSingleQuoted()}
+            bbl_sysroot='/usr/lib/bbl'
+            install_user_default=${installUser.asShellSingleQuoted()}
+            install_group_default=${installGroup.asShellSingleQuoted()}
+            install_home_default=${installHome.asShellSingleQuoted()}
+
+            # When installed via sudo, detect the real user from ${'$'}SUDO_USER
+            if [ -n "${'$'}SUDO_USER" ] && [ "${'$'}SUDO_USER" != "root" ]; then
+              install_user="${'$'}SUDO_USER"
+              install_group="$(id -gn "${'$'}install_user" 2>/dev/null || echo "${'$'}install_user")"
+              install_home="$(getent passwd "${'$'}install_user" 2>/dev/null | cut -d: -f6)"
+              if [ -z "${'$'}install_home" ]; then
+                install_home="${'$'}install_home_default"
+              fi
+            else
+              install_user="${'$'}install_user_default"
+              install_group="${'$'}install_group_default"
+              install_home="${'$'}install_home_default"
+            fi
+
             install_root="${'$'}install_home/.bbl"
 
+            # Create user and group if they don't exist (for headless/default installs)
             if ! getent group "${'$'}install_group" >/dev/null 2>&1; then
               groupadd "${'$'}install_group"
             fi
@@ -894,11 +920,18 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
               useradd --create-home --home-dir "${'$'}install_home" --gid "${'$'}install_group" --shell /bin/bash "${'$'}install_user"
             fi
 
+            # Create user-local bbl directories
             mkdir -p "${'$'}install_root/bin" "${'$'}install_root/packs"
+
+            # Copy support files from system location to user home
+            cp "${'$'}bbl_sysroot/bin/bbl-search-common" "${'$'}install_root/bin/bbl-search-common"
+            cp "${'$'}bbl_sysroot/packs/webus.zip" "${'$'}install_root/packs/webus.zip"
+
+            # Assign ownership of both system-level and user-local files to the real user
+            chown -R "${'$'}install_user:${'$'}install_group" "${'$'}bbl_sysroot"
             chown -R "${'$'}install_user:${'$'}install_group" "${'$'}install_root"
-            chmod 755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs"
-            chmod 755 /usr/bin/bbl "${'$'}install_root/bin/bbl-search-common"
-            chmod 644 "${'$'}install_root/packs/webus.zip"
+            chmod 0755 "${'$'}install_root" "${'$'}install_root/bin" "${'$'}install_root/packs" "${'$'}install_root/bin/bbl-search-common"
+            chmod 0644 "${'$'}install_root/packs/webus.zip"
 
             cat <<'COMPLETION_EOF'
 
@@ -941,54 +974,38 @@ val buildLinuxArm64Deb = tasks.register<Exec>("buildLinuxArm64Deb") {
                   mode: 0755
                   owner: root
                   group: root
-              - dst: ${(installHome + "/.bbl").asYamlString()}
+              - dst: /usr/lib/bbl
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/bin").asYamlString()}
+              - dst: /usr/lib/bbl/bin
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
-              - dst: ${(installHome + "/.bbl/packs").asYamlString()}
+              - dst: /usr/lib/bbl/packs
                 type: dir
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${searchCommon.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/bin/bbl-search-common").asYamlString()}
+                dst: /usr/lib/bbl/bin/bbl-search-common
                 file_info:
                   mode: 0755
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${webusPack.absolutePath.asYamlString()}
-                dst: ${(installHome + "/.bbl/packs/webus.zip").asYamlString()}
+                dst: /usr/lib/bbl/packs/webus.zip
                 file_info:
                   mode: 0644
-                  owner: ${installUser.asYamlString()}
-                  group: ${installGroup.asYamlString()}
               - src: ${stagedBashCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/bash-completion/completions/bbl
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
               - src: ${stagedZshCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/zsh/vendor-completions/_bbl
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
               - src: ${stagedFishCompletion.get().asFile.absolutePath.asYamlString()}
                 dst: /usr/share/fish/vendor_completions.d/bbl.fish
                 file_info:
                   mode: 0644
-                  owner: root
-                  group: root
             """.trimIndent() + "\n"
         )
         linuxDebOutputDirectory.get().asFile.mkdirs()

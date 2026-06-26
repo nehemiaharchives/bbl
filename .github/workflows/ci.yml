@@ -923,10 +923,10 @@ jobs:
             dpkg-deb --contents bbl_install/files/bbl.deb | tee /tmp/bbl-deb-contents.txt
 
             grep -qE '/usr/bin/bbl$' /tmp/bbl-deb-contents.txt
-            grep -qE '/home/ubuntu/.bbl/bin/bbl-search-common$' /tmp/bbl-deb-contents.txt
-            grep -qE '/home/ubuntu/.bbl/packs/webus.zip$' /tmp/bbl-deb-contents.txt
+            grep -qE '/usr/lib/bbl/bin/bbl-search-common$' /tmp/bbl-deb-contents.txt
+            grep -qE '/usr/lib/bbl/packs/webus.zip$' /tmp/bbl-deb-contents.txt
 
-            if grep -qE '/usr/lib/bbl|/usr/share/bbl|/usr/local|/home/ubuntu/.bbl/webus.zip$' /tmp/bbl-deb-contents.txt; then
+            if grep -qE '/usr/share/bbl|/usr/local|/home/ubuntu/.bbl' /tmp/bbl-deb-contents.txt; then
               echo "Deb package contains rejected install locations" >&2
               exit 1
             fi
