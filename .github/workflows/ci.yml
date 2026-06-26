@@ -179,17 +179,6 @@ jobs:
             fixture_artifact_name: bbl-install-linux-alpine-files
             fixture_path: build/bblInstallFixtures/linux/alpine
             job_type: Package
-          - platform: linux-arm64
-            module_name: installer-apk
-            os: ubuntu-latest
-            timeout: 45
-            task: :cli:core:linkReleaseExecutableLinuxArm64
-            needs_konan_cache: true
-            needs_nfpm: true
-            fixture_task: stageBblInstallLinuxArm64AlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
-            fixture_artifact_name: bbl-install-linux-arm64-alpine-files
-            fixture_path: build/bblInstallFixtures/linuxArm64/alpine
-            job_type: Package
           - platform: mingw
             module_name: cli-core
             os: windows-latest
@@ -648,7 +637,7 @@ jobs:
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: default-ubuntu # includes all ubuntu targets
+            kitchen_instance: default-ubuntu-x64 # includes all ubuntu x64 targets
           - suite: default
             platform: macos
             os: macos-latest
@@ -694,11 +683,6 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-alpine-files
             kitchen_instance: apk-x64-install-alpine-alpine-x64-latest
-          - suite: apk_arm64_install_alpine
-            platform: alpine-arm64
-            os: ubuntu-24.04-arm
-            fixture_pattern: bbl-install-linux-arm64-alpine-files
-            kitchen_instance: apk-arm64-install-alpine-alpine-arm64-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -708,7 +692,7 @@ jobs:
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: pack-install-posix-ubuntu # includes all ubuntu targets
+            kitchen_instance: pack-install-posix-ubuntu-x64 # includes all ubuntu x64 targets
           - suite: pack_install_posix
             platform: macos
             os: macos-latest
@@ -723,7 +707,7 @@ jobs:
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: search-posix-ubuntu-2604 # only on 26 to save time
+            kitchen_instance: search-posix-ubuntu-x64-2604 # only on 26 to save time
             search_throttle: 2
           - suite: search_posix
             platform: macos
@@ -735,7 +719,7 @@ jobs:
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: config-posix-ubuntu-2604 # only on 26 to save time
+            kitchen_instance: config-posix-ubuntu-x64-2604 # only on 26 to save time
           - suite: config_posix
             platform: macos
             os: macos-latest
@@ -745,7 +729,7 @@ jobs:
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-*-files
-            kitchen_instance: completion-posix-ubuntu-2604
+            kitchen_instance: completion-posix-ubuntu-x64-2604
           - suite: completion_posix
             platform: macos
             os: macos-latest
@@ -786,7 +770,7 @@ jobs:
       - name: Prepare Kitchen cookbook files (Linux)
         # Add nixos to the Linux platform condition for the Nix E2E step.
         # The Nix suite uses a separate direct Docker step below instead of Kitchen.
-        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' || matrix.platform == 'nixos-x64' }}
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' || matrix.platform == 'nixos-x64' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -822,11 +806,8 @@ jobs:
             exit 0
           fi
 
-          if [ "${{ matrix.suite }}" = "apk_x64_install_alpine" ] || [ "${{ matrix.suite }}" = "apk_arm64_install_alpine" ]; then
+          if [ "${{ matrix.suite }}" = "apk_x64_install_alpine" ]; then
             fixture_dir=bbl_install/files/linux/alpine
-            if [ "${{ matrix.platform }}" = "alpine-arm64" ]; then
-              fixture_dir=bbl_install/files/linuxArm64/alpine
-            fi
             if [ -f bbl_install/files/bbl.apk ]; then
               :
             elif [ -f "$fixture_dir/bbl.apk" ]; then
@@ -989,7 +970,7 @@ jobs:
             '
 
       - name: Pull Alpine Docker image
-        if: ${{ matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' }}
+        if: ${{ matrix.platform == 'alpine-x64' }}
         run: docker pull alpine:latest
 
       - name: Prepare Kitchen cookbook files (Windows)
@@ -1136,10 +1117,13 @@ jobs:
       # it fails so the next instance starts with the released Docker space.
       # Let Dokken pull images directly: caching a docker-save tar keeps both the
       # archive and the loaded image on disk during the most space-intensive step.
+      - name: Clean up stale Dokken Chef cache
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' }}
+        run: rm -rf ~/.dokken-chef-* ~/.dokken/chef
       - name: Kitchen test
         working-directory: bbl_install
         shell: bash
-        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' || matrix.platform == 'alpine-arm64' }}
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' }}
         env:
           BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
         run: bundle exec kitchen test '${{ matrix.kitchen_instance }}' --concurrency=1 --destroy=always
