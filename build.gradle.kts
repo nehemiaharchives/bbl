@@ -2057,9 +2057,17 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
     }
 
 fun Sync.prepareBblInstallCookbookFiles(platform: BblInstallPlatform) {
-    val platformFixtureTasks = stageBblInstallFixtureTasks.filter { it.name.contains(platform.taskNamePart) }
-    val platformCompletionFixtureTasks = stageBblInstallCompletionFixtureTasks.filter {
-        it.name.contains(platform.taskNamePart)
+    val expectedPrefix = "stageBblInstall${platform.taskNamePart}"
+    val ambiguousPrefixes = bblInstallPlatforms
+        .filter { it != platform && it.taskNamePart.startsWith(platform.taskNamePart) }
+        .map { "stageBblInstall${it.taskNamePart}" }
+    val platformFixtureTasks = stageBblInstallFixtureTasks.filter { task ->
+        task.name.startsWith(expectedPrefix) &&
+        ambiguousPrefixes.none { task.name.startsWith(it) }
+    }
+    val platformCompletionFixtureTasks = stageBblInstallCompletionFixtureTasks.filter { task ->
+        task.name.startsWith(expectedPrefix) &&
+        ambiguousPrefixes.none { task.name.startsWith(it) }
     }
     dependsOn(platformFixtureTasks)
     dependsOn(platformCompletionFixtureTasks)
