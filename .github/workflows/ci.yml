@@ -689,7 +689,6 @@ jobs:
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-nix-files
             kitchen_instance: nix-install-nixos-nixos-x64-nix-latest
-
           - suite: apk_install_alpine
             platform: alpine-x64
             os: ubuntu-latest
@@ -705,7 +704,6 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: default-windows-local
-
           - suite: pack_install_posix
             platform: ubuntu-x64
             os: ubuntu-latest
@@ -721,12 +719,6 @@ jobs:
             os: windows-latest
             fixture_pattern: bbl-install-windows-*-files
             kitchen_instance: pack-install-windows-windows-local
-          - suite: apk_install_alpine
-            platform: alpine-x64
-            os: ubuntu-latest
-            fixture_pattern: bbl-install-linux-alpine-files
-            kitchen_instance: apk-install-alpine-alpine-x64-latest
-
           - suite: search_posix
             platform: ubuntu-x64
             os: ubuntu-latest
