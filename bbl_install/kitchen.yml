@@ -14,78 +14,74 @@ verifier:
   name: inspec
 
 platforms:
-  - name: ubuntu-26.04
-    driver:
-      image: dokken/ubuntu-26.04
-      privileged: true
-      pid_one_command: /lib/systemd/systemd
-
   - name: ubuntu-x64-26.04
     driver:
       image: dokken/ubuntu-26.04
+      platform: linux/amd64
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
-  - name: ubuntu-25.10
+  - name: ubuntu-arm64-26.04
     driver:
-      image: dokken/ubuntu-25.10
+      image: dokken/ubuntu-26.04
+      platform: linux/arm64
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
-  - name: ubuntu-24.04
+  - name: ubuntu-x64-24.04
     driver:
       image: dokken/ubuntu-24.04
+      platform: linux/amd64
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
   - name: ubuntu-arm64-24.04
     driver:
       image: dokken/ubuntu-24.04
+      platform: linux/arm64
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
-  - name: ubuntu-22.04
+  - name: ubuntu-x64-22.04
     driver:
       image: dokken/ubuntu-22.04
+      platform: linux/amd64
       privileged: true
       pid_one_command: /lib/systemd/systemd
 
-  - name: fedora-latest
+  - name: ubuntu-arm64-22.04
     driver:
-      image: dokken/fedora-latest
+      image: dokken/ubuntu-22.04
+      platform: linux/arm64
       privileged: true
-      pid_one_command: /usr/lib/systemd/systemd
+      pid_one_command: /lib/systemd/systemd
 
   - name: fedora-x64-latest
     driver:
       image: dokken/fedora-latest
+      platform: linux/amd64
       privileged: true
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: archlinux-latest
+  - name: fedora-arm64-latest
     driver:
-      image: archlinux/archlinux:latest
+      image: dokken/fedora-latest
+      platform: linux/arm64
       privileged: true
-      intermediate_instructions:
-        - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
+      pid_one_command: /usr/lib/systemd/systemd
 
   - name: archlinux-x64-latest
     driver:
       image: archlinux/archlinux:latest
+      platform: linux/amd64
       privileged: true
       intermediate_instructions:
         - RUN pacman -Sy --noconfirm libxcrypt-compat && pacman -Scc --noconfirm
 
-  - name: alpine-latest
-    driver:
-      image: alpine:latest
-      privileged: true
-      intermediate_instructions:
-        - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
-
   - name: alpine-x64-latest
     driver:
       image: alpine:latest
+      platform: linux/amd64
       privileged: true
       intermediate_instructions:
         - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
@@ -93,6 +89,7 @@ platforms:
   - name: alpine-arm64-latest
     driver:
       image: alpine:latest
+      platform: linux/arm64/v8
       privileged: true
       intermediate_instructions:
         - RUN apk add --no-cache bash binutils ca-certificates curl file gcompat libgcc libstdc++ shadow
@@ -149,49 +146,71 @@ suites:
     includes:
       - macos-local
 
-  - name: deb_install
+  - name: deb_x64_install
     run_list:
       - recipe[bbl_install::deb_install_ubuntu]
     verifier:
       inspec_tests:
         - test/integration/deb_install_ubuntu
     includes:
-      - ubuntu-26.04
       - ubuntu-x64-26.04
-      - ubuntu-25.10
-      - ubuntu-24.04
-      - ubuntu-22.04
-      - ubuntu-arm64-24.04
+      - ubuntu-x64-24.04
+      - ubuntu-x64-22.04
 
-  - name: rpm_install_fedora
+  - name: deb_arm64_install
+    run_list:
+      - recipe[bbl_install::deb_install_ubuntu]
+    verifier:
+      inspec_tests:
+        - test/integration/deb_install_ubuntu
+    includes:
+      - ubuntu-arm64-26.04
+      - ubuntu-arm64-24.04
+      - ubuntu-arm64-22.04
+
+  - name: rpm_x64_install_fedora
     run_list:
       - recipe[bbl_install::rpm_install_fedora]
     verifier:
       inspec_tests:
         - test/integration/rpm_install_fedora
     includes:
-      - fedora-latest
       - fedora-x64-latest
 
-  - name: pacman_install_archlinux
+  - name: rpm_arm64_install_fedora
+    run_list:
+      - recipe[bbl_install::rpm_install_fedora]
+    verifier:
+      inspec_tests:
+        - test/integration/rpm_install_fedora
+    includes:
+      - fedora-arm64-latest
+
+  - name: pacman_x64_install_archlinux
     run_list:
       - recipe[bbl_install::pacman_install_archlinux]
     verifier:
       inspec_tests:
         - test/integration/pacman_install_archlinux
     includes:
-      - archlinux-latest
       - archlinux-x64-latest
 
-  - name: apk_install_alpine
+  - name: apk_x64_install_alpine
     run_list:
       - recipe[bbl_install::apk_install_alpine]
     verifier:
       inspec_tests:
         - test/integration/apk_install_alpine
     includes:
-      - alpine-latest
       - alpine-x64-latest
+
+  - name: apk_arm64_install_alpine
+    run_list:
+      - recipe[bbl_install::apk_install_alpine]
+    verifier:
+      inspec_tests:
+        - test/integration/apk_install_alpine
+    includes:
       - alpine-arm64-latest
 
   - name: default
@@ -202,7 +221,8 @@ suites:
         - test/integration/helpers
         - test/integration/default
     excludes:
-      - alpine-latest
+      - alpine-x64-latest
+      - alpine-arm64-latest
 
   - name: pack_install_posix
     run_list:
@@ -225,7 +245,6 @@ suites:
         - test/integration/pack_install_posix
     excludes:
       - windows-local
-      - alpine-latest
 
   - name: pack_install_windows
     run_list:
@@ -262,7 +281,6 @@ suites:
       command: /tmp/bbl-search-posix-test/test_search.sh -ThrottleLimit <%= ENV.fetch('BBL_SEARCH_POSIX_THROTTLE', '8') %> -SearchTimeoutSeconds 180
     excludes:
       - windows-local
-      - alpine-latest
 
   - name: config_posix
     run_list:
@@ -277,7 +295,6 @@ suites:
       command: /tmp/bbl-config-posix-test/test_config.sh
     excludes:
       - windows-local
-      - alpine-latest
 
   - name: completion_posix
     run_list:
@@ -294,7 +311,6 @@ suites:
       command: /tmp/bbl-completion-posix-test/test_completion.sh
     excludes:
       - windows-local
-      - alpine-latest
 
   - name: history_posix
     run_list:
@@ -309,7 +325,6 @@ suites:
       command: /tmp/bbl-history-posix-test/test_history.sh
     excludes:
       - windows-local
-      - alpine-latest
 
   - name: config_windows
     run_list:

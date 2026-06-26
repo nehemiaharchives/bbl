@@ -664,41 +664,41 @@ jobs:
             os: macos-latest
             fixture_pattern: bbl-install-macos-homebrew-files
             kitchen_instance: homebrew-install-macos-macos-local
-          - suite: deb_install_ubuntu
+          - suite: deb_x64_install
             platform: ubuntu-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-deb-files
-            kitchen_instance: deb-install-ubuntu-x64-2604
-          - suite: deb_install_ubuntu
+            kitchen_instance: deb-x64-install-ubuntu-x64-2604
+          - suite: deb_arm64_install
             platform: ubuntu-arm64
             os: ubuntu-24.04-arm
             fixture_pattern: bbl-install-linux-arm64-deb-files
-            kitchen_instance: deb-install-ubuntu-arm64-2404
-          - suite: rpm_install_fedora
+            kitchen_instance: deb-arm64-install-ubuntu-arm64-2404
+          - suite: rpm_x64_install_fedora
             platform: fedora-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-rpm-files
-            kitchen_instance: rpm-install-fedora-fedora-x64-latest
-          - suite: pacman_install_archlinux
+            kitchen_instance: rpm-x64-install-fedora-fedora-x64-latest
+          - suite: pacman_x64_install_archlinux
             platform: archlinux-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-archlinux-files
-            kitchen_instance: pacman-install-archlinux-archlinux-x64-latest
+            kitchen_instance: pacman-x64-install-archlinux-archlinux-x64-latest
           - suite: nix_install_nixos
             platform: nixos-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-nix-files
             kitchen_instance: nix-install-nixos-nixos-x64-nix-latest
-          - suite: apk_install_alpine
+          - suite: apk_x64_install_alpine
             platform: alpine-x64
             os: ubuntu-latest
             fixture_pattern: bbl-install-linux-alpine-files
-            kitchen_instance: apk-install-alpine-alpine-x64-latest
-          - suite: apk_install_alpine
+            kitchen_instance: apk-x64-install-alpine-alpine-x64-latest
+          - suite: apk_arm64_install_alpine
             platform: alpine-arm64
             os: ubuntu-24.04-arm
             fixture_pattern: bbl-install-linux-arm64-alpine-files
-            kitchen_instance: apk-install-alpine-alpine-arm64-latest
+            kitchen_instance: apk-arm64-install-alpine-alpine-arm64-latest
           - suite: default
             platform: mingw
             os: windows-latest
@@ -822,7 +822,7 @@ jobs:
             exit 0
           fi
 
-          if [ "${{ matrix.suite }}" = "apk_install_alpine" ]; then
+          if [ "${{ matrix.suite }}" = "apk_x64_install_alpine" ] || [ "${{ matrix.suite }}" = "apk_arm64_install_alpine" ]; then
             fixture_dir=bbl_install/files/linux/alpine
             if [ "${{ matrix.platform }}" = "alpine-arm64" ]; then
               fixture_dir=bbl_install/files/linuxArm64/alpine
@@ -847,7 +847,7 @@ jobs:
             exit 0
           fi
 
-          if [ "${{ matrix.suite }}" = "pacman_install_archlinux" ]; then
+          if [ "${{ matrix.suite }}" = "pacman_x64_install_archlinux" ]; then
             fixture_dir=bbl_install/files/linux/archlinux
 
             if [ -f bbl_install/files/bbl.pkg.tar.zst ]; then
@@ -872,7 +872,7 @@ jobs:
             exit 0
           fi
 
-          if [ "${{ matrix.suite }}" = "rpm_install_fedora" ]; then
+          if [ "${{ matrix.suite }}" = "rpm_x64_install_fedora" ]; then
             fixture_dir=bbl_install/files/linux/rpm
 
             if [ -f bbl_install/files/bbl.rpm ]; then
@@ -897,7 +897,7 @@ jobs:
             exit 0
           fi
 
-          if [ "${{ matrix.suite }}" = "deb_install_ubuntu" ]; then
+          if [ "${{ matrix.suite }}" = "deb_x64_install" ] || [ "${{ matrix.suite }}" = "deb_arm64_install" ]; then
             fixture_dir=bbl_install/files/linux/deb
             if [ "${{ matrix.platform }}" = "ubuntu-arm64" ]; then
               fixture_dir=bbl_install/files/linuxArm64/deb
