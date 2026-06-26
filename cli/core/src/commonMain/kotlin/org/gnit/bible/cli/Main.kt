@@ -4,7 +4,6 @@ import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.completion.CompletionCommand
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
@@ -20,8 +19,7 @@ class Bbl(
 
     override val invokeWithoutSubcommand = true
 
-    val book: List<String> by argument(completionCandidates = CompletionCandidates.Fixed(bookNames + subCommands)).multiple(default = listOf("gen"))
-    val chapterVerse: String by argument().default("1")
+    val bookChapterVerse: List<String> by argument(completionCandidates = CompletionCandidates.Fixed(bookNames + subCommands)).multiple()
 
     val versionFlag by option("-v", "--version", help = "prints out software version of this program").flag()
 
@@ -180,9 +178,15 @@ class Bbl(
             return
         }
 
+        val tokens = bookChapterVerse.ifEmpty { listOf("gen") }
+        val last = tokens.last()
+        val chapterRef = last.contains(":") || last.toIntOrNull() != null
+        val bookTokens = if (chapterRef) tokens.dropLast(1) else tokens
+        val chapterVerse = if (chapterRef) last else "1"
+
         versePointer = parseVersePointerOrThrow(
             translation = bible.defaultTranslationFromSettings(),
-            bookTokens = book,
+            bookTokens = bookTokens,
             chapterVerse = chapterVerse
         )
         currentContext.findOrSetObject { versePointer }
@@ -214,7 +218,7 @@ class Bbl(
         if (versePointer.startVerse != null && versePointer.endVerse != null) {
             echo("")
         }
-        BblHistory.record(bible, BblHistory.normalizeReadCommand(book, chapterVerse))
+        BblHistory.record(bible, BblHistory.normalizeReadCommand(bookTokens, chapterVerse))
     }
 }
 

@@ -6,10 +6,6 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.gnit.bible.AssetManagerImpl
 import org.gnit.bible.Bible
-import org.gnit.bible.LoggingSetup
-import org.gnit.bible.SearchQueryText
-import org.gnit.bible.Books
-import org.gnit.bible.BblVersion
 import org.gnit.bible.InMemorySettings
 import org.gnit.bible.Platform
 import org.gnit.bible.test.ResourcesTestBase

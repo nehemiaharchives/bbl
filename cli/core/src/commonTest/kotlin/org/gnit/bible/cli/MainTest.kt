@@ -103,6 +103,31 @@ class MainTest {
     }
 
     @Test
+    fun testBblGenesis() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("genesis")
+        assertEquals("${TestFixtures.genesisOneWebus}\n", result.stdout)
+    }
+
+
+    @Test
+    fun testBblGenesisInJc() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("genesis in jc")
+        assertEquals("${TestFixtures.genesisOneJc}\n", result.stdout)
+    }
+
+    @Test
+    fun testBblExodus() {
+        platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
+        val command = Bbl(bible)
+        val result = command.test("exodus")
+        assertEquals("${TestFixtures.exodusOneWebus}\n", result.stdout)
+    }
+
+    @Test
     fun testBblGen1() {
         platform.settings.putString(ConfigKey.TRANSLATION.value, "webus")
         val command = Bbl(bible)

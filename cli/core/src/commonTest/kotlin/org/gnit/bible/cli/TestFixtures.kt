@@ -13,6 +13,7 @@ import org.gnit.bible.test.ZipUtil
 object TestFixtures {
     const val KTTV_GENESIS_1_1 = "1 Ban đầu Đức Chúa Trời dựng nên trời đất."
     const val WEBUS_GENESIS_1_1 = "1 In the beginning, God created the heavens and the earth."
+    const val WEBUS_EXODUS_1_1 = "1 These are the names of the sons of Israel who came into Egypt with Jacob; each man came with his household:"
     const val JC_GENESIS_1_1 = "1 はじめに神は天と地とを創造された。"
     const val WEBUS_JOHN_3_16 = "For God so loved the world, that he gave his only born  Son, that whoever believes in him should not perish, but have eternal life."
     const val WEBUS_MATT_28_18 = "Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth."
@@ -97,6 +98,7 @@ object TestFixtures {
     ).joinToString("\n", postfix = "\n")
 
     val genesisOneWebus = WEBUS_GENESIS_1_1
+    val exodusOneWebus = WEBUS_EXODUS_1_1
 
     val genesisTowWebus = "1 The heavens, the earth, and all their vast array were finished."
 
@@ -137,6 +139,7 @@ object TestFixtures {
     val webusMinimalZipBytes: ByteArray = ZipUtil.buildMinimalZip(
         listOf(
             "webus.1.1.txt" to genesisOneWebus,
+            "webus.2.1.txt" to exodusOneWebus,
             "webus.1.2.txt" to genesisTowWebus,
             "webus.43.3.txt" to johnThreeWebus,
             "webus.40.28.txt" to mattTwentyEightWebus,
