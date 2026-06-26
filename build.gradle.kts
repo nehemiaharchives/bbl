@@ -2084,7 +2084,7 @@ val stageBblInstallCompletionFixtureTasks = bblInstallPlatforms
                 // On Windows host, the mingwX64 binary is natively executable
                 // so completions are generated directly without needing the
                 // linux x86_64 binary (which cannot be linked on Windows).
-            } else if (platform.id != "linux") {
+            } else if (platform.id == "linuxArm64") {
                 dependsOn("stageBblInstallLinuxCliCoreCompletionFixtures")
             }
 
