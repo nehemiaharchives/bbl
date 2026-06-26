@@ -520,6 +520,131 @@ bblHomebrewMacosFixtures.forEach { fixture ->
                 .copyTo(output.resolve("version.txt"), overwrite = true)
         }
     }
+
+    tasks.register("stageBblInstall${fixture.taskNamePart}HomebrewReleaseArchive") {
+        group = LifecycleBasePlugin.BUILD_GROUP
+        description = "Stage the ${fixture.platformId} Homebrew release archive and formula for publish."
+        notCompatibleWithConfigurationCache("Creates a tar archive and formula from script-scoped providers.")
+        dependsOn(
+            "stageBblInstall${fixture.taskNamePart}CliCoreFixture",
+            "stageBblInstall${fixture.taskNamePart}CliSearchCommonFixture",
+            stageBblInstallVersionFixture,
+            "stageBblInstall${fixture.taskNamePart}CliCoreCompletionFixtures",
+        )
+
+        val stagedBbl = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl")
+        val stagedSearchCommon = layout.buildDirectory.file(
+            "bblInstallFixtures/${fixture.platformId}/cli-search-common/bbl-search-common"
+        )
+        val stagedWebusPack = layout.projectDirectory.file("resources/bblpacks/webus.zip")
+        val stagedBashCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl.bash")
+        val stagedZshCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/_bbl")
+        val stagedFishCompletion = layout.buildDirectory.file("bblInstallFixtures/${fixture.platformId}/cli-core/bbl.fish")
+        val outputDirectory = layout.buildDirectory.dir("bblInstallFixtures/${fixture.platformId}/homebrew-release")
+        inputs.files(stagedBbl, stagedSearchCommon, stagedWebusPack, stagedBashCompletion, stagedZshCompletion, stagedFishCompletion)
+        inputs.property("bblVersion", bblVersionProvider)
+        outputs.dir(outputDirectory)
+
+        doLast {
+            val version = bblVersionProvider.get()
+            val source = stagedBbl.get().asFile
+            val searchCommon = stagedSearchCommon.get().asFile
+            val webusPack = stagedWebusPack.asFile
+            val bashCompletion = stagedBashCompletion.get().asFile
+            val zshCompletion = stagedZshCompletion.get().asFile
+            val fishCompletion = stagedFishCompletion.get().asFile
+            require(source.isFile) { "Missing staged bbl binary: ${source.absolutePath}" }
+            require(searchCommon.isFile) { "Missing staged bbl-search-common binary: ${searchCommon.absolutePath}" }
+            require(webusPack.isFile) { "Missing webus pack: ${webusPack.absolutePath}" }
+            require(bashCompletion.isFile) { "Missing bash completion: ${bashCompletion.absolutePath}" }
+            require(zshCompletion.isFile) { "Missing zsh completion: ${zshCompletion.absolutePath}" }
+            require(fishCompletion.isFile) { "Missing fish completion: ${fishCompletion.absolutePath}" }
+
+            val output = outputDirectory.get().asFile
+            val archive = output.resolve("bbl-$version-${fixture.archiveSuffix}.tar.gz")
+            output.deleteRecursively()
+            output.mkdirs()
+
+            val archiveRoot = temporaryDir.resolve("${fixture.platformId}-homebrew-release")
+            archiveRoot.deleteRecursively()
+            archiveRoot.mkdirs()
+            source.copyTo(archiveRoot.resolve("bbl"), overwrite = true)
+            searchCommon.copyTo(archiveRoot.resolve("bbl-search-common"), overwrite = true)
+            webusPack.copyTo(archiveRoot.resolve("webus.zip"), overwrite = true)
+            bashCompletion.copyTo(archiveRoot.resolve("bbl.bash"), overwrite = true)
+            zshCompletion.copyTo(archiveRoot.resolve("_bbl"), overwrite = true)
+            fishCompletion.copyTo(archiveRoot.resolve("bbl.fish"), overwrite = true)
+            require(archiveRoot.resolve("bbl").setExecutable(true, false)) {
+                "Unable to make staged Homebrew bbl executable"
+            }
+            require(archiveRoot.resolve("bbl-search-common").setExecutable(true, false)) {
+                "Unable to make staged Homebrew bbl-search-common executable"
+            }
+            val process = ProcessBuilder(
+                "tar", "-czf", archive.absolutePath,
+                "bbl", "bbl-search-common", "webus.zip", "bbl.bash", "_bbl", "bbl.fish",
+            )
+                .directory(archiveRoot)
+                .inheritIO()
+                .apply { environment()["COPYFILE_DISABLE"] = "1" }
+                .start()
+            require(process.waitFor() == 0) { "Failed to create ${archive.absolutePath}" }
+
+            val downloadUrl = "$bblGitHubRepositoryUrl/releases/download/$version/bbl-$version-${fixture.archiveSuffix}-homebrew.tar.gz"
+            val archBlock = if (fixture.platformId == "macosArm64") "arm" else "intel"
+            output.resolve("bbl.rb").writeText(
+                """
+                class Bbl < Formula
+                  desc "$$bblDescription"
+                  homepage "$bblGitHubRepositoryUrl"
+                  version "$version"
+                  license "Apache-2.0"
+
+                  on_macos do
+                    on_$archBlock do
+                      url "$downloadUrl"
+                      sha256 "${archive.sha256Hex()}"
+                    end
+                  end
+
+                    def install
+                      libexec.install "bbl", "bbl-search-common"
+                      (prefix/"packs").install "webus.zip"
+                      bash_completion.install "bbl.bash" => "bbl"
+                      zsh_completion.install "_bbl"
+                      fish_completion.install "bbl.fish"
+                      (bin/"bbl").write <<~SH
+                        #!/bin/bash
+                        set -e
+                        mkdir -p "${'$'}HOME/.bbl/bin" "${'$'}HOME/.bbl/packs"
+                        if ! cmp -s "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"; then
+                          install -m 0755 "#{libexec}/bbl-search-common" "${'$'}HOME/.bbl/bin/bbl-search-common"
+                        fi
+                        if ! cmp -s "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"; then
+                          install -m 0644 "#{prefix}/packs/webus.zip" "${'$'}HOME/.bbl/packs/webus.zip"
+                        fi
+                        exec "#{libexec}/bbl" "${'$'}@"
+                      SH
+                    end
+
+                    test do
+                      assert_match(/God|god/, shell_output("#{bin}/bbl john 3:16"))
+                      assert_match(/God|god/, shell_output("#{bin}/bbl search God limit 1"))
+                    end
+
+                    def caveats
+                      <<~EOS
+                        bbl shell completions installed:
+                          bash: source #{bash_completion}/bbl
+                          zsh:  autoload -Uz compinit && compinit
+                          fish:  auto-sourced from #{fish_completion}/bbl.fish
+                      EOS
+                    end
+                  end
+                  """.trimIndent() + "\n"
+            )
+        }
+    }
 }
 
 val hostMacosTaskNamePart = if (System.getProperty("os.arch") == "aarch64") "MacosArm64" else "MacosX64"

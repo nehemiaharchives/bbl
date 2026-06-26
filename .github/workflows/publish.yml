@@ -251,7 +251,7 @@ jobs:
             needs_wix: false
             package_tasks: >-
               stageBblInstallMacosArm64PkgFixture
-              stageBblInstallMacosArm64HomebrewFixture
+              stageBblInstallMacosArm64HomebrewReleaseArchive
             excluded_fixture_tasks: >-
               -x stageBblInstallMacosArm64CliCoreFixture
               -x stageBblInstallMacosArm64CliSearchCommonFixture
