@@ -675,13 +675,6 @@ jobs:
           brew install nehemiaharchives/bbl/bbl
           ```
 
-          Or:
-
-          ```bash
-          brew tap nehemiaharchives/bbl
-          brew install bbl
-          ```
-
           ## Test
 
           ```bash
