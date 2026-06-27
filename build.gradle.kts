@@ -2604,6 +2604,17 @@ tasks.register<Exec>("buildWindowsMsi") {
                         </Directory>
                     </StandardDirectory>
 
+                    <CustomAction Id="InstallBblUserAssets"
+                                  Directory="INSTALLDIR"
+                                  Execute="deferred"
+                                  Impersonate="yes"
+                                  Return="check"
+                                  ExeCommand="&quot;[SystemFolder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -ExecutionPolicy Bypass -Command &quot;${'$'}ErrorActionPreference='Stop'; ${'$'}userProfile=${'$'}env:USERPROFILE; if ((-not ${'$'}userProfile) -or (${'$'}userProfile.Trim().Length -eq 0)) { throw 'USERPROFILE is not set' }; ${'$'}bin=Join-Path ${'$'}userProfile '.bbl\bin'; ${'$'}packs=Join-Path ${'$'}userProfile '.bbl\packs'; New-Item -ItemType Directory -Force -Path ${'$'}bin,${'$'}packs | Out-Null; Copy-Item -LiteralPath '.\bbl-search-common.exe' -Destination (Join-Path ${'$'}bin 'bbl-search-common.exe') -Force; Copy-Item -LiteralPath '.\webus.zip' -Destination (Join-Path ${'$'}packs 'webus.zip') -Force&quot;" />
+
+                    <InstallExecuteSequence>
+                        <Custom Action="InstallBblUserAssets" After="InstallFiles" Condition="NOT REMOVE" />
+                    </InstallExecuteSequence>
+
                     <Feature Id="ProductFeature" Title="bbl" Level="1">
                         <ComponentRef Id="bbl_exe" />
                         <ComponentRef Id="bbl_search_common_exe" />
