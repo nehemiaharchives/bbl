@@ -1758,7 +1758,7 @@ val buildLinuxAlpine = tasks.register<Exec>("buildLinuxAlpine") {
     }
 }
 
-tasks.register<Sync>("stageBblInstallLinuxAlpineFixture") {
+tasks.register<Sync>("stageBblInstallLinuxX64AlpineFixture") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Stage the Linux x86_64 Alpine Linux APK package fixture for Kitchen tests."
     dependsOn(buildLinuxAlpine, stageBblInstallVersionFixture)
@@ -2352,7 +2352,7 @@ tasks.register<Sync>("stageBblInstallLinuxFixtures") {
     dependsOn("stageBblInstallLinuxDebFixture")
     dependsOn("stageBblInstallLinuxRpmFixture")
     dependsOn("stageBblInstallLinuxArchlinuxFixture")
-    dependsOn("stageBblInstallLinuxAlpineFixture")
+    dependsOn("stageBblInstallLinuxX64AlpineFixture")
 }
 
 tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
@@ -2362,7 +2362,7 @@ tasks.register<Sync>("stageBblInstallLinuxCliAllFixture") {
     dependsOn("stageBblInstallLinuxDebFixture")
     dependsOn("stageBblInstallLinuxRpmFixture")
     dependsOn("stageBblInstallLinuxArchlinuxFixture")
-    dependsOn("stageBblInstallLinuxAlpineFixture")
+    dependsOn("stageBblInstallLinuxX64AlpineFixture")
 }
 
 tasks.register("stageBblInstallLinuxArm64CliAllFixture") {

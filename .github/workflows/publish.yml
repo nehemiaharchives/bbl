@@ -222,6 +222,7 @@ jobs:
               stageBblInstallLinuxDebFixture
               stageBblInstallLinuxRpmFixture
               stageBblInstallLinuxArchlinuxFixture
+              stageBblInstallLinuxX64AlpineFixture
               stageBblInstallLinuxNixFixture
             excluded_fixture_tasks: >-
               -x stageBblInstallLinuxCliCoreFixture

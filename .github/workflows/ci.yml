@@ -175,7 +175,7 @@ jobs:
             task: :cli:core:linuxX64Test
             needs_konan_cache: true
             needs_nfpm: true
-            fixture_task: stageBblInstallLinuxAlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+            fixture_task: stageBblInstallLinuxX64AlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
             fixture_artifact_name: bbl-install-linux-alpine-files
             fixture_path: build/bblInstallFixtures/linux/alpine
             job_type: Package
