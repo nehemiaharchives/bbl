@@ -541,3 +541,172 @@ jobs:
           draft: ${{ steps.release.outputs.draft }}
           prerelease: ${{ steps.release.outputs.prerelease }}
           overwrite: true
+
+  publish-homebrew-tap:
+    name: Update Homebrew tap
+    needs: publish-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Update the public tap only for real public releases.
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.draft == false && inputs.prerelease == false) }}
+
+    steps:
+      - name: Resolve release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download macOS packaged assets
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packaged-macos-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v7
+        with:
+          repository: nehemiaharchives/homebrew-bbl
+          ref: master
+          path: tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Generate combined Homebrew formula
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.release.outputs.tag }}"
+
+          arm_asset="bbl-$tag-macos-arm64-homebrew.tar.gz"
+          x64_asset="bbl-$tag-macos-x64-homebrew.tar.gz"
+
+          test -f "dist/$arm_asset"
+          test -f "dist/$x64_asset"
+
+          arm_sha="$(sha256sum "dist/$arm_asset" | awk '{print $1}')"
+          x64_sha="$(sha256sum "dist/$x64_asset" | awk '{print $1}')"
+
+          mkdir -p tap/Formula
+
+          cat > tap/Formula/bbl.rb <<EOF
+          class Bbl < Formula
+            desc "Read/search Holy Bible in your terminal"
+            homepage "https://github.com/nehemiaharchives/bbl"
+            version "$tag"
+            license "Apache-2.0"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/nehemiaharchives/bbl/releases/download/$tag/$arm_asset"
+                sha256 "$arm_sha"
+              end
+
+              on_intel do
+                url "https://github.com/nehemiaharchives/bbl/releases/download/$tag/$x64_asset"
+                sha256 "$x64_sha"
+              end
+            end
+
+            def install
+              libexec.install "bbl", "bbl-search-common"
+              (prefix/"packs").install "webus.zip"
+
+              bash_completion.install "bbl.bash" => "bbl"
+              zsh_completion.install "_bbl"
+              fish_completion.install "bbl.fish"
+
+              (bin/"bbl").write <<~SH
+                #!/bin/bash
+                set -e
+                mkdir -p "\$HOME/.bbl/bin" "\$HOME/.bbl/packs"
+
+                if ! cmp -s "#{libexec}/bbl-search-common" "\$HOME/.bbl/bin/bbl-search-common"; then
+                  install -m 0755 "#{libexec}/bbl-search-common" "\$HOME/.bbl/bin/bbl-search-common"
+                fi
+
+                if ! cmp -s "#{prefix}/packs/webus.zip" "\$HOME/.bbl/packs/webus.zip"; then
+                  install -m 0644 "#{prefix}/packs/webus.zip" "\$HOME/.bbl/packs/webus.zip"
+                fi
+
+                exec "#{libexec}/bbl" "\$@"
+              SH
+            end
+
+            test do
+              assert_match(/God|god/, shell_output("#{bin}/bbl john 3:16"))
+              assert_match(/God|god/, shell_output("#{bin}/bbl search God limit 1"))
+            end
+
+            def caveats
+              <<~EOS
+                bbl shell completions installed:
+                  bash: source #{bash_completion}/bbl
+                  zsh:  autoload -Uz compinit && compinit
+                  fish:  auto-sourced from #{fish_completion}/bbl.fish
+              EOS
+            end
+          end
+          EOF
+
+          sed -i 's/^          //' tap/Formula/bbl.rb
+          ruby -c tap/Formula/bbl.rb
+
+      - name: Add tap README
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > tap/README.md <<'EOF'
+          # homebrew-bbl
+
+          Homebrew tap for [bbl](https://github.com/nehemiaharchives/bbl), a command line tool to read and search the Holy Bible.
+
+          ## Install
+
+          ```bash
+          brew install nehemiaharchives/bbl/bbl
+          ```
+
+          Or:
+
+          ```bash
+          brew tap nehemiaharchives/bbl
+          brew install bbl
+          ```
+
+          ## Test
+
+          ```bash
+          bbl john 3:16
+          bbl search God limit 1
+          ```
+          EOF
+
+          sed -i 's/^          //' tap/README.md
+
+      - name: Commit and push tap update
+        working-directory: tap
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add Formula/bbl.rb README.md
+
+          if git diff --cached --quiet; then
+            echo "Homebrew tap already up to date."
+            exit 0
+          fi
+
+          git commit -m "Update bbl formula to ${{ steps.release.outputs.tag }}"
+          git push

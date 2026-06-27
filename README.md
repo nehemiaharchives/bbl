@@ -54,6 +54,12 @@ state, run ```bbl list translations```.
 
 Download packages from the [v2.0 release](https://github.com/nehemiaharchives/bbl/releases/tag/v2.0).
 
+### Homebrew
+
+```bash
+brew install nehemiaharchives/bbl/bbl
+```
+
 |       | deb | rpm | Arch | Alpine | Nix | macOS | Windows |
 |-------| --- | --- | ---- | ------ | --- | ----- | ------- |
 | x64   | [deb](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-amd64.deb) | [rpm](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.rpm) | [pkg.tar.zst](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.pkg.tar.zst) | [apk](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.apk) | [flake](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x64-nix-flake.tar.gz) | [pkg](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-macos-x64.pkg) | [msi](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-2.0-windows-x64.msi) |
