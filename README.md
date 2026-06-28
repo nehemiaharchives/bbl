@@ -58,6 +58,12 @@ state, run ```bbl list translations```.
 brew install nehemiaharchives/bbl/bbl
 ```
 
+### Scoop
+```powershell
+scoop bucket add bbl https://github.com/nehemiaharchives/bbl-scoop-bucket
+scoop install bbl
+```
+
 ### Package Installers
 
 |       | deb | rpm | Arch | Nix | Alpine | macOS | Windows |
