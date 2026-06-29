@@ -1,8 +1,8 @@
 # Package Distribution TODO
 
-Last updated: 2026-06-20
+Last updated: 2026-06-29
 
-This document tracks package distribution status for the `bbl` CLI based on the current `nehemiaharchives/bbl-kmp` repository state.
+This document tracks package distribution status for the `bbl` CLI.
 
 ## Current Status Snapshot
 
@@ -16,18 +16,19 @@ Legend:
 | Status    | Distro             | Package Generated | Manager | Container[E2E]    |
 |-----------|--------------------|-------------------|---------|-------------------|
 | Supported | Ubuntu 26,25,24,22 | .deb [x]          | apt     | dokken[x]         |
-| TODO      | Ubuntu 26,25,24,22 | ppa [ ]           | apt     | dokken[ ]         |
+| Supported | Ubuntu 26,25,24,22 | ppa [x]           | apt     | dokken[ ]         |
 | Supported | Debian             | .deb [x]          | apt     | dokken[ ]         |
 | Supported | Linux Mint         | .deb [x]          | apt     | linuxmintd[ ]     |
-| Supported | RHEL               | .rpm [x]          | dnf     | dokken[ ]         |
 | Supported | Fedora             | .rpm [x]          | dnf     | dokken[x]         |
+| TODO      | Fedora             | copr [ ]          | dnf     | dokken[ ]         |
+| Supported | RHEL               | .rpm [x]          | dnf     | dokken[ ]         |
 | Supported | Rocky Linux        | .rpm [x]          | dnf     | dokken[ ]         |
 | Supported | openSUSE           | .rpm [x]          | zypper  | dokken[ ]         |
 | Supported | openSUSE           | obs [ ]           | zypper  | dokken[ ]         |
 | Supported | Arch Linux         | .pkg.tar.zst [x]  | pacman  | archlinux[x]      |
 | TODO      | Arch Linux         | aur [ ]           | pacman  | archlinux[ ]      |
 | Supported | CachyOS            | .pkg.tar.zst [x]  | pacman  | cachyos[ ]        |
-| WIP       | Alpine Linux       | .apk [~]          | apk     | alpine[~]         |
+| Supported | Alpine Linux       | .apk [x]          | apk     | alpine[x]         |
 | Supported | NixOS              | flake tarball [x] | nix     | nixos/nix[x]      |
 | TODO      | Gentoo             | .ebuild [ ]       | portage | gentoo/portage[ ] |
 | TODO      | Void               | .xbps [ ]         | xbps    | gvcatafesta[ ]    |
@@ -35,27 +36,22 @@ Legend:
 | Supported | macOS              | .pkg [x]          | os      | local[x]          |
 | Supported | macOS              | homebrew formula  | brew    | local[x]          |
 | Supported | Windows            | .msi [x]          | os      | local[x]          |
-| WIP       | Windows            | winget package    | winget  | local[ ]          |
-| TODO      | Windows            | scoop package     | scoop   | local[ ]          |
-| TODO      | Windows            | choco package     | choco   | local[ ]          |
+| In Review | Windows            | winget package    | winget  | local[ ]          |
+| Supported | Windows            | scoop package     | scoop   | local[ ]          |
+| In Review | Windows            | choco package     | choco   | local[ ]          |
 
 ### Repository and naming
 
-- `[x]` Development repository currently remains `nehemiaharchives/bbl-kmp`.
-- `[~]` Runtime/version code is already preparing for migration to `nehemiaharchives/bbl`.
-- `[~]` Keep using package name `bbl` where available; use `bbl-kmp` only as a fallback.
+- `[x]` Repository migrated to `nehemiaharchives/bbl`.
+- `[x]` Package name `bbl`.
 
-Current package naming policy:
+Current naming policy:
 
 ```text
 package name: bbl
-fallback only if taken: bbl-kmp
-development repository: nehemiaharchives/bbl-kmp
-target release repository: nehemiaharchives/bbl
+repository: nehemiaharchives/bbl
 external package namespace: gnit where available, otherwise nehemiaharchives
 ```
-
-Before external publishing, confirm whether release URLs should point to `nehemiaharchives/bbl-kmp` or `nehemiaharchives/bbl`. Do not publish package-manager manifests against `nehemiaharchives/bbl` until that repository has the required tags, release assets, and pack resources.
 
 ## Installed Layout Decision
 
@@ -102,24 +98,16 @@ Current status:
     - `windows-x64`
 - `[x]` Generates `SHA256SUMS.txt`.
 - `[x]` Archives include the core `bbl` binary, search helper binaries, and pack `.zip` files.
-- `[ ]` No public GitHub Release has been published yet.
-- `[ ]` `.deb` is not yet uploaded as a GitHub Release asset.
-- `[ ]` macOS `.pkg` is not yet uploaded as a GitHub Release asset.
+- `[x]` Public GitHub Releases published (e.g. `v2.0`).
+- `[x]` `.deb` uploaded as a GitHub Release asset.
+- `[x]` macOS `.pkg` uploaded as a GitHub Release asset.
+- `[x]` `.msi` uploaded as a GitHub Release asset.
 - `[ ]` Release assets are not signed/notarized.
 
 Required next changes:
 
-1. Update `PUBLISH.md` so the pack path matches the current repo layout: `resources/bblpacks`, not the older `server/src/main/resources/files/bblpacks`.
-2. Add `buildLinuxDeb` or `stageBblInstallLinuxDebFixture` to the publish workflow after the public `.deb` layout is fixed.
-3. Upload a versioned `.deb`, for example:
-
-   ```text
-   bbl-v2.0-linux-amd64.deb
-   ```
-
-4. Upload unsigned macOS `.pkg` as an artifact.
-5. Keep `SHA256SUMS.txt` covering every release asset.
-6. After first release, update Homebrew/Scoop/winget/Chocolatey manifests to stable release URLs.
+1. Keep `SHA256SUMS.txt` covering every release asset.
+2. Add signing/notarization for macOS and optional GPG/cosign for other assets.
 
 ## CI and Package E2E
 
@@ -135,11 +123,11 @@ Current status:
 - `[x]` CI rejects old/bad locations such as `/usr/local`, `/usr/lib/bbl`, `/usr/share/bbl`, and the old flat `/home/ubuntu/.bbl/webus.zip`.
 - `[x]` Kitchen has a `deb_install` suite covering Ubuntu 26.04, 25.10, 24.04, and 22.04 in `kitchen.yml`.
 - `[~]` GitHub Actions currently runs the `.deb` install job against the `deb-install-ubuntu-2604` instance to save time.
-- `[ ]` No external package-manager install tests exist yet because no external package channels are published.
+- `[~]` External package-manager install tests exist for Homebrew and Scoop (tested via CI fixture, not live channel). PPA is live and tested via `add-apt-repository`.
 
 Required next changes:
 
-1. Add a public-package variant of the `.deb` E2E test after the install layout is fixed.
+1. Add a public-package variant of the `.deb` E2E test.
 2. Add `apt install ./bbl-*.deb` test in addition to raw `dpkg -i` if dependency handling ever matters.
 3. Add uninstall test:
 
@@ -165,81 +153,29 @@ Current status:
 - `[x]` Current `.deb` installs `/usr/bin/bbl`.
 - `[x]` Current `.deb` includes `bbl-search-common`.
 - `[x]` Current `.deb` includes `webus.zip`.
-- `[~]` Current `.deb` is good enough as a local/CI installer fixture.
-- `[ ]` Current `.deb` is not PPA-ready because it installs helper/pack assets into a fixed user home.
+- `[x]` Current `.deb` is uploaded as a GitHub Release asset.
+- `[x]` Public layout: helper/pack assets bundled, first-run copy to `$HOME/.bbl`.
+- `[x]` Release `.deb` upload is wired in `publish.yml`.
+- `[x]` Checksum verified via `SHA256SUMS.txt`.
 
-Required next changes before publishing `.deb` broadly:
+Required next changes:
 
-1. Decide final public package layout:
-    - core-only package, or
-    - root-owned bundled assets plus first-run copy/update to `$HOME/.bbl`.
-2. Remove `bblDebInstallUser`, `bblDebInstallGroup`, and `bblDebInstallHome` from the public package path, or limit them to test-only fixture tasks.
-3. Split tasks if necessary:
-
-   ```text
-   buildLinuxDebFixture      # may install into /home/ubuntu for Kitchen-only tests
-   buildLinuxDebRelease      # public layout, no fixed user home
-   ```
-
-4. Add release `.deb` upload to `publish.yml`.
-5. Add checksum verification against release `.deb`.
-6. Add package uninstall/upgrade tests.
-7. Add `lintian` check once the release `.deb` layout stabilizes.
+1. Add package uninstall/upgrade tests.
+2. Add `lintian` check once the release `.deb` layout stabilizes.
 
 ## Ubuntu PPA
 
 Current status:
 
-- `[ ]` No `packaging/debian/` directory exists.
-- `[ ]` No Debian source package flow exists.
-- `[ ]` No Launchpad upload flow exists.
-- `[ ]` No PPA secrets are wired.
-- `[~]` Local `.deb` exists via nFPM, but that is not the same as Launchpad source-package publishing.
+- `[x]` PPA repository published at `ppa:nehemiaharchives/bbl`. source is https://github.com/nehemiaharchives/bbl-ppa, page is https://launchpad.net/~nehemiaharchives/+archive/ubuntu/bbl
+- `[x]` `sudo add-apt-repository ppa:nehemiaharchives/bbl` installs bbl on Ubuntu.
+- `[x]` Debian packaging maintained in the PPA repository, outside this repo.
+- `[x]` Supports Ubuntu 24.04+ via Launchpad automated builds.
+- `[x]` Local nFPM `.deb` still exists for CI/Küchen fixture tests.
 
 Required next changes:
 
-1. Decide whether PPA is still necessary now that nFPM `.deb` generation exists.
-2. If yes, add Debian packaging under `packaging/debian/`:
-
-   ```text
-   control
-   changelog
-   rules
-   install
-   copyright
-   source/format
-   ```
-
-3. Build a source package for Launchpad instead of only an nFPM binary package.
-4. Use package/source name `bbl` if available.
-5. Use Launchpad owner/team `gnit` if available, otherwise `nehemiaharchives`.
-6. Use Ubuntu suffixes such as:
-
-   ```text
-   2.0-1~ppa1~ubuntu24.04.1
-   ```
-
-7. Required secrets when automated:
-
-   ```text
-   LAUNCHPAD_PPA
-   GPG_PRIVATE_KEY
-   GPG_PASSPHRASE
-   GPG_KEY_ID
-   DEBEMAIL
-   DEBFULLNAME
-   ```
-
-8. Test install path:
-
-   ```sh
-   sudo add-apt-repository ppa:gnit/bbl
-   sudo apt update
-   sudo apt install bbl
-   bbl -v
-   bbl john 3:16
-   sudo apt remove bbl
-   ```
+- None. PPA is live and maintained out of tree.
 
 ## NixOS
 
@@ -291,41 +227,19 @@ Required next changes:
 
 Current status:
 
-- `[x]` Gradle generates a Homebrew formula fixture for macOS Arm64 and x64.
-- `[x]` CI has `homebrew_install_macos`.
-- `[x]` Formula fixture installs `bbl` and `bbl-search-common` into `libexec`.
-- `[x]` Formula fixture places `webus.zip` under the Homebrew prefix and copies it to `$HOME/.bbl/packs` on wrapper execution.
-- `[ ]` No public Homebrew tap repo exists in this repo.
-- `[ ]` Formula still uses fixture-local `file://__BBL_HOMEBREW_ARCHIVE__`.
-- `[ ]` Formula is not wired to GitHub Release URLs.
+- `[x]` Public tap repo: `nehemiaharchives/homebrew-bbl`. repo: https://github.com/nehemiaharchives/homebrew-bbl
+- `[x]` `publish.yml` has `publish-homebrew-tap` job that pushes formula to the tap repo after each release.
+- `[x]` Formula uses GitHub Release URLs and SHA256.
+- `[x]` Dual-architecture: publishes separate macOS Arm64 and x64 assets.
+- `[x]` Formula installs `bbl` and `bbl-search-common` into `libexec`, packs into `prefix/packs`, generates wrapper.
+- `[x]` Shell completions bundled.
+- `[x]` Install: `brew install nehemiaharchives/bbl/bbl`.
+- `[x]` CI has `homebrew_install_macos` fixture test.
+- `[x]` Secret `HOMEBREW_TAP_TOKEN` is wired in CI.
 
 Required next changes:
 
-1. Create tap repository, preferably:
-
-   ```text
-   nehemiaharchives/homebrew-bbl
-   ```
-
-   or another stable name you choose.
-
-2. Convert generated formula from fixture-local file URL to a GitHub Release URL.
-3. Decide final release repository before publishing the formula.
-4. Add formula update automation after GitHub Release publish succeeds.
-5. Test:
-
-   ```sh
-   brew install --build-from-source ./Formula/bbl.rb
-   brew test bbl
-   bbl john 3:16
-   bbl search God limit 1
-   ```
-
-6. Required secret if automation pushes to the tap:
-
-   ```text
-   HOMEBREW_TAP_GITHUB_TOKEN
-   ```
+- None. Homebrew tap is live and automated.
 
 ## Windows ZIP / Scoop / winget / Chocolatey
 
@@ -343,101 +257,58 @@ Current status:
 
 Current status:
 
-- `[ ]` No Scoop bucket repository exists.
-- `[ ]` No `bucket/bbl.json` exists.
+- `[x]` Public Scoop bucket: `nehemiaharchives/bbl-scoop-bucket`.
+- `[x]` `bucket/bbl.json` exists with GitHub Release URL and SHA256.
+- `[x]` Install: `scoop bucket add bbl https://github.com/nehemiaharchives/bbl-scoop-bucket && scoop install bbl`.
+- `[x]` README documents the install command.
 
 Required next changes:
 
-1. Create a Scoop bucket repository, for example:
-
-   ```text
-   nehemiaharchives/scoop-bbl
-   ```
-
-2. Add `bucket/bbl.json`.
-3. Point `url` to the GitHub Release Windows ZIP.
-4. Include SHA256 from `SHA256SUMS.txt`.
-5. Add `bin` entry for `bbl.exe`.
-6. Add `checkver` and `autoupdate` after release naming stabilizes.
-7. Test:
-
-   ```powershell
-   scoop install .\bucket\bbl.json
-   bbl -v
-   bbl john 3:16
-   bbl search God limit 1
-   scoop uninstall bbl
-   ```
+- None. Scoop bucket is live and maintained out of tree.
 
 ### winget
 
 Current status:
 
-- `[ ]` No winget manifests exist.
-- `[ ]` No MSI/MSIX installer exists.
-- `[~]` A ZIP-based winget package may be possible, but the user experience is usually better with a stable installer or portable manifest.
+- `[x]` `publish.yml` creates `bbl-winget.zip` release artifact.
+- `[x]` MSI installer exists (`build/distributions/*.msi`).
+- `[x]` Package identifier: `GNIT.bbl`.
+- `[~]` Manifests submitted to `microsoft/winget-pkgs` — **under review**, waiting for approval. PR: https://github.com/microsoft/winget-pkgs/pull/394507
+- `[ ]` Not yet available via `winget install Gnit.Bbl`.
 
 Required next changes:
 
-1. Decide whether winget should use portable ZIP first or wait for MSI/MSIX.
-2. Use package identifier:
-
-   ```text
-   GNIT.bbl
-   ```
-
-   if available, otherwise:
-
-   ```text
-   NehemiahArchives.bbl
-   ```
-
-3. Generate manifests with `wingetcreate`.
-4. Validate:
+1. Wait for `microsoft/winget-pkgs` PR review and merge.
+2. After approval, test:
 
    ```powershell
-   winget validate <manifest-dir>
-   winget install --manifest <manifest-dir>
+   winget install Gnit.Bbl
    bbl -v
-   winget uninstall bbl
+   winget uninstall Gnit.Bbl
    ```
 
-5. Submit to `microsoft/winget-pkgs` only after manual manifest install works.
+3. Add automated manifest update to `publish.yml` after reviews are complete.
 
 ### Chocolatey
 
 Current status:
 
-- `[ ]` No Chocolatey package files exist.
-- `[ ]` No Chocolatey publish workflow exists.
+- `[~]` Chocolatey package submitted to the community repository — **under review**, waiting for moderation/approval. source is https://github.com/nehemiaharchives/bbl-chocolatey-package, site is https://community.chocolatey.org/packages/bbl/2.0.0
+- `[ ]` No Chocolatey publish workflow in this repo (submission done manually).
 
 Required next changes:
 
-1. Add:
-
-   ```text
-   packaging/chocolatey/bbl.nuspec
-   packaging/chocolatey/tools/chocolateyinstall.ps1
-   packaging/chocolatey/tools/chocolateyuninstall.ps1
-   ```
-
-2. Download Windows release ZIP and verify SHA256.
-3. Install/shim `bbl.exe` onto PATH.
-4. Test:
+1. Wait for Chocolatey community repository review and approval. repo is 
+2. After approval, test:
 
    ```powershell
-   choco pack
-   choco install bbl --source .
+   choco install bbl
    bbl -v
    bbl john 3:16
    choco uninstall bbl
    ```
 
-5. Required secret:
-
-   ```text
-   CHOCOLATEY_API_KEY
-   ```
+3. Optionally add automated publish workflow with `CHOCOLATEY_API_KEY`. If decided, add secret to GitHub Actions.
 
 ## Fedora COPR / RPM
 
@@ -523,7 +394,7 @@ Required next changes:
    bbl-bin
    ```
 
-   Use `bbl-kmp-bin` only if `bbl-bin` is unavailable.
+   Use `bbl-bin`.
 
 2. Add `packaging/aur/PKGBUILD`.
 3. Download Linux release archive or public `.deb` payload from GitHub Releases.
@@ -552,20 +423,18 @@ Required next changes:
 
 Current status:
 
-- `[~]` `PUBLISH.md` documents GitHub Release archive publishing.
-- `[ ]` `PUBLISH.md` does not yet document `.deb`, `.pkg`, Homebrew tap, or Windows package-manager publishing.
-- `[ ]` `PUBLISH.md` still needs path cleanup if it mentions the old pack directory.
-- `[ ]` README does not yet have package install instructions for release users.
+- `[x]` `PUBLISH.md` documents GitHub Release archive publishing.
+- `[x]` README has install instructions for Homebrew, Scoop, `.deb`, `.rpm`, Arch, Alpine, Nix, macOS `.pkg`, and Windows `.msi`.
+- `[x]` Release download table in README with links to GitHub Release assets.
+- `[~]` `PUBLISH.md` may still need path cleanup if it mentions the old pack directory.
 
 Required next changes:
 
-1. Update `PUBLISH.md` after deciding final release repository.
-2. Add install instructions to README only after the first public release exists.
-3. Add a short "Pack/resource compatibility" note:
+1. Add a short "Pack/resource compatibility" note:
     - CLI version tag
     - pack manifest compatibility
     - helper binary compatibility
-4. Add troubleshooting notes for:
+2. Add troubleshooting notes for:
     - missing `bbl-search-common`
     - missing packs
     - shell completion install
@@ -574,20 +443,19 @@ Required next changes:
 ## Recommended Next Order
 
 1. [x] Rename `TOOD_PACKAGES.md` to `TODO_PACKAGES.md`.
-2. Fix `PUBLISH.md` path/reference drift.
-3. Decide public `.deb` layout:
-    - core-only, or
-    - root-owned bundled assets plus first-run copy.
-4. [~] Split `.deb` fixture vs release tasks if needed.
-5. Add `.deb` artifact upload to `publish.yml`.
-6. Run CI and publish first draft GitHub Release for `v2.0`.
-7. Create Homebrew tap using the current formula fixture as the starting point.
-8. Create Scoop bucket using the current Windows ZIP release asset.
-9. After release URLs are stable, add AUR `bbl-bin`.
-10. Only after the `.deb` layout is public-grade, start PPA.
-11. Add RPM/COPR and OBS after Debian/Homebrew/Scoop are stable.
-12. Add winget and Chocolatey after the Windows ZIP/installer decision is stable.
-13. Add signing/notarization:
-    - GitHub Release checksums now.
+2. [x] Fix `PUBLISH.md` path/reference drift.
+3. [x] Decide public `.deb` layout (bundled assets + first-run copy).
+4. [x] Split `.deb` fixture vs release tasks if needed.
+5. [x] Add `.deb` artifact upload to `publish.yml`.
+6. [x] Run CI and publish first GitHub Release for `v2.0`.
+7. [x] Create Homebrew tap.
+8. [x] Create Scoop bucket.
+9. [x] Publish PPA.
+10. [ ] Add AUR `bbl-bin`.
+11. [ ] Add RPM/COPR and OBS.
+12. [~] winget — submitted, under review.
+13. [~] Chocolatey — submitted, under review.
+14. [ ] Add signing/notarization:
+    - GitHub Release checksums are live.
     - macOS Developer ID signing/notarization later.
     - Optional cosign/minisign/GPG signatures for CLI archives and packages later.
