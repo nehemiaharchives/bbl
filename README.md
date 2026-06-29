@@ -52,6 +52,13 @@ state, run ```bbl list translations```.
 
 ## Installation
 
+### APT
+
+```bash
+sudo add-apt-repository ppa:nehemiaharchives/bbl
+sudo apt install bbl
+```
+
 ### Homebrew
 
 ```bash
