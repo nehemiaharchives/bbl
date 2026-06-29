@@ -41,7 +41,7 @@ bbl search [KEY WORDS] in [BOOK] [CHAPTERVERSE] in [TRANSLATION]
 bbl rand [GOSPEL, OT, NT]
 bbl list [BOOKS, BIBLES, TRANSLATIONS, CATEGORIES]
 ```
-some example for BOOK: ```gen, ex, lev, num, josh, jg, ru, 1sm, 2sm, 1k 2k, 1ch, 2ch, ez, ne, job, ps, pr, ec, so, is, je, la, ezk, da, ho, jl, am, ob, jnh, mic, na, hb, zp, hg, zc, mal, matt, mk, lk, jn, act, rom, 1co, 2co, gal, eph, phil, col, 1th, 2th, 1tim, 2tim, tit, phm, heb, jm, 1pt, 2pt, 1jn, 2jn, 3jn, jd, rev```
+Examples for BOOK: ```gen, ex, lev, num, josh, jg, ru, 1sm, 2sm, 1k 2k, 1ch, 2ch, ez, ne, job, ps, pr, ec, so, is, je, la, ezk, da, ho, jl, am, ob, jnh, mic, na, hb, zp, hg, zc, mal, matt, mk, lk, jn, act, rom, 1co, 2co, gal, eph, phil, col, 1th, 2th, 1tim, 2tim, tit, phm, heb, jm, 1pt, 2pt, 1jn, 2jn, 3jn, jd, rev```
 
 For full list of available BOOK, run ```bbl list books```
 
@@ -78,7 +78,7 @@ scoop install bbl
 | x64   | [deb](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-amd64.deb) | [rpm](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.rpm) | [pkg.tar.zst](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.pkg.tar.zst) | [flake](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x64-nix-flake.tar.gz) | [apk](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-x86_64.apk) | [pkg](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-macos-x64.pkg) | [msi](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-2.0-windows-x64.msi) |
 | arm64 | [deb](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-arm64.deb) |  |  |  | [apk](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-linux-aarch64.apk) | [pkg](https://github.com/nehemiaharchives/bbl/releases/download/v2.0/bbl-v2.0-macos-arm64.pkg) |  |
 
-ALl download links: [v2.0 release](https://github.com/nehemiaharchives/bbl/releases/tag/v2.0).
+All download links: [v2.0 release](https://github.com/nehemiaharchives/bbl/releases/tag/v2.0).
 
 ## Usage
 
@@ -233,17 +233,36 @@ NPIULB | Nepali Unlocked Literal Bible     | पवित्र बाइबल 
 Install one or more packs with:
 
 ```
-bbl install kjv jc kttv
+bbl install kjv jc
 ```
+This command will download missing search binary and bbl pack zip files in following locations (supporse username is joel): 
+
+in Windows:
+* ```C:\Users\joel\.bbl\bin\bbl-search-common.exe```
+* ```C:\Users\joel\.bbl\bin\bbl-search-kuromoji.exe```
+* ```C:\Users\joel\.bbl\packs\kjv.zip```
+* ```C:\Users\joel\.bbl\packs\jc.zip```
+
+in MacOS
+* ```/Users/joel/.bbl/bin/bbl-search-common```
+* ```/Users/joel/.bbl/bin/bbl-search-kuromoji```
+* ```/Users/joel/.bbl/kjv.zip```
+* ```/Users/joel/.bbl/jc.zip```
+
+in Linux
+* ```/home/joel/.bbl/bin/bbl-search-common```
+* ```/home/joel/.bbl/bin/bbl-search-kuromoji```
+* ```/home/joel/.bbl/kjv.zip```
+* ```/home/joel/.bbl/jc.zip```
 
 Remove downloaded packs with:
 
 ```
-bbl uninstall kttv
+bbl uninstall jc
 ```
 
 ## Search
-```bbl search {keywords and phrases}``` finds related verses and sorts in order they appear in the Bible.
+```bbl search {keywords and phrases}``` finds related verses and sorts in order they appear in the Bible. The search is powered by [lucene-kmp](https://github.com/nehemiaharchives/lucene-kmp) code by code [KMP](https://kotlinlang.org/multiplatform/) port of [Apache Lucene](https://github.com/apache/lucene) handling stemming, stopwords providing powerfull full text search engine functionality based on [language specific analzyewrs](https://github.com/nehemiaharchives/lucene-kmp/blob/master/LANGUAGE_COVERAGE.md).
 ```
 bbl search Jesus Christ
 matthew 1:1 The book of the genealogy of Jesus Christ, the son of David, the son of Abraham.
@@ -445,6 +464,11 @@ bbl config historyFormat command
 bbl config historyFormat datetimeCommand
 bbl config historyFormat datetimeTimezoneCommand
 ```
+
+History file is created at:
+* ```C:\Users\joel\.bbl\history.json``` in Windows
+* ```/Users/joel/.bbl/history.json``` in MacOS
+* ```/home/joel/.bbl/history.json``` in Linux
 
 ## Configure custom default behavior
 bbl, assuming that the username of the computer is "joel", tries to look for ```config.json``` at
