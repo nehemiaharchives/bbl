@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.BibleStateSaver
@@ -40,14 +43,20 @@ fun BibleApp(
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialState) } called, bibleState:$bibleState" }
 
     val lifecycleOwner = LocalLifecycleOwner.current
+    val latestBibleState by rememberUpdatedState(bibleState)
     LifecycleResumeEffect(key1 = lifecycleOwner) {
         onPauseOrDispose {
-            logger.debug { "Bible Lifecycle onPauseOrDispose called, saving bibleState:$bibleState" }
-            platform.settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, bibleState.toJson())
+            logger.debug { "Bible Lifecycle onPauseOrDispose called, saving bibleState:$latestBibleState" }
+            platform.settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, latestBibleState.toJson())
         }
     }
 
     val chrome = rememberChromeAutoHide(initialChromeVisible)
+
+    LaunchedEffect(bibleState.isSearchActive) {
+        chrome.setPause(bibleState.isSearchActive)
+        if (bibleState.isSearchActive) chrome.forceShow()
+    }
 
     Box {
         Scaffold(
@@ -69,19 +78,43 @@ fun BibleApp(
                             onOpenTranslationManager = { showTranslationManager = true },
                             hideDropdown = showTranslationManager,
                             reopenDropdown = reopenDropdownAfterManager,
-                            onDropdownReopened = { reopenDropdownAfterManager = false }
+                            onDropdownReopened = { reopenDropdownAfterManager = false },
+                            isSearchActive = bibleState.isSearchActive,
+                            searchQuery = bibleState.searchQuery,
+                            onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
+                            onSearchRequested = {
+                                bibleState = bibleState.startSearch()
+                                chrome.forceShow()
+                            },
+                            onSearchSubmit = {
+                                val trimmedQuery = bibleState.searchQuery.trim()
+                                if (trimmedQuery.isNotEmpty()) {
+                                    bibleState = bibleState.submitSearch(trimmedQuery)
+                                    chrome.forceShow()
+                                }
+                            },
+                            onSearchCancel = {
+                                bibleState = bibleState.clearSearch()
+                                chrome.onUserInteraction()
+                            }
                         )
-                        BookControlsBar(
-                            bibleState = bibleState,
-                            onStateChange = { bibleState = it },
-                            onAnyUserAction = { chrome.onUserInteraction() }
-                        )
+                        AnimatedVisibility(
+                            visible = !bibleState.isSearchActive,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            BookControlsBar(
+                                bibleState = bibleState,
+                                onStateChange = { bibleState = it },
+                                onAnyUserAction = { chrome.onUserInteraction() }
+                            )
+                        }
                     }
                 }
             },
             bottomBar = {
                 AnimatedVisibility(
-                    visible = chrome.isVisible(),
+                    visible = chrome.isVisible() && !bibleState.isSearchActive,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
@@ -99,12 +132,33 @@ fun BibleApp(
                 }
             }
         ) { innerPadding ->
-            BibleReadingArea(
-                state = bibleState,
-                onStateChange = { bibleState = it },
-                chrome = chrome,
-                innerPadding = innerPadding
-            )
+            val activeSearchQuery = bibleState.submittedSearchQuery
+            if (activeSearchQuery == null) {
+                BibleReadingArea(
+                    state = bibleState,
+                    onStateChange = { bibleState = it },
+                    chrome = chrome,
+                    innerPadding = innerPadding
+                )
+            } else {
+                SearchResultsScreen(
+                    bibleState = bibleState,
+                    query = activeSearchQuery,
+                    innerPadding = innerPadding,
+                    onResultClick = { pointer ->
+                        bibleState = bibleState.copy(
+                            book = pointer.book,
+                            chapter = pointer.chapter,
+                            scrollPercent = 0f,
+                            centerVerse = pointer.startVerse ?: 1,
+                            isSearchActive = false,
+                            searchQuery = "",
+                            submittedSearchQuery = null
+                        )
+                        chrome.onUserInteraction()
+                    }
+                )
+            }
         }
 
         if (showTranslationManager) {

@@ -12,11 +12,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.gnit.bible.Translation
 import org.gnit.bible.app.ScrollableColumn
+import org.gnit.bible.app.VerseLayoutInfo
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.ui.theme.BibleTheme
@@ -28,7 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 fun BilingualUnderBible(
     bibleState: BibleState,
     scrollState: ScrollState,
-    onScrollPercentChange: (Float) -> Unit = {}
+    onScrollPercentChange: (Float) -> Unit = {},
+    onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> }
 ) {
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_UNDER) { "ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode" }
@@ -52,6 +56,15 @@ fun BilingualUnderBible(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(background)
+                    .onGloballyPositioned { coordinates ->
+                        onVersePositioned(
+                            verse + 1,
+                            VerseLayoutInfo(
+                                topPx = coordinates.positionInParent().y.toInt(),
+                                heightPx = coordinates.size.height
+                            )
+                        )
+                    }
             ) {
                 Text(
                     text = "${verse + 1} ${pair.first}",

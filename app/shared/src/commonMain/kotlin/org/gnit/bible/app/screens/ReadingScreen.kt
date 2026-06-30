@@ -1,7 +1,6 @@
 package org.gnit.bible.app
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
@@ -19,12 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -48,7 +49,8 @@ fun BibleReadingArea(
     state: BibleState,
     onStateChange: (BibleState) -> Unit,
     chrome: ChromeAutoHide,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
 ) {
     var zoom by remember { mutableFloatStateOf(state.fontSize.toFloat()) }
     val currentState by rememberUpdatedState(state)
@@ -58,6 +60,17 @@ fun BibleReadingArea(
     }
 
     val scrollState = rememberScrollState()
+    val verseLayouts = remember(
+        state.book,
+        state.chapter,
+        state.readingMode,
+        state.fontSize,
+        state.spaceBetweenVerses,
+        state.isFontFamilySerif
+    ) {
+        mutableStateMapOf<Int, VerseLayoutInfo>()
+    }
+    var viewportHeight by remember { mutableStateOf(0) }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.isScrollInProgress }.collect { inProgress ->
@@ -115,19 +128,66 @@ fun BibleReadingArea(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(innerPadding)
             .padding(top = topChromePadding, bottom = bottomChromePadding)
+            .onSizeChanged { viewportHeight = it.height }
             .then(tapModifier)
             .then(pinchZoomModifier)
     ) {
         when (state.readingMode) {
-            ReadingMode.SINGLE -> SingleBible(state, scrollState, onScrollPercentChange)
-            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(state, scrollState, onScrollPercentChange)
-            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(state, scrollState, onScrollPercentChange)
+            ReadingMode.SINGLE -> SingleBible(
+                state,
+                scrollState,
+                onScrollPercentChange,
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+            )
+            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(
+                state,
+                scrollState,
+                onScrollPercentChange,
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+            )
+            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
+                state,
+                scrollState,
+                onScrollPercentChange,
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+            )
         }
     }
+
+    LaunchedEffect(state.centerVerse, scrollState.maxValue, viewportHeight, verseLayouts.size) {
+        val targetVerse = state.centerVerse ?: return@LaunchedEffect
+        val layout = verseLayouts[targetVerse] ?: return@LaunchedEffect
+        if (viewportHeight <= 0 || scrollState.maxValue <= 0) return@LaunchedEffect
+
+        val scrollPercent = computeCenteredScrollPercent(
+            verseTopPx = layout.topPx,
+            verseHeightPx = layout.heightPx,
+            viewportHeightPx = viewportHeight,
+            totalScrollableHeightPx = scrollState.maxValue
+        )
+        scrollState.scrollTo((scrollState.maxValue * scrollPercent).roundToInt())
+        onStateChange(currentState.copy(scrollPercent = scrollPercent, centerVerse = null))
+    }
+}
+
+data class VerseLayoutInfo(
+    val topPx: Int,
+    val heightPx: Int
+)
+
+fun computeCenteredScrollPercent(
+    verseTopPx: Int,
+    verseHeightPx: Int,
+    viewportHeightPx: Int,
+    totalScrollableHeightPx: Int
+): Float {
+    if (totalScrollableHeightPx <= 0) return 0f
+    val targetScroll = verseTopPx + (verseHeightPx / 2f) - (viewportHeightPx / 2f)
+    return (targetScroll / totalScrollableHeightPx).coerceIn(0f, 1f)
 }
 
 @OptIn(ExperimentalTime::class)

@@ -24,6 +24,10 @@ data class BibleState(
     val chapter: Int = 1,
     val fontSize: Int = 16,
     val scrollPercent: Float = 0f,
+    val centerVerse: Int? = null,
+    val isSearchActive: Boolean = false,
+    val searchQuery: String = "",
+    val submittedSearchQuery: String? = null,
     val isZebraBackground: Boolean = false,
     val spaceBetweenVerses: Int = SPACE_BETWEEN_VERSES_MIN,
     val isFontFamilySerif: Boolean = true,
@@ -32,11 +36,14 @@ data class BibleState(
         SupportedTranslation.KJV.translation.code to true
     )
 ) {
-    fun prevBook() = copy(book = book - 1, chapter = 1)
-    fun nextBook() = copy(book = book + 1, chapter = 1)
-    fun changeBook(newBook: Int) = copy(book = newBook, chapter = 1)
-    fun prevChapter() = copy(chapter = chapter - 1)
-    fun nextChapter() = copy(chapter = chapter + 1)
+    fun prevBook() = copy(book = book - 1, chapter = 1, scrollPercent = 0f, centerVerse = null)
+    fun nextBook() = copy(book = book + 1, chapter = 1, scrollPercent = 0f, centerVerse = null)
+    fun changeBook(newBook: Int) = copy(book = newBook, chapter = 1, scrollPercent = 0f, centerVerse = null)
+    fun prevChapter() = copy(chapter = chapter - 1, scrollPercent = 0f, centerVerse = null)
+    fun nextChapter() = copy(chapter = chapter + 1, scrollPercent = 0f, centerVerse = null)
+    fun startSearch() = copy(isSearchActive = true, searchQuery = "", submittedSearchQuery = null)
+    fun submitSearch(query: String) = copy(isSearchActive = true, searchQuery = query, submittedSearchQuery = query)
+    fun clearSearch() = copy(isSearchActive = false, searchQuery = "", submittedSearchQuery = null)
     fun isLastChapter() = chapter == Books.maxChapter(book)
     fun lastChapter() = Books.maxChapter(book)
     fun describeBookChapter() = "${mainTranslation.books()[book]} $chapter"
