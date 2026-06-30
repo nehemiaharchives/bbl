@@ -195,6 +195,7 @@ fun TopBarContent(
                         onValueChange = onSearchQueryChange,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(bottom = 20.dp)
                             .focusRequester(focusRequester),
                         singleLine = true,
                         textStyle = TextStyle(
