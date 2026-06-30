@@ -506,6 +506,116 @@ Config can also be edited directly in ```config.json```:
 }
 ```
 
+## Shell Autocomplete
+Package installers such as `.pkg`, Homebrew, `.deb`, `.rpm`, Arch Linux, and Nix install shell autocompletions in the following dirs:
+
+bash:
+- macOS `.pkg`: `/usr/local/share/bash-completion/completions/bbl`
+- Homebrew: `$(brew --prefix)/etc/bash_completion.d/bbl`
+- Ubuntu/Debian family: `/usr/share/bash-completion/completions/bbl`
+- RHEL/Fedora family: `/usr/share/bash-completion/completions/bbl`
+- Arch Linux: `/usr/share/bash-completion/completions/bbl`
+- Nix/NixOS: installed with `installShellCompletion --bash` and auto-activated in a Nix shell/profile
+
+zsh:
+- macOS `.pkg`: `/usr/local/share/zsh/site-functions/_bbl`
+- Homebrew: `$(brew --prefix)/share/zsh/site-functions/_bbl`
+- Ubuntu/Debian family: `/usr/share/zsh/vendor-completions/_bbl`
+- RHEL/Fedora family: `/usr/share/zsh/site-functions/_bbl`
+- Arch Linux: `/usr/share/zsh/site-functions/_bbl`
+- Nix/NixOS: installed with `installShellCompletion --zsh` and auto-activated in a Nix shell/profile
+
+fish:
+- macOS `.pkg`: `/usr/local/share/fish/vendor_completions.d/bbl.fish`
+- Homebrew: `$(brew --prefix)/share/fish/vendor_completions.d/bbl.fish`
+- Ubuntu/Debian family: `/usr/share/fish/vendor_completions.d/bbl.fish`
+- RHEL/Fedora family: `/usr/share/fish/vendor_completions.d/bbl.fish`
+- Arch Linux: `/usr/share/fish/vendor_completions.d/bbl.fish`
+- Nix/NixOS: installed with `installShellCompletion --fish` and auto-activated in a Nix shell/profile
+
+So include them in profile files like this:
+
+### bash
+Add one of these lines to `$HOME/.bashrc` (`$HOME/.bash_profile` on macOS if your bash reads that file):
+
+macOS `.pkg`:
+```bash
+source /usr/local/share/bash-completion/completions/bbl
+```
+
+Homebrew:
+```bash
+source "$(brew --prefix)/etc/bash_completion.d/bbl"
+```
+
+Ubuntu/Debian family, RHEL/Fedora family, and Arch Linux:
+```bash
+source /usr/share/bash-completion/completions/bbl
+```
+
+### zsh
+Add one of these blocks to `$HOME/.zshrc`:
+
+macOS `.pkg`:
+```zsh
+fpath=(/usr/local/share/zsh/site-functions $fpath)
+autoload -Uz compinit && compinit
+```
+
+Homebrew:
+```zsh
+fpath=("$(brew --prefix)/share/zsh/site-functions" $fpath)
+autoload -Uz compinit && compinit
+```
+
+Ubuntu/Debian family:
+```zsh
+fpath=(/usr/share/zsh/vendor-completions $fpath)
+autoload -Uz compinit && compinit
+```
+
+RHEL/Fedora/Arch Linux:
+```zsh
+fpath=(/usr/share/zsh/site-functions $fpath)
+autoload -Uz compinit && compinit
+```
+
+### fish
+Add one of these lines to `$HOME/.config/fish/config.fish`:
+
+macOS `.pkg`:
+```fish
+set -U fish_complete_path /usr/local/share/fish/vendor_completions.d $fish_complete_path
+```
+
+Homebrew:
+```fish
+set -U fish_complete_path (brew --prefix)/share/fish/vendor_completions.d $fish_complete_path
+```
+
+Ubuntu/Debian family, RHEL/Fedora family, and Arch Linux:
+```fish
+set -U fish_complete_path /usr/share/fish/vendor_completions.d $fish_complete_path
+```
+
+Nix/NixOS completions are auto-activated when `bbl` is installed in a Nix shell or profile.
+
+### powershell
+After instaling bbl on windows, run following to activate powershell completion:
+
+```powershell
+$profileDir = Split-Path -Parent $PROFILE
+$completion = Join-Path $profileDir "_bbl.ps1"
+New-Item -ItemType Directory -Force -Path $profileDir
+bbl generate-completion powershell | Out-File -Encoding utf8 -FilePath $completion
+Add-Content -Path $PROFILE -Value ". `"$completion`""
+. $completion
+```
+
+### Generating completion file
+`bbl generate-completion [SHELL]` will output completion file for the SHELL, the argument is either `bash`, `zsh`, `fish`, or `powershell`
+
+
 ## Powered by
 bbl was made available thanks to following:
 * God the Father, Jesus Christ the Son and The Holy Spirit who encouraged me to make this software.
