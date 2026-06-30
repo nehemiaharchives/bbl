@@ -30,6 +30,8 @@ import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.VersePointer
 import org.gnit.bible.app.state.BibleState
+import org.gnit.bible.app.ui.widgets.sansFontFamily
+import org.gnit.bible.app.ui.widgets.serifFontFamily
 
 @Composable
 fun SearchResultsScreen(
@@ -74,6 +76,7 @@ fun SearchResultsScreen(
         query.isBlank() -> SearchMessage(innerPadding, "Enter a search query.")
         results.isEmpty() -> SearchMessage(innerPadding, "No results found.")
         else -> SearchResultList(
+            bibleState = bibleState,
             bible = bible,
             results = results,
             innerPadding = innerPadding,
@@ -84,6 +87,7 @@ fun SearchResultsScreen(
 
 @Composable
 private fun SearchResultList(
+    bibleState: BibleState,
     bible: Bible,
     results: List<VersePointer>,
     innerPadding: PaddingValues,
@@ -97,6 +101,7 @@ private fun SearchResultList(
     ) {
         items(results) { pointer ->
             SearchResultRow(
+                bibleState = bibleState,
                 bible = bible,
                 pointer = pointer,
                 onClick = { onResultClick(pointer) }
@@ -108,6 +113,7 @@ private fun SearchResultList(
 
 @Composable
 private fun SearchResultRow(
+    bibleState: BibleState,
     bible: Bible,
     pointer: VersePointer,
     onClick: () -> Unit
@@ -119,17 +125,26 @@ private fun SearchResultRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        val currentFontFamily = if (bibleState.isFontFamilySerif) {
+            bibleState.mainTranslation.language.serifFontFamily()
+        }else{
+            bibleState.mainTranslation.language.sansFontFamily()
+        }
+
         Text(
             text = Books.formatHeader(pointer),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
+            fontFamily = currentFontFamily,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+
         Text(
             text = searchResultText(bible, pointer),
             style = MaterialTheme.typography.bodyMedium,
+            fontFamily = currentFontFamily,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis
