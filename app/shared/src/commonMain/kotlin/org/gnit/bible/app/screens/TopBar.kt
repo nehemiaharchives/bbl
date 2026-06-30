@@ -153,17 +153,7 @@ fun TopBarContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Box(modifier = Modifier.size(BUTTON_SIZE.dp)) {
-                if (!isSearchActive) {
-                    IconButton(onClick = {
-                        onAnyUserAction()
-                        onSearchRequested()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search"
-                        )
-                    }
-                }
+                // need some space
             }
 
             Box(
@@ -202,13 +192,7 @@ fun TopBarContent(
                             fontFamily = titleFontFamily,
                             fontSize = (max(min(bibleState.fontSize * 1.4F, 40.0F), 16F)).sp
                         ),
-                        placeholder = {
-                            Text(
-                                text = "Search",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
+
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.Search,
