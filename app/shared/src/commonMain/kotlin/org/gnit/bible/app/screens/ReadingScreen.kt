@@ -2,7 +2,6 @@ package org.gnit.bible.app
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +21,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
@@ -78,29 +80,38 @@ fun BibleReadingArea(
     }
 
     val pinchZoomModifier = Modifier.pointerInput(Unit) {
-        awaitEachGesture {
-            awaitFirstDown()
-            do {
-                val event = awaitPointerEvent()
-                val oldZoom = zoom
+        fun applyZoom(multiplier: Float) {
+            val oldZoom = zoom
+            zoom = (zoom * multiplier).coerceIn(5f, 400f)
 
-                if (zoom in 5f..400f) {
-                    zoom *= event.calculateZoom()
-
-                    if (oldZoom != zoom) {
-                        val intZoomValue = zoom.roundToInt().coerceIn(5, 400)
-                        if (currentState.fontSize != intZoomValue) {
-                            onStateChange(currentState.copy(fontSize = intZoomValue))
-                            if (chrome.isVisible()) {
-                                chrome.onUserInteraction()
-                            }
-                        }
-                        zoom = intZoomValue.toFloat()
+            if (oldZoom != zoom) {
+                val intZoomValue = zoom.roundToInt().coerceIn(5, 400)
+                if (currentState.fontSize != intZoomValue) {
+                    onStateChange(currentState.copy(fontSize = intZoomValue))
+                    if (chrome.isVisible()) {
+                        chrome.onUserInteraction()
                     }
-                } else if (zoom > 400f) {
-                    zoom = 399.9f
-                } else if (zoom < 5f) {
-                    zoom = 5.1f
+                }
+                zoom = intZoomValue.toFloat()
+            }
+        }
+
+        awaitEachGesture {
+            do {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+
+                if (event.type == PointerEventType.Scroll && event.keyboardModifiers.isCtrlPressed) {
+                    val scrollY = event.changes.firstOrNull()?.scrollDelta?.y ?: 0f
+                    if (scrollY != 0f) {
+                        applyZoom(if (scrollY < 0f) 1.15f else 1f / 1.15f)
+                        event.changes.forEach { it.consume() }
+                    }
+                } else {
+                    val zoomChange = event.calculateZoom()
+                    if (zoomChange != 1f) {
+                        applyZoom(zoomChange)
+                        event.changes.forEach { it.consume() }
+                    }
                 }
             } while (event.changes.any { it.pressed })
         }
