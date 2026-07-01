@@ -93,8 +93,6 @@ fun TopBarContent(
     onDropdownVisibilityChange: (Boolean) -> Unit,
     onOpenTranslationManager: () -> Unit,
     hideDropdown: Boolean = false,
-    reopenDropdown: Boolean = false,
-    onDropdownReopened: () -> Unit = {},
     isSearchActive: Boolean = false,
     searchQuery: String = "",
     onSearchQueryChange: (String) -> Unit = {},
@@ -111,21 +109,6 @@ fun TopBarContent(
     }
     val translations = remember(bible, bibleState.translationVisibility) {
         availableTranslationsSafe(bible, bibleState.translationVisibility)
-    }
-
-    LaunchedEffect(hideDropdown) {
-        if (hideDropdown && menuExpanded) {
-            menuExpanded = false
-            onDropdownVisibilityChange(false)
-        }
-    }
-
-    LaunchedEffect(reopenDropdown) {
-        if (reopenDropdown) {
-            menuExpanded = true
-            onDropdownVisibilityChange(true)
-            onDropdownReopened()
-        }
     }
 
     Surface(
@@ -267,8 +250,6 @@ fun TopBarContent(
                         onSettingExpandedChange = { settingExpanded = it },
                         onStateChange = onStateChange,
                         onTranslationLongPress = {
-                            menuExpanded = false
-                            onDropdownVisibilityChange(false)
                             onOpenTranslationManager()
                         }
                     )

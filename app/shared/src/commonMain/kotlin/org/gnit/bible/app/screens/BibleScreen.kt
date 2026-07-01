@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -37,7 +38,8 @@ fun BibleApp(
         mutableStateOf(initialState)
     }
     var showTranslationManager by rememberSaveable { mutableStateOf(false) }
-    var reopenDropdownAfterManager by rememberSaveable { mutableStateOf(false) }
+    var hideDropdownForTranslationManager by rememberSaveable { mutableStateOf(false) }
+    var closeTranslationManagerAfterDropdownRestored by rememberSaveable { mutableStateOf(false) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialState) } called, bibleState:$bibleState" }
 
@@ -56,6 +58,19 @@ fun BibleApp(
     LaunchedEffect(bibleState.isSearchActive) {
         chrome.setPause(bibleState.isSearchActive)
         if (bibleState.isSearchActive) chrome.forceShow()
+    }
+
+    LaunchedEffect(closeTranslationManagerAfterDropdownRestored) {
+        if (closeTranslationManagerAfterDropdownRestored) {
+            withFrameNanos { }
+            showTranslationManager = false
+            closeTranslationManagerAfterDropdownRestored = false
+        }
+    }
+
+    fun closeTranslationManager() {
+        hideDropdownForTranslationManager = false
+        closeTranslationManagerAfterDropdownRestored = true
     }
 
     PlatformBackHandler(enabled = bibleState.isSearchActive || bibleState.backStack.isNotEmpty()) {
@@ -82,10 +97,11 @@ fun BibleApp(
                                 chrome.setPause(isOpen)
                                 if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
                             },
-                            onOpenTranslationManager = { showTranslationManager = true },
-                            hideDropdown = showTranslationManager,
-                            reopenDropdown = reopenDropdownAfterManager,
-                            onDropdownReopened = { reopenDropdownAfterManager = false },
+                            onOpenTranslationManager = {
+                                hideDropdownForTranslationManager = true
+                                showTranslationManager = true
+                            },
+                            hideDropdown = hideDropdownForTranslationManager,
                             isSearchActive = bibleState.isSearchActive,
                             searchQuery = bibleState.searchQuery,
                             onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
@@ -162,16 +178,14 @@ fun BibleApp(
 
         if (showTranslationManager) {
             PlatformBackHandler(enabled = showTranslationManager) {
-                showTranslationManager = false
-                reopenDropdownAfterManager = true
+                closeTranslationManager()
             }
 
             TranslationManagerScreen(
                 bibleState = bibleState,
                 onStateChange = { bibleState = it },
                 onClose = {
-                    showTranslationManager = false
-                    reopenDropdownAfterManager = true
+                    closeTranslationManager()
                 }
             )
         }
