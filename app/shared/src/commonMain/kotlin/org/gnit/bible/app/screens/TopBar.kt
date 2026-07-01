@@ -4,6 +4,7 @@ import org.gnit.bible.SupportedTranslation
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -137,6 +138,7 @@ fun TopBarContent(
         } else {
             bibleState.mainTranslation.language.sansFontFamily()
         }
+        val titleInteractionSource = remember { MutableInteractionSource() }
 
         Row(
             modifier = Modifier
@@ -160,7 +162,10 @@ fun TopBarContent(
                         if (isSearchActive) {
                             Modifier
                         } else {
-                            Modifier.clickable {
+                            Modifier.clickable(
+                                interactionSource = titleInteractionSource,
+                                indication = null
+                            ) {
                                 onAnyUserAction()
                                 onSearchRequested()
                             }
