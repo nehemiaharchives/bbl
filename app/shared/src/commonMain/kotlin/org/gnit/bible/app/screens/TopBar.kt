@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,9 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,17 +57,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import org.gnit.bible.Bible
 import org.gnit.bible.Translation
-import org.gnit.bible.app.Res
-import org.gnit.bible.app.arrows_collapse
-import org.gnit.bible.app.arrows_expand
-import org.gnit.bible.app.font_switch
-import org.gnit.bible.app.rows_white
-import org.gnit.bible.app.rows_zebra
-import org.gnit.bible.app.settings
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.state.SPACE_BETWEEN_VERSES_MAX
@@ -291,13 +287,21 @@ private fun TranslationDropdownMenu(
     onTranslationLongPress: (Translation) -> Unit
 ) {
     val inspectionMode = LocalInspectionMode.current
+    val popupOffset = with(LocalDensity.current) {
+        IntOffset(x = 0, y = BUTTON_SIZE.dp.roundToPx())
+    }
+
+    if (!expanded && !inspectionMode) {
+        return
+    }
+
     if (inspectionMode) {
         Surface(
             tonalElevation = 4.dp,
             shadowElevation = 4.dp,
             modifier = Modifier
                 .width(DROPDOWN_MENU_WIDTH.dp)
-                .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+                .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
         ) {
             DropdownMenuContent(
                 settingExpanded = settingExpanded,
@@ -311,21 +315,30 @@ private fun TranslationDropdownMenu(
             )
         }
     } else {
-        DropdownMenu(
-            expanded = expanded,
+        Popup(
+            alignment = Alignment.TopEnd,
+            offset = popupOffset,
             onDismissRequest = { onExpandedChange(false) },
-            modifier = Modifier.heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+            properties = PopupProperties(focusable = true)
         ) {
-            DropdownMenuContent(
-                settingExpanded = settingExpanded,
-                bibleState = bibleState,
-                translations = translations,
-                dropdownScrollState = dropdownScrollState,
-                onExpandedChange = onExpandedChange,
-                onSettingExpandedChange = onSettingExpandedChange,
-                onStateChange = onStateChange,
-                onTranslationLongPress = onTranslationLongPress
-            )
+            Surface(
+                tonalElevation = 4.dp,
+                shadowElevation = 4.dp,
+                modifier = Modifier
+                    .width(DROPDOWN_MENU_WIDTH.dp)
+                    .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
+            ) {
+                DropdownMenuContent(
+                    settingExpanded = settingExpanded,
+                    bibleState = bibleState,
+                    translations = translations,
+                    dropdownScrollState = dropdownScrollState,
+                    onExpandedChange = onExpandedChange,
+                    onSettingExpandedChange = onSettingExpandedChange,
+                    onStateChange = onStateChange,
+                    onTranslationLongPress = onTranslationLongPress
+                )
+            }
         }
     }
 }
@@ -341,17 +354,21 @@ private fun DropdownMenuContent(
     onStateChange: (BibleState) -> Unit,
     onTranslationLongPress: (Translation) -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .width(DROPDOWN_MENU_WIDTH.dp)
-            .heightIn(max = DROPDOWN_MENU_MAX_HEIGHT.dp)
+            .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
     ) {
         Box(
             modifier = Modifier
-                .heightIn(max = (DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
+                .height((DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
+                .clipToBounds()
+                .align(Alignment.TopStart)
         ) {
             Column(
-                modifier = Modifier.verticalScroll(dropdownScrollState)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(dropdownScrollState)
             ) {
                 translations.forEachIndexed { index, translationItem ->
                     if (index != 0) {
@@ -417,23 +434,25 @@ private fun DropdownMenuContent(
             }
         }
 
-        Column(
+        Box(
             modifier = Modifier
                 .height(DROPDOWN_MENU_HEIGHT.dp)
                 .width(DROPDOWN_MENU_WIDTH.dp)
-                .absolutePadding(
-                    left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp,
-                    right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
-                )
+                .align(Alignment.BottomStart)
         ) {
             HorizontalDivider(
-                thickness = 1.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                modifier = Modifier.align(Alignment.TopCenter)
             )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .absolutePadding(
+                        left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp,
+                        right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp
+                    )
+                    .align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
