@@ -98,8 +98,6 @@ fun TranslationManagerScreen(
                 IconButton(onClick = onClose, modifier = Modifier.size(24.dp)) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Translations", style = MaterialTheme.typography.titleLarge)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
