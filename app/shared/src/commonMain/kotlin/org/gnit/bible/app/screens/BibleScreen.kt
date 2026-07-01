@@ -18,7 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.BibleStateSaver
@@ -46,8 +45,9 @@ fun BibleApp(
     val latestBibleState by rememberUpdatedState(bibleState)
     LifecycleResumeEffect(key1 = lifecycleOwner) {
         onPauseOrDispose {
-            logger.debug { "Bible Lifecycle onPauseOrDispose called, saving bibleState:$latestBibleState" }
-            platform.settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, latestBibleState.toJson())
+            val persistedState = latestBibleState.clearSearch()
+            logger.debug { "Bible Lifecycle onPauseOrDispose called, saving bibleState:$persistedState" }
+            platform.settings.putString(SHARED_PREFERENCE_KEY_BIBLE_STATE, persistedState.toJson())
         }
     }
 
@@ -56,6 +56,13 @@ fun BibleApp(
     LaunchedEffect(bibleState.isSearchActive) {
         chrome.setPause(bibleState.isSearchActive)
         if (bibleState.isSearchActive) chrome.forceShow()
+    }
+
+    PlatformBackHandler(enabled = bibleState.isSearchActive || bibleState.backStack.isNotEmpty()) {
+        bibleState.handleBack()?.let { nextState ->
+            bibleState = nextState
+            if (nextState.isSearchActive) chrome.forceShow() else chrome.onUserInteraction()
+        }
     }
 
     Box {
@@ -94,7 +101,7 @@ fun BibleApp(
                                 }
                             },
                             onSearchCancel = {
-                                bibleState = bibleState.clearSearch()
+                                bibleState = bibleState.handleBack() ?: bibleState.clearSearch()
                                 chrome.onUserInteraction()
                             }
                         )
@@ -146,15 +153,7 @@ fun BibleApp(
                     query = activeSearchQuery,
                     innerPadding = innerPadding,
                     onResultClick = { pointer ->
-                        bibleState = bibleState.copy(
-                            book = pointer.book,
-                            chapter = pointer.chapter,
-                            scrollPercent = 0f,
-                            centerVerse = pointer.startVerse ?: 1,
-                            isSearchActive = false,
-                            searchQuery = "",
-                            submittedSearchQuery = null
-                        )
+                        bibleState = bibleState.openSearchResult(pointer)
                         chrome.onUserInteraction()
                     }
                 )

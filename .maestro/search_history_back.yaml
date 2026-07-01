@@ -1,0 +1,73 @@
+appId: org.gnit.bible.app
+name: Search History And Back Behavior
+tags:
+  - android
+  - history
+  - search
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+
+- runFlow:
+    when:
+      visible: "Close search"
+    commands:
+      - back
+      - back
+      - waitForAnimationToEnd:
+          timeout: 3000
+- extendedWaitUntil:
+    visible: "1 In the beginning, God created the heavens and the earth."
+    timeout: 10000
+- runFlow:
+    when:
+      notVisible: "Genesis 1"
+    commands:
+      - tapOn:
+          point: "50%,5%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- assertVisible: "Genesis 1"
+
+# 1. read mode -> title -> search box -> back -> read mode
+- tapOn: "Genesis 1"
+- assertVisible: "Search"
+- back
+- back
+- assertVisible: "Genesis 1"
+- assertNotVisible:
+    text: "Close search"
+
+# 2. read mode -> title -> search box -> input -> back -> read mode
+- tapOn: "Genesis 1"
+- assertVisible: "Search"
+- inputText: "sake"
+- back
+- back
+- assertVisible: "Genesis 1"
+- assertNotVisible:
+    text: "Close search"
+
+# 3. read mode -> title -> search box -> input -> enter -> results -> back -> read mode
+- tapOn: "Genesis 1"
+- inputText: "God"
+- pressKey: "Enter"
+- extendedWaitUntil:
+    visible: "Genesis 1:1"
+    timeout: 10000
+- back
+- assertVisible: "Genesis 1"
+- assertVisible: "1 In the beginning, God created the heavens and the earth."
+
+# 4. search results -> tap result -> read verse -> back -> search results
+- tapOn: "Genesis 1"
+- inputText: "God"
+- pressKey: "Enter"
+- extendedWaitUntil:
+    visible: "Genesis 1:1"
+    timeout: 10000
+- tapOn: "Genesis 1:1"
+- assertVisible: "1 In the beginning, God created the heavens and the earth."
+- back
+- assertVisible: "Genesis 1:1"

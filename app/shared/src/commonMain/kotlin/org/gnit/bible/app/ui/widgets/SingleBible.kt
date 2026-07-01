@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,7 +27,10 @@ fun SingleBible(
     bibleState: BibleState,
     scrollState: ScrollState,
     onScrollPercentChange: (Float) -> Unit = {},
-    onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> }
+    onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
+    highlightedVerse: Int? = null,
+    onVerseTap: (Int) -> Unit = {},
+    onVerseDoubleTap: (Int) -> Unit = {}
 ) {
     val bible = currentBible()
     val translation = bibleState.mainTranslation
@@ -43,16 +45,18 @@ fun SingleBible(
         onScrollPercentChange = onScrollPercentChange
     ) {
         verses.forEachIndexed { verse, text ->
-            val background = if (bibleState.isZebraBackground && verse.isEven()) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.background
-            }
+            val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+            val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(background)
+                    .verseTapGestures(
+                        verse = verse + 1,
+                        onVerseTap = onVerseTap,
+                        onVerseDoubleTap = onVerseDoubleTap
+                    )
                     .onGloballyPositioned { coordinates ->
                         onVersePositioned(
                             verse + 1,
@@ -72,7 +76,8 @@ fun SingleBible(
                             translation.language.serifFontFamily()
                         } else {
                             translation.language.sansFontFamily()
-                        }
+                        },
+                        color = textColor
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )

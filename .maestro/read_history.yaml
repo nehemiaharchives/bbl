@@ -1,0 +1,49 @@
+appId: org.gnit.bible.app
+name: Read History Indication
+tags:
+  - android
+  - history
+  - read
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+
+- extendedWaitUntil:
+    visible: "1 In the beginning, God created the heavens and the earth."
+    timeout: 10000
+- runFlow:
+    when:
+      notVisible: "Genesis 1"
+    commands:
+      - tapOn:
+          point: "50%,5%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- assertVisible: "Genesis 1"
+
+# Double tapping records the current read location in history.
+- doubleTapOn: "1 In the beginning, God created the heavens and the earth."
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "1 In the beginning, God created the heavens and the earth."
+
+# Move to another chapter; this navigation alone must not record read history.
+- tapOn:
+    point: "96%,96%"
+- extendedWaitUntil:
+    visible: "Genesis 2"
+    timeout: 10000
+
+# Double tapping the new verse records it and pushes the previous read history record onto Back.
+- doubleTapOn: "1 The heavens, the earth, and all their vast array were finished."
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "1 The heavens, the earth, and all their vast array were finished."
+
+# Device Back should restore the previous double-tapped read location inside the app.
+- back
+- extendedWaitUntil:
+    visible: "Genesis 1"
+    timeout: 10000
+- assertVisible: "1 In the beginning, God created the heavens and the earth."

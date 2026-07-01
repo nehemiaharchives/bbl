@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,7 +16,6 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.gnit.bible.Translation
 import org.gnit.bible.app.ScrollableColumn
 import org.gnit.bible.app.VerseLayoutInfo
 import org.gnit.bible.app.state.BibleState
@@ -30,7 +28,10 @@ fun BilingualSideBible(
     bibleState: BibleState,
     scrollState: ScrollState,
     onScrollPercentChange: (Float) -> Unit = {},
-    onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> }
+    onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
+    highlightedVerse: Int? = null,
+    onVerseTap: (Int) -> Unit = {},
+    onVerseDoubleTap: (Int) -> Unit = {}
 ) {
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_SIDE) { "ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode" }
@@ -44,16 +45,18 @@ fun BilingualSideBible(
         onScrollPercentChange = onScrollPercentChange
     ) {
         versePairs.forEachIndexed { verse, pair ->
-            val background = if (bibleState.isZebraBackground && verse.isEven()) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.background
-            }
+            val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+            val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(background)
+                    .verseTapGestures(
+                        verse = verse + 1,
+                        onVerseTap = onVerseTap,
+                        onVerseDoubleTap = onVerseDoubleTap
+                    )
                     .onGloballyPositioned { coordinates ->
                         onVersePositioned(
                             verse + 1,
@@ -69,7 +72,8 @@ fun BilingualSideBible(
                     text = "${verse + 1} ${pair.first}",
                     style = TextStyle(
                         fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily()
+                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
+                        color = textColor
                     ),
                     modifier = Modifier.weight(1f)
                 )
@@ -77,7 +81,8 @@ fun BilingualSideBible(
                     text = "${verse + 1} ${pair.second}",
                     style = TextStyle(
                         fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily()
+                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
+                        color = textColor
                     ),
                     modifier = Modifier.weight(1f)
                 )

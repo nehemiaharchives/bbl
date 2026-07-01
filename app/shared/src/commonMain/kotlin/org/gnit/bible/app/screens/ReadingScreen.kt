@@ -4,7 +4,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,19 +24,19 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.state.SHARED_PREFERENCE_KEY_BIBLE_STATE
+import org.gnit.bible.app.state.historySaveEventColorTransitionDurationSeconds
 import org.gnit.bible.app.ui.widgets.BilingualSideBible
 import org.gnit.bible.app.ui.widgets.BilingualUnderBible
 import org.gnit.bible.app.ui.widgets.SingleBible
 import kotlin.math.roundToInt
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 private const val AUTO_HIDE_MS: Long = 60_000
@@ -80,18 +77,6 @@ fun BibleReadingArea(
         }
     }
 
-    val tapModifier = Modifier.pointerInput(Unit) {
-        detectTapGestures(
-            onTap = {
-                if (chrome.isVisible()) {
-                    chrome.forceHide()
-                } else {
-                    chrome.forceShow()
-                }
-            }
-        )
-    }
-
     val pinchZoomModifier = Modifier.pointerInput(Unit) {
         awaitEachGesture {
             awaitFirstDown()
@@ -126,6 +111,17 @@ fun BibleReadingArea(
     val onScrollPercentChange: (Float) -> Unit = { scrollPercent ->
         onStateChange(currentState.copy(scrollPercent = scrollPercent))
     }
+    val onVerseTap: (Int) -> Unit = {
+        if (chrome.isVisible()) {
+            chrome.forceHide()
+        } else {
+            chrome.forceShow()
+        }
+    }
+    val onVerseDoubleTap: (Int) -> Unit = { verse ->
+        onStateChange(currentState.recordReadHistory(verse))
+        chrome.onUserInteraction()
+    }
 
     Box(
         modifier = modifier
@@ -133,7 +129,6 @@ fun BibleReadingArea(
             .padding(innerPadding)
             .padding(top = topChromePadding, bottom = bottomChromePadding)
             .onSizeChanged { viewportHeight = it.height }
-            .then(tapModifier)
             .then(pinchZoomModifier)
     ) {
         when (state.readingMode) {
@@ -141,21 +136,36 @@ fun BibleReadingArea(
                 state,
                 scrollState,
                 onScrollPercentChange,
-                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
+                highlightedVerse = state.highlightedVerse,
+                onVerseTap = onVerseTap,
+                onVerseDoubleTap = onVerseDoubleTap
             )
             ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(
                 state,
                 scrollState,
                 onScrollPercentChange,
-                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
+                highlightedVerse = state.highlightedVerse,
+                onVerseTap = onVerseTap,
+                onVerseDoubleTap = onVerseDoubleTap
             )
             ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
                 state,
                 scrollState,
                 onScrollPercentChange,
-                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout }
+                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
+                highlightedVerse = state.highlightedVerse,
+                onVerseTap = onVerseTap,
+                onVerseDoubleTap = onVerseDoubleTap
             )
         }
+    }
+
+    LaunchedEffect(state.highlightedVerse) {
+        val verse = state.highlightedVerse ?: return@LaunchedEffect
+        delay(((historySaveEventColorTransitionDurationSeconds * 1_000L) / 2).milliseconds)
+        onStateChange(currentState.clearHistoryHighlight(verse))
     }
 
     LaunchedEffect(state.centerVerse, scrollState.maxValue, viewportHeight, verseLayouts.size) {
@@ -200,7 +210,7 @@ fun rememberChromeAutoHide(initiallyVisible: Boolean = true): ChromeAutoHide {
     LaunchedEffect(lastInteraction, pauseHide) {
         if (pauseHide) return@LaunchedEffect
         val started = lastInteraction
-        delay(AUTO_HIDE_MS)
+        delay(AUTO_HIDE_MS.milliseconds)
         if (!pauseHide && lastInteraction == started) visible = false
     }
 
@@ -262,7 +272,7 @@ fun ScrollableColumn(
         snapshotFlow { scrollState.value }
             .collectLatest { newValue ->
                 if (newValue != lastScrollValue) {
-                    delay(200)
+                    delay(200.milliseconds)
                     if (!scrollState.isScrollInProgress) {
                         val scrollPercent = computeScrollPercent(newValue, scrollState)
                         onScrollPercentChange(scrollPercent)
