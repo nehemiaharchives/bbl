@@ -78,6 +78,10 @@ fun TranslationManagerScreen(
     val entries = remember(bible, downloadedCodes, downloadingCodes) {
         buildTranslationEntries(bible, downloadedCodes, downloadableList)
     }
+    val hideableEntries = entries.filter { it.source != InstallationState.DOWNLOADABLE }
+    val shownTranslationCount = hideableEntries.count {
+        bibleState.translationVisibility[it.translation.code] ?: true
+    }
 
     Surface(
         modifier = Modifier
@@ -104,9 +108,11 @@ fun TranslationManagerScreen(
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(entries, key = { it.translation.code }) { entry ->
+                    val isShown = bibleState.translationVisibility[entry.translation.code] ?: true
                     TranslationManagerRow(
                         entry = entry,
-                        isShown = bibleState.translationVisibility[entry.translation.code] ?: true,
+                        isShown = isShown,
+                        canToggleVisibility = !isShown || shownTranslationCount > 1,
                         isDownloading = downloadingCodes.contains(entry.translation.code),
                         onToggleVisibility = {
                             onStateChange(
@@ -175,6 +181,7 @@ private fun TranslationManagerScreenPreview() {
 private fun TranslationManagerRow(
     entry: TranslationEntry,
     isShown: Boolean,
+    canToggleVisibility: Boolean,
     isDownloading: Boolean,
     onToggleVisibility: () -> Unit,
     onDownload: () -> Unit,
@@ -210,6 +217,7 @@ private fun TranslationManagerRow(
             TranslationManagerActionBar(
                 source = entry.source,
                 isShown = isShown,
+                canToggleVisibility = canToggleVisibility,
                 isDownloading = isDownloading,
                 onToggleVisibility = onToggleVisibility,
                 onDownload = onDownload,
@@ -228,6 +236,7 @@ private fun TranslationManagerRow(
 private fun TranslationManagerActionBar(
     source: InstallationState,
     isShown: Boolean,
+    canToggleVisibility: Boolean,
     isDownloading: Boolean,
     onToggleVisibility: () -> Unit,
     onDownload: () -> Unit,
@@ -244,6 +253,7 @@ private fun TranslationManagerActionBar(
             InstallationState.EMBEDDED -> {
                 ShowHideIcon(
                     isShown = isShown,
+                    enabled = canToggleVisibility,
                     onToggle = onToggleVisibility
                 )
             }
@@ -265,6 +275,7 @@ private fun TranslationManagerActionBar(
                     Spacer(modifier = Modifier.width(ACTION_ICON_SPACER.dp))
                     ShowHideIcon(
                         isShown = isShown,
+                        enabled = canToggleVisibility,
                         onToggle = onToggleVisibility
                     )
                 }

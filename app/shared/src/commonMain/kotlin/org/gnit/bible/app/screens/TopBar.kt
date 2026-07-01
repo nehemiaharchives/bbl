@@ -73,9 +73,9 @@ import org.gnit.bible.app.ui.theme.BibleTheme
 import org.gnit.bible.app.ui.widgets.BIBLE_VIEW_ICON
 import org.gnit.bible.app.ui.widgets.BIBLE_VIEW_ICON_SPACER
 import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_HEIGHT
+import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_HEIGHT_EXPANDED
 import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_ITEM_LEFT_PADDING
 import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_ITEM_RIGHT_PADDING
-import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_MAX_HEIGHT
 import org.gnit.bible.app.ui.widgets.DROPDOWN_MENU_WIDTH
 import org.gnit.bible.app.ui.widgets.TranslationDropDownMenuItem
 import org.gnit.bible.app.ui.widgets.sansFontFamily
@@ -281,13 +281,15 @@ private fun TranslationDropdownMenu(
         return
     }
 
+    val menuHeight = dropdownMenuHeight(translations.size, settingExpanded)
+
     if (inspectionMode) {
         Surface(
             tonalElevation = 4.dp,
             shadowElevation = 4.dp,
             modifier = Modifier
                 .width(DROPDOWN_MENU_WIDTH.dp)
-                .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
+                .height(menuHeight.dp)
         ) {
             DropdownMenuContent(
                 settingExpanded = settingExpanded,
@@ -312,7 +314,7 @@ private fun TranslationDropdownMenu(
                 shadowElevation = 4.dp,
                 modifier = Modifier
                     .width(DROPDOWN_MENU_WIDTH.dp)
-                    .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
+                    .height(menuHeight.dp)
             ) {
                 DropdownMenuContent(
                     settingExpanded = settingExpanded,
@@ -340,14 +342,17 @@ private fun DropdownMenuContent(
     onStateChange: (BibleState) -> Unit,
     onTranslationLongPress: (Translation) -> Unit
 ) {
+    val listHeight = dropdownTranslationListHeight(translations.size, settingExpanded)
+    val menuHeight = listHeight + DROPDOWN_MENU_HEIGHT
+
     Box(
         modifier = Modifier
             .width(DROPDOWN_MENU_WIDTH.dp)
-            .height(DROPDOWN_MENU_MAX_HEIGHT.dp)
+            .height(menuHeight.dp)
     ) {
         Box(
             modifier = Modifier
-                .height((DROPDOWN_MENU_MAX_HEIGHT - DROPDOWN_MENU_HEIGHT).dp)
+                .height(listHeight.dp)
                 .clipToBounds()
                 .align(Alignment.TopStart)
         ) {
@@ -532,6 +537,17 @@ private fun availableTranslationsSafe(
 ): List<Translation> =
     runCatching { bible.availableTranslations() }.getOrElse { SupportedTranslation.embeddedTranslations }
         .filter { visibility[it.code] ?: true }
+
+private fun dropdownMenuHeight(translationCount: Int, settingExpanded: Boolean): Int =
+    dropdownTranslationListHeight(translationCount, settingExpanded) + DROPDOWN_MENU_HEIGHT
+
+private fun dropdownTranslationListHeight(translationCount: Int, settingExpanded: Boolean): Int {
+    val visibleRows = translationCount.coerceAtMost(DROPDOWN_MENU_MAX_VISIBLE_TRANSLATIONS)
+    val rowHeight = if (settingExpanded) DROPDOWN_MENU_HEIGHT_EXPANDED else DROPDOWN_MENU_HEIGHT
+    return visibleRows * rowHeight
+}
+
+private const val DROPDOWN_MENU_MAX_VISIBLE_TRANSLATIONS = 5
 
 @Preview
 @Composable

@@ -25,11 +25,13 @@ import org.gnit.bible.app.translation_show
 fun ShowHideIcon(
     isShown: Boolean,
     onToggle: () -> Unit,
+    enabled: Boolean = true,
     iconSize: Int = 24
 ) {
     val icon = if (isShown) Res.drawable.translation_show else Res.drawable.translation_hide
     val description = if (isShown) "Shown" else "Hidden"
     val tint = when {
+        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         isShown -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.secondary
     }
@@ -38,7 +40,7 @@ fun ShowHideIcon(
         contentDescription = description,
         modifier = Modifier
             .size(iconSize.dp)
-            .clickable { onToggle() },
+            .clickable(enabled = enabled) { onToggle() },
         tint = tint
     )
 }
