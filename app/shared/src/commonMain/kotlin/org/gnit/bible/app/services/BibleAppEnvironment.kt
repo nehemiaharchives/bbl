@@ -6,15 +6,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import org.gnit.bible.AssetManager
 import org.gnit.bible.AssetManagerImpl
+import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.Platform
 import org.gnit.bible.app.ComposeBibleResourcesReader
+import org.gnit.bible.app.CmpAnalyzerProvider
 import org.gnit.bible.getPlatform
 
 data class BibleAppEnvironment(
     val platform: Platform,
     val assetManager: AssetManager,
-    val bible: Bible
+    val bible: Bible,
+    val analyzerProvider: AnalyzerProvider
 )
 
 private fun createBibleAppEnvironment(
@@ -28,7 +31,8 @@ private fun createBibleAppEnvironment(
     return BibleAppEnvironment(
         platform = platform,
         assetManager = assetManager,
-        bible = bible
+        bible = bible,
+        analyzerProvider = CmpAnalyzerProvider()
     )
 }
 

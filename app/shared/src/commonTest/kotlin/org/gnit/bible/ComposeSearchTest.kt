@@ -3,9 +3,12 @@ package org.gnit.bible
 import io.ktor.client.HttpClient
 import org.gnit.bible.app.CmpAnalyzerProvider
 import org.gnit.bible.app.ComposeBibleResourcesReader
+import org.gnit.bible.app.searchAppBible
+import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.test.ResourcesTestBase
 import org.gnit.bible.test.SearchTestBase
 import org.gnit.bible.test.TestFixtures
+import kotlin.test.assertEquals
 import kotlin.test.Test
 
 class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
@@ -62,5 +65,27 @@ class ComposeSearchTest() : SearchTestBase, ResourcesTestBase()  {
     @Test
     fun searchExtraCmp(){
         super.searchExtra()
+    }
+
+    @Test
+    fun appSearchUsesComposeAnalyzerProvider() {
+        val webus = SupportedTranslation.WEBUS.translation
+        val state = BibleState(mainTranslation = webus)
+
+        val actualByStem = searchAppBible(
+            bible = bible,
+            bibleState = state,
+            query = "Jesus weep",
+            analyzerProvider = analyzerProvider
+        ).first()
+        assertEquals(VersePointer(webus, Books.bookNumber("matthew"), 26, 75), actualByStem)
+
+        val actualByExactPhrase = searchAppBible(
+            bible = bible,
+            bibleState = state,
+            query = "\"Jesus wept\"",
+            analyzerProvider = analyzerProvider
+        ).first()
+        assertEquals(VersePointer(webus, Books.bookNumber("john"), 11, 35), actualByExactPhrase)
     }
 }

@@ -137,14 +137,15 @@ class SearchEngine(
         translation: Translation,
         filters: List<BibleFilter>
     ): Array<ScoreDoc> {
-        if (term.isBlank()) return emptyArray()
+        val parserTerm = SearchQueryText.termForQueryParser(term)
+        if (parserTerm.isBlank()) return emptyArray()
         logger.debug {
-            "searching $term ${if (bookNumber != null) "in ${Books.bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
+            "searching $parserTerm ${if (bookNumber != null) "in ${Books.bookNameEnglishCapital(bookNumber)} " else " "}in $translation"
         }
 
         val parser = QueryParser("text", analyzer)
         parser.setDefaultOperator(QueryParser.Operator.AND)
-        val termQuery = parser.parse(normalizeWordInternalHyphens(term)) ?: return emptyArray()
+        val termQuery = parser.parse(parserTerm) ?: return emptyArray()
         val filterClauses = buildFilterClauses(bookNumber, startChapter, endChapter)
         filters.forEach { filter ->
             filterClauses.add(filterQuery(filter) to BooleanClause.Occur.MUST)
@@ -255,27 +256,6 @@ class SearchEngine(
         return builder.build()
     }
 
-    private fun normalizeWordInternalHyphens(term: String): String {
-        val builder = StringBuilder(term.length)
-        var replaced = false
-        term.forEachIndexed { index, char ->
-            if (char == '-' && index > 0 && index < term.lastIndex &&
-                term[index - 1].isLetterOrDigit() && term[index + 1].isLetterOrDigit()
-            ) {
-                builder.append(' ')
-                replaced = true
-            } else {
-                builder.append(char)
-            }
-        }
-        val normalized = builder.toString()
-        return if (replaced && '"' !in normalized) {
-            "\"$normalized\""
-        } else {
-            normalized
-        }
-    }
-
     private fun embeddedIndexDirectory(translation: Translation): ByteBuffersDirectory {
         directoriesByTranslation[translation.code]?.let { return it }
 
@@ -320,6 +300,10 @@ class SearchEngine(
 }
 
 object SearchQueryText {
+    fun termForQueryParser(term: String): String {
+        return normalizeWordInternalHyphens(term.trim())
+    }
+
     fun searchTermFromArgs(args: List<String>): String {
         if (args.isEmpty()) return ""
 
@@ -339,5 +323,26 @@ object SearchQueryText {
 
     private fun isQuotedTerm(term: String): Boolean {
         return term.length >= 2 && term.first() == '"' && term.last() == '"'
+    }
+
+    private fun normalizeWordInternalHyphens(term: String): String {
+        val builder = StringBuilder(term.length)
+        var replaced = false
+        term.forEachIndexed { index, char ->
+            if (char == '-' && index > 0 && index < term.lastIndex &&
+                term[index - 1].isLetterOrDigit() && term[index + 1].isLetterOrDigit()
+            ) {
+                builder.append(' ')
+                replaced = true
+            } else {
+                builder.append(char)
+            }
+        }
+        val normalized = builder.toString()
+        return if (replaced && '"' !in normalized) {
+            "\"$normalized\""
+        } else {
+            normalized
+        }
     }
 }

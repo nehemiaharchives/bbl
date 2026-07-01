@@ -26,9 +26,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.gnit.bible.AnalyzerProvider
 import org.gnit.bible.Bible
 import org.gnit.bible.Books
 import org.gnit.bible.VersePointer
+import org.gnit.bible.app.services.currentBibleEnvironment
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.ui.widgets.sansFontFamily
 import org.gnit.bible.app.ui.widgets.serifFontFamily
@@ -40,12 +42,14 @@ fun SearchResultsScreen(
     innerPadding: PaddingValues,
     onResultClick: (VersePointer) -> Unit
 ) {
-    val bible = currentBible()
-    var loading by remember(query, bibleState.mainTranslation) { mutableStateOf(query.isNotBlank()) }
-    var results by remember(query, bibleState.mainTranslation) { mutableStateOf(emptyList<VersePointer>()) }
-    var error by remember(query, bibleState.mainTranslation) { mutableStateOf<String?>(null) }
+    val environment = currentBibleEnvironment()
+    val bible = environment.bible
+    val analyzerProvider = environment.analyzerProvider
+    var loading by remember(query, bibleState.mainTranslation, analyzerProvider) { mutableStateOf(query.isNotBlank()) }
+    var results by remember(query, bibleState.mainTranslation, analyzerProvider) { mutableStateOf(emptyList<VersePointer>()) }
+    var error by remember(query, bibleState.mainTranslation, analyzerProvider) { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(query, bibleState.mainTranslation) {
+    LaunchedEffect(query, bibleState.mainTranslation, analyzerProvider) {
         if (query.isBlank()) {
             loading = false
             results = emptyList()
@@ -57,10 +61,11 @@ fun SearchResultsScreen(
         error = null
         val searchResult = withContext(Dispatchers.Default) {
             runCatching {
-                bible.search(
-                    term = query,
-                    verses = bible.searchResultFromSettings(),
-                    translation = bibleState.mainTranslation
+                searchAppBible(
+                    bible = bible,
+                    bibleState = bibleState,
+                    query = query,
+                    analyzerProvider = analyzerProvider
                 )
             }
         }
@@ -175,6 +180,20 @@ private fun SearchMessage(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+internal fun searchAppBible(
+    bible: Bible,
+    bibleState: BibleState,
+    query: String,
+    analyzerProvider: AnalyzerProvider
+): List<VersePointer> {
+    return bible.search(
+        term = query,
+        verses = bible.searchResultFromSettings(),
+        translation = bibleState.mainTranslation,
+        analyzerProvider = analyzerProvider
+    )
 }
 
 private fun searchResultText(bible: Bible, pointer: VersePointer): String {
