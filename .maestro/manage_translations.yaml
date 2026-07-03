@@ -1,0 +1,51 @@
+appId: org.gnit.bible.app
+name: Manage Translations Downloads AYT
+tags:
+  - android
+  - translations
+  - download
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+
+- extendedWaitUntil:
+    visible: "1 In the beginning, God created the heavens and the earth."
+    timeout: 10000
+
+- runFlow:
+    when:
+      notVisible: "Genesis 1"
+    commands:
+      - tapOn:
+          point: "50%,5%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+- assertVisible: "Genesis 1"
+
+- tapOn:
+    point: "93%,5%"
+- extendedWaitUntil:
+    visible: "World English Bible"
+    timeout: 5000
+- longPressOn: "World English Bible"
+- extendedWaitUntil:
+    visible: "WEBUS"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element: "AYT"
+    direction: DOWN
+    timeout: 10000
+    speed: 50
+    visibilityPercentage: 80
+    centerElement: true
+- tapOn: "AYT"
+
+- extendedWaitUntil:
+    visible:
+      text: "Shown"
+      below:
+        text: "AYT"
+    timeout: 30000

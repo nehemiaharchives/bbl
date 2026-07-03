@@ -3,6 +3,7 @@ package org.gnit.bible.app.ui.widgets
 import org.gnit.bible.SupportedTranslation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -177,6 +177,41 @@ private fun TranslationManagerScreenPreview() {
     }
 }
 
+@Preview
+@Composable
+private fun TranslationManagerIconRowsPreview() {
+    BibleTheme {
+        Surface {
+            Column {
+                TranslationManagerRow(
+                    entry = TranslationEntry(
+                        SupportedTranslation.WEBUS.translation,
+                        InstallationState.EMBEDDED
+                    ),
+                    isShown = true,
+                    canToggleVisibility = true,
+                    isDownloading = false,
+                    onToggleVisibility = {},
+                    onDownload = {},
+                    onDelete = {}
+                )
+                TranslationManagerRow(
+                    entry = TranslationEntry(
+                        SupportedTranslation.AYT.translation,
+                        InstallationState.DOWNLOADED
+                    ),
+                    isShown = true,
+                    canToggleVisibility = true,
+                    isDownloading = false,
+                    onToggleVisibility = {},
+                    onDownload = {},
+                    onDelete = {}
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun TranslationManagerRow(
     entry: TranslationEntry,
@@ -193,12 +228,20 @@ private fun TranslationManagerRow(
     } else {
         "${translation.englishName} / ${translation.nativeName}"
     }
+    val rowModifier = Modifier
+        .fillMaxWidth()
+        .heightIn(min = 72.dp)
+        .padding(vertical = 8.dp)
+        .let { modifier ->
+            if (entry.source == InstallationState.DOWNLOADABLE && !isDownloading) {
+                modifier.clickable(onClick = onDownload)
+            } else {
+                modifier
+            }
+        }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 72.dp)
-            .padding(vertical = 8.dp)
+        modifier = rowModifier
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -243,25 +286,27 @@ private fun TranslationManagerActionBar(
     onDelete: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .width(ACTION_BAR_WIDTH.dp)
-            .wrapContentWidth(Alignment.End),
+        modifier = Modifier.width(ACTION_BAR_WIDTH.dp),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (source) {
             InstallationState.EMBEDDED -> {
+                Spacer(modifier = Modifier.width((ACTION_BUTTON_WIDTH + ACTION_ICON_SPACER).dp))
                 ShowHideIcon(
                     isShown = isShown,
                     enabled = canToggleVisibility,
-                    onToggle = onToggleVisibility
+                    onToggle = onToggleVisibility,
+                    buttonSize = ACTION_BUTTON_WIDTH
                 )
             }
 
             InstallationState.DOWNLOADABLE -> {
+                Spacer(modifier = Modifier.width((ACTION_BUTTON_WIDTH + ACTION_ICON_SPACER).dp))
                 DownloadIcon(
                     isDownloading = isDownloading,
-                    onDownload = onDownload
+                    onDownload = onDownload,
+                    buttonSize = ACTION_BUTTON_WIDTH
                 )
             }
 
@@ -271,12 +316,16 @@ private fun TranslationManagerActionBar(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DeleteIcon(onDelete = onDelete)
+                    DeleteIcon(
+                        onDelete = onDelete,
+                        buttonSize = ACTION_BUTTON_WIDTH
+                    )
                     Spacer(modifier = Modifier.width(ACTION_ICON_SPACER.dp))
                     ShowHideIcon(
                         isShown = isShown,
                         enabled = canToggleVisibility,
-                        onToggle = onToggleVisibility
+                        onToggle = onToggleVisibility,
+                        buttonSize = ACTION_BUTTON_WIDTH
                     )
                 }
             }
@@ -305,5 +354,6 @@ private fun buildTranslationEntries(
 private fun downloadedTranslationCodesSafe(assetManager: org.gnit.bible.AssetManager): List<String> =
     runCatching { assetManager.downloadedTranslationCodes() }.getOrElse { emptyList() }
 
-private const val ACTION_BAR_WIDTH = 72
-private const val ACTION_ICON_SPACER = 12
+private const val ACTION_BAR_WIDTH = 96
+private const val ACTION_BUTTON_WIDTH = 42
+private const val ACTION_ICON_SPACER = 2
