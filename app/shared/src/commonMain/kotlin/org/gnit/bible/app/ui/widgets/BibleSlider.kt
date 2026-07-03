@@ -1,148 +1,34 @@
 package org.gnit.bible.app.ui.widgets
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderColors
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SliderState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.gnit.bible.app.ui.theme.BibleTheme
+import kotlin.math.roundToInt
 
-/**
- *  for reference below is the source code from material 3 lib:
- *
- *```kotlin
- *
- *     fun Track(
- *         sliderState: SliderState,
- *         modifier: Modifier = Modifier,
- *         enabled: Boolean = true,
- *         colors: SliderColors = colors(),
- *         drawStopIndicator: (DrawScope.(Offset) -> Unit)? = {
- *             drawStopIndicator(
- *                 offset = it,
- *                 color = colors.trackColor(enabled, active = true),
- *                 size = TrackStopIndicatorSize,
- *             )
- *         },
- *         drawTick: DrawScope.(Offset, Color) -> Unit = { offset, color ->
- *             drawStopIndicator(offset = offset, color = color, size = TickSize)
- *         },
- *         thumbTrackGapSize: Dp = ThumbTrackGapSize,           //val ActiveHandleLeadingSpace = 6.0.dp
- *         trackInsideCornerSize: Dp = TrackInsideCornerSize,   //val TrackInsideCornerSize: Dp = 2.dp
- *     ) {
- *         TrackImpl(
- *             sliderState = sliderState,
- *             trackCornerSize = Dp.Unspecified,
- *             modifier = modifier,
- *             enabled = enabled,
- *             colors = colors,
- *             drawStopIndicator = drawStopIndicator,
- *             drawTick = drawTick,
- *             thumbTrackGapSize = thumbTrackGapSize,
- *             trackInsideCornerSize = trackInsideCornerSize,
- *             enableCornerShrinking = false,
- *             isCentered = false,
- *         )
- *     }
- *
- *
- * // Internal to be referred to in tests
- * internal val TrackHeight = SliderTokens.InactiveTrackHeight
- * internal val ThumbWidth = SliderTokens.HandleWidth            //val HandleWidth = 4.0.dp
- * private val ThumbHeight = SliderTokens.HandleHeight           //val HandleHeight = 44.0.dp
- * private val ThumbSize = DpSize(ThumbWidth, ThumbHeight)
- * private val VerticalThumbSize = DpSize(ThumbHeight, ThumbWidth)
- * private val ThumbTrackGapSize: Dp = SliderTokens.ActiveHandleLeadingSpace
- * private val TrackInsideCornerSize: Dp = 2.dp
- *
- *
- *     @Composable
- *     fun Thumb(
- *         interactionSource: MutableInteractionSource,
- *         modifier: Modifier = Modifier,
- *         colors: SliderColors = colors(),
- *         enabled: Boolean = true,
- *         thumbSize: DpSize = ThumbSize,
- *     ) {
- *         val interactions = remember { mutableStateListOf<Interaction>() }
- *         LaunchedEffect(interactionSource) {
- *             interactionSource.interactions.collect { interaction ->
- *                 when (interaction) {
- *                     is PressInteraction.Press -> interactions.add(interaction)
- *                     is PressInteraction.Release -> interactions.remove(interaction.press)
- *                     is PressInteraction.Cancel -> interactions.remove(interaction.press)
- *                     is DragInteraction.Start -> interactions.add(interaction)
- *                     is DragInteraction.Stop -> interactions.remove(interaction.start)
- *                     is DragInteraction.Cancel -> interactions.remove(interaction.start)
- *                 }
- *             }
- *         }
- *
- *         val size =
- *             if (interactions.isNotEmpty()) {
- *                 thumbSize.copy(width = thumbSize.width / 2)
- *             } else {
- *                 thumbSize
- *             }
- *         Spacer(
- *             modifier
- *                 .size(size)
- *                 .hoverable(interactionSource = interactionSource)
- *                 .background(colors.thumbColor(enabled), SliderTokens.HandleShape.value)
- *         )
- *     }
- *
- *    @OptIn(ExperimentalMaterial3Api::class)
- *    @Composable
- *    fun Slider(
- *        value: Float,
- *        onValueChange: (Float) -> Unit,
- *        modifier: Modifier = Modifier,
- *        enabled: Boolean = true,
- *        valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
- *        @IntRange(from = 0) steps: Int = 0,
- *        onValueChangeFinished: (() -> Unit)? = null,
- *        colors: SliderColors = SliderDefaults.colors(),
- *        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
- *    ) {
- *        Slider(
- *            value = value,
- *            onValueChange = onValueChange,
- *            modifier = modifier,
- *            enabled = enabled,
- *            onValueChangeFinished = onValueChangeFinished,
- *            colors = colors,
- *            interactionSource = interactionSource,
- *            steps = steps,
- *            thumb = {
- *                SliderDefaults.Thumb(
- *                    interactionSource = interactionSource,
- *                    colors = colors,
- *                    enabled = enabled,
- *                )
- *            },
- *            track = { sliderState ->
- *                SliderDefaults.Track(colors = colors, enabled = enabled, sliderState = sliderState)
- *            },
- *            valueRange = valueRange,
- *        )
- *    }
- *
- *
- *```
- */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BibleSlider(
     value: Float,
@@ -150,57 +36,283 @@ fun BibleSlider(
     valueRange: ClosedFloatingPointRange<Float>,
     steps: Int,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    previewInteracting: Boolean = false
 ) {
-    val colors: SliderColors = SliderDefaults.colors()
-    val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-
-    // Single vertical space used by both thumb container and track container
-    val thumbDiameter = 14.dp
-    val trackHeight = 8.dp
-
-    Slider(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
-        onValueChangeFinished = null,
-        colors = colors,
-        interactionSource = interactionSource,
-        steps = steps,
-        thumb = {
-            // Center the thumb by centering its container; no .align() needed
-            Box(
-                modifier = Modifier.size(thumbDiameter),
-                contentAlignment = Alignment.Center
-            ) {
-                SliderDefaults.Thumb(
-                    interactionSource = interactionSource,
-                    colors = colors,
-                    enabled = enabled,
-                    thumbSize = DpSize(width = thumbDiameter, height = thumbDiameter)
-                )
-            }
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
+    val activeStopColor = MaterialTheme.colorScheme.onPrimary
+    val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val coercedValue = value.coerceIn(valueRange.start, valueRange.endInclusive)
+    var isInteracting by remember { mutableStateOf(false) }
+    val thumbDiameter by animateFloatAsState(
+        targetValue = if (isInteracting || previewInteracting) {
+            SLIDER_ACTIVE_THUMB_DIAMETER
+        } else {
+            SLIDER_THUMB_DIAMETER
         },
-        track = { sliderState: SliderState ->
-            // Make the track share the same vertical space and center it
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(thumbDiameter)
-            ) {
-                SliderDefaults.Track(
-                    sliderState = sliderState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = (thumbDiameter - trackHeight) / 2),
-                    enabled = enabled,
-                    colors = colors,
-                    thumbTrackGapSize = 1.dp,
-                    trackInsideCornerSize = 5.dp
-                )
-            }
-        },
-        valueRange = valueRange
+        animationSpec = spring(),
+        label = "BibleSliderThumbDiameter"
     )
+
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(SLIDER_TOUCH_HEIGHT.dp)
+            .pointerInput(enabled, valueRange, steps) {
+                if (!enabled) return@pointerInput
+                val thumbRadiusPx = SLIDER_THUMB_DIAMETER.dp.toPx() / 2f
+
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    try {
+                        isInteracting = true
+                        onValueChange(
+                            valueForPosition(
+                                x = down.position.x,
+                                width = size.width.toFloat(),
+                                thumbRadius = thumbRadiusPx,
+                                valueRange = valueRange,
+                                steps = steps
+                            )
+                        )
+
+                        drag(down.id) { change ->
+                            onValueChange(
+                                valueForPosition(
+                                    x = change.position.x,
+                                    width = size.width.toFloat(),
+                                    thumbRadius = thumbRadiusPx,
+                                    valueRange = valueRange,
+                                    steps = steps
+                                )
+                            )
+                            if (change.positionChange() != Offset.Zero) {
+                                change.consume()
+                            }
+                        }
+                    } finally {
+                        isInteracting = false
+                    }
+                }
+            }
+    ) {
+        val centerY = size.height / 2f
+        val thumbRadius = thumbDiameter.dp.toPx() / 2f
+        val restingThumbRadius = SLIDER_THUMB_DIAMETER.dp.toPx() / 2f
+        val tickRadius = SLIDER_STOP_INDICATOR_DIAMETER.dp.toPx() / 2f
+        val trackHeight = SLIDER_TRACK_HEIGHT.dp.toPx()
+        val thumbTrackGap = SLIDER_THUMB_TRACK_GAP.dp.toPx()
+        val trackStart = restingThumbRadius
+        val trackEnd = size.width - restingThumbRadius
+        if (trackEnd <= trackStart) return@Canvas
+
+        val valueFraction = valueFraction(coercedValue, valueRange)
+        val thumbCenter = Offset(
+            x = trackStart + ((trackEnd - trackStart) * valueFraction),
+            y = centerY
+        )
+        val color = if (enabled) activeColor else disabledColor
+        val trackColor = if (enabled) inactiveColor else disabledColor
+        val stopColor = if (enabled) activeStopColor else disabledColor
+        val trackVisualEnd = (thumbCenter.x - thumbRadius - thumbTrackGap).coerceAtLeast(trackStart)
+        val trackVisualStart = (thumbCenter.x + thumbRadius + thumbTrackGap).coerceAtMost(trackEnd)
+
+        if (trackVisualEnd > trackStart) {
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(trackStart, centerY - (trackHeight / 2f)),
+                size = Size(trackVisualEnd - trackStart, trackHeight),
+                cornerRadius = CornerRadius(trackHeight / 2f, trackHeight / 2f)
+            )
+        }
+
+        if (trackEnd > trackVisualStart) {
+            drawRoundRect(
+                color = trackColor,
+                topLeft = Offset(trackVisualStart, centerY - (trackHeight / 2f)),
+                size = Size(trackEnd - trackVisualStart, trackHeight),
+                cornerRadius = CornerRadius(trackHeight / 2f, trackHeight / 2f)
+            )
+        }
+
+        if (steps > 0) {
+            drawStopIndicators(
+                steps = steps,
+                centerY = centerY,
+                trackStart = trackStart,
+                trackEnd = trackEnd,
+                thumbCenterX = thumbCenter.x,
+                thumbRadius = thumbRadius,
+                thumbTrackGap = thumbTrackGap,
+                indicatorRadius = tickRadius,
+                trackCornerRadius = trackHeight / 2f,
+                activeColor = stopColor,
+                inactiveColor = color
+            )
+        } else if (trackVisualEnd > trackStart) {
+            drawLine(
+                color = color,
+                start = Offset(trackStart, centerY),
+                end = Offset(trackVisualEnd, centerY),
+                strokeWidth = trackHeight,
+                cap = StrokeCap.Round
+            )
+        }
+
+        drawCircle(
+            color = color,
+            radius = thumbRadius,
+            center = thumbCenter
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.18f),
+            radius = thumbRadius,
+            center = thumbCenter,
+            style = Stroke(width = 1.dp.toPx())
+        )
+    }
 }
+
+private fun DrawScope.drawStopIndicators(
+    steps: Int,
+    centerY: Float,
+    trackStart: Float,
+    trackEnd: Float,
+    thumbCenterX: Float,
+    thumbRadius: Float,
+    thumbTrackGap: Float,
+    indicatorRadius: Float,
+    trackCornerRadius: Float,
+    activeColor: Color,
+    inactiveColor: Color
+) {
+    val tickCount = steps + 2
+    val lastIndex = tickCount - 1
+    val beforeThumbEnd = thumbCenterX - thumbRadius - thumbTrackGap
+    val afterThumbStart = thumbCenterX + thumbRadius + thumbTrackGap
+    val indicatorStart = (trackStart + trackCornerRadius).coerceAtMost(trackEnd)
+    val indicatorEnd = (trackEnd - trackCornerRadius).coerceAtLeast(trackStart)
+    repeat(tickCount) { index ->
+        val fraction = index.toFloat() / lastIndex.toFloat()
+        val x = indicatorStart + ((indicatorEnd - indicatorStart) * fraction)
+        val indicatorColor = when {
+            x < beforeThumbEnd -> activeColor
+            x > afterThumbStart -> inactiveColor
+            else -> return@repeat
+        }
+        drawCircle(
+            color = indicatorColor,
+            radius = indicatorRadius,
+            center = Offset(
+                x = x,
+                y = centerY
+            )
+        )
+    }
+}
+
+private fun valueForPosition(
+    x: Float,
+    width: Float,
+    thumbRadius: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int
+): Float {
+    val rangeStart = valueRange.start
+    val rangeEnd = valueRange.endInclusive
+    if (width <= 0f || rangeEnd <= rangeStart) return rangeStart
+
+    val thumbRadiusFraction = thumbRadius / width
+    val usableEnd = 1f - thumbRadiusFraction
+    val fraction = ((x / width) - thumbRadiusFraction) / (usableEnd - thumbRadiusFraction)
+    val rawValue = rangeStart + ((rangeEnd - rangeStart) * fraction.coerceIn(0f, 1f))
+    return snapValue(rawValue, valueRange, steps)
+}
+
+private fun valueFraction(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>
+): Float {
+    val rangeStart = valueRange.start
+    val rangeEnd = valueRange.endInclusive
+    if (rangeEnd <= rangeStart) return 0f
+    return ((value - rangeStart) / (rangeEnd - rangeStart)).coerceIn(0f, 1f)
+}
+
+private fun snapValue(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int
+): Float {
+    if (steps <= 0) return value.coerceIn(valueRange.start, valueRange.endInclusive)
+    val intervalCount = steps + 1
+    val stepSize = (valueRange.endInclusive - valueRange.start) / intervalCount
+    return (valueRange.start + (stepSize * ((value - valueRange.start) / stepSize).roundToInt()))
+        .coerceIn(valueRange.start, valueRange.endInclusive)
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 48)
+@Composable
+private fun BibleSliderMovedBookPreview() {
+    BibleTheme {
+        BibleSlider(
+            value = 27f,
+            onValueChange = {},
+            steps = 64,
+            valueRange = 1f..66f,
+            modifier = Modifier.fillMaxWidth(),
+            previewInteracting = true
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 48)
+@Composable
+private fun BibleSliderMovedChapterPreview() {
+    BibleTheme {
+        BibleSlider(
+            value = 7f,
+            onValueChange = {},
+            steps = 11,
+            valueRange = 1f..13f,
+            modifier = Modifier.fillMaxWidth(),
+            previewInteracting = true
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 48)
+@Composable
+private fun BibleSliderPreview() {
+    BibleTheme {
+        BibleSlider(
+            value = 1f,
+            onValueChange = {},
+            steps = 64,
+            valueRange = 1f..66f,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 48)
+@Composable
+private fun BibleSliderMiddlePreview() {
+    BibleTheme {
+        BibleSlider(
+            value = 33f,
+            onValueChange = {},
+            steps = 64,
+            valueRange = 1f..66f,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+private const val SLIDER_TOUCH_HEIGHT = 32
+private const val SLIDER_THUMB_DIAMETER = 14f
+private const val SLIDER_ACTIVE_THUMB_DIAMETER = 10f
+private const val SLIDER_STOP_INDICATOR_DIAMETER = 4f
+private const val SLIDER_TRACK_HEIGHT = 8f
+private const val SLIDER_THUMB_TRACK_GAP = 1f
