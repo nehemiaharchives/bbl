@@ -40,6 +40,15 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+        create("profile") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+            isProfileable = true
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

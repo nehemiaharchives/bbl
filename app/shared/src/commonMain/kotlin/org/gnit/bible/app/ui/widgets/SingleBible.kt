@@ -15,10 +15,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.gnit.bible.Bible.Companion.splitChapterToVerses
 import org.gnit.bible.app.ScrollableColumn
 import org.gnit.bible.app.VerseLayoutInfo
-import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.ui.theme.BibleTheme
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun SingleBible(
     bibleState: BibleState,
+    verses: Array<String>,
     scrollState: ScrollState,
     onScrollPercentChange: (Float) -> Unit = {},
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
@@ -35,12 +34,7 @@ fun SingleBible(
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp
 ) {
-    val bible = currentBible()
     val translation = bibleState.mainTranslation
-    val book = bibleState.book
-    val chapter = bibleState.chapter
-    val chapterText = bible.verses(translation = translation.code, book = book, chapter = chapter)
-    val verses = splitChapterToVerses(chapterText)
 
     ScrollableColumn(
         bibleState = bibleState,
@@ -98,6 +92,7 @@ fun SingleBiblePreview() {
         val scrollState = rememberScrollState()
         SingleBible(
             bibleState = BibleState(),
+            verses = arrayOf("In the beginning God created the heaven and the earth."),
             scrollState = scrollState
         )
     }

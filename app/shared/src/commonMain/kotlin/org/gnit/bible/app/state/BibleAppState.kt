@@ -11,7 +11,6 @@ import org.gnit.bible.Books
 import org.gnit.bible.HistoryRecord
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
-import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.currentPlatform
 import org.gnit.bible.app.logger
 
@@ -43,11 +42,15 @@ data class BibleState(
 ) {
     fun prevBook() = copy(book = book - 1, chapter = 1, scrollPercent = 0f, centerVerse = null)
     fun nextBook() = copy(book = book + 1, chapter = 1, scrollPercent = 0f, centerVerse = null)
-    fun changeBook(newBook: Int) = copy(book = newBook, chapter = 1, scrollPercent = 0f, centerVerse = null)
+    fun changeBook(newBook: Int) =
+        copy(book = newBook, chapter = 1, scrollPercent = 0f, centerVerse = null)
+
     fun prevChapter() = copy(chapter = chapter - 1, scrollPercent = 0f, centerVerse = null)
     fun nextChapter() = copy(chapter = chapter + 1, scrollPercent = 0f, centerVerse = null)
     fun startSearch() = copy(isSearchActive = true, searchQuery = "", submittedSearchQuery = null)
-    fun submitSearch(query: String) = copy(isSearchActive = true, searchQuery = query, submittedSearchQuery = query)
+    fun submitSearch(query: String) =
+        copy(isSearchActive = true, searchQuery = query, submittedSearchQuery = query)
+
     fun clearSearch() = copy(isSearchActive = false, searchQuery = "", submittedSearchQuery = null)
     fun openSearchResult(pointer: VersePointer): BibleState {
         val searchRecord = searchHistoryRecord(submittedSearchQuery ?: searchQuery)
@@ -89,7 +92,8 @@ data class BibleState(
     fun handleBack(): BibleState? {
         if (isSearchActive) return clearSearch()
         val previous = backStack.lastOrNull() ?: return null
-        val restored = restoreHistoryRecord(previous) ?: return copy(backStack = backStack.dropLast(1))
+        val restored =
+            restoreHistoryRecord(previous) ?: return copy(backStack = backStack.dropLast(1))
         return restored.copy(backStack = backStack.dropLast(1))
     }
 
@@ -200,7 +204,6 @@ private fun translationByCode(code: String): Translation? {
 @Composable
 fun rememberBibleState(): BibleState {
     val platform = currentPlatform()
-    val bible = currentBible()
 
     val bibleStateJson = platform.settings.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
     if (bibleStateJson != null) {
@@ -215,7 +218,7 @@ fun rememberBibleState(): BibleState {
     val initialMainTranslation = if (defaultLanguage == "en") {
         SupportedTranslation.WEBUS.translation
     } else {
-        bible.availableTranslations().find { translation ->
+        SupportedTranslation.embeddedTranslations.firstOrNull { translation ->
             translation.languageCode == defaultLanguage
         } ?: SupportedTranslation.WEBUS.translation
     }

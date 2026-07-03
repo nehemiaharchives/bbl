@@ -40,12 +40,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.withContext
+import org.gnit.bible.Bible
+import org.gnit.bible.Bible.Companion.splitChapterToVerses
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.state.SHARED_PREFERENCE_KEY_BIBLE_STATE
 import org.gnit.bible.app.state.historySaveEventColorTransitionDurationSeconds
+import org.gnit.bible.app.ui.widgets.addEmptyEntryToMakeSameSize
 import org.gnit.bible.app.ui.widgets.BilingualSideBible
 import org.gnit.bible.app.ui.widgets.BilingualUnderBible
 import org.gnit.bible.app.ui.widgets.SingleBible
@@ -138,6 +144,23 @@ fun BibleReadingArea(
 
     val topChromePadding = 0.dp
     val bottomChromePadding = 0.dp
+    val bible = currentBible()
+    var readingContent by remember { mutableStateOf<ReadingContent?>(null) }
+
+    LaunchedEffect(
+        bible,
+        state.mainTranslation,
+        state.subTranslation,
+        state.readingMode,
+        state.book,
+        state.chapter
+    ) {
+        readingContent = null
+        readingContent = withContext(Dispatchers.IO) {
+            bible.loadReadingContent(state)
+        }
+    }
+
     val onScrollPercentChange: (Float) -> Unit = { scrollPercent ->
         onStateChange(currentState.copy(scrollPercent = scrollPercent))
     }
@@ -164,11 +187,21 @@ fun BibleReadingArea(
             .onSizeChanged { viewportHeight = it.height }
             .then(pinchZoomModifier)
     ) {
-        when (state.readingMode) {
-            ReadingMode.SINGLE -> SingleBible(
-                state,
-                scrollState,
-                onScrollPercentChange,
+        when (val content = readingContent) {
+            null -> ScrollableColumn(
+                bibleState = state,
+                scrollState = scrollState,
+                onScrollPercentChange = onScrollPercentChange,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding
+            ) {
+            }
+
+            is ReadingContent.Single -> SingleBible(
+                bibleState = state,
+                verses = content.verses,
+                scrollState = scrollState,
+                onScrollPercentChange = onScrollPercentChange,
                 onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                 highlightedVerse = state.highlightedVerse,
                 onVerseTap = onVerseTap,
@@ -176,28 +209,36 @@ fun BibleReadingArea(
                 topContentPadding = topContentPadding,
                 bottomContentPadding = bottomContentPadding
             )
-            ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(
-                state,
-                scrollState,
-                onScrollPercentChange,
-                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
-                highlightedVerse = state.highlightedVerse,
-                onVerseTap = onVerseTap,
-                onVerseDoubleTap = onVerseDoubleTap,
-                topContentPadding = topContentPadding,
-                bottomContentPadding = bottomContentPadding
-            )
-            ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
-                state,
-                scrollState,
-                onScrollPercentChange,
-                onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
-                highlightedVerse = state.highlightedVerse,
-                onVerseTap = onVerseTap,
-                onVerseDoubleTap = onVerseDoubleTap,
-                topContentPadding = topContentPadding,
-                bottomContentPadding = bottomContentPadding
-            )
+
+            is ReadingContent.Bilingual -> when (state.readingMode) {
+                ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(
+                    bibleState = state,
+                    versePairs = content.versePairs,
+                    scrollState = scrollState,
+                    onScrollPercentChange = onScrollPercentChange,
+                    onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
+                    highlightedVerse = state.highlightedVerse,
+                    onVerseTap = onVerseTap,
+                    onVerseDoubleTap = onVerseDoubleTap,
+                    topContentPadding = topContentPadding,
+                    bottomContentPadding = bottomContentPadding
+                )
+
+                ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
+                    bibleState = state,
+                    versePairs = content.versePairs,
+                    scrollState = scrollState,
+                    onScrollPercentChange = onScrollPercentChange,
+                    onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
+                    highlightedVerse = state.highlightedVerse,
+                    onVerseTap = onVerseTap,
+                    onVerseDoubleTap = onVerseDoubleTap,
+                    topContentPadding = topContentPadding,
+                    bottomContentPadding = bottomContentPadding
+                )
+
+                ReadingMode.SINGLE -> Unit
+            }
         }
     }
 
@@ -220,6 +261,52 @@ fun BibleReadingArea(
         )
         scrollState.scrollTo((scrollState.maxValue * scrollPercent).roundToInt())
         onStateChange(currentState.copy(scrollPercent = scrollPercent, centerVerse = null))
+    }
+}
+
+private sealed interface ReadingContent {
+    data class Single(val verses: Array<String>) : ReadingContent
+    data class Bilingual(val versePairs: List<Pair<String, String>>) : ReadingContent
+}
+
+private fun Bible.loadReadingContent(state: BibleState): ReadingContent {
+    return when (state.readingMode) {
+        ReadingMode.SINGLE -> ReadingContent.Single(
+            splitChapterToVerses(
+                verses(
+                    translation = state.mainTranslation.code,
+                    book = state.book,
+                    chapter = state.chapter
+                )
+            )
+        )
+
+        ReadingMode.BILINGUAL_SIDE,
+        ReadingMode.BILINGUAL_UNDER -> {
+            val subTranslation = state.subTranslation
+                ?: throw IllegalArgumentException("subTranslation is required but null")
+            val mainVerses = splitChapterToVerses(
+                verses(
+                    translation = state.mainTranslation.code,
+                    book = state.book,
+                    chapter = state.chapter
+                )
+            )
+            val subVerses = splitChapterToVerses(
+                verses(
+                    translation = subTranslation.code,
+                    book = state.book,
+                    chapter = state.chapter
+                )
+            )
+            val versePairs = if (mainVerses.size == subVerses.size) {
+                mainVerses.zip(subVerses)
+            } else {
+                val padded = addEmptyEntryToMakeSameSize(mainVerses.toList(), subVerses.toList())
+                padded.first.zip(padded.second)
+            }
+            ReadingContent.Bilingual(versePairs)
+        }
     }
 }
 

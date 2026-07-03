@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun BilingualSideBible(
     bibleState: BibleState,
+    versePairs: List<Pair<String, String>>,
     scrollState: ScrollState,
     onScrollPercentChange: (Float) -> Unit = {},
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
@@ -39,8 +40,6 @@ fun BilingualSideBible(
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_SIDE) { "ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode" }
     requireNotNull(bibleState.subTranslation) { "ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} so subTranslation is needed but null" }
-
-    val versePairs = getVersePairs(bibleState)
 
     ScrollableColumn(
         bibleState = bibleState,
@@ -96,7 +95,11 @@ fun BilingualSideBible(
     }
 }
 
-private val sideView = BibleState(SupportedTranslation.JC.translation, SupportedTranslation.WEBUS.translation, ReadingMode.BILINGUAL_SIDE)
+private val sideView = BibleState(
+    SupportedTranslation.JC.translation,
+    SupportedTranslation.WEBUS.translation,
+    ReadingMode.BILINGUAL_SIDE
+)
 
 @Preview(showBackground = true)
 @Composable
@@ -105,6 +108,7 @@ fun BilingualSideBiblePreview() {
         val scrollState = rememberScrollState()
         BilingualSideBible(
             bibleState = sideView,
+            versePairs = listOf("Sample main verse." to "Sample sub verse."),
             scrollState = scrollState
         )
     }

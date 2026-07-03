@@ -16,9 +16,10 @@ import org.gnit.bible.getPlatform
 data class BibleAppEnvironment(
     val platform: Platform,
     val assetManager: AssetManager,
-    val bible: Bible,
-    val analyzerProvider: AnalyzerProvider
-)
+    val bible: Bible
+) {
+    val analyzerProvider: AnalyzerProvider by lazy { CmpAnalyzerProvider() }
+}
 
 private fun createBibleAppEnvironment(
     platformContext: Any? = null
@@ -31,8 +32,7 @@ private fun createBibleAppEnvironment(
     return BibleAppEnvironment(
         platform = platform,
         assetManager = assetManager,
-        bible = bible,
-        analyzerProvider = CmpAnalyzerProvider()
+        bible = bible
     )
 }
 

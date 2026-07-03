@@ -114,8 +114,12 @@ fun TopBarContent(
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
     }
-    val translations = remember(bible, bibleState.translationVisibility) {
-        availableTranslationsSafe(bible, bibleState.translationVisibility)
+    val translations = remember(bible, bibleState.translationVisibility, menuExpanded) {
+        if (menuExpanded) {
+            availableTranslationsSafe(bible, bibleState.translationVisibility)
+        } else {
+            listOfNotNull(bibleState.mainTranslation, bibleState.subTranslation).distinct()
+        }
     }
 
     Surface(
