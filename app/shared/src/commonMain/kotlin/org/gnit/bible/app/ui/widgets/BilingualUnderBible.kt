@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.gnit.bible.app.ScrollableColumn
@@ -33,7 +34,9 @@ fun BilingualUnderBible(
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
     highlightedVerse: Int? = null,
     onVerseTap: (Int) -> Unit = {},
-    onVerseDoubleTap: (Int) -> Unit = {}
+    onVerseDoubleTap: (Int) -> Unit = {},
+    topContentPadding: Dp = 0.dp,
+    bottomContentPadding: Dp = 0.dp
 ) {
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_UNDER) { "ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode" }
@@ -44,7 +47,9 @@ fun BilingualUnderBible(
     ScrollableColumn(
         bibleState = bibleState,
         scrollState = scrollState,
-        onScrollPercentChange = onScrollPercentChange
+        onScrollPercentChange = onScrollPercentChange,
+        topContentPadding = topContentPadding,
+        bottomContentPadding = bottomContentPadding
     ) {
         versePairs.forEachIndexed { verse, pair ->
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value

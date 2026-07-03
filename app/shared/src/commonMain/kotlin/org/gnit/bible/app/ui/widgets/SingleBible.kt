@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.gnit.bible.Bible.Companion.splitChapterToVerses
@@ -30,7 +31,9 @@ fun SingleBible(
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
     highlightedVerse: Int? = null,
     onVerseTap: (Int) -> Unit = {},
-    onVerseDoubleTap: (Int) -> Unit = {}
+    onVerseDoubleTap: (Int) -> Unit = {},
+    topContentPadding: Dp = 0.dp,
+    bottomContentPadding: Dp = 0.dp
 ) {
     val bible = currentBible()
     val translation = bibleState.mainTranslation
@@ -42,7 +45,9 @@ fun SingleBible(
     ScrollableColumn(
         bibleState = bibleState,
         scrollState = scrollState,
-        onScrollPercentChange = onScrollPercentChange
+        onScrollPercentChange = onScrollPercentChange,
+        topContentPadding = topContentPadding,
+        bottomContentPadding = bottomContentPadding
     ) {
         verses.forEachIndexed { verse, text ->
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value

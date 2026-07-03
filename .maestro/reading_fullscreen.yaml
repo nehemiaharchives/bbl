@@ -1,0 +1,51 @@
+appId: org.gnit.bible.app
+name: Reading Fullscreen Keeps Mid Chapter Anchor
+tags:
+  - android
+  - reading
+  - fullscreen
+
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+
+- extendedWaitUntil:
+    visible: "Genesis 1"
+    timeout: 10000
+
+# Reset any persisted Genesis 1 scroll by changing chapter away and back.
+- tapOn:
+    point: "96%,96%"
+- extendedWaitUntil:
+    visible: "Genesis 2"
+    timeout: 10000
+- tapOn:
+    point: "4%,96%"
+- extendedWaitUntil:
+    visible: "Genesis 1"
+    timeout: 10000
+
+# Put the reader in the middle of the chapter. This is the state where hiding
+# the chrome must preserve the visual anchor instead of shifting text upward.
+- scrollUntilVisible:
+    element: "15 God said.*"
+    direction: DOWN
+    timeout: 10000
+    speed: 50
+    visibilityPercentage: 80
+    centerElement: true
+
+- assertVisible: "15 God said.*"
+- takeScreenshot: "reading_fullscreen_before"
+
+# Tap the content to hide the top and bottom reading controls.
+- tapOn: "15 God said.*"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- assertVisible: "15 God said.*"
+- takeScreenshot: "reading_fullscreen_after"
+
+- assertWithAI:
+    assertion: "The app is in fullscreen reading mode and the visible passage did not jump upward after the controls disappeared. Genesis 1 verse 15 remains around the middle of the screen, not shifted upward by the height of the hidden sliders or controls."

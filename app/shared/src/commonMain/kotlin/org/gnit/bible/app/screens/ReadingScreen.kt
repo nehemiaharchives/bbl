@@ -6,10 +6,15 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,13 +25,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import org.gnit.bible.app.state.BibleState
@@ -36,6 +49,10 @@ import org.gnit.bible.app.state.historySaveEventColorTransitionDurationSeconds
 import org.gnit.bible.app.ui.widgets.BilingualSideBible
 import org.gnit.bible.app.ui.widgets.BilingualUnderBible
 import org.gnit.bible.app.ui.widgets.SingleBible
+import org.gnit.bible.app.ui.widgets.sansFontFamily
+import org.gnit.bible.app.ui.widgets.serifFontFamily
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,6 +66,8 @@ fun BibleReadingArea(
     onStateChange: (BibleState) -> Unit,
     chrome: ChromeAutoHide,
     innerPadding: PaddingValues,
+    topContentPadding: Dp = 0.dp,
+    bottomContentPadding: Dp = 0.dp,
     modifier: Modifier = Modifier
 ) {
     var zoom by remember { mutableFloatStateOf(state.fontSize.toFloat()) }
@@ -137,8 +156,11 @@ fun BibleReadingArea(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(innerPadding)
             .padding(top = topChromePadding, bottom = bottomChromePadding)
+            .clipToBounds()
             .onSizeChanged { viewportHeight = it.height }
             .then(pinchZoomModifier)
     ) {
@@ -150,7 +172,9 @@ fun BibleReadingArea(
                 onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                 highlightedVerse = state.highlightedVerse,
                 onVerseTap = onVerseTap,
-                onVerseDoubleTap = onVerseDoubleTap
+                onVerseDoubleTap = onVerseDoubleTap,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding
             )
             ReadingMode.BILINGUAL_SIDE -> BilingualSideBible(
                 state,
@@ -159,7 +183,9 @@ fun BibleReadingArea(
                 onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                 highlightedVerse = state.highlightedVerse,
                 onVerseTap = onVerseTap,
-                onVerseDoubleTap = onVerseDoubleTap
+                onVerseDoubleTap = onVerseDoubleTap,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding
             )
             ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
                 state,
@@ -168,7 +194,9 @@ fun BibleReadingArea(
                 onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                 highlightedVerse = state.highlightedVerse,
                 onVerseTap = onVerseTap,
-                onVerseDoubleTap = onVerseDoubleTap
+                onVerseDoubleTap = onVerseDoubleTap,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding
             )
         }
     }
@@ -261,6 +289,8 @@ fun ScrollableColumn(
     bibleState: BibleState,
     scrollState: ScrollState,
     onScrollPercentChange: (Float) -> Unit = {},
+    topContentPadding: Dp = 0.dp,
+    bottomContentPadding: Dp = 0.dp,
     content: @Composable () -> Unit
 ) {
     Column(
@@ -268,7 +298,14 @@ fun ScrollableColumn(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
+        ReadingTitleHeader(bibleState)
+        if (topContentPadding > 0.dp) {
+            Spacer(modifier = Modifier.height(topContentPadding))
+        }
         content()
+        if (bottomContentPadding > 0.dp) {
+            Spacer(modifier = Modifier.height(bottomContentPadding))
+        }
     }
     LaunchedEffect(bibleState.book) { scrollState.scrollTo(0) }
     LaunchedEffect(bibleState.chapter) { scrollState.scrollTo(0) }
@@ -295,6 +332,35 @@ fun ScrollableColumn(
                     }
                 }
             }
+    }
+}
+
+@Composable
+private fun ReadingTitleHeader(bibleState: BibleState) {
+    val titleFontFamily = if (bibleState.isFontFamilySerif) {
+        bibleState.mainTranslation.language.serifFontFamily()
+    } else {
+        bibleState.mainTranslation.language.sansFontFamily()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 0.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = bibleState.describeBookChapter(),
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            style = TextStyle(
+                fontFamily = titleFontFamily,
+                fontSize = (max(min(bibleState.fontSize * 1.4F, 40.0F), 16F)).sp,
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier.padding(top = max(min(bibleState.fontSize, 10), 5).dp)
+        )
     }
 }
 
