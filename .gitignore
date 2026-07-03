@@ -22,6 +22,9 @@ node_modules/
 .logs
 *.perfetto
 
+app/androidApp/release/
+!app/androidApp/release/README.md
+
 /bbl_install/.bundle/
 /bbl_install/.kitchen/
 /bbl_install/vendor/bundle/
