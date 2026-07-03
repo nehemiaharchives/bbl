@@ -2,6 +2,9 @@ package org.gnit.bible.app
 
 import org.gnit.bible.SupportedTranslation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,6 +52,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -63,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import kotlinx.coroutines.delay
 import org.gnit.bible.Bible
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
@@ -83,6 +89,7 @@ import org.gnit.bible.app.ui.widgets.serifFontFamily
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -273,15 +280,44 @@ private fun TranslationDropdownMenu(
     onTranslationLongPress: (Translation) -> Unit
 ) {
     val inspectionMode = LocalInspectionMode.current
+    var keepPopupVisible by remember { mutableStateOf(expanded) }
     val popupOffset = with(LocalDensity.current) {
         IntOffset(x = 0, y = BUTTON_SIZE.dp.roundToPx())
     }
 
-    if (!expanded && !inspectionMode) {
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            keepPopupVisible = true
+        } else {
+            delay(DROPDOWN_EXIT_ANIMATION_MS.toLong().milliseconds)
+            keepPopupVisible = false
+        }
+    }
+
+    if (!keepPopupVisible && !inspectionMode) {
         return
     }
 
     val menuHeight = dropdownMenuHeight(translations.size, settingExpanded)
+    val animationSpec = tween<Float>(
+        durationMillis = if (expanded) DROPDOWN_ENTER_ANIMATION_MS else DROPDOWN_EXIT_ANIMATION_MS,
+        easing = FastOutSlowInEasing
+    )
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f,
+        animationSpec = animationSpec,
+        label = "translation-dropdown-alpha"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0.92f,
+        animationSpec = animationSpec,
+        label = "translation-dropdown-scale"
+    )
+    val animatedTranslationY by animateFloatAsState(
+        targetValue = if (expanded) 0f else -8f,
+        animationSpec = animationSpec,
+        label = "translation-dropdown-translation-y"
+    )
 
     if (inspectionMode) {
         Surface(
@@ -313,6 +349,13 @@ private fun TranslationDropdownMenu(
                 tonalElevation = 4.dp,
                 shadowElevation = 4.dp,
                 modifier = Modifier
+                    .graphicsLayer {
+                        alpha = animatedAlpha
+                        scaleX = animatedScale
+                        scaleY = animatedScale
+                        translationY = animatedTranslationY
+                        transformOrigin = TransformOrigin(1f, 0f)
+                    }
                     .width(DROPDOWN_MENU_WIDTH.dp)
                     .height(menuHeight.dp)
             ) {
@@ -548,6 +591,8 @@ private fun dropdownTranslationListHeight(translationCount: Int, settingExpanded
 }
 
 private const val DROPDOWN_MENU_MAX_VISIBLE_TRANSLATIONS = 5
+private const val DROPDOWN_ENTER_ANIMATION_MS = 160
+private const val DROPDOWN_EXIT_ANIMATION_MS = 120
 
 @Preview
 @Composable
