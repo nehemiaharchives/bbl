@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -44,6 +45,7 @@ fun BibleSlider(
     val activeStopColor = MaterialTheme.colorScheme.onPrimary
     val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     val coercedValue = value.coerceIn(valueRange.start, valueRange.endInclusive)
+    val currentOnValueChange by rememberUpdatedState(onValueChange)
     var isInteracting by remember { mutableStateOf(false) }
     val thumbDiameter by animateFloatAsState(
         targetValue = if (isInteracting || previewInteracting) {
@@ -67,7 +69,7 @@ fun BibleSlider(
                     val down = awaitFirstDown()
                     try {
                         isInteracting = true
-                        onValueChange(
+                        currentOnValueChange(
                             valueForPosition(
                                 x = down.position.x,
                                 width = size.width.toFloat(),
@@ -78,7 +80,7 @@ fun BibleSlider(
                         )
 
                         drag(down.id) { change ->
-                            onValueChange(
+                            currentOnValueChange(
                                 valueForPosition(
                                     x = change.position.x,
                                     width = size.width.toFloat(),
