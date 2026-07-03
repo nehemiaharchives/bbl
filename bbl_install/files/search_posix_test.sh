@@ -348,49 +348,49 @@ EOT
 # --- SINOD ---
 for t in 'Иисуса Христа' 'Иисуса' 'Христа'; do
   Add_Test 'SINOD' "search $t in sinod" "$(cat <<'EOT'
-От Матфея святое благовествование 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.
+Матфей 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.
 EOT
 )" 'search' "$t" 'in' 'sinod'
 done
 
 Add_Test 'SINOD' 'search Иисуса Христа in sinod in romans' "$(cat <<'EOT'
-Послание к Римлянам 1:1 Павел, раб Иисуса Христа, призванный Апостол, избранный к благовестию Божию,
+Римлянам 1:1 Павел, раб Иисуса Христа, призванный Апостол, избранный к благовестию Божию,
 EOT
 )" 'search' 'Иисуса Христа' 'in' 'sinod' 'in' 'romans'
 Add_Test 'SINOD' 'search Иисуса Христа in sinod in romans 2' "$(cat <<'EOT'
-Послание к Римлянам 2:16 в день, когда, по благовествованию моему, Бог будет судить тайные дела человеков через Иисуса Христа.
+Римлянам 2:16 в день, когда, по благовествованию моему, Бог будет судить тайные дела человеков через Иисуса Христа.
 EOT
 )" 'search' 'Иисуса Христа' 'in' 'sinod' 'in' 'romans' '2'
 Add_Test 'SINOD' 'search Иисуса Христа in sinod in romans 3-5' "$(cat <<'EOT'
-Послание к Римлянам 3:22 правда Божия через веру в Иисуса Христа во всех и на всех верующих, ибо нет различия,
+Римлянам 3:22 правда Божия через веру в Иисуса Христа во всех и на всех верующих, ибо нет различия,
 EOT
 )" 'search' 'Иисуса Христа' 'in' 'sinod' 'in' 'romans' '3-5'
 Add_Test 'SINOD' 'search Иисуса Христа in sinod in "johns letters"' "$(cat <<'EOT'
-Первое послание Иоанна 1:3 о том, что мы видели и слышали, возвещаем вам, чтобы и вы имели общение с нами: а наше общение — с Отцем и Сыном Его, Иисусом Христом.
+1 Иоанна 1:3 о том, что мы видели и слышали, возвещаем вам, чтобы и вы имели общение с нами: а наше общение — с Отцем и Сыном Его, Иисусом Христом.
 EOT
 )" 'search' 'Иисуса Христа' 'in' 'sinod' 'in' 'johns letters'
 
 # --- SVRJ ---
 for t in 'JEZUS CHRISTUS' 'JEZUS' 'CHRISTUS'; do
   Add_Test 'SVRJ' "search $t in svrj" "$(cat <<'EOT'
-MATTHEÜS 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.
+Matteüs 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.
 EOT
 )" 'search' "$t" 'in' 'svrj'
 done
 Add_Test 'SVRJ' 'search JEZUS CHRISTUS in svrj in romans' "$(cat <<'EOT'
-ROMEINEN 1:1 Paulus, een dienstknecht van Jezus Christus, een geroepen apostel, afgezonderd tot het Evangelie van God,
+Romeinen 1:1 Paulus, een dienstknecht van Jezus Christus, een geroepen apostel, afgezonderd tot het Evangelie van God,
 EOT
 )" 'search' 'JEZUS CHRISTUS' 'in' 'svrj' 'in' 'romans'
 Add_Test 'SVRJ' 'search JEZUS CHRISTUS in svrj in romans 2' "$(cat <<'EOT'
-ROMEINEN 2:16 In den dag wanneer God de verborgene dingen der mensen zal oordelen door Jezus Christus, naar mijn Evangelie.
+Romeinen 2:16 In den dag wanneer God de verborgene dingen der mensen zal oordelen door Jezus Christus, naar mijn Evangelie.
 EOT
 )" 'search' 'JEZUS CHRISTUS' 'in' 'svrj' 'in' 'romans' '2'
 Add_Test 'SVRJ' 'search JEZUS CHRISTUS in svrj in romans 3-5' "$(cat <<'EOT'
-ROMEINEN 3:22 Namelijk de rechtvaardigheid Gods door het geloof van Jezus Christus, tot allen, en over allen, die geloven; want er is geen onderscheid.
+Romeinen 3:22 Namelijk de rechtvaardigheid Gods door het geloof van Jezus Christus, tot allen, en over allen, die geloven; want er is geen onderscheid.
 EOT
 )" 'search' 'JEZUS CHRISTUS' 'in' 'svrj' 'in' 'romans' '3-5'
 Add_Test 'SVRJ' 'search JEZUS CHRISTUS in svrj in "johns letters"' "$(cat <<'EOT'
-1 JOHANNES 1:3 Hetgeen wij dan gezien en gehoord hebben, dat verkondigen wij u, opdat ook gij met ons gemeenschap zoudt hebben, en deze onze gemeenschap ook zij met den Vader, en met Zijn Zoon Jezus Christus.
+1 Johannes 1:3 Hetgeen wij dan gezien en gehoord hebben, dat verkondigen wij u, opdat ook gij met ons gemeenschap zoudt hebben, en deze onze gemeenschap ook zij met den Vader, en met Zijn Zoon Jezus Christus.
 EOT
 )" 'search' 'JEZUS CHRISTUS' 'in' 'svrj' 'in' 'johns letters'
 
@@ -399,15 +399,15 @@ for t in 'Gesù Cristo' 'Gesù' 'Cristo'; do
   Add_Test 'RDV24' "search $t in rdv24" "Matteo 1:1 Genealogia di Gesù Cristo figliuolo di Davide, figliuolo d'Abramo." 'search' "$t" 'in' 'rdv24'
 done
 Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in romans' "$(cat <<'EOT'
-EPISTOLE DI S. PAOLO AI~ROMANI 1:4 nato dal seme di Davide secondo la carne, dichiarato Figliuolo di Dio con potenza secondo lo spirito di santità mediante la sua risurrezione dai morti; cioè Gesù Cristo nostro Signore,
+Romani 1:4 nato dal seme di Davide secondo la carne, dichiarato Figliuolo di Dio con potenza secondo lo spirito di santità mediante la sua risurrezione dai morti; cioè Gesù Cristo nostro Signore,
 EOT
 )" 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'romans'
 Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in romans 2' "$(cat <<'EOT'
-EPISTOLE DI S. PAOLO AI~ROMANI 2:16 Tutto ciò si vedrà nel giorno in cui Dio giudicherà i segreti degli uomini per mezzo di Gesù Cristo, secondo il mio Evangelo.
+Romani 2:16 Tutto ciò si vedrà nel giorno in cui Dio giudicherà i segreti degli uomini per mezzo di Gesù Cristo, secondo il mio Evangelo.
 EOT
 )" 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'romans' '2'
-Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in romans 3-5' "EPISTOLE DI S. PAOLO AI~ROMANI 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;" 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'romans' '3-5'
-Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in "johns letters"' "EPISTOLA I DI S. GIOVANNI 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo." 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'johns letters'
+Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in romans 3-5' "Romani 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;" 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'romans' '3-5'
+Add_Test 'RDV24' 'search Gesù Cristo in rdv24 in "johns letters"' "1 Giovanni 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo." 'search' 'Gesù Cristo' 'in' 'rdv24' 'in' 'johns letters'
 
 # --- UBG ---
 for t in 'Jezusa Chrystusa' 'Jezusa' 'Chrystusa'; do

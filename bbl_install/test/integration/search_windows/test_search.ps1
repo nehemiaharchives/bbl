@@ -352,7 +352,7 @@ foreach ($t in @('Иисуса Христа', 'Иисуса', 'Христа')) {
     "search $t in sinod" `
     @('search', $t, 'in', 'sinod') `
     @'
-От Матфея святое благовествование 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.
+Матфей 1:1 Родословие Иисуса Христа, Сына Давидова, Сына Авраамова.
 '@
 }
 
@@ -361,7 +361,7 @@ Add-Test `
   'search Иисуса Христа in sinod in romans' `
   @('search', 'Иисуса Христа', 'in', 'sinod', 'in', 'romans') `
   @'
-Послание к Римлянам 1:1 Павел, раб Иисуса Христа, призванный Апостол, избранный к благовестию Божию,
+Римлянам 1:1 Павел, раб Иисуса Христа, призванный Апостол, избранный к благовестию Божию,
 '@
 
 Add-Test `
@@ -369,7 +369,7 @@ Add-Test `
   'search Иисуса Христа in sinod in romans 2' `
   @('search', 'Иисуса Христа', 'in', 'sinod', 'in', 'romans', '2') `
   @'
-Послание к Римлянам 2:16 в день, когда, по благовествованию моему, Бог будет судить тайные дела человеков через Иисуса Христа.
+Римлянам 2:16 в день, когда, по благовествованию моему, Бог будет судить тайные дела человеков через Иисуса Христа.
 '@
 
 Add-Test `
@@ -377,7 +377,7 @@ Add-Test `
   'search Иисуса Христа in sinod in romans 3-5' `
   @('search', 'Иисуса Христа', 'in', 'sinod', 'in', 'romans', '3-5') `
   @'
-Послание к Римлянам 3:22 правда Божия через веру в Иисуса Христа во всех и на всех верующих, ибо нет различия,
+Римлянам 3:22 правда Божия через веру в Иисуса Христа во всех и на всех верующих, ибо нет различия,
 '@
 
 Add-Test `
@@ -385,7 +385,7 @@ Add-Test `
   'search Иисуса Христа in sinod in "johns letters"' `
   @('search', 'Иисуса Христа', 'in', 'sinod', 'in', 'johns letters') `
   @'
-Первое послание Иоанна 1:3 о том, что мы видели и слышали, возвещаем вам, чтобы и вы имели общение с нами: а наше общение — с Отцем и Сыном Его, Иисусом Христом.
+1 Иоанна 1:3 о том, что мы видели и слышали, возвещаем вам, чтобы и вы имели общение с нами: а наше общение — с Отцем и Сыном Его, Иисусом Христом.
 '@
 
 # --- SVRJ ---
@@ -395,7 +395,7 @@ foreach ($t in @('JEZUS CHRISTUS', 'JEZUS', 'CHRISTUS')) {
     "search $t in svrj" `
     @('search', $t, 'in', 'svrj') `
     @'
-MATTHEÜS 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.
+Matteüs 1:1 Het boek des geslachts van JEZUS CHRISTUS, den Zoon van David, den zoon van Abraham.
 '@
 }
 
@@ -404,7 +404,7 @@ Add-Test `
   'search JEZUS CHRISTUS in svrj in romans' `
   @('search', 'JEZUS CHRISTUS', 'in', 'svrj', 'in', 'romans') `
   @'
-ROMEINEN 1:1 Paulus, een dienstknecht van Jezus Christus, een geroepen apostel, afgezonderd tot het Evangelie van God,
+Romeinen 1:1 Paulus, een dienstknecht van Jezus Christus, een geroepen apostel, afgezonderd tot het Evangelie van God,
 '@
 
 Add-Test `
@@ -412,7 +412,7 @@ Add-Test `
   'search JEZUS CHRISTUS in svrj in romans 2' `
   @('search', 'JEZUS CHRISTUS', 'in', 'svrj', 'in', 'romans', '2') `
   @'
-ROMEINEN 2:16 In den dag wanneer God de verborgene dingen der mensen zal oordelen door Jezus Christus, naar mijn Evangelie.
+Romeinen 2:16 In den dag wanneer God de verborgene dingen der mensen zal oordelen door Jezus Christus, naar mijn Evangelie.
 '@
 
 Add-Test `
@@ -420,7 +420,7 @@ Add-Test `
   'search JEZUS CHRISTUS in svrj in romans 3-5' `
   @('search', 'JEZUS CHRISTUS', 'in', 'svrj', 'in', 'romans', '3-5') `
   @'
-ROMEINEN 3:22 Namelijk de rechtvaardigheid Gods door het geloof van Jezus Christus, tot allen, en over allen, die geloven; want er is geen onderscheid.
+Romeinen 3:22 Namelijk de rechtvaardigheid Gods door het geloof van Jezus Christus, tot allen, en over allen, die geloven; want er is geen onderscheid.
 '@
 
 Add-Test `
@@ -428,7 +428,7 @@ Add-Test `
   'search JEZUS CHRISTUS in svrj in "johns letters"' `
   @('search', 'JEZUS CHRISTUS', 'in', 'svrj', 'in', 'johns letters') `
   @'
-1 JOHANNES 1:3 Hetgeen wij dan gezien en gehoord hebben, dat verkondigen wij u, opdat ook gij met ons gemeenschap zoudt hebben, en deze onze gemeenschap ook zij met den Vader, en met Zijn Zoon Jezus Christus.
+1 Johannes 1:3 Hetgeen wij dan gezien en gehoord hebben, dat verkondigen wij u, opdat ook gij met ons gemeenschap zoudt hebben, en deze onze gemeenschap ook zij met den Vader, en met Zijn Zoon Jezus Christus.
 '@
 
 # --- RDV24 ---
@@ -447,7 +447,7 @@ Add-Test `
   'search Gesù Cristo in rdv24 in romans' `
   @('search', 'Gesù Cristo', 'in', 'rdv24', 'in', 'romans') `
   @'
-EPISTOLE DI S. PAOLO AI~ROMANI 1:4 nato dal seme di Davide secondo la carne, dichiarato Figliuolo di Dio con potenza secondo lo spirito di santità mediante la sua risurrezione dai morti; cioè Gesù Cristo nostro Signore,
+Romani 1:4 nato dal seme di Davide secondo la carne, dichiarato Figliuolo di Dio con potenza secondo lo spirito di santità mediante la sua risurrezione dai morti; cioè Gesù Cristo nostro Signore,
 '@
 
 Add-Test `
@@ -455,7 +455,7 @@ Add-Test `
   'search Gesù Cristo in rdv24 in romans 2' `
   @('search', 'Gesù Cristo', 'in', 'rdv24', 'in', 'romans', '2') `
   @'
-EPISTOLE DI S. PAOLO AI~ROMANI 2:16 Tutto ciò si vedrà nel giorno in cui Dio giudicherà i segreti degli uomini per mezzo di Gesù Cristo, secondo il mio Evangelo.
+Romani 2:16 Tutto ciò si vedrà nel giorno in cui Dio giudicherà i segreti degli uomini per mezzo di Gesù Cristo, secondo il mio Evangelo.
 '@
 
 Add-Test `
@@ -463,7 +463,7 @@ Add-Test `
   'search Gesù Cristo in rdv24 in romans 3-5' `
   @('search', 'Gesù Cristo', 'in', 'rdv24', 'in', 'romans', '3-5') `
   @'
-EPISTOLE DI S. PAOLO AI~ROMANI 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;
+Romani 3:22 vale a dire la giustizia di Dio mediante la fede in Gesù Cristo, per tutti i credenti; poiché non v'è distinzione;
 '@
 
 Add-Test `
@@ -471,7 +471,7 @@ Add-Test `
   'search Gesù Cristo in rdv24 in "johns letters"' `
   @('search', 'Gesù Cristo', 'in', 'rdv24', 'in', 'johns letters') `
   @'
-EPISTOLA I DI S. GIOVANNI 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo.
+1 Giovanni 1:3 quello, dico, che abbiamo veduto e udito, noi l'annunziamo anche a voi, affinché voi pure abbiate comunione con noi, e la nostra comunione è col Padre e col suo Figliuolo, Gesù Cristo.
 '@
 
 # --- UBG ---
