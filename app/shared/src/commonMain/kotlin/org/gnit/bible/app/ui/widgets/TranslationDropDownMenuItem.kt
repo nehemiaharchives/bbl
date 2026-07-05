@@ -43,6 +43,21 @@ const val DROPDOWN_MENU_HEIGHT = 55
 const val DROPDOWN_MENU_HEIGHT_EXPANDED = DROPDOWN_MENU_HEIGHT
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
 
+private fun Translation.dropdownMenuLabel(settingExpanded: Boolean): String {
+    if (settingExpanded) return shortName()
+
+    return when (code) {
+        "irvhin",
+        "irvben",
+        "irvtam",
+        "irvguj",
+        "irvmar",
+        "irvtel",
+        "irvurd" -> "IRV ${language.nativeName}"
+        else -> nativeName
+    }
+}
+
 @Composable
 fun TranslationDropDownMenuItem(
     settingExpanded: Boolean,
@@ -56,7 +71,7 @@ fun TranslationDropDownMenuItem(
     modifier: Modifier = Modifier,
 ){
 
-    val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
+    val text = translationItem.dropdownMenuLabel(settingExpanded)
 
     Box(modifier = modifier
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
@@ -178,117 +193,12 @@ fun KrvCollapsed() {
 
 @Preview(showBackground = true)
 @Composable
-fun SingleMain() {
+fun IrvTamCollapsed() {
     BibleTheme {
         TranslationDropDownMenuItem(
-            settingExpanded = true,
+            settingExpanded = false,
             bibleState = BibleState(),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SingleNoMatch() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(),
-            translationItem = SupportedTranslation.JC.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SideMain() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SideNoMatch() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.KRV.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SideSub() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun UnderMain() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun UnderNoMatch() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.KRV.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
-            translationItem = SupportedTranslation.WEBUS.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun UnderSub() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = true,
-            bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
-            translationItem = SupportedTranslation.WEBUS.translation,
+            translationItem = SupportedTranslation.IRVTAM.translation,
             onClickSingleIcon = {},
             onClickSideIcon = {},
             onClickUnderIcon = {}
