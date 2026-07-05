@@ -165,7 +165,11 @@ fun BibleReadingArea(
         onStateChange(currentState.copy(scrollPercent = scrollPercent))
     }
     val onVerseTap: (Int) -> Unit = {
-        if (chrome.isVisible()) {
+        if (currentState.isSearchActive) {
+            onStateChange(currentState.clearSearch())
+            chrome.setPause(false)
+            chrome.forceShow()
+        } else if (chrome.isVisible()) {
             chrome.forceHide()
         } else {
             chrome.forceShow()
