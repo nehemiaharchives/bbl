@@ -70,6 +70,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import org.gnit.bible.AssetManager
+import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
@@ -601,6 +602,7 @@ private fun availableTranslationsForDropdown(
     val catalogTranslations = SupportedTranslation.all
         .filter { it.code in availableCodes }
         .filter { visibility[it.code] ?: true }
+        .sortedWith(dropdownTranslationComparator)
 
     val catalogCodes = catalogTranslations.map { it.code }.toSet()
     val selectedExtras = selectedTranslations
@@ -609,6 +611,20 @@ private fun availableTranslationsForDropdown(
         .filter { visibility[it.code] ?: true }
 
     return catalogTranslations + selectedExtras
+}
+
+private val dropdownTranslationComparator = compareBy<Translation> { it.language.order }
+    .thenBy { englishTranslationOrder(it) }
+    .thenBy { it.nativeName }
+    .thenBy { it.code }
+
+private fun englishTranslationOrder(translation: Translation): Int {
+    if (translation.languageCode != Language.en.code) return 0
+    return when (translation.code) {
+        SupportedTranslation.WEBUS.code -> 0
+        SupportedTranslation.KJV.code -> 1
+        else -> 2
+    }
 }
 
 private fun dropdownMenuHeight(translationCount: Int, settingExpanded: Boolean): Int =
