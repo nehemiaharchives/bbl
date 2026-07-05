@@ -1,0 +1,336 @@
+name: CI / CLI
+
+on:
+  workflow_call:
+
+jobs:
+  jvm-tests:
+    name: CLI JVM tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run JVM tests
+        run: |
+          ./gradlew \
+            :cli:core:jvmTest \
+            :cli:search:common:jvmTest \
+            :cli:search:extra:jvmTest \
+            :cli:search:kuromoji:jvmTest \
+            :cli:search:morfologik:jvmTest \
+            :cli:search:nori:jvmTest \
+            :cli:search:smartcn:jvmTest
+
+  native-tests:
+    name: CLI Native Test (${{ matrix.module_name }}/${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 60
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+          - platform: linux-arm64
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 60
+            task: :cli:core:linkDebugTestLinuxArm64
+            needs_konan_cache: true
+            saves_konan_cache: true
+            konan_cache_key: Linux-arm64
+            needs_linux_arm64_runtime: true
+            test_binary_path: cli/core/build/bin/linuxArm64/debugTest/test.kexe
+          - platform: macos
+            module_name: cli-core
+            os: macos-latest
+            timeout: 60
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+          - platform: mingw
+            module_name: cli-core
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-common
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:common:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-extra
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:extra:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-kuromoji
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:kuromoji:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-morfologik
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:morfologik:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-nori
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:nori:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-smartcn
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:smartcn:linuxX64Test
+            needs_konan_cache: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        if: ${{ matrix.needs_konan_cache }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key || runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key || runner.os }}-konan-
+
+      - name: Run task
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Install Linux arm64 runtime
+        if: ${{ matrix.needs_linux_arm64_runtime }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y qemu-user
+
+      - name: Run linuxArm64 test binary
+        if: ${{ matrix.test_binary_path }}
+        run: |
+          set -euo pipefail
+          chmod +x "${{ matrix.test_binary_path }}"
+          konan_sysroot="$(find "$HOME/.konan/dependencies" -path '*/aarch64-unknown-linux-gnu/sysroot' -type d | head -n 1)"
+          test -n "$konan_sysroot"
+          test -f "$konan_sysroot/lib/ld-linux-aarch64.so.1"
+          test -f "$konan_sysroot/lib/libcrypt.so.1"
+          qemu-aarch64 -L "$konan_sysroot" "${{ matrix.test_binary_path }}"
+
+      - name: Save Konan Cache
+        if: ${{ matrix.saves_konan_cache && steps.konan-cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.konan
+          key: ${{ steps.konan-cache-restore.outputs.cache-primary-key }}
+
+  packages:
+    name: CLI Package (${{ matrix.module_name }}/${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            module_name: installer-pkg
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+            fixture_task: stageBblInstallMacosArm64PkgFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-pkg-files
+            fixture_path: build/bblInstallFixtures/macosArm64/pkg
+          - platform: macos
+            module_name: homebrew
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+            fixture_task: stageBblInstallMacosArm64HomebrewFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-homebrew-files
+            fixture_path: build/bblInstallFixtures/macosArm64/homebrew
+          - platform: linux-x64
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxDebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-deb-files
+            fixture_path: build/bblInstallFixtures/linux/deb
+          - platform: linux-arm64
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            konan_cache_key: Linux-arm64
+            fixture_task: stageBblInstallLinuxArm64DebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-arm64-deb-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/deb
+          - platform: linux-x64
+            module_name: installer-rpm
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxRpmFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
+            fixture_artifact_name: bbl-install-linux-rpm-files
+            fixture_path: build/bblInstallFixtures/linux/rpm
+          - platform: linux-x64
+            module_name: installer-archlinux
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArchlinuxFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
+            fixture_artifact_name: bbl-install-linux-archlinux-files
+            fixture_path: build/bblInstallFixtures/linux/archlinux
+          - platform: linux-x64
+            module_name: installer-nix
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxNixFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-nix-files
+            fixture_path: build/bblInstallFixtures/linux/nix
+          - platform: linux-x64
+            module_name: installer-apk
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxX64AlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+            fixture_artifact_name: bbl-install-linux-alpine-files
+            fixture_path: build/bblInstallFixtures/linux/alpine
+          - platform: mingw
+            module_name: installer-msi
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallWindowsMsiFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-windows-msi-files
+            fixture_path: build/bblInstallFixtures/windows/msi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        if: ${{ matrix.needs_konan_cache }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key || runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key || runner.os }}-konan-
+
+      - name: Run task
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Install nFPM
+        if: ${{ matrix.needs_nfpm }}
+        run: |
+          set -euo pipefail
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+          nfpm --version
+
+      - name: Setup .NET SDK
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install WiX Toolset
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        env:
+          WIX_OSMF_EULA: accept
+        run: dotnet tool install --global wix
+
+      - name: Run fixture task
+        env:
+          WIX_OSMF_EULA: ${{ matrix.module_name == 'installer-msi' && 'accept' || '' }}
+        run: ./gradlew ${{ matrix.fixture_task }}
+
+      - name: Upload fixture artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.fixture_artifact_name }}
+          path: |
+            ${{ matrix.fixture_path }}
+            build/bblInstallFixtures/common
+          if-no-files-found: error
+          retention-days: 1
