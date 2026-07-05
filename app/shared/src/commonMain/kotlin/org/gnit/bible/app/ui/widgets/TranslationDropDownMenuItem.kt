@@ -205,3 +205,123 @@ fun IrvTamCollapsed() {
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun SingleMain() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SingleNoMatch() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.JC.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SideMain() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SideNoMatch() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.KRV.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SideSub() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderMain() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderNoMatch() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.KRV.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderSub() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
