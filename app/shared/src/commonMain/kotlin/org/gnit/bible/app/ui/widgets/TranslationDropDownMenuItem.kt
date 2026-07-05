@@ -65,7 +65,7 @@ fun TranslationDropDownMenuItem(
             .getOrElse { SupportedTranslation.embeddedTranslations }
             .count { bibleState.translationVisibility[it.code] ?: true }
     }
-    val showBilingualIcons = visibleTranslationCount > 1
+    val showReadingModeIcons = visibleTranslationCount > 1
 
     Box(modifier = modifier
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
@@ -85,7 +85,7 @@ fun TranslationDropDownMenuItem(
                 .fillMaxWidth()
         )
 
-        if (settingExpanded){
+        if (settingExpanded && showReadingModeIcons){
             Row(modifier.align(Alignment.CenterEnd)) {
 
                 Icon(
@@ -99,44 +99,42 @@ fun TranslationDropDownMenuItem(
                     }
                 )
 
-                if (showBilingualIcons) {
-                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+                Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
 
-                    Icon(
-                        imageVector = if (bibleState.isSingleMain(translationItem)) {
-                            vectorResource(Res.drawable.square_empty)
-                        } else if(bibleState.isSideMain(translationItem)){
-                            vectorResource(Res.drawable.square_half_left_black)
-                        }else{
-                            vectorResource(Res.drawable.square_half_right_black)},
-                        contentDescription = "Bilingual Side Bible",
-                        modifier = Modifier.size(BIBLE_VIEW_ICON.dp).clickable { onClickSideIcon() },
-                        tint = if (bibleState.isSideMainOrSub(translationItem)) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.secondary
-                        }
-                    )
+                Icon(
+                    imageVector = if (bibleState.isSingleMain(translationItem)) {
+                        vectorResource(Res.drawable.square_empty)
+                    } else if(bibleState.isSideMain(translationItem)){
+                        vectorResource(Res.drawable.square_half_left_black)
+                    }else{
+                        vectorResource(Res.drawable.square_half_right_black)},
+                    contentDescription = "Bilingual Side Bible",
+                    modifier = Modifier.size(BIBLE_VIEW_ICON.dp).clickable { onClickSideIcon() },
+                    tint = if (bibleState.isSideMainOrSub(translationItem)) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.secondary
+                    }
+                )
 
-                    Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
+                Spacer(modifier = Modifier.width(BIBLE_VIEW_ICON_SPACER.dp))
 
-                    Icon(
-                        imageVector =if (bibleState.isSingleMain(translationItem)) {
-                            vectorResource(Res.drawable.square_empty)
-                        } else if(bibleState.isUnderMain(translationItem)){
-                            vectorResource(Res.drawable.square_half_top_black)
-                        }else{
-                            vectorResource(Res.drawable.square_half_bottom_black)
-                        },
-                        contentDescription = "Bilingual Under Bible",
-                        modifier = Modifier.size(BIBLE_VIEW_ICON.dp).clickable { onClickUnderIcon() },
-                        tint = if (bibleState.isUnderMainOrSub(translationItem)) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.secondary
-                        }
-                    )
-                }
+                Icon(
+                    imageVector =if (bibleState.isSingleMain(translationItem)) {
+                        vectorResource(Res.drawable.square_empty)
+                    } else if(bibleState.isUnderMain(translationItem)){
+                        vectorResource(Res.drawable.square_half_top_black)
+                    }else{
+                        vectorResource(Res.drawable.square_half_bottom_black)
+                    },
+                    contentDescription = "Bilingual Under Bible",
+                    modifier = Modifier.size(BIBLE_VIEW_ICON.dp).clickable { onClickUnderIcon() },
+                    tint = if (bibleState.isUnderMainOrSub(translationItem)) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.secondary
+                    }
+                )
             }
         }
     }
