@@ -338,17 +338,32 @@ private fun buildTranslationEntries(
     downloadedCodes: List<String>,
     downloadable: List<Translation>
 ): List<TranslationEntry> {
-    val embedded = SupportedTranslation.embeddedTranslations.map { TranslationEntry(it, InstallationState.EMBEDDED) }
+    val embeddedCodeSet = SupportedTranslation.embeddedTranslations.map { it.code }.toSet()
+    val downloadedCodeSet = downloadedCodes.toSet()
+    val zipBibleResourcesReader = bible.obtainZipBibleResourcesReader()
+    val downloadedTranslationsByCode = downloadedCodes.mapNotNull { code ->
+        runCatching { zipBibleResourcesReader.getTranslationFromManifest(code) }.getOrNull()
+    }.associateBy { it.code }
 
-    val downloadedTranslations = downloadedCodes.mapNotNull { code ->
-        runCatching { bible.obtainZipBibleResourcesReader().getTranslationFromManifest(code) }.getOrNull()
-    }.map { TranslationEntry(it, InstallationState.DOWNLOADED) }
+    val catalogCodes = downloadable.map { it.code }.toSet()
+    val catalogEntries = downloadable.map { translation ->
+        val source = when (translation.code) {
+            in embeddedCodeSet -> InstallationState.EMBEDDED
+            in downloadedCodeSet -> InstallationState.DOWNLOADED
+            else -> InstallationState.DOWNLOADABLE
+        }
 
-    val notDownloaded = downloadable.filterNot { candidate ->
-        downloadedCodes.contains(candidate.code) || SupportedTranslation.embeddedTranslations.any { it.code == candidate.code }
-    }.map { TranslationEntry(it, InstallationState.DOWNLOADABLE) }
+        TranslationEntry(
+            translation = downloadedTranslationsByCode[translation.code] ?: translation,
+            source = source
+        )
+    }
 
-    return embedded + downloadedTranslations + notDownloaded
+    val extraDownloadedEntries = downloadedCodes.filterNot { it in catalogCodes }.mapNotNull { code ->
+        downloadedTranslationsByCode[code]?.let { TranslationEntry(it, InstallationState.DOWNLOADED) }
+    }
+
+    return catalogEntries + extraDownloadedEntries
 }
 
 private fun downloadedTranslationCodesSafe(assetManager: org.gnit.bible.AssetManager): List<String> =
