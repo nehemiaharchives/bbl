@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
@@ -39,6 +40,7 @@ const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
 const val DROPDOWN_MENU_HEIGHT = 55
+const val DROPDOWN_MENU_FONTSIZE = 14
 // Settings expansion changes content only; row height and dropdown height stay stable.
 const val DROPDOWN_MENU_HEIGHT_EXPANDED = DROPDOWN_MENU_HEIGHT
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
@@ -69,7 +71,8 @@ fun TranslationDropDownMenuItem(
     ){
         Text(
             text = text,
-            maxLines = 2,
+            maxLines = 3,
+            fontSize = DROPDOWN_MENU_FONTSIZE.sp,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             modifier = modifier
                 .align(Alignment.CenterStart)
@@ -139,6 +142,39 @@ fun WebusCollapsed() {
             settingExpanded = false,
             bibleState = BibleState(),
             translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SvrjCollapsed() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = false,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.SVRJ.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+/**
+ * This translation has the longest native name
+*/
+@Preview(showBackground = true)
+@Composable
+fun IrvTamCollapsed() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = false,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.IRVTAM.translation,
             onClickSingleIcon = {},
             onClickSideIcon = {},
             onClickUnderIcon = {}
