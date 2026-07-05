@@ -32,7 +32,8 @@ fun SingleBible(
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
     topContentPadding: Dp = 0.dp,
-    bottomContentPadding: Dp = 0.dp
+    bottomContentPadding: Dp = 0.dp,
+    onTitleTap: () -> Unit = {}
 ) {
     val translation = bibleState.mainTranslation
 
@@ -41,7 +42,8 @@ fun SingleBible(
         scrollState = scrollState,
         onScrollPercentChange = onScrollPercentChange,
         topContentPadding = topContentPadding,
-        bottomContentPadding = bottomContentPadding
+        bottomContentPadding = bottomContentPadding,
+        onTitleTap = onTitleTap
     ) {
         verses.forEachIndexed { verse, text ->
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
