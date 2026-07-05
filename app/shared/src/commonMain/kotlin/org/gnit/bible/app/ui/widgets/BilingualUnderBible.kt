@@ -24,8 +24,6 @@ import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.ui.theme.BibleTheme
 import androidx.compose.ui.tooling.preview.Preview
 
-// serifFontFamily and sansFontFamily are in this package, no import needed
-
 @Composable
 fun BilingualUnderBible(
     bibleState: BibleState,
@@ -37,18 +35,20 @@ fun BilingualUnderBible(
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
     topContentPadding: Dp = 0.dp,
-    bottomContentPadding: Dp = 0.dp
+    bottomContentPadding: Dp = 0.dp,
+    onTitleTap: () -> Unit = {}
 ) {
     val readingMode = bibleState.readingMode
-    require(readingMode == ReadingMode.BILINGUAL_UNDER) { "ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} but trying to put $readingMode" }
-    requireNotNull(bibleState.subTranslation) { "ReadingMode should be ${ReadingMode.BILINGUAL_UNDER} so subTranslation is needed but null" }
+    require(readingMode == ReadingMode.BILINGUAL_UNDER) { "Expected ${ReadingMode.BILINGUAL_UNDER}, got $readingMode" }
+    requireNotNull(bibleState.subTranslation) { "subTranslation is required for ${ReadingMode.BILINGUAL_UNDER}" }
 
     ScrollableColumn(
         bibleState = bibleState,
         scrollState = scrollState,
         onScrollPercentChange = onScrollPercentChange,
         topContentPadding = topContentPadding,
-        bottomContentPadding = bottomContentPadding
+        bottomContentPadding = bottomContentPadding,
+        onTitleTap = onTitleTap
     ) {
         versePairs.forEachIndexed { verse, pair ->
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
@@ -110,7 +110,7 @@ fun BilingualUnderBiblePreview() {
         val scrollState = rememberScrollState()
         BilingualUnderBible(
             bibleState = downView,
-            versePairs = listOf("Sample main verse." to "Sample sub verse."),
+            versePairs = listOf("Main" to "Sub"),
             scrollState = scrollState
         )
     }
