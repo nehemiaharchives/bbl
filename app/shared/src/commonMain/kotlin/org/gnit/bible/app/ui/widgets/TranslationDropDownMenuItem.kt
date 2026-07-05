@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.Translation
@@ -244,6 +243,51 @@ fun SideSub() {
         TranslationDropDownMenuItem(
             settingExpanded = true,
             bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_SIDE),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderMain() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderNoMatch() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.KRV.translation, subTranslation = SupportedTranslation.JC.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
+            translationItem = SupportedTranslation.WEBUS.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UnderSub() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = true,
+            bibleState = BibleState(mainTranslation = SupportedTranslation.JC.translation, subTranslation = SupportedTranslation.WEBUS.translation, readingMode = ReadingMode.BILINGUAL_UNDER),
             translationItem = SupportedTranslation.WEBUS.translation,
             onClickSingleIcon = {},
             onClickSideIcon = {},
