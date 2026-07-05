@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
@@ -38,25 +39,11 @@ const val BIBLE_VIEW_ICON = 20
 const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
-const val DROPDOWN_MENU_HEIGHT = 55
+const val DROPDOWN_MENU_HEIGHT = 72
+const val DROPDOWN_MENU_FONTSIZE = 17
 // Settings expansion changes content only; row height and dropdown height stay stable.
 const val DROPDOWN_MENU_HEIGHT_EXPANDED = DROPDOWN_MENU_HEIGHT
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
-
-private fun Translation.dropdownMenuLabel(settingExpanded: Boolean): String {
-    if (settingExpanded) return shortName()
-
-    return when (code) {
-        "irvhin",
-        "irvben",
-        "irvtam",
-        "irvguj",
-        "irvmar",
-        "irvtel",
-        "irvurd" -> "IRV ${language.nativeName}"
-        else -> nativeName
-    }
-}
 
 @Composable
 fun TranslationDropDownMenuItem(
@@ -71,7 +58,7 @@ fun TranslationDropDownMenuItem(
     modifier: Modifier = Modifier,
 ){
 
-    val text = translationItem.dropdownMenuLabel(settingExpanded)
+    val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
 
     Box(modifier = modifier
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
@@ -84,7 +71,8 @@ fun TranslationDropDownMenuItem(
     ){
         Text(
             text = text,
-            maxLines = 2,
+            maxLines = 3,
+            fontSize = DROPDOWN_MENU_FONTSIZE.sp,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             modifier = modifier
                 .align(Alignment.CenterStart)
@@ -163,6 +151,36 @@ fun WebusCollapsed() {
 
 @Preview(showBackground = true)
 @Composable
+fun SvrjCollapsed() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = false,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.SVRJ.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun IrvTamCollapsed() {
+    BibleTheme {
+        TranslationDropDownMenuItem(
+            settingExpanded = false,
+            bibleState = BibleState(),
+            translationItem = SupportedTranslation.IRVTAM.translation,
+            onClickSingleIcon = {},
+            onClickSideIcon = {},
+            onClickUnderIcon = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
 fun JcCollapsed() {
     BibleTheme {
         TranslationDropDownMenuItem(
@@ -184,21 +202,6 @@ fun KrvCollapsed() {
             settingExpanded = false,
             bibleState = BibleState(),
             translationItem = SupportedTranslation.KRV.translation,
-            onClickSingleIcon = {},
-            onClickSideIcon = {},
-            onClickUnderIcon = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun IrvTamCollapsed() {
-    BibleTheme {
-        TranslationDropDownMenuItem(
-            settingExpanded = false,
-            bibleState = BibleState(),
-            translationItem = SupportedTranslation.IRVTAM.translation,
             onClickSingleIcon = {},
             onClickSideIcon = {},
             onClickUnderIcon = {}
