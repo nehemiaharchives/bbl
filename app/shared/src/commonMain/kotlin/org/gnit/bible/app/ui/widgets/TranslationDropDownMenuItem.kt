@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -56,9 +56,10 @@ fun TranslationDropDownMenuItem(
 ){
 
     val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
+    val rowHeight = if (settingExpanded) DROPDOWN_MENU_HEIGHT_EXPANDED else DROPDOWN_MENU_HEIGHT
 
     Box(modifier = modifier
-        .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
+        .height(rowHeight.dp)
         .width(DROPDOWN_MENU_WIDTH.dp)
         .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
         .combinedClickable(
