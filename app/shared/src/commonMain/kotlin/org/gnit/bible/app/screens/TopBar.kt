@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
-import org.gnit.bible.Bible
+import org.gnit.bible.AssetManager
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
@@ -109,16 +109,26 @@ fun TopBarContent(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var settingExpanded by remember { mutableStateOf(false) }
-    val bible = currentBible()
+    val assetManager = currentAssetManager()
 
     val bibleTitle by remember(bibleState.book, bibleState.chapter, bibleState.mainTranslation) {
         mutableStateOf(bibleState.describeBookChapter())
     }
-    val translations = remember(bible, bibleState.translationVisibility, menuExpanded) {
+    val selectedTranslations = listOfNotNull(bibleState.mainTranslation, bibleState.subTranslation).distinct()
+    val translations = remember(
+        assetManager,
+        bibleState.translationVisibility,
+        menuExpanded,
+        selectedTranslations
+    ) {
         if (menuExpanded) {
-            availableTranslationsSafe(bible, bibleState.translationVisibility)
+            availableTranslationsForDropdown(
+                assetManager = assetManager,
+                visibility = bibleState.translationVisibility,
+                selectedTranslations = selectedTranslations
+            )
         } else {
-            listOfNotNull(bibleState.mainTranslation, bibleState.subTranslation).distinct()
+            selectedTranslations
         }
     }
 
@@ -391,6 +401,7 @@ private fun DropdownMenuContent(
 ) {
     val listHeight = dropdownTranslationListHeight(translations.size, settingExpanded)
     val menuHeight = listHeight + DROPDOWN_MENU_HEIGHT
+    val showReadingModeIcons = translations.size > 1
 
     Box(
         modifier = Modifier
@@ -421,6 +432,7 @@ private fun DropdownMenuContent(
                         settingExpanded = settingExpanded,
                         bibleState = bibleState,
                         translationItem = translationItem,
+                        showReadingModeIcons = showReadingModeIcons,
                         onClickSingleIcon = {
                             if (bibleState.readingMode == ReadingMode.SINGLE && bibleState.mainTranslation != translationItem) {
                                 logger.debug { "DropDownMenu $translationItem is selected, this will change mainTranslation in SingleView" }
@@ -578,12 +590,26 @@ private fun DropdownMenuContent(
     }
 }
 
-private fun availableTranslationsSafe(
-    bible: Bible,
-    visibility: Map<String, Boolean> = emptyMap()
-): List<Translation> =
-    runCatching { bible.availableTranslations() }.getOrElse { SupportedTranslation.embeddedTranslations }
+private fun availableTranslationsForDropdown(
+    assetManager: AssetManager,
+    visibility: Map<String, Boolean> = emptyMap(),
+    selectedTranslations: List<Translation> = emptyList()
+): List<Translation> {
+    val embeddedCodes = SupportedTranslation.embeddedTranslations.map { it.code }.toSet()
+    val downloadedCodes = runCatching { assetManager.downloadedTranslationCodes().toSet() }.getOrElse { emptySet() }
+    val availableCodes = embeddedCodes + downloadedCodes
+    val catalogTranslations = SupportedTranslation.all
+        .filter { it.code in availableCodes }
         .filter { visibility[it.code] ?: true }
+
+    val catalogCodes = catalogTranslations.map { it.code }.toSet()
+    val selectedExtras = selectedTranslations
+        .filter { it.code !in catalogCodes }
+        .filter { it.code in availableCodes }
+        .filter { visibility[it.code] ?: true }
+
+    return catalogTranslations + selectedExtras
+}
 
 private fun dropdownMenuHeight(translationCount: Int, settingExpanded: Boolean): Int =
     dropdownTranslationListHeight(translationCount, settingExpanded) + DROPDOWN_MENU_HEIGHT
