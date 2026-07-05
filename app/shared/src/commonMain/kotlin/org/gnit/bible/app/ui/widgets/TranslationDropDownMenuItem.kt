@@ -8,19 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.Translation
+import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.Res
@@ -40,7 +42,7 @@ const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
 const val DROPDOWN_MENU_HEIGHT = 55
-// Settings expansion changes row content only; row height and dropdown height stay stable.
+// Settings expansion changes content only; row height and dropdown height stay stable.
 const val DROPDOWN_MENU_HEIGHT_EXPANDED = DROPDOWN_MENU_HEIGHT
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
 
@@ -57,10 +59,16 @@ fun TranslationDropDownMenuItem(
 ){
 
     val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
-    val rowHeight = if (settingExpanded) DROPDOWN_MENU_HEIGHT_EXPANDED else DROPDOWN_MENU_HEIGHT
+    val bible = currentBible()
+    val visibleTranslationCount = remember(bible, bibleState.translationVisibility) {
+        runCatching { bible.availableTranslations() }
+            .getOrElse { SupportedTranslation.embeddedTranslations }
+            .count { bibleState.translationVisibility[it.code] ?: true }
+    }
+    val showReadingModeIcons = visibleTranslationCount > 1
 
     Box(modifier = modifier
-        .height(rowHeight.dp)
+        .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
         .width(DROPDOWN_MENU_WIDTH.dp)
         .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
         .combinedClickable(
@@ -77,7 +85,7 @@ fun TranslationDropDownMenuItem(
                 .fillMaxWidth()
         )
 
-        if (settingExpanded){
+        if (settingExpanded && showReadingModeIcons){
             Row(modifier.align(Alignment.CenterEnd)) {
 
                 Icon(
