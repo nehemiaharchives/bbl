@@ -1,8 +1,10 @@
 package org.gnit.bible.app
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +76,8 @@ fun BibleReadingArea(
     innerPadding: PaddingValues,
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
+    onSearchRequested: () -> Unit = {},
+    onSearchCancel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var zoom by remember { mutableFloatStateOf(state.fontSize.toFloat()) }
@@ -164,8 +168,15 @@ fun BibleReadingArea(
     val onScrollPercentChange: (Float) -> Unit = { scrollPercent ->
         onStateChange(currentState.copy(scrollPercent = scrollPercent))
     }
+    val onTitleTap: () -> Unit = {
+        if (!currentState.isSearchActive) {
+            onSearchRequested()
+        }
+    }
     val onVerseTap: (Int) -> Unit = {
-        if (chrome.isVisible()) {
+        if (currentState.isSearchActive) {
+            onSearchCancel()
+        } else if (chrome.isVisible()) {
             chrome.forceHide()
         } else {
             chrome.forceShow()
@@ -193,7 +204,8 @@ fun BibleReadingArea(
                 scrollState = scrollState,
                 onScrollPercentChange = onScrollPercentChange,
                 topContentPadding = topContentPadding,
-                bottomContentPadding = bottomContentPadding
+                bottomContentPadding = bottomContentPadding,
+                onTitleTap = onTitleTap
             ) {
             }
 
@@ -207,7 +219,8 @@ fun BibleReadingArea(
                 onVerseTap = onVerseTap,
                 onVerseDoubleTap = onVerseDoubleTap,
                 topContentPadding = topContentPadding,
-                bottomContentPadding = bottomContentPadding
+                bottomContentPadding = bottomContentPadding,
+                onTitleTap = onTitleTap
             )
 
             is ReadingContent.Bilingual -> when (state.readingMode) {
@@ -221,7 +234,8 @@ fun BibleReadingArea(
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
                     topContentPadding = topContentPadding,
-                    bottomContentPadding = bottomContentPadding
+                    bottomContentPadding = bottomContentPadding,
+                    onTitleTap = onTitleTap
                 )
 
                 ReadingMode.BILINGUAL_UNDER -> BilingualUnderBible(
@@ -234,7 +248,8 @@ fun BibleReadingArea(
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
                     topContentPadding = topContentPadding,
-                    bottomContentPadding = bottomContentPadding
+                    bottomContentPadding = bottomContentPadding,
+                    onTitleTap = onTitleTap
                 )
 
                 ReadingMode.SINGLE -> Unit
@@ -378,6 +393,7 @@ fun ScrollableColumn(
     onScrollPercentChange: (Float) -> Unit = {},
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
+    onTitleTap: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
     Column(
@@ -385,7 +401,7 @@ fun ScrollableColumn(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        ReadingTitleHeader(bibleState)
+        ReadingTitleHeader(bibleState, onTitleTap)
         if (topContentPadding > 0.dp) {
             Spacer(modifier = Modifier.height(topContentPadding))
         }
@@ -423,16 +439,24 @@ fun ScrollableColumn(
 }
 
 @Composable
-private fun ReadingTitleHeader(bibleState: BibleState) {
+private fun ReadingTitleHeader(
+    bibleState: BibleState,
+    onTitleTap: () -> Unit
+) {
     val titleFontFamily = if (bibleState.isFontFamilySerif) {
         bibleState.mainTranslation.language.serifFontFamily()
     } else {
         bibleState.mainTranslation.language.sansFontFamily()
     }
+    val titleInteractionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(
+                interactionSource = titleInteractionSource,
+                indication = null
+            ) { onTitleTap() }
             .padding(horizontal = 12.dp, vertical = 0.dp),
         contentAlignment = Alignment.Center
     ) {

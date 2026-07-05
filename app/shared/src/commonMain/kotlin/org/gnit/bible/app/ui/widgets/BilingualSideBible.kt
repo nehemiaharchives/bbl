@@ -35,7 +35,8 @@ fun BilingualSideBible(
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
     topContentPadding: Dp = 0.dp,
-    bottomContentPadding: Dp = 0.dp
+    bottomContentPadding: Dp = 0.dp,
+    onTitleTap: () -> Unit = {}
 ) {
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_SIDE) { "ReadingMode should be ${ReadingMode.BILINGUAL_SIDE} but trying to put $readingMode" }
@@ -46,7 +47,8 @@ fun BilingualSideBible(
         scrollState = scrollState,
         onScrollPercentChange = onScrollPercentChange,
         topContentPadding = topContentPadding,
-        bottomContentPadding = bottomContentPadding
+        bottomContentPadding = bottomContentPadding,
+        onTitleTap = onTitleTap
     ) {
         versePairs.forEachIndexed { verse, pair ->
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
