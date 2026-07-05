@@ -78,7 +78,7 @@ fun BibleApp(
     }
     val bottomChromeHeight = with(density) { bottomChromeHeightPx.toDp() }
     val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val topReadingSpacer = if (!bibleState.isSearchActive) bookControlsHeight else 0.dp
+    val topReadingSpacer = bookControlsHeight
     val bottomReadingSpacer = if (bottomChromeHeight > navigationBarHeight) {
         bottomChromeHeight - navigationBarHeight
     } else {
