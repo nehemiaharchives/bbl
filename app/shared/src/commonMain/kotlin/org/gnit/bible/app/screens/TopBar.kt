@@ -615,16 +615,18 @@ private fun availableTranslationsForDropdown(
 
 private val dropdownTranslationComparator = compareBy<Translation> { it.language.order }
     .thenBy { englishTranslationOrder(it) }
+    .thenBy { englishTranslationCode(it) }
     .thenBy { it.nativeName }
     .thenBy { it.code }
 
 private fun englishTranslationOrder(translation: Translation): Int {
     if (translation.languageCode != Language.en.code) return 0
-    return when (translation.code) {
-        SupportedTranslation.WEBUS.code -> 0
-        SupportedTranslation.KJV.code -> 1
-        else -> 2
-    }
+    return if (translation.code == SupportedTranslation.WEBUS.code) 0 else 1
+}
+
+private fun englishTranslationCode(translation: Translation): String {
+    if (translation.languageCode != Language.en.code) return ""
+    return translation.code
 }
 
 private fun dropdownMenuHeight(translationCount: Int, settingExpanded: Boolean): Int =
