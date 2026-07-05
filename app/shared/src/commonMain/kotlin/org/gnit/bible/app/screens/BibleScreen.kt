@@ -62,6 +62,7 @@ fun BibleApp(
     }
 
     val chrome = rememberChromeAutoHide(initialChromeVisible)
+    var wasChromeVisibleBeforeSearch by rememberSaveable { mutableStateOf(initialChromeVisible) }
     val density = LocalDensity.current
     var topChromeHeightPx by rememberSaveable { mutableStateOf(0) }
     var bookControlsHeightPx by rememberSaveable { mutableStateOf(0) }
@@ -94,15 +95,35 @@ fun BibleApp(
         }
     }
 
+    fun startSearch() {
+        wasChromeVisibleBeforeSearch = chrome.isVisible()
+        bibleState = bibleState.startSearch()
+        chrome.forceShow()
+    }
+
+    fun cancelSearch() {
+        bibleState = bibleState.handleBack() ?: bibleState.clearSearch()
+        chrome.setPause(false)
+        if (wasChromeVisibleBeforeSearch) {
+            chrome.forceShow()
+        } else {
+            chrome.forceHide()
+        }
+    }
+
     fun closeTranslationManager() {
         hideDropdownForTranslationManager = false
         closeTranslationManagerAfterDropdownRestored = true
     }
 
     PlatformBackHandler(enabled = bibleState.isSearchActive || bibleState.backStack.isNotEmpty()) {
-        bibleState.handleBack()?.let { nextState ->
-            bibleState = nextState
-            if (nextState.isSearchActive) chrome.forceShow() else chrome.onUserInteraction()
+        if (bibleState.isSearchActive) {
+            cancelSearch()
+        } else {
+            bibleState.handleBack()?.let { nextState ->
+                bibleState = nextState
+                if (nextState.isSearchActive) chrome.forceShow() else chrome.onUserInteraction()
+            }
         }
     }
 
@@ -115,7 +136,9 @@ fun BibleApp(
                 chrome = chrome,
                 innerPadding = PaddingValues(0.dp),
                 topContentPadding = topReadingSpacer,
-                bottomContentPadding = bottomReadingSpacer
+                bottomContentPadding = bottomReadingSpacer,
+                onSearchRequested = { startSearch() },
+                onSearchCancel = { cancelSearch() }
             )
         } else {
             SearchResultsScreen(
@@ -163,10 +186,7 @@ fun BibleApp(
                         isSearchActive = bibleState.isSearchActive,
                         searchQuery = bibleState.searchQuery,
                         onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
-                        onSearchRequested = {
-                            bibleState = bibleState.startSearch()
-                            chrome.forceShow()
-                        },
+                        onSearchRequested = { startSearch() },
                         onSearchSubmit = {
                             val trimmedQuery = bibleState.searchQuery.trim()
                             if (trimmedQuery.isNotEmpty()) {
@@ -174,10 +194,7 @@ fun BibleApp(
                                 chrome.forceShow()
                             }
                         },
-                        onSearchCancel = {
-                            bibleState = bibleState.handleBack() ?: bibleState.clearSearch()
-                            chrome.onUserInteraction()
-                        }
+                        onSearchCancel = { cancelSearch() }
                     )
                     AnimatedVisibility(
                         visible = !bibleState.isSearchActive,
