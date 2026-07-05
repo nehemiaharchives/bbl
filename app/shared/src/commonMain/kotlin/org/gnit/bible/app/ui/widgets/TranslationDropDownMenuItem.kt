@@ -39,8 +39,8 @@ const val BIBLE_VIEW_ICON = 20
 const val DROPDOWN_MENU_ITEM_RIGHT_PADDING = 10
 const val DROPDOWN_MENU_ITEM_LEFT_PADDING = 20
 const val DROPDOWN_MENU_WIDTH = 200
-const val DROPDOWN_MENU_HEIGHT = 72
-const val DROPDOWN_MENU_FONTSIZE = 17
+const val DROPDOWN_MENU_HEIGHT = 55
+const val DROPDOWN_MENU_FONTSIZE = 14
 // Settings expansion changes content only; row height and dropdown height stay stable.
 const val DROPDOWN_MENU_HEIGHT_EXPANDED = DROPDOWN_MENU_HEIGHT
 const val DROPDOWN_MENU_MAX_HEIGHT = 360
@@ -164,6 +164,9 @@ fun SvrjCollapsed() {
     }
 }
 
+/**
+ * This translation has the longest native name
+*/
 @Preview(showBackground = true)
 @Composable
 fun IrvTamCollapsed() {
