@@ -63,6 +63,9 @@ fun BibleApp(
 
     val chrome = rememberChromeAutoHide(initialChromeVisible)
     var wasChromeVisibleBeforeSearch by rememberSaveable { mutableStateOf(initialChromeVisible) }
+    val isChromeVisible = chrome.isVisible()
+    val shouldShowTopChromeContent = bibleState.isSearchActive || isChromeVisible || wasChromeVisibleBeforeSearch
+    val shouldShowReadingChromeControls = !bibleState.isSearchActive && (isChromeVisible || wasChromeVisibleBeforeSearch)
     val density = LocalDensity.current
     var topChromeHeightPx by rememberSaveable { mutableStateOf(0) }
     var bookControlsHeightPx by rememberSaveable { mutableStateOf(0) }
@@ -156,7 +159,7 @@ fun BibleApp(
         }
 
         AnimatedVisibility(
-            visible = chrome.isVisible(),
+            visible = isChromeVisible,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .onSizeChanged { size ->
@@ -170,73 +173,73 @@ fun BibleApp(
                 shadowElevation = 0.dp
             ) {
                 Column(modifier = Modifier.padding(vertical = 0.dp)) {
-                    TopBarContent(
-                        bibleState = bibleState,
-                        onStateChange = { bibleState = it },
-                        onAnyUserAction = { chrome.onUserInteraction() },
-                        onDropdownVisibilityChange = { isOpen ->
-                            chrome.setPause(isOpen)
-                            if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
-                        },
-                        onOpenTranslationManager = {
-                            hideDropdownForTranslationManager = true
-                            showTranslationManager = true
-                        },
-                        hideDropdown = hideDropdownForTranslationManager,
-                        isSearchActive = bibleState.isSearchActive,
-                        searchQuery = bibleState.searchQuery,
-                        onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
-                        onSearchRequested = { startSearch() },
-                        onSearchSubmit = {
-                            val trimmedQuery = bibleState.searchQuery.trim()
-                            if (trimmedQuery.isNotEmpty()) {
-                                bibleState = bibleState.submitSearch(trimmedQuery)
-                                chrome.forceShow()
-                            }
-                        },
-                        onSearchCancel = { cancelSearch() }
-                    )
-                    AnimatedVisibility(
-                        visible = !bibleState.isSearchActive,
-                        enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Box(
-                        modifier = Modifier.onSizeChanged { size ->
-                            if (size.height > 0) bookControlsHeightPx = size.height
-                        }
-                    ) {
-                        BookControlsBar(
+                    if (shouldShowTopChromeContent) {
+                        TopBarContent(
                             bibleState = bibleState,
                             onStateChange = { bibleState = it },
-                            onAnyUserAction = { chrome.onUserInteraction() }
+                            onAnyUserAction = { chrome.onUserInteraction() },
+                            onDropdownVisibilityChange = { isOpen ->
+                                chrome.setPause(isOpen)
+                                if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
+                            },
+                            onOpenTranslationManager = {
+                                hideDropdownForTranslationManager = true
+                                showTranslationManager = true
+                            },
+                            hideDropdown = hideDropdownForTranslationManager,
+                            isSearchActive = bibleState.isSearchActive,
+                            searchQuery = bibleState.searchQuery,
+                            onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
+                            onSearchRequested = { startSearch() },
+                            onSearchSubmit = {
+                                val trimmedQuery = bibleState.searchQuery.trim()
+                                if (trimmedQuery.isNotEmpty()) {
+                                    bibleState = bibleState.submitSearch(trimmedQuery)
+                                    chrome.forceShow()
+                                }
+                            },
+                            onSearchCancel = { cancelSearch() }
                         )
+                    }
+                    if (shouldShowReadingChromeControls) {
+                        Box(
+                            modifier = Modifier.onSizeChanged { size ->
+                                if (size.height > 0) bookControlsHeightPx = size.height
+                            }
+                        ) {
+                            BookControlsBar(
+                                bibleState = bibleState,
+                                onStateChange = { bibleState = it },
+                                onAnyUserAction = { chrome.onUserInteraction() }
+                            )
+                        }
                     }
                 }
             }
         }
-        }
 
-        AnimatedVisibility(
-            visible = chrome.isVisible() && !bibleState.isSearchActive,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .onSizeChanged { size ->
-                    if (size.height > 0) bottomChromeHeightPx = size.height
-                },
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Surface(
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-                modifier = Modifier.navigationBarsPadding()
+        if (!bibleState.isSearchActive) {
+            AnimatedVisibility(
+                visible = isChromeVisible,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { size ->
+                        if (size.height > 0) bottomChromeHeightPx = size.height
+                    },
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                ChapterControlsBar(
-                    bibleState = bibleState,
-                    onStateChange = { bibleState = it },
-                    onAnyUserAction = { chrome.onUserInteraction() }
-                )
+                Surface(
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
+                    modifier = Modifier.navigationBarsPadding()
+                ) {
+                    ChapterControlsBar(
+                        bibleState = bibleState,
+                        onStateChange = { bibleState = it },
+                        onAnyUserAction = { chrome.onUserInteraction() }
+                    )
+                }
             }
         }
 
