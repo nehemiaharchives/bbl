@@ -1,0 +1,880 @@
+name: CI / CLI
+
+on:
+  workflow_call:
+
+jobs:
+  jvm-tests:
+    name: CLI JVM tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run JVM tests
+        run: |
+          ./gradlew \
+            :cli:core:jvmTest \
+            :cli:search:common:jvmTest \
+            :cli:search:extra:jvmTest \
+            :cli:search:kuromoji:jvmTest \
+            :cli:search:morfologik:jvmTest \
+            :cli:search:nori:jvmTest \
+            :cli:search:smartcn:jvmTest
+
+  native-tests:
+    name: CLI Native Test (${{ matrix.module_name }}/${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 60
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+          - platform: linux-arm64
+            module_name: cli-core
+            os: ubuntu-latest
+            timeout: 60
+            task: :cli:core:linkDebugTestLinuxArm64
+            needs_konan_cache: true
+            saves_konan_cache: true
+            konan_cache_key: Linux-arm64
+            needs_linux_arm64_runtime: true
+            test_binary_path: cli/core/build/bin/linuxArm64/debugTest/test.kexe
+          - platform: macos
+            module_name: cli-core
+            os: macos-latest
+            timeout: 60
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+          - platform: mingw
+            module_name: cli-core
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            saves_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-common
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:common:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-extra
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:extra:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-kuromoji
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:kuromoji:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-morfologik
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:morfologik:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-nori
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:nori:linuxX64Test
+            needs_konan_cache: true
+          - platform: linux-x64
+            module_name: cli-search-smartcn
+            os: ubuntu-latest
+            timeout: 20
+            task: :cli:search:smartcn:linuxX64Test
+            needs_konan_cache: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        if: ${{ matrix.needs_konan_cache }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key || runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key || runner.os }}-konan-
+
+      - name: Run task
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Install Linux arm64 runtime
+        if: ${{ matrix.needs_linux_arm64_runtime }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y qemu-user
+
+      - name: Run linuxArm64 test binary
+        if: ${{ matrix.test_binary_path }}
+        run: |
+          set -euo pipefail
+          chmod +x "${{ matrix.test_binary_path }}"
+          konan_sysroot="$(find "$HOME/.konan/dependencies" -path '*/aarch64-unknown-linux-gnu/sysroot' -type d | head -n 1)"
+          test -n "$konan_sysroot"
+          test -f "$konan_sysroot/lib/ld-linux-aarch64.so.1"
+          test -f "$konan_sysroot/lib/libcrypt.so.1"
+          qemu-aarch64 -L "$konan_sysroot" "${{ matrix.test_binary_path }}"
+
+      - name: Save Konan Cache
+        if: ${{ matrix.saves_konan_cache && steps.konan-cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.konan
+          key: ${{ steps.konan-cache-restore.outputs.cache-primary-key }}
+
+  packages:
+    name: CLI Package (${{ matrix.module_name }}/${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            module_name: installer-pkg
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+            fixture_task: stageBblInstallMacosArm64PkgFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-pkg-files
+            fixture_path: build/bblInstallFixtures/macosArm64/pkg
+          - platform: macos
+            module_name: homebrew
+            os: macos-latest
+            timeout: 30
+            task: :cli:core:macosArm64Test
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+            fixture_task: stageBblInstallMacosArm64HomebrewFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-macos-homebrew-files
+            fixture_path: build/bblInstallFixtures/macosArm64/homebrew
+          - platform: linux-x64
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxDebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-deb-files
+            fixture_path: build/bblInstallFixtures/linux/deb
+          - platform: linux-arm64
+            module_name: installer-deb
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linkReleaseExecutableLinuxArm64
+            needs_konan_cache: true
+            needs_nfpm: true
+            konan_cache_key: Linux-arm64
+            fixture_task: stageBblInstallLinuxArm64DebFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblDebInstallUser=ubuntu" "-PbblDebInstallGroup=ubuntu" "-PbblDebInstallHome=/home/ubuntu"
+            fixture_artifact_name: bbl-install-linux-arm64-deb-files
+            fixture_path: build/bblInstallFixtures/linuxArm64/deb
+          - platform: linux-x64
+            module_name: installer-rpm
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxRpmFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblRpmInstallUser=fedora" "-PbblRpmInstallGroup=fedora" "-PbblRpmInstallHome=/home/fedora"
+            fixture_artifact_name: bbl-install-linux-rpm-files
+            fixture_path: build/bblInstallFixtures/linux/rpm
+          - platform: linux-x64
+            module_name: installer-archlinux
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxArchlinuxFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblArchInstallUser=arch" "-PbblArchInstallGroup=arch" "-PbblArchInstallHome=/home/arch"
+            fixture_artifact_name: bbl-install-linux-archlinux-files
+            fixture_path: build/bblInstallFixtures/linux/archlinux
+          - platform: linux-x64
+            module_name: installer-nix
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallLinuxNixFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-linux-nix-files
+            fixture_path: build/bblInstallFixtures/linux/nix
+          - platform: linux-x64
+            module_name: installer-apk
+            os: ubuntu-latest
+            timeout: 45
+            task: :cli:core:linuxX64Test
+            needs_konan_cache: true
+            needs_nfpm: true
+            fixture_task: stageBblInstallLinuxX64AlpineFixture "-PExecutableType=release" "-Pbblpacks.embed=false" "-PbblAlpineInstallUser=alpine" "-PbblAlpineInstallGroup=alpine" "-PbblAlpineInstallHome=/home/alpine"
+            fixture_artifact_name: bbl-install-linux-alpine-files
+            fixture_path: build/bblInstallFixtures/linux/alpine
+          - platform: mingw
+            module_name: installer-msi
+            os: windows-latest
+            timeout: 75
+            task: :cli:core:mingwX64Test
+            needs_konan_cache: true
+            fixture_task: stageBblInstallWindowsMsiFixture "-PExecutableType=release" "-Pbblpacks.embed=false"
+            fixture_artifact_name: bbl-install-windows-msi-files
+            fixture_path: build/bblInstallFixtures/windows/msi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        if: ${{ matrix.needs_konan_cache }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key || runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key || runner.os }}-konan-
+
+      - name: Run task
+        run: ./gradlew ${{ matrix.task }}
+
+      - name: Install nFPM
+        if: ${{ matrix.needs_nfpm }}
+        run: |
+          set -euo pipefail
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+          nfpm --version
+
+      - name: Setup .NET SDK
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install WiX Toolset
+        if: ${{ matrix.module_name == 'installer-msi' }}
+        env:
+          WIX_OSMF_EULA: accept
+        run: dotnet tool install --global wix
+
+      - name: Run fixture task
+        env:
+          WIX_OSMF_EULA: ${{ matrix.module_name == 'installer-msi' && 'accept' || '' }}
+        run: ./gradlew ${{ matrix.fixture_task }}
+
+      - name: Upload fixture artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.fixture_artifact_name }}
+          path: |
+            ${{ matrix.fixture_path }}
+            build/bblInstallFixtures/common
+          if-no-files-found: error
+          retention-days: 1
+
+  fixture-assets:
+    name: CLI E2E fixtures (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            os: ubuntu-latest
+            timeout: 90
+            artifact_name: bbl-install-linux-cli-files
+            fixture_path: build/bblInstallFixtures/linux
+            needs_konan_cache: true
+          - platform: linux-arm64
+            os: ubuntu-latest
+            timeout: 90
+            artifact_name: bbl-install-linux-arm64-cli-files
+            fixture_path: build/bblInstallFixtures/linuxArm64
+            needs_konan_cache: true
+            konan_cache_key: Linux-arm64
+          - platform: macos
+            os: macos-latest
+            timeout: 90
+            artifact_name: bbl-install-macos-cli-files
+            fixture_path: build/bblInstallFixtures/macosArm64
+            needs_konan_cache: true
+            needs_xcode: true
+            xcode_version: '26'
+          - platform: mingw
+            os: windows-latest
+            timeout: 90
+            artifact_name: bbl-install-windows-cli-files
+            fixture_path: build/bblInstallFixtures/windows
+            needs_konan_cache: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Xcode
+        if: ${{ matrix.needs_xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Konan Cache
+        id: konan-cache-restore
+        if: ${{ matrix.needs_konan_cache }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.konan
+          key: ${{ matrix.konan_cache_key || runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ matrix.konan_cache_key || runner.os }}-konan-
+
+      - name: Build CLI E2E fixture assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          case '${{ matrix.platform }}' in
+            linux-x64)
+              ./gradlew -Pbblpacks.embed=false \
+                stageBblInstallLinuxCliCoreCompletionFixtures \
+                stageBblInstallLinuxCliSearchCommonFixture \
+                stageBblInstallLinuxCliSearchExtraFixture \
+                stageBblInstallLinuxCliSearchKuromojiFixture \
+                stageBblInstallLinuxCliSearchMorfologikFixture \
+                stageBblInstallLinuxCliSearchNoriFixture \
+                stageBblInstallLinuxCliSearchSmartcnFixture
+              ;;
+            linux-arm64)
+              ./gradlew -Pbblpacks.embed=false \
+                stageBblInstallLinuxArm64CliCoreFixture \
+                stageBblInstallLinuxArm64CliSearchCommonFixture \
+                stageBblInstallLinuxArm64CliSearchExtraFixture \
+                stageBblInstallLinuxArm64CliSearchKuromojiFixture \
+                stageBblInstallLinuxArm64CliSearchMorfologikFixture \
+                stageBblInstallLinuxArm64CliSearchNoriFixture \
+                stageBblInstallLinuxArm64CliSearchSmartcnFixture
+              ;;
+            macos)
+              ./gradlew -Pbblpacks.embed=false \
+                stageBblInstallMacosArm64CliCoreCompletionFixtures \
+                stageBblInstallMacosArm64CliSearchCommonFixture \
+                stageBblInstallMacosArm64CliSearchExtraFixture \
+                stageBblInstallMacosArm64CliSearchKuromojiFixture \
+                stageBblInstallMacosArm64CliSearchMorfologikFixture \
+                stageBblInstallMacosArm64CliSearchNoriFixture \
+                stageBblInstallMacosArm64CliSearchSmartcnFixture
+              ;;
+            mingw)
+              ./gradlew -Pbblpacks.embed=false \
+                stageBblInstallWindowsCliCoreCompletionFixtures \
+                stageBblInstallWindowsCliSearchCommonFixture \
+                stageBblInstallWindowsCliSearchExtraFixture \
+                stageBblInstallWindowsCliSearchKuromojiFixture \
+                stageBblInstallWindowsCliSearchMorfologikFixture \
+                stageBblInstallWindowsCliSearchNoriFixture \
+                stageBblInstallWindowsCliSearchSmartcnFixture
+              ;;
+            *)
+              echo 'Unsupported fixture platform: ${{ matrix.platform }}' >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Upload CLI E2E fixture artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.fixture_path }}
+            build/bblInstallFixtures/common
+          if-no-files-found: error
+          retention-days: 1
+
+  e2e-cli:
+    name: E2E (${{ matrix.suite }}/${{ matrix.platform }})
+    needs: [jvm-tests, native-tests, packages, fixture-assets]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      CHEF_LICENSE: accept-no-persist
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: default
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: default-ubuntu-x64
+          - suite: default
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: default-macos-local
+          - suite: pkg_install_macos
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-pkg-files
+            kitchen_instance: pkg-install-macos-macos-local
+          - suite: homebrew_install_macos
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-homebrew-files
+            kitchen_instance: homebrew-install-macos-macos-local
+          - suite: deb_x64_install
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-deb-files
+            kitchen_instance: deb-x64-install-ubuntu-x64-2604
+          - suite: deb_arm64_install
+            platform: ubuntu-arm64
+            os: ubuntu-24.04-arm
+            fixture_pattern: bbl-install-linux-arm64-deb-files
+            kitchen_instance: deb-arm64-install-ubuntu-arm64-2404
+          - suite: rpm_x64_install_fedora
+            platform: fedora-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-rpm-files
+            kitchen_instance: rpm-x64-install-fedora-fedora-x64-latest
+          - suite: pacman_x64_install_archlinux
+            platform: archlinux-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-archlinux-files
+            kitchen_instance: pacman-x64-install-archlinux-archlinux-x64-latest
+          - suite: nix_install_nixos
+            platform: nixos-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-nix-files
+            kitchen_instance: nix-install-nixos-nixos-x64-nix-latest
+          - suite: apk_x64_install_alpine
+            platform: alpine-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-alpine-files
+            kitchen_instance: apk-x64-install-alpine-alpine-x64-latest
+          - suite: default
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: default-windows-local
+          - suite: pack_install_posix
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: pack-install-posix-ubuntu-x64
+          - suite: pack_install_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: pack-install-posix-macos-local
+          - suite: pack_install_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: pack-install-windows-windows-local
+          - suite: search_posix
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: search-posix-ubuntu-x64-2604
+            search_throttle: 2
+          - suite: search_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: search-posix-macos-local
+            search_throttle: 2
+          - suite: config_posix
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: config-posix-ubuntu-x64-2604
+          - suite: config_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: config-posix-macos-local
+          - suite: completion_posix
+            platform: ubuntu-x64
+            os: ubuntu-latest
+            fixture_pattern: bbl-install-linux-*-files
+            kitchen_instance: completion-posix-ubuntu-x64-2604
+          - suite: completion_posix
+            platform: macos
+            os: macos-latest
+            fixture_pattern: bbl-install-macos-*-files
+            kitchen_instance: completion-posix-macos-local
+          - suite: config_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: config-windows-windows-local
+          - suite: search_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: search-windows-windows-local
+          - suite: completion_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-*-files
+            kitchen_instance: completion-windows-windows-local
+          - suite: msi_install_windows
+            platform: mingw
+            os: windows-latest
+            fixture_pattern: bbl-install-windows-msi-files
+            kitchen_instance: msi-install-windows-windows-local
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download shared install fixtures
+        uses: actions/download-artifact@v8
+        with:
+          pattern: ${{ matrix.fixture_pattern }}
+          path: bbl_install/files
+          merge-multiple: true
+
+      - name: Prepare Kitchen cookbook files (Linux)
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' || matrix.platform == 'nixos-x64' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ matrix.suite }}" = "nix_install_nixos" ]; then
+            fixture_dir=bbl_install/files/linux/nix
+            if [ -f bbl_install/files/bbl-nix.tar.gz ]; then :; elif [ -f "$fixture_dir/bbl-nix.tar.gz" ]; then cp "$fixture_dir/bbl-nix.tar.gz" bbl_install/files/bbl-nix.tar.gz; else echo "Missing bbl-nix.tar.gz" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            if [ -f "$fixture_dir/version.txt" ]; then cp "$fixture_dir/version.txt" bbl_install/files/version.txt; elif [ -f bbl_install/files/common/version.txt ]; then cp bbl_install/files/common/version.txt bbl_install/files/version.txt; fi
+            test -f bbl_install/files/bbl-nix.tar.gz
+            test -f bbl_install/files/version.txt
+            tar -tzf bbl_install/files/bbl-nix.tar.gz | tee /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/flake.nix' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/bbl.nix' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/bbl' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/bbl-search-common' /tmp/bbl-nix-tar-list.txt
+            grep -qx 'bbl-nix/assets/webus.zip' /tmp/bbl-nix-tar-list.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
+          if [ "${{ matrix.suite }}" = "apk_x64_install_alpine" ]; then
+            fixture_dir=bbl_install/files/linux/alpine
+            if [ -f bbl_install/files/bbl.apk ]; then :; elif [ -f "$fixture_dir/bbl.apk" ]; then cp "$fixture_dir/bbl.apk" bbl_install/files/bbl.apk; else echo "Missing bbl.apk" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            if [ -f "$fixture_dir/version.txt" ]; then cp "$fixture_dir/version.txt" bbl_install/files/version.txt; elif [ -f bbl_install/files/common/version.txt ]; then cp bbl_install/files/common/version.txt bbl_install/files/version.txt; fi
+            test -f bbl_install/files/bbl.apk
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
+          if [ "${{ matrix.suite }}" = "pacman_x64_install_archlinux" ]; then
+            fixture_dir=bbl_install/files/linux/archlinux
+            if [ -f bbl_install/files/bbl.pkg.tar.zst ]; then :; elif [ -f "$fixture_dir/bbl.pkg.tar.zst" ]; then cp "$fixture_dir/bbl.pkg.tar.zst" bbl_install/files/bbl.pkg.tar.zst; else echo "Missing bbl.pkg.tar.zst" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            if [ -f "$fixture_dir/version.txt" ]; then cp "$fixture_dir/version.txt" bbl_install/files/version.txt; elif [ -f bbl_install/files/common/version.txt ]; then cp bbl_install/files/common/version.txt bbl_install/files/version.txt; fi
+            test -f bbl_install/files/bbl.pkg.tar.zst
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
+          if [ "${{ matrix.suite }}" = "rpm_x64_install_fedora" ]; then
+            fixture_dir=bbl_install/files/linux/rpm
+            if [ -f bbl_install/files/bbl.rpm ]; then :; elif [ -f "$fixture_dir/bbl.rpm" ]; then cp "$fixture_dir/bbl.rpm" bbl_install/files/bbl.rpm; else echo "Missing bbl.rpm" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            if [ -f "$fixture_dir/version.txt" ]; then cp "$fixture_dir/version.txt" bbl_install/files/version.txt; elif [ -f bbl_install/files/common/version.txt ]; then cp bbl_install/files/common/version.txt bbl_install/files/version.txt; fi
+            test -f bbl_install/files/bbl.rpm
+            test -f bbl_install/files/version.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+
+          if [ "${{ matrix.suite }}" = "deb_x64_install" ] || [ "${{ matrix.suite }}" = "deb_arm64_install" ]; then
+            fixture_dir=bbl_install/files/linux/deb
+            if [ "${{ matrix.platform }}" = "ubuntu-arm64" ]; then fixture_dir=bbl_install/files/linuxArm64/deb; fi
+            if [ -f bbl_install/files/bbl.deb ]; then :; elif [ -f "$fixture_dir/bbl.deb" ]; then cp "$fixture_dir/bbl.deb" bbl_install/files/bbl.deb; else echo "Missing bbl.deb" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            if [ -f "$fixture_dir/version.txt" ]; then cp "$fixture_dir/version.txt" bbl_install/files/version.txt; elif [ -f bbl_install/files/common/version.txt ]; then cp bbl_install/files/common/version.txt bbl_install/files/version.txt; fi
+            test -f bbl_install/files/bbl.deb
+            dpkg-deb --info bbl_install/files/bbl.deb
+            dpkg-deb --contents bbl_install/files/bbl.deb | tee /tmp/bbl-deb-contents.txt
+            grep -qE '/usr/bin/bbl$' /tmp/bbl-deb-contents.txt
+            grep -qE '/usr/lib/bbl/bin/bbl-search-common$' /tmp/bbl-deb-contents.txt
+            grep -qE '/usr/lib/bbl/packs/webus.zip$' /tmp/bbl-deb-contents.txt
+            if grep -qE '/usr/share/bbl|/usr/local|/home/ubuntu/.bbl' /tmp/bbl-deb-contents.txt; then echo "Deb package contains rejected install locations" >&2; exit 1; fi
+            du -sh bbl_install/files
+            exit 0
+          fi
+
+          cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          find bbl_install/files/linux -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
+          rm -rf bbl_install/files/common bbl_install/files/linux bbl_install/files/linuxArm64 bbl_install/files/macosArm64 bbl_install/files/macosX64 bbl_install/files/windows
+          test -f bbl_install/files/version.txt
+          test -f bbl_install/files/bbl
+          test -f bbl_install/files/bbl-search-common
+          test -f bbl_install/files/kjv.zip
+          test -f bbl_install/files/bbl.bash
+          test -f bbl_install/files/_bbl
+          test -f bbl_install/files/bbl.fish
+          du -sh bbl_install/files
+
+      - name: Pull Arch Linux Docker image
+        if: ${{ matrix.platform == 'archlinux-x64' }}
+        run: docker pull archlinux/archlinux:latest
+
+      - name: Pull Nix Docker image
+        if: ${{ matrix.platform == 'nixos-x64' }}
+        run: docker pull nixos/nix:latest
+
+      - name: Nix package E2E
+        if: ${{ matrix.platform == 'nixos-x64' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD/bbl_install/files:/work:ro" \
+            nixos/nix:latest \
+            sh -lc '
+              set -eu
+              rm -rf /tmp/bbl-nix /tmp/bbl-result /tmp/bbl-home /tmp/bbl-profile /tmp/bbl-profile-home
+              mkdir -p /tmp/bbl-nix
+              tar -xzf /work/bbl-nix.tar.gz -C /tmp/bbl-nix --strip-components=1
+              cd /tmp/bbl-nix
+              export NIX_CONFIG="experimental-features = nix-command flakes"
+              nix flake show
+              nix build .#bbl --out-link /tmp/bbl-result
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl --version
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl john 3:16
+              HOME=/tmp/bbl-home /tmp/bbl-result/bin/bbl search God limit 1
+              test -x /tmp/bbl-home/.bbl/bin/bbl-search-common
+              test -f /tmp/bbl-home/.bbl/packs/webus.zip
+              nix profile install .#bbl --profile /tmp/bbl-profile
+              HOME=/tmp/bbl-profile-home /tmp/bbl-profile/bin/bbl john 3:16
+            '
+
+      - name: Pull Alpine Docker image
+        if: ${{ matrix.platform == 'alpine-x64' }}
+        run: docker pull alpine:latest
+
+      - name: Prepare Kitchen cookbook files (Windows)
+        if: ${{ matrix.platform == 'mingw' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ matrix.suite }}' -eq 'msi_install_windows') {
+              $fixtureDir = 'bbl_install\files\windows\msi'
+              if (-not (Test-Path "$fixtureDir\bbl.msi")) { throw "Missing $fixtureDir\bbl.msi" }
+              if (-not (Test-Path "$fixtureDir\version.txt")) { throw "Missing $fixtureDir\version.txt" }
+              Copy-Item "$fixtureDir\bbl.msi" bbl_install\files\bbl.msi -Force
+              Copy-Item "$fixtureDir\version.txt" bbl_install\files\version.txt -Force
+              Remove-Item bbl_install\files\common -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\linux -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosArm64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\macosX64 -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item bbl_install\files\windows -Recurse -Force -ErrorAction SilentlyContinue
+              if (-not (Test-Path bbl_install\files\bbl.msi)) { throw 'Missing bbl_install\files\bbl.msi' }
+              if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+              Get-ChildItem bbl_install\files
+              exit 0
+          }
+          Copy-Item bbl_install\files\common\version.txt bbl_install\files\version.txt -Force
+          Get-ChildItem bbl_install\files\windows -File -Recurse | Copy-Item -Destination bbl_install\files -Force
+          Remove-Item bbl_install\files\common -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\linux -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\macosArm64 -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\macosX64 -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bbl_install\files\windows -Recurse -Force -ErrorAction SilentlyContinue
+          if (-not (Test-Path bbl_install\files\version.txt)) { throw 'Missing bbl_install\files\version.txt' }
+          if (-not (Test-Path bbl_install\files\bbl.exe)) { throw 'Missing bbl_install\files\bbl.exe' }
+          if (-not (Test-Path bbl_install\files\bbl-search-common.exe)) { throw 'Missing bbl_install\files\bbl-search-common.exe' }
+          if (-not (Test-Path bbl_install\files\kjv.zip)) { throw 'Missing bbl_install\files\kjv.zip' }
+          if (-not (Test-Path bbl_install\files\_bbl.ps1)) { throw 'Missing bbl_install\files\_bbl.ps1' }
+          Get-ChildItem bbl_install\files
+
+      - name: Prepare Kitchen cookbook files (macOS)
+        if: ${{ matrix.platform == 'macos' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.suite }}" = "homebrew_install_macos" ]; then
+            fixture_dir=bbl_install/files/macosArm64/homebrew
+            test -d "$fixture_dir"
+            mkdir -p bbl_install/files/Formula
+            cp "$fixture_dir/bbl.tar.gz" bbl_install/files/bbl.tar.gz
+            cp "$fixture_dir/Formula/bbl.rb" bbl_install/files/Formula/bbl.rb
+            cp "$fixture_dir/version.txt" bbl_install/files/version.txt
+            grep -q 'homepage "https://github.com/nehemiaharchives/bbl"' bbl_install/files/Formula/bbl.rb
+            grep -q 'libexec.install "bbl", "bbl-search-common"' bbl_install/files/Formula/bbl.rb
+            grep -q '(bin/"bbl").write' bbl_install/files/Formula/bbl.rb
+            tar -tzf bbl_install/files/bbl.tar.gz | tee /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'bbl' /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'bbl-search-common' /tmp/bbl-homebrew-tar-list.txt
+            grep -qx 'webus.zip' /tmp/bbl-homebrew-tar-list.txt
+            du -sh bbl_install/files
+            exit 0
+          fi
+          if [ "${{ matrix.suite }}" = "pkg_install_macos" ]; then
+            if [ -f bbl_install/files/bbl.pkg ]; then :; elif [ -f bbl_install/files/macosArm64/pkg/bbl.pkg ]; then cp bbl_install/files/macosArm64/pkg/bbl.pkg bbl_install/files/bbl.pkg; else echo "Missing bbl.pkg" >&2; find bbl_install/files -maxdepth 5 -type f | sort; exit 1; fi
+            test -f bbl_install/files/bbl.pkg
+            du -sh bbl_install/files
+            exit 0
+          fi
+          cp bbl_install/files/common/version.txt bbl_install/files/version.txt
+          case "$(uname -m)" in
+            arm64) fixture_dir=bbl_install/files/macosArm64 ;;
+            x86_64) fixture_dir=bbl_install/files/macosX64 ;;
+            *) echo "Unsupported macOS runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          if [ ! -d "$fixture_dir" ]; then echo "Missing macOS fixture directory for $(uname -m): $fixture_dir" >&2; exit 1; fi
+          find "$fixture_dir" -mindepth 2 -maxdepth 2 -type f -exec cp {} bbl_install/files/ \;
+          rm -rf bbl_install/files/common bbl_install/files/linux bbl_install/files/macosArm64 bbl_install/files/macosX64 bbl_install/files/windows
+          test -f bbl_install/files/version.txt
+          test -f bbl_install/files/bbl
+          test -f bbl_install/files/bbl-search-common
+          test -f bbl_install/files/kjv.zip
+          test -f bbl_install/files/bbl.bash
+          test -f bbl_install/files/_bbl
+          test -f bbl_install/files/bbl.fish
+          du -sh bbl_install/files
+
+      - name: Set up Ruby
+        if: ${{ matrix.platform != 'nixos' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: bbl_install
+
+      - name: Install PowerShell 7+
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows' || matrix.suite == 'completion_windows') && matrix.platform == 'mingw' }}
+        uses: PSModule/install-powershell@v1
+        with:
+          Version: 7.6.2
+
+      - name: Verify PowerShell version
+        if: ${{ (matrix.suite == 'search_windows' || matrix.suite == 'config_windows' || matrix.suite == 'completion_windows') && matrix.platform == 'mingw' }}
+        shell: pwsh
+        run: |
+          Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"
+          if ($PSVersionTable.PSVersion.Major -lt 7) {
+            throw "PowerShell 7+ is required for Windows E2E tests"
+          }
+
+      - name: Clean up stale Dokken Chef cache
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' }}
+        run: rm -rf ~/.dokken-chef-* ~/.dokken/chef
+
+      - name: Kitchen test
+        working-directory: bbl_install
+        shell: bash
+        if: ${{ matrix.platform == 'ubuntu-x64' || matrix.platform == 'ubuntu-arm64' || matrix.platform == 'fedora-x64' || matrix.platform == 'archlinux-x64' || matrix.platform == 'alpine-x64' }}
+        env:
+          BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
+        run: bundle exec kitchen test '${{ matrix.kitchen_instance }}' --concurrency=1 --destroy=always
+
+      - name: Kitchen converge
+        working-directory: bbl_install
+        shell: bash
+        if: ${{ matrix.platform == 'macos' }}
+        run: bundle exec kitchen converge '${{ matrix.kitchen_instance }}'
+
+      - name: Kitchen converge
+        working-directory: bbl_install
+        shell: pwsh
+        if: ${{ matrix.platform == 'mingw' }}
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen converge '${{ matrix.kitchen_instance }}'
+
+      - name: Kitchen verify
+        working-directory: bbl_install
+        shell: bash
+        if: ${{ matrix.platform == 'macos' }}
+        env:
+          BBL_SEARCH_POSIX_THROTTLE: ${{ matrix.search_throttle || '1' }}
+        run: bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
+
+      - name: Kitchen verify
+        working-directory: bbl_install
+        shell: pwsh
+        if: ${{ matrix.platform == 'mingw' }}
+        run: |
+          $env:RUBY_EXE = (Get-Command ruby).Source
+          bundle exec kitchen verify '${{ matrix.kitchen_instance }}'
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### E2E (${{ matrix.suite }}/${{ matrix.platform }}) Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
