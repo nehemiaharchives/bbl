@@ -47,7 +47,6 @@ import org.gnit.bible.InstallationState
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
 import org.gnit.bible.app.currentAssetManager
-import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.logger
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.withTranslationVisibility
@@ -61,7 +60,6 @@ fun TranslationManagerScreen(
     onClose: () -> Unit
 ) {
     val assetManager = currentAssetManager()
-    val bible = currentBible()
     val scope = rememberCoroutineScope()
     var downloadedCodes by remember(assetManager) { mutableStateOf(downloadedTranslationCodesSafe(assetManager)) }
     var downloadingCodes by remember { mutableStateOf<Set<String>>(emptySet()) }
@@ -74,9 +72,9 @@ fun TranslationManagerScreen(
         }
     }
 
-    val downloadableList = SupportedTranslation.all
-    val entries = remember(bible, downloadedCodes, downloadingCodes) {
-        buildTranslationEntries(bible, downloadedCodes, downloadableList)
+    val catalogTranslations = remember { SupportedTranslation.all.sortedWith(translationManagerComparator) }
+    val entries = remember(downloadedCodes) {
+        buildTranslationEntries(downloadedCodes, catalogTranslations)
     }
     val hideableEntries = entries.filter { it.source != InstallationState.DOWNLOADABLE }
     val shownTranslationCount = hideableEntries.count {
@@ -334,19 +332,13 @@ private fun TranslationManagerActionBar(
 }
 
 private fun buildTranslationEntries(
-    bible: org.gnit.bible.Bible,
     downloadedCodes: List<String>,
-    downloadable: List<Translation>
+    catalogTranslations: List<Translation>
 ): List<TranslationEntry> {
     val embeddedCodeSet = SupportedTranslation.embeddedTranslations.map { it.code }.toSet()
     val downloadedCodeSet = downloadedCodes.toSet()
-    val zipBibleResourcesReader = bible.obtainZipBibleResourcesReader()
-    val downloadedTranslationsByCode = downloadedCodes.mapNotNull { code ->
-        runCatching { zipBibleResourcesReader.getTranslationFromManifest(code) }.getOrNull()
-    }.associateBy { it.code }
 
-    val catalogCodes = downloadable.map { it.code }.toSet()
-    val catalogEntries = downloadable.map { translation ->
+    return catalogTranslations.map { translation ->
         val source = when (translation.code) {
             in embeddedCodeSet -> InstallationState.EMBEDDED
             in downloadedCodeSet -> InstallationState.DOWNLOADED
@@ -354,16 +346,26 @@ private fun buildTranslationEntries(
         }
 
         TranslationEntry(
-            translation = downloadedTranslationsByCode[translation.code] ?: translation,
+            translation = translation,
             source = source
         )
     }
+}
 
-    val extraDownloadedEntries = downloadedCodes.filterNot { it in catalogCodes }.mapNotNull { code ->
-        downloadedTranslationsByCode[code]?.let { TranslationEntry(it, InstallationState.DOWNLOADED) }
-    }
+private val translationManagerComparator = compareBy<Translation> { it.language.order }
+    .thenBy { englishTranslationOrder(it) }
+    .thenBy { englishTranslationCode(it) }
+    .thenBy { it.nativeName }
+    .thenBy { it.code }
 
-    return catalogEntries + extraDownloadedEntries
+private fun englishTranslationOrder(translation: Translation): Int {
+    if (translation.languageCode != Language.en.code) return 0
+    return if (translation.code == SupportedTranslation.WEBUS.code) 0 else 1
+}
+
+private fun englishTranslationCode(translation: Translation): String {
+    if (translation.languageCode != Language.en.code) return ""
+    return translation.code
 }
 
 private fun downloadedTranslationCodesSafe(assetManager: org.gnit.bible.AssetManager): List<String> =
