@@ -15,14 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.Translation
-import org.gnit.bible.app.currentBible
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.ReadingMode
 import org.gnit.bible.app.Res
@@ -51,6 +48,7 @@ fun TranslationDropDownMenuItem(
     settingExpanded: Boolean,
     bibleState: BibleState,
     translationItem: Translation,
+    showReadingModeIcons: Boolean = true,
     onClickSingleIcon: () -> Unit,
     onClickSideIcon: () -> Unit,
     onClickUnderIcon: () -> Unit,
@@ -59,13 +57,6 @@ fun TranslationDropDownMenuItem(
 ){
 
     val text = if (settingExpanded) translationItem.shortName() else translationItem.nativeName
-    val bible = currentBible()
-    val visibleTranslationCount = remember(bible, bibleState.translationVisibility) {
-        runCatching { bible.availableTranslations() }
-            .getOrElse { SupportedTranslation.embeddedTranslations }
-            .count { bibleState.translationVisibility[it.code] ?: true }
-    }
-    val showReadingModeIcons = visibleTranslationCount > 1
 
     Box(modifier = modifier
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
