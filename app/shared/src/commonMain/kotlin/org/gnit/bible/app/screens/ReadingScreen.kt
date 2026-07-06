@@ -168,8 +168,6 @@ fun BibleReadingArea(
             if (isInspectionMode) bible.loadReadingContent(state) else null
         )
     }
-    val adjustedTopContentPadding = topContentPadding + BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp
-    val adjustedBottomContentPadding = bottomContentPadding + CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp
 
     LaunchedEffect(
         bible,
@@ -225,8 +223,8 @@ fun BibleReadingArea(
                 bibleState = state,
                 scrollState = scrollState,
                 onScrollPercentChange = onScrollPercentChange,
-                topContentPadding = adjustedTopContentPadding,
-                bottomContentPadding = adjustedBottomContentPadding,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding,
                 onTitleTap = onTitleTap
             ) {
             }
@@ -240,8 +238,8 @@ fun BibleReadingArea(
                 highlightedVerse = state.highlightedVerse,
                 onVerseTap = onVerseTap,
                 onVerseDoubleTap = onVerseDoubleTap,
-                topContentPadding = adjustedTopContentPadding,
-                bottomContentPadding = adjustedBottomContentPadding,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding,
                 onTitleTap = onTitleTap
             )
 
@@ -255,8 +253,8 @@ fun BibleReadingArea(
                     highlightedVerse = state.highlightedVerse,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
-                    topContentPadding = adjustedTopContentPadding,
-                    bottomContentPadding = adjustedBottomContentPadding,
+                    topContentPadding = topContentPadding,
+                    bottomContentPadding = bottomContentPadding,
                     onTitleTap = onTitleTap
                 )
 
@@ -269,8 +267,8 @@ fun BibleReadingArea(
                     highlightedVerse = state.highlightedVerse,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
-                    topContentPadding = adjustedTopContentPadding,
-                    bottomContentPadding = adjustedBottomContentPadding,
+                    topContentPadding = topContentPadding,
+                    bottomContentPadding = bottomContentPadding,
                     onTitleTap = onTitleTap
                 )
 
