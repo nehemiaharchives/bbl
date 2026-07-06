@@ -68,7 +68,9 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 private const val AUTO_HIDE_MS: Long = 60_000
-const val READING_SCREEN_VERTICAL_PADDING = 8
+const val READING_SCREEN_VERTICAL_SPACE = 8
+const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
+const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val READING_SCREEN_HORIZONTAL_PADDING = 12
 
 @Composable
@@ -166,8 +168,8 @@ fun BibleReadingArea(
             if (isInspectionMode) bible.loadReadingContent(state) else null
         )
     }
-    val adjustedTopContentPadding = topContentPadding + READING_SCREEN_VERTICAL_PADDING.dp
-    val adjustedBottomContentPadding = bottomContentPadding + READING_SCREEN_VERTICAL_PADDING.dp
+    val adjustedTopContentPadding = topContentPadding + BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp
+    val adjustedBottomContentPadding = bottomContentPadding + CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp
 
     LaunchedEffect(
         bible,
