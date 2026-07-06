@@ -63,24 +63,24 @@ fun TranslationDropDownMenuItem(
     Box(modifier = modifier
         .heightIn(min = DROPDOWN_MENU_HEIGHT.dp, max = DROPDOWN_MENU_HEIGHT_EXPANDED.dp)
         .width(DROPDOWN_MENU_WIDTH.dp)
-        .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
         .combinedClickable(
             onClick = { onClickSingleIcon() },
             onLongClick = { onLongPress?.invoke() }
         )
+        .absolutePadding(left = DROPDOWN_MENU_ITEM_LEFT_PADDING.dp, right = DROPDOWN_MENU_ITEM_RIGHT_PADDING.dp)
     ){
         Text(
             text = text,
             maxLines = 3,
             fontSize = DROPDOWN_MENU_FONTSIZE.sp,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            modifier = modifier
+            modifier = Modifier
                 .align(Alignment.CenterStart)
                 .fillMaxWidth()
         )
 
         if (settingExpanded && showReadingModeIcons){
-            Row(modifier.align(Alignment.CenterEnd)) {
+            Row(Modifier.align(Alignment.CenterEnd)) {
 
                 Icon(
                     imageVector = vectorResource(Res.drawable.square_fill_black),
@@ -166,7 +166,7 @@ fun SvrjCollapsed() {
 
 /**
  * This translation has the longest native name
-*/
+ */
 @Preview(showBackground = true)
 @Composable
 fun IrvTamCollapsed() {
