@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.text.TextStyle
@@ -67,6 +68,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 private const val AUTO_HIDE_MS: Long = 60_000
+const val READING_SCREEN_VERTICAL_SPACE = 4
+const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
+const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
+const val READING_SCREEN_HORIZONTAL_PADDING = 4
 
 @Composable
 fun BibleReadingArea(
@@ -149,7 +154,20 @@ fun BibleReadingArea(
     val topChromePadding = 0.dp
     val bottomChromePadding = 0.dp
     val bible = currentBible()
-    var readingContent by remember { mutableStateOf<ReadingContent?>(null) }
+    val isInspectionMode = LocalInspectionMode.current
+    var readingContent by remember(
+        bible,
+        state.mainTranslation,
+        state.subTranslation,
+        state.readingMode,
+        state.book,
+        state.chapter,
+        isInspectionMode
+    ) {
+        mutableStateOf(
+            if (isInspectionMode) bible.loadReadingContent(state) else null
+        )
+    }
 
     LaunchedEffect(
         bible,
@@ -157,8 +175,10 @@ fun BibleReadingArea(
         state.subTranslation,
         state.readingMode,
         state.book,
-        state.chapter
+        state.chapter,
+        isInspectionMode
     ) {
+        if (isInspectionMode) return@LaunchedEffect
         readingContent = null
         readingContent = withContext(Dispatchers.IO) {
             bible.loadReadingContent(state)
@@ -400,6 +420,7 @@ fun ScrollableColumn(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(horizontal = READING_SCREEN_HORIZONTAL_PADDING.dp)
     ) {
         ReadingTitleHeader(bibleState, onTitleTap)
         if (topContentPadding > 0.dp) {
@@ -457,7 +478,7 @@ private fun ReadingTitleHeader(
                 interactionSource = titleInteractionSource,
                 indication = null
             ) { onTitleTap() }
-            .padding(horizontal = 12.dp, vertical = 0.dp),
+            .padding(vertical = 0.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
