@@ -6,9 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -202,7 +204,7 @@ fun BibleApp(
                         )
                     }
                     if (shouldShowReadingChromeControls) {
-                        Box(
+                        Column(
                             modifier = Modifier.onSizeChanged { size ->
                                 if (size.height > 0) bookControlsHeightPx = size.height
                             }
@@ -212,6 +214,9 @@ fun BibleApp(
                                 onStateChange = { bibleState = it },
                                 onAnyUserAction = { chrome.onUserInteraction() }
                             )
+                            if (BOOK_CONTROLS_BAR_BOTTOM_MARGIN > 0) {
+                                Spacer(modifier = Modifier.height(BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp))
+                            }
                         }
                     }
                 }
@@ -234,11 +239,16 @@ fun BibleApp(
                     shadowElevation = 0.dp,
                     modifier = Modifier.navigationBarsPadding()
                 ) {
-                    ChapterControlsBar(
-                        bibleState = bibleState,
-                        onStateChange = { bibleState = it },
-                        onAnyUserAction = { chrome.onUserInteraction() }
-                    )
+                    Column {
+                        if (CHAPTER_CONTROLS_BAR_TOP_MARGIN > 0) {
+                            Spacer(modifier = Modifier.height(CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp))
+                        }
+                        ChapterControlsBar(
+                            bibleState = bibleState,
+                            onStateChange = { bibleState = it },
+                            onAnyUserAction = { chrome.onUserInteraction() }
+                        )
+                    }
                 }
             }
         }
