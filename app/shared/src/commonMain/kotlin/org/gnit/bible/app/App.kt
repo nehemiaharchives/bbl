@@ -49,7 +49,10 @@ fun AppInAutoHideMode() {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                BibleApp(initialChromeVisible = false)
+                BibleApp(
+                    initialChromeVisible = false,
+                    initialBibleState = BibleState()
+                )
             }
         }
     }
