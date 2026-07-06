@@ -76,7 +76,7 @@ fun BibleApp(
     val bookControlsHeight = if (bookControlsHeightPx > 0) {
         with(density) { bookControlsHeightPx.toDp() }
     } else {
-        BUTTON_SIZE.dp
+        BUTTON_SIZE.dp + BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp
     }
     val bottomChromeHeight = with(density) { bottomChromeHeightPx.toDp() }
     val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
