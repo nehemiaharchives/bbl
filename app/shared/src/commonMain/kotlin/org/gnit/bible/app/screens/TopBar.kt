@@ -116,22 +116,24 @@ fun TopBarContent(
         mutableStateOf(bibleState.describeBookChapter())
     }
     val selectedTranslations = listOfNotNull(bibleState.mainTranslation, bibleState.subTranslation).distinct()
-    val translations = remember(
+    val expandedTranslations = remember(
         assetManager,
         bibleState.translationVisibility,
-        menuExpanded,
         selectedTranslations
     ) {
+        availableTranslationsForDropdown(
+            assetManager = assetManager,
+            visibility = bibleState.translationVisibility,
+            selectedTranslations = selectedTranslations
+        )
+    }
+    var exitAnimationTranslations by remember { mutableStateOf(selectedTranslations) }
+    LaunchedEffect(menuExpanded, expandedTranslations) {
         if (menuExpanded) {
-            availableTranslationsForDropdown(
-                assetManager = assetManager,
-                visibility = bibleState.translationVisibility,
-                selectedTranslations = selectedTranslations
-            )
-        } else {
-            selectedTranslations
+            exitAnimationTranslations = expandedTranslations
         }
     }
+    val translations = if (menuExpanded) expandedTranslations else exitAnimationTranslations
 
     Surface(
         tonalElevation = 0.dp,
