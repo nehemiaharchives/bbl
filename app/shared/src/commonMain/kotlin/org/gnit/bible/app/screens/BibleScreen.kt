@@ -214,9 +214,7 @@ fun BibleApp(
                                 onStateChange = { bibleState = it },
                                 onAnyUserAction = { chrome.onUserInteraction() }
                             )
-                            if (BOOK_CONTROLS_BAR_BOTTOM_MARGIN > 0) {
-                                Spacer(modifier = Modifier.height(BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp))
-                            }
+                            Spacer(modifier = Modifier.height(BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp))
                         }
                     }
                 }
@@ -240,9 +238,7 @@ fun BibleApp(
                     modifier = Modifier.navigationBarsPadding()
                 ) {
                     Column {
-                        if (CHAPTER_CONTROLS_BAR_TOP_MARGIN > 0) {
-                            Spacer(modifier = Modifier.height(CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp))
-                        }
+                        Spacer(modifier = Modifier.height(CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp))
                         ChapterControlsBar(
                             bibleState = bibleState,
                             onStateChange = { bibleState = it },

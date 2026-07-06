@@ -68,10 +68,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 private const val AUTO_HIDE_MS: Long = 60_000
-const val READING_SCREEN_VERTICAL_SPACE = 8
+const val READING_SCREEN_VERTICAL_SPACE = 4
 const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
-const val READING_SCREEN_HORIZONTAL_PADDING = 12
+const val READING_SCREEN_HORIZONTAL_PADDING = 4
 
 @Composable
 fun BibleReadingArea(
