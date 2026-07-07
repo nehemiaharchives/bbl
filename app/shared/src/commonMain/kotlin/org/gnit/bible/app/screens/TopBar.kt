@@ -154,7 +154,7 @@ fun TopBarContent(
                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                 )
                 .padding(horizontal = 12.dp, vertical = 0.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Box(modifier = Modifier.size(BUTTON_SIZE.dp)) {
