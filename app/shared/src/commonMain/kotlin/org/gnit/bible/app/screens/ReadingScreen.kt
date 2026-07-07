@@ -8,10 +8,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -36,8 +39,6 @@ import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -470,10 +471,13 @@ private fun ReadingTitleHeader(
         bibleState.mainTranslation.language.sansFontFamily()
     }
     val titleInteractionSource = remember { MutableInteractionSource() }
+    val titleBookControlVerticalOffset =
+        TITLE_BOOK_CONTROL_VERTICAL_OVERWRAP_DELTA.coerceAtLeast(0).dp
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .offset(y = titleBookControlVerticalOffset)
             .clickable(
                 interactionSource = titleInteractionSource,
                 indication = null
