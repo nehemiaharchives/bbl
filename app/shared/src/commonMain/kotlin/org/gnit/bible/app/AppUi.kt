@@ -15,4 +15,4 @@ const val BUTTON_CONTENT_PADDING = 0
  * book control stick together. When the value is positive, the title goes down
  * vertically and overwraps with book control by that integer value in dp.
  */
-const val TITLE_BOOK_CONTROL_VERTICAL_OVERWRAP_DELTA: Int = 0
+const val TITLE_BOOK_CONTROL_VERTICAL_OVERWRAP_DELTA = 4
