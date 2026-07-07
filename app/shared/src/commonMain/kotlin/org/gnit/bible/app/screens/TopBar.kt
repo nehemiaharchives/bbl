@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -135,17 +136,15 @@ fun TopBarContent(
     }
     val translations = if (menuExpanded) expandedTranslations else exitAnimationTranslations
 
-    Surface(
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        modifier = Modifier.statusBarsPadding()
-    ) {
+    Box(modifier = Modifier.statusBarsPadding()) {
         val titleFontFamily = if (bibleState.isFontFamilySerif) {
             bibleState.mainTranslation.language.serifFontFamily()
         } else {
             bibleState.mainTranslation.language.sansFontFamily()
         }
         val titleInteractionSource = remember { MutableInteractionSource() }
+        val titleBookControlVerticalOffsetDp =
+            TITLE_BOOK_CONTROL_VERTICAL_OVERWRAP_DELTA.coerceAtLeast(0).dp
 
         Row(
             modifier = Modifier
@@ -169,13 +168,20 @@ fun TopBarContent(
                         if (isSearchActive) {
                             Modifier
                         } else {
-                            Modifier.clickable(
-                                interactionSource = titleInteractionSource,
-                                indication = null
-                            ) {
-                                onAnyUserAction()
-                                onSearchRequested()
-                            }
+                            Modifier
+                                .offset {
+                                    IntOffset(
+                                        x = 0,
+                                        y = titleBookControlVerticalOffsetDp.roundToPx()
+                                    )
+                                }
+                                .clickable(
+                                    interactionSource = titleInteractionSource,
+                                    indication = null
+                                ) {
+                                    onAnyUserAction()
+                                    onSearchRequested()
+                                }
                         }
                     ),
                 contentAlignment = Alignment.Center

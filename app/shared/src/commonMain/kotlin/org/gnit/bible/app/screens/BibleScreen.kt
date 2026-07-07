@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.BibleStateSaver
 import org.gnit.bible.app.state.SHARED_PREFERENCE_KEY_BIBLE_STATE
@@ -176,38 +177,42 @@ fun BibleApp(
             ) {
                 Column(modifier = Modifier.padding(vertical = 0.dp)) {
                     if (shouldShowTopChromeContent) {
-                        TopBarContent(
-                            bibleState = bibleState,
-                            onStateChange = { bibleState = it },
-                            onAnyUserAction = { chrome.onUserInteraction() },
-                            onDropdownVisibilityChange = { isOpen ->
-                                chrome.setPause(isOpen)
-                                if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
-                            },
-                            onOpenTranslationManager = {
-                                hideDropdownForTranslationManager = true
-                                showTranslationManager = true
-                            },
-                            hideDropdown = hideDropdownForTranslationManager,
-                            isSearchActive = bibleState.isSearchActive,
-                            searchQuery = bibleState.searchQuery,
-                            onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
-                            onSearchRequested = { startSearch() },
-                            onSearchSubmit = {
-                                val trimmedQuery = bibleState.searchQuery.trim()
-                                if (trimmedQuery.isNotEmpty()) {
-                                    bibleState = bibleState.submitSearch(trimmedQuery)
-                                    chrome.forceShow()
-                                }
-                            },
-                            onSearchCancel = { cancelSearch() }
-                        )
+                        Box(modifier = Modifier.zIndex(1f)) {
+                            TopBarContent(
+                                bibleState = bibleState,
+                                onStateChange = { bibleState = it },
+                                onAnyUserAction = { chrome.onUserInteraction() },
+                                onDropdownVisibilityChange = { isOpen ->
+                                    chrome.setPause(isOpen)
+                                    if (isOpen) chrome.forceShow() else chrome.onUserInteraction()
+                                },
+                                onOpenTranslationManager = {
+                                    hideDropdownForTranslationManager = true
+                                    showTranslationManager = true
+                                },
+                                hideDropdown = hideDropdownForTranslationManager,
+                                isSearchActive = bibleState.isSearchActive,
+                                searchQuery = bibleState.searchQuery,
+                                onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
+                                onSearchRequested = { startSearch() },
+                                onSearchSubmit = {
+                                    val trimmedQuery = bibleState.searchQuery.trim()
+                                    if (trimmedQuery.isNotEmpty()) {
+                                        bibleState = bibleState.submitSearch(trimmedQuery)
+                                        chrome.forceShow()
+                                    }
+                                },
+                                onSearchCancel = { cancelSearch() }
+                            )
+                        }
                     }
                     if (shouldShowReadingChromeControls) {
                         Column(
-                            modifier = Modifier.onSizeChanged { size ->
-                                if (size.height > 0) bookControlsHeightPx = size.height
-                            }
+                            modifier = Modifier
+                                .onSizeChanged { size ->
+                                    if (size.height > 0) bookControlsHeightPx = size.height
+                                }
+                                .zIndex(0f)
                         ) {
                             BookControlsBar(
                                 bibleState = bibleState,
