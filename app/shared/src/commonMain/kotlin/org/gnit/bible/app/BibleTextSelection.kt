@@ -39,7 +39,7 @@ data class BibleTextSelection(
         if (selectedVerses.isEmpty()) return ""
 
         return buildString {
-            appendLine("${bibleState.describeBookChapter()} ${bibleState.mainTranslation.code.uppercase()}")
+            appendLine(bibleState.describeBookChapter())
             selectedVerses.forEach { verse ->
                 appendLine("$verse ${verses[verse - 1]}")
             }
@@ -53,10 +53,7 @@ data class BibleTextSelection(
         if (selectedUnits.isEmpty()) return ""
 
         return buildString {
-            appendLine(
-                "${bibleState.describeBookChapter()} " +
-                    "${bibleState.mainTranslation.code.uppercase()} / ${subTranslation.code.uppercase()}"
-            )
+            appendLine(bibleState.describeBookChapter())
             selectedUnits.forEach { unit ->
                 val verseIndex = unit / BILINGUAL_UNITS_PER_VERSE
                 val isSubTranslation = unit % BILINGUAL_UNITS_PER_VERSE == 1
