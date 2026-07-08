@@ -392,7 +392,7 @@ private fun BibleTextSelectionPopup(
 
     val density = LocalDensity.current
     val popupHeightPx = with(density) { 52.dp.roundToPx() }
-    val gapPx = with(density) { 8.dp.roundToPx() }
+    val gapPx = with(density) { 1.dp.roundToPx() }
     val verseTopInViewport = selectedVerseLayout.topPx - scrollState.value
     val shouldShowAbove = verseTopInViewport > viewportHeight / 2
     val rawPopupY = if (shouldShowAbove) {
@@ -410,7 +410,7 @@ private fun BibleTextSelectionPopup(
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(10.dp),
             tonalElevation = 6.dp,
             shadowElevation = 6.dp,
             color = MaterialTheme.colorScheme.surfaceVariant
@@ -422,15 +422,15 @@ private fun BibleTextSelectionPopup(
                 IconButton(onClick = onCopy) {
                     Icon(
                         painter = painterResource(Res.drawable.content_copy),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = null/*,
+                        tint = MaterialTheme.colorScheme.primary*/
                     )
                 }
                 IconButton(onClick = onSelectAll) {
                     Icon(
                         painter = painterResource(Res.drawable.select_all),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = null/*,
+                        tint = MaterialTheme.colorScheme.primary*/
                     )
                 }
             }
