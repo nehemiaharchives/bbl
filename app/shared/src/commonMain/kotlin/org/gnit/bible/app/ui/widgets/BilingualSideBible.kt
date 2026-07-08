@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +21,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.gnit.bible.app.BibleTextSelection
 import org.gnit.bible.app.ScrollableColumn
 import org.gnit.bible.app.VerseLayoutInfo
 import org.gnit.bible.app.state.BibleState
@@ -38,7 +36,6 @@ fun BilingualSideBible(
     onScrollPercentChange: (Float) -> Unit = {},
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
     highlightedVerse: Int? = null,
-    selectedTextSelection: BibleTextSelection? = null,
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
     onVerseLongPress: ((Int) -> Unit)? = null,
@@ -65,18 +62,6 @@ fun BilingualSideBible(
                     val animatedBackground = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
                     val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
                     val verseNumber = verse + 1
-                    val isMainSelected = selectedTextSelection?.containsBilingualVersePart(
-                        verse = verseNumber,
-                        isSubTranslation = false
-                    ) == true
-                    val isSubSelected = selectedTextSelection?.containsBilingualVersePart(
-                        verse = verseNumber,
-                        isSubTranslation = true
-                    ) == true
-                    val mainBackground = if (isMainSelected) MaterialTheme.colorScheme.primaryContainer else animatedBackground
-                    val subBackground = if (isSubSelected) MaterialTheme.colorScheme.primaryContainer else animatedBackground
-                    val mainTextColor = if (isMainSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
-                    val subTextColor = if (isSubSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
 
                     Column(
                         modifier = Modifier
@@ -105,22 +90,22 @@ fun BilingualSideBible(
                                 style = TextStyle(
                                     fontSize = bibleState.fontSize.sp,
                                     fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
-                                    color = mainTextColor
+                                    color = animatedTextColor
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(mainBackground)
+                                    .background(animatedBackground)
                             )
                             Text(
                                 text = "$verseNumber ${pair.second}",
                                 style = TextStyle(
                                     fontSize = bibleState.fontSize.sp,
                                     fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
-                                    color = subTextColor
+                                    color = animatedTextColor
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(subBackground)
+                                    .background(animatedBackground)
                             )
                         }
                         Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
