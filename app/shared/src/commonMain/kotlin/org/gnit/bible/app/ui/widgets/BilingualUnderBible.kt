@@ -51,13 +51,23 @@ fun BilingualUnderBible(
         onTitleTap = onTitleTap
     ) {
         versePairs.forEachIndexed { verse, pair ->
-            val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+            val mainBackground = animatedBilingualUnderTranslationBackgroundColor(
+                bibleState = bibleState,
+                verseIndex = verse,
+                highlightedVerse = highlightedVerse,
+                isSubTranslation = false
+            ).value
+            val subBackground = animatedBilingualUnderTranslationBackgroundColor(
+                bibleState = bibleState,
+                verseIndex = verse,
+                highlightedVerse = highlightedVerse,
+                isSubTranslation = true
+            ).value
             val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(background)
                     .verseTapGestures(
                         verse = verse + 1,
                         onVerseTap = onVerseTap,
@@ -80,6 +90,9 @@ fun BilingualUnderBible(
                         fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
                         color = textColor
                     ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(mainBackground)
                 )
                 Text(
                     text = "${verse + 1} ${pair.second}",
@@ -90,6 +103,7 @@ fun BilingualUnderBible(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(subBackground)
                         .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
                 )
             }
