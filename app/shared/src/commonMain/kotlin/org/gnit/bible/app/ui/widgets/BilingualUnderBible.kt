@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ fun BilingualUnderBible(
     val readingMode = bibleState.readingMode
     require(readingMode == ReadingMode.BILINGUAL_UNDER) { "Expected ${ReadingMode.BILINGUAL_UNDER}, got $readingMode" }
     requireNotNull(bibleState.subTranslation) { "subTranslation is required for ${ReadingMode.BILINGUAL_UNDER}" }
+    val verseSpacingPx = with(LocalDensity.current) { bibleState.spaceBetweenVerses.dp.roundToPx() }
 
     ScrollableColumn(
         bibleState = bibleState,
@@ -97,7 +99,7 @@ fun BilingualUnderBible(
                             verseNumber,
                             VerseLayoutInfo(
                                 topPx = coordinates.positionInParent().y.toInt(),
-                                heightPx = coordinates.size.height
+                                heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
                             )
                         )
                     }
