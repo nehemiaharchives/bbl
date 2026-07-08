@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +37,7 @@ fun SingleBible(
     selectedTextSelection: BibleTextSelection? = null,
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
-    onVerseLongPress: (Int) -> Unit = {},
+    onVerseLongPress: ((Int) -> Unit)? = null,
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
     onTitleTap: () -> Unit = {}
@@ -52,48 +53,52 @@ fun SingleBible(
         bottomContentPadding = bottomContentPadding,
         onTitleTap = onTitleTap
     ) {
-        verses.forEachIndexed { verse, text ->
-            val animatedBackground = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
-            val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
-            val isSelected = selectedTextSelection?.containsSingleVerse(verse + 1) == true
-            val background = if (isSelected) MaterialTheme.colorScheme.primaryContainer else animatedBackground
-            val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
+        SelectionContainer {
+            Column {
+                verses.forEachIndexed { verse, text ->
+                    val animatedBackground = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+                    val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
+                    val isSelected = selectedTextSelection?.containsSingleVerse(verse + 1) == true
+                    val background = if (isSelected) MaterialTheme.colorScheme.primaryContainer else animatedBackground
+                    val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verseTapGestures(
-                        verse = verse + 1,
-                        onVerseTap = onVerseTap,
-                        onVerseDoubleTap = onVerseDoubleTap,
-                        onVerseLongPress = onVerseLongPress
-                    )
-                    .onGloballyPositioned { coordinates ->
-                        onVersePositioned(
-                            verse + 1,
-                            VerseLayoutInfo(
-                                topPx = coordinates.positionInParent().y.toInt(),
-                                heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verseTapGestures(
+                                verse = verse + 1,
+                                onVerseTap = onVerseTap,
+                                onVerseDoubleTap = onVerseDoubleTap,
+                                onVerseLongPress = onVerseLongPress
                             )
+                            .onGloballyPositioned { coordinates ->
+                                onVersePositioned(
+                                    verse + 1,
+                                    VerseLayoutInfo(
+                                        topPx = coordinates.positionInParent().y.toInt(),
+                                        heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
+                                    )
+                                )
+                            }
+                    ) {
+                        Text(
+                            text = "${verse + 1} $text",
+                            style = TextStyle(
+                                fontSize = bibleState.fontSize.sp,
+                                fontFamily = if (bibleState.isFontFamilySerif) {
+                                    translation.language.serifFontFamily()
+                                } else {
+                                    translation.language.sansFontFamily()
+                                },
+                                color = textColor
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(background)
                         )
+                        Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
                     }
-            ) {
-                Text(
-                    text = "${verse + 1} $text",
-                    style = TextStyle(
-                        fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) {
-                            translation.language.serifFontFamily()
-                        } else {
-                            translation.language.sansFontFamily()
-                        },
-                        color = textColor
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(background)
-                )
-                Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
+                }
             }
         }
     }
