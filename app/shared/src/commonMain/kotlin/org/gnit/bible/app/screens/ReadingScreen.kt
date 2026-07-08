@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,14 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,14 +38,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +61,6 @@ import org.gnit.bible.app.ui.widgets.BilingualUnderBible
 import org.gnit.bible.app.ui.widgets.SingleBible
 import org.gnit.bible.app.ui.widgets.sansFontFamily
 import org.gnit.bible.app.ui.widgets.serifFontFamily
-import org.jetbrains.compose.resources.painterResource
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -83,10 +73,6 @@ const val READING_SCREEN_VERTICAL_SPACE = 1
 const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val READING_SCREEN_HORIZONTAL_PADDING = 4
-const val SELECTION_POPUP_ICON_SIZE: Int = 20
-const val SELECTION_POPUP_PADDING: Int = 6
-const val SELECTION_POPUP_GAP: Int = 0
-private const val SELECTION_POPUP_HEIGHT: Int = SELECTION_POPUP_ICON_SIZE + (SELECTION_POPUP_PADDING * 2)
 
 @Composable
 fun BibleReadingArea(
@@ -119,16 +105,6 @@ fun BibleReadingArea(
         mutableStateMapOf<Int, VerseLayoutInfo>()
     }
     var viewportHeight by remember { mutableStateOf(0) }
-    var selectedTextSelection by remember(
-        state.book,
-        state.chapter,
-        state.readingMode,
-        state.mainTranslation,
-        state.subTranslation
-    ) {
-        mutableStateOf<BibleTextSelection?>(null)
-    }
-    val clipboardManager = LocalClipboardManager.current
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.isScrollInProgress }.collect { inProgress ->
@@ -214,15 +190,12 @@ fun BibleReadingArea(
         onStateChange(currentState.copy(scrollPercent = scrollPercent))
     }
     val onTitleTap: () -> Unit = {
-        selectedTextSelection = null
         if (!currentState.isSearchActive) {
             onSearchRequested()
         }
     }
     val onVerseTap: (Int) -> Unit = {
-        if (selectedTextSelection != null) {
-            selectedTextSelection = null
-        } else if (currentState.isSearchActive) {
+        if (currentState.isSearchActive) {
             onSearchCancel()
         } else if (chrome.isVisible()) {
             chrome.forceHide()
@@ -231,49 +204,8 @@ fun BibleReadingArea(
         }
     }
     val onVerseDoubleTap: (Int) -> Unit = { verse ->
-        selectedTextSelection = null
         onStateChange(currentState.recordReadHistory(verse))
         chrome.onUserInteraction()
-    }
-    val onVerseLongPress: (Int) -> Unit = { verse ->
-        selectedTextSelection = when (val content = readingContent) {
-            is ReadingContent.Single -> BibleTextSelection.singleVerse(
-                verse = verse,
-                verseCount = content.verses.size
-            )
-
-            is ReadingContent.Bilingual -> BibleTextSelection.bilingualMainVerse(
-                verse = verse,
-                verseCount = content.versePairs.size
-            )
-
-            null -> null
-        }
-        if (selectedTextSelection != null) {
-            chrome.forceHide()
-        }
-    }
-    val copySelectedText: () -> Unit = {
-        val selection = selectedTextSelection
-        if (selection != null) {
-            val selectedText = when (val content = readingContent) {
-                is ReadingContent.Single -> selection.copySingleText(
-                    bibleState = currentState,
-                    verses = content.verses
-                )
-
-                is ReadingContent.Bilingual -> selection.copyBilingualText(
-                    bibleState = currentState,
-                    versePairs = content.versePairs
-                )
-
-                null -> ""
-            }
-            if (selectedText.isNotBlank()) {
-                clipboardManager.setText(AnnotatedString(selectedText))
-            }
-        }
-        selectedTextSelection = null
     }
 
     Box(
@@ -305,7 +237,6 @@ fun BibleReadingArea(
                 onScrollPercentChange = onScrollPercentChange,
                 onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                 highlightedVerse = state.highlightedVerse,
-                selectedTextSelection = selectedTextSelection,
                 onVerseTap = onVerseTap,
                 onVerseDoubleTap = onVerseDoubleTap,
                 topContentPadding = topContentPadding,
@@ -321,7 +252,6 @@ fun BibleReadingArea(
                     onScrollPercentChange = onScrollPercentChange,
                     onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                     highlightedVerse = state.highlightedVerse,
-                    selectedTextSelection = selectedTextSelection,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
                     topContentPadding = topContentPadding,
@@ -336,7 +266,6 @@ fun BibleReadingArea(
                     onScrollPercentChange = onScrollPercentChange,
                     onVersePositioned = { verse, layout -> verseLayouts[verse] = layout },
                     highlightedVerse = state.highlightedVerse,
-                    selectedTextSelection = selectedTextSelection,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
                     topContentPadding = topContentPadding,
@@ -346,16 +275,6 @@ fun BibleReadingArea(
 
                 ReadingMode.SINGLE -> Unit
             }
-        }
-
-        selectedTextSelection?.let { selection ->
-            BibleTextSelectionPopup(
-                selectedVerseLayout = verseLayouts[selection.anchorVerse],
-                scrollState = scrollState,
-                viewportHeight = viewportHeight,
-                onCopy = copySelectedText,
-                onSelectAll = { selectedTextSelection = selection.selectAll() }
-            )
         }
     }
 
@@ -378,81 +297,6 @@ fun BibleReadingArea(
         )
         scrollState.scrollTo((scrollState.maxValue * scrollPercent).roundToInt())
         onStateChange(currentState.copy(scrollPercent = scrollPercent, centerVerse = null))
-    }
-}
-
-@Composable
-private fun BibleTextSelectionPopup(
-    selectedVerseLayout: VerseLayoutInfo?,
-    scrollState: ScrollState,
-    viewportHeight: Int,
-    onCopy: () -> Unit,
-    onSelectAll: () -> Unit
-) {
-    if (selectedVerseLayout == null || viewportHeight <= 0) return
-
-    val density = LocalDensity.current
-    val popupHeightPx = with(density) { SELECTION_POPUP_HEIGHT.dp.roundToPx() }
-    val gapPx = with(density) { SELECTION_POPUP_GAP.dp.roundToPx() }
-    val verseTopInViewport = selectedVerseLayout.topPx - scrollState.value
-    val shouldShowAbove = verseTopInViewport > viewportHeight / 2
-    val rawPopupY = if (shouldShowAbove) {
-        verseTopInViewport - popupHeightPx - gapPx
-    } else {
-        verseTopInViewport + selectedVerseLayout.heightPx + gapPx
-    }
-    val maxPopupY = (viewportHeight - popupHeightPx).coerceAtLeast(0)
-    val popupY = rawPopupY.coerceIn(0, maxPopupY)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .offset { IntOffset(0, popupY) },
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            tonalElevation = 6.dp,
-            shadowElevation = 6.dp,
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
-                SelectionPopupIconButton(onClick = onCopy) {
-                    Icon(
-                        painter = painterResource(Res.drawable.content_copy),
-                        contentDescription = null,
-                        modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
-                SelectionPopupIconButton(onClick = onSelectAll) {
-                    Icon(
-                        painter = painterResource(Res.drawable.select_all),
-                        contentDescription = null,
-                        modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun SelectionPopupIconButton(
-    onClick: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(SELECTION_POPUP_PADDING.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
     }
 }
 
