@@ -1,6 +1,9 @@
 package org.gnit.bible
 
 import org.gnit.bible.app.state.BibleState
+import org.gnit.bible.app.state.ReadingMode
+import org.gnit.bible.app.state.initialBibleStateForAvailableTranslations
+import org.gnit.bible.app.state.normalizedForAvailableTranslations
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -9,6 +12,55 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BibleStateHistoryTest {
+    @Test
+    fun initialStateUsesAvailableTranslationWhenPreferredLanguageIsNotAvailable() {
+        val state = initialBibleStateForAvailableTranslations(
+            availableCodes = setOf("jc"),
+            preferredLanguageCode = "en"
+        )
+
+        assertEquals(SupportedTranslation.JC.translation, state.mainTranslation)
+        assertEquals(ReadingMode.SINGLE, state.readingMode)
+        assertNull(state.subTranslation)
+    }
+
+    @Test
+    fun initialStatePrefersAvailableTranslationForCurrentLanguage() {
+        val state = initialBibleStateForAvailableTranslations(
+            availableCodes = setOf("webus", "jc"),
+            preferredLanguageCode = "ja"
+        )
+
+        assertEquals(SupportedTranslation.JC.translation, state.mainTranslation)
+    }
+
+    @Test
+    fun savedStateMainTranslationFallsBackToAvailableTranslation() {
+        val state = BibleState(mainTranslation = SupportedTranslation.WEBUS.translation)
+            .normalizedForAvailableTranslations(
+                availableCodes = setOf("jc"),
+                preferredLanguageCode = "en"
+            )
+
+        assertEquals(SupportedTranslation.JC.translation, state.mainTranslation)
+    }
+
+    @Test
+    fun savedBilingualStateDropsUnavailableSubTranslation() {
+        val state = BibleState(
+            mainTranslation = SupportedTranslation.WEBUS.translation,
+            subTranslation = SupportedTranslation.KRV.translation,
+            readingMode = ReadingMode.BILINGUAL_SIDE
+        ).normalizedForAvailableTranslations(
+            availableCodes = setOf("webus"),
+            preferredLanguageCode = "en"
+        )
+
+        assertEquals(SupportedTranslation.WEBUS.translation, state.mainTranslation)
+        assertNull(state.subTranslation)
+        assertEquals(ReadingMode.SINGLE, state.readingMode)
+    }
+
     @Test
     fun backClosesEmptySearch() {
         val state = BibleState().startSearch()
@@ -72,7 +124,10 @@ class BibleStateHistoryTest {
         assertNull(state.centerVerse)
         assertEquals(1, state.history.size)
         assertEquals(0, state.backStack.size)
-        assertEquals("cmp read webus ${Books.bookNumber("john")} 11 35", state.history.single().command)
+        assertEquals(
+            "cmp read webus ${Books.bookNumber("john")} 11 35",
+            state.history.single().command
+        )
 
         val cleared = state.clearHistoryHighlight(35)
         assertNull(cleared.highlightedVerse)

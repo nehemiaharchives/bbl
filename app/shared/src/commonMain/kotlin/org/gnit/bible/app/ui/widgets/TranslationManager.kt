@@ -46,6 +46,7 @@ import org.gnit.bible.TranslationEntry
 import org.gnit.bible.InstallationState
 import org.gnit.bible.Language
 import org.gnit.bible.Translation
+import org.gnit.bible.app.EmbeddedPackRegistry
 import org.gnit.bible.app.currentAssetManager
 import org.gnit.bible.app.logger
 import org.gnit.bible.app.state.BibleState
@@ -66,7 +67,7 @@ fun TranslationManagerScreen(
 
     LaunchedEffect(Unit) {
         if (bibleState.translationVisibility.isEmpty()) {
-            val allCodes = (SupportedTranslation.embeddedTranslations.map { it.code } + downloadedCodes).distinct()
+            val allCodes = (EmbeddedPackRegistry.embeddedCodes + downloadedCodes).distinct()
             val seeded = allCodes.associateWith { true }
             onStateChange(bibleState.copy(translationVisibility = seeded))
         }
@@ -335,7 +336,7 @@ private fun buildTranslationEntries(
     downloadedCodes: List<String>,
     catalogTranslations: List<Translation>
 ): List<TranslationEntry> {
-    val embeddedCodeSet = SupportedTranslation.embeddedTranslations.map { it.code }.toSet()
+    val embeddedCodeSet = EmbeddedPackRegistry.embeddedCodes
     val downloadedCodeSet = downloadedCodes.toSet()
 
     return catalogTranslations.map { translation ->

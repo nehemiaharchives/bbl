@@ -7,19 +7,19 @@ class Bible(
     private fun hasEmbeddedReader(): Boolean = this::bibleResourcesReader.isInitialized
 
     fun availableTranslationCodes(): Array<String> {
-        val embedded = if (hasEmbeddedReader()) SupportedTranslation.embeddedCodes else emptyArray()
+        val embedded = if (hasEmbeddedReader()) bibleResourcesReader.embeddedCodes.toTypedArray() else emptyArray()
         return embedded.plus(assetManager.downloadedTranslationCodes())
     }
 
     fun availableTranslations(): List<Translation> {
-        val embeddedTranslations = if (hasEmbeddedReader()) SupportedTranslation.embeddedTranslations else emptyList()
+        val embeddedTranslations = if (hasEmbeddedReader()) SupportedTranslation.embeddedTranslationsFor(bibleResourcesReader.embeddedCodes) else emptyList()
         val downloadedTranslations = assetManager.downloadedTranslations()
         return embeddedTranslations.plus(downloadedTranslations)
     }
 
     fun findTranslationByCode(code: String): Boolean {
-        val foundInEmbedded = if (hasEmbeddedReader()) SupportedTranslation.embeddedTranslations.find { it.code == code } else null
-        if (foundInEmbedded != null) {
+        val foundInEmbedded = hasEmbeddedReader() && code in bibleResourcesReader.embeddedCodes
+        if (foundInEmbedded) {
             return true
         }
         val foundInDownloaded = assetManager.downloadedTranslationCodes().find { it == code }
@@ -64,9 +64,9 @@ class Bible(
 
     fun verses(translation: String = "webus", book: Int = 1, chapter: Int = 1): String {
         return when {
-            hasEmbeddedReader() && translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
-            hasEmbeddedReader() && translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
-            hasEmbeddedReader() && SupportedTranslation.embeddedCodes.contains(translation) ->
+            hasEmbeddedReader() && translation in bibleResourcesReader.embeddedCodes && translation == "webus" && book == 1 && chapter == 1 -> webusGenesisChapterOne
+            hasEmbeddedReader() && translation in bibleResourcesReader.embeddedCodes && translation == "jc" && book == 1 && chapter == 1 -> jcGenesisChapterOne
+            hasEmbeddedReader() && translation in bibleResourcesReader.embeddedCodes ->
                 bibleResourcesReader.getChapterText(translation = translation, book = book, chapter = chapter)
             assetManager.downloadedTranslationCodes().contains(translation) ->
                 obtainZipBibleResourcesReader().getChapterText(translation = translation, book = book, chapter = chapter)
@@ -141,7 +141,7 @@ class Bible(
         translation: Translation,
         analyzerProvider: AnalyzerProvider = defaultAnalyzerProvider
     ): List<VersePointer> {
-        val isEmbedded = hasEmbeddedReader() && SupportedTranslation.embeddedCodes.contains(translation.code)
+        val isEmbedded = hasEmbeddedReader() && translation.code in bibleResourcesReader.embeddedCodes
         val searchEngine = obtainSearchEngine(isEmbedded, analyzerProvider)
         return searchEngine.search(term, bookNumber, startChapter, endChapter, verses, filters, translation)
     }

@@ -1,0 +1,3434 @@
+{
+  "schemaVersion": 1,
+  "translations": [
+    {
+      "code": "webus",
+      "languageCode": "en",
+      "languageName": "English",
+      "languageOrder": 1,
+      "englishName": "World English Bible",
+      "nativeName": "World English Bible"
+    },
+    {
+      "code": "kjv",
+      "languageCode": "en",
+      "languageName": "English",
+      "languageOrder": 1,
+      "englishName": "King James Version",
+      "nativeName": "King James Version"
+    },
+    {
+      "code": "rvr09",
+      "languageCode": "es",
+      "languageName": "Spanish",
+      "languageOrder": 2,
+      "englishName": "Reina-Valera",
+      "nativeName": "Reina-Valera"
+    },
+    {
+      "code": "tb",
+      "languageCode": "pt",
+      "languageName": "Portuguese",
+      "languageOrder": 3,
+      "englishName": "Brazilian Translation",
+      "nativeName": "Tradução Brasileira"
+    },
+    {
+      "code": "delut",
+      "languageCode": "de",
+      "languageName": "German",
+      "languageOrder": 4,
+      "englishName": "Luther Bible",
+      "nativeName": "Lutherbibel"
+    },
+    {
+      "code": "lsg",
+      "languageCode": "fr",
+      "languageName": "French",
+      "languageOrder": 5,
+      "englishName": "Louis Segond",
+      "nativeName": "Bible Segond"
+    },
+    {
+      "code": "sinod",
+      "languageCode": "ru",
+      "languageName": "Russian",
+      "languageOrder": 6,
+      "englishName": "Russian Synodal Bible",
+      "nativeName": "Синодальный перевод"
+    },
+    {
+      "code": "svrj",
+      "languageCode": "nl",
+      "languageName": "Dutch",
+      "languageOrder": 7,
+      "englishName": "Statenvertaling Jongbloed edition",
+      "nativeName": "Statenvertaling Jongbloed-editie"
+    },
+    {
+      "code": "rdv24",
+      "languageCode": "it",
+      "languageName": "Italian",
+      "languageOrder": 8,
+      "englishName": "Revised Diodati Version",
+      "nativeName": "Versione Diodati Riveduta"
+    },
+    {
+      "code": "ubg",
+      "languageCode": "pl",
+      "languageName": "Polish",
+      "languageOrder": 9,
+      "englishName": "Updated Gdansk Bible",
+      "nativeName": "Uwspółcześniona Biblia gdańska"
+    },
+    {
+      "code": "ubio",
+      "languageCode": "uk",
+      "languageName": "Ukrainian",
+      "languageOrder": 10,
+      "englishName": "Ukrainian Bible, Ivan Ogienko",
+      "nativeName": "Біблія в пер. Івана Огієнка"
+    },
+    {
+      "code": "sven",
+      "languageCode": "sv",
+      "languageName": "Swedish",
+      "languageOrder": 11,
+      "englishName": "Svenska 1917",
+      "nativeName": "1917 års kyrkobibel"
+    },
+    {
+      "code": "cunp",
+      "languageCode": "zh",
+      "languageName": "Chinese",
+      "languageOrder": 101,
+      "englishName": "Chinese Union Version",
+      "nativeName": "新標點和合本"
+    },
+    {
+      "code": "krv",
+      "languageCode": "ko",
+      "languageName": "Korean",
+      "languageOrder": 103,
+      "englishName": "Korean Revised Version",
+      "nativeName": "개역한글"
+    },
+    {
+      "code": "jc",
+      "languageCode": "ja",
+      "languageName": "Japanese",
+      "languageOrder": 104,
+      "englishName": "Japanese Colloquial Bible",
+      "nativeName": "口語訳"
+    },
+    {
+      "code": "ayt",
+      "languageCode": "id",
+      "languageName": "Indonesian",
+      "languageOrder": 202,
+      "englishName": "The Opened Bible",
+      "nativeName": "Alkitab Yang Terbuka"
+    },
+    {
+      "code": "th1971",
+      "languageCode": "th",
+      "languageName": "Thai",
+      "languageOrder": 204,
+      "englishName": "Thai Bible 1925",
+      "nativeName": "พระคริสตธรรมคัมภีร์ ฉบับ1971"
+    },
+    {
+      "code": "irvhin",
+      "languageCode": "hi",
+      "languageName": "Hindi",
+      "languageOrder": 301,
+      "englishName": "Indian Revised Version - Hindi",
+      "nativeName": "इंडियन रिवाइज्ड वर्जन - हिंदी"
+    },
+    {
+      "code": "irvben",
+      "languageCode": "bn",
+      "languageName": "Bengali",
+      "languageOrder": 302,
+      "englishName": "Indian Revised Version - Bengali",
+      "nativeName": "ইন্ডিয়ান রিভাইজড ভার্সন - বেঙ্গলী"
+    },
+    {
+      "code": "irvtam",
+      "languageCode": "ta",
+      "languageName": "Tamil",
+      "languageOrder": 305,
+      "englishName": "Indian Revised Version - Tamil",
+      "nativeName": "இண்டியன் ரிவைஸ்டு வெர்ஸன் - தமிழ்"
+    },
+    {
+      "code": "npiulb",
+      "languageCode": "ne",
+      "languageName": "Nepali",
+      "languageOrder": 308,
+      "englishName": "Nepali Unlocked Literal Bible",
+      "nativeName": "पवित्र बाइबल"
+    },
+    {
+      "code": "abtag",
+      "languageCode": "tl",
+      "languageName": "Tagalog",
+      "languageOrder": 201,
+      "englishName": "Ang Biblia",
+      "nativeName": "Ang Biblia"
+    },
+    {
+      "code": "kttv",
+      "languageCode": "vi",
+      "languageName": "Vietnamese",
+      "languageOrder": 203,
+      "englishName": "Vietnamese Bible 1925",
+      "nativeName": "Kinh Thánh Tiếng Việt"
+    },
+    {
+      "code": "irvguj",
+      "languageCode": "gu",
+      "languageName": "Gujarati",
+      "languageOrder": 306,
+      "englishName": "Indian Revised Version - Gujarati",
+      "nativeName": "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી"
+    },
+    {
+      "code": "irvmar",
+      "languageCode": "mr",
+      "languageName": "Marathi",
+      "languageOrder": 303,
+      "englishName": "Indian Revised Version - Marathi",
+      "nativeName": "इंडियन रीवाइज्ड वर्जन - मराठी"
+    },
+    {
+      "code": "irvtel",
+      "languageCode": "te",
+      "languageName": "Telugu",
+      "languageOrder": 304,
+      "englishName": "Indian Revised Version - Telugu",
+      "nativeName": "ఇండియన్ రివైజ్డ్ వెర్షన్ - తెలుగు"
+    },
+    {
+      "code": "irvurd",
+      "languageCode": "ur",
+      "languageName": "Urdu",
+      "languageOrder": 307,
+      "englishName": "Indian Revised Version - Urdu",
+      "nativeName": "इंडियन रिवाइज्ड वर्जन - उर्दू"
+    }
+  ],
+  "editions": [
+    {
+      "id": "webus",
+      "displayName": "WEBUS",
+      "embeddedCodes": [
+        "webus"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "kjv",
+      "displayName": "KJV",
+      "embeddedCodes": [
+        "kjv"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "rvr09",
+      "displayName": "RVR09",
+      "embeddedCodes": [
+        "rvr09"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "tb",
+      "displayName": "TB",
+      "embeddedCodes": [
+        "tb"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "delut",
+      "displayName": "DELUT",
+      "embeddedCodes": [
+        "delut"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "lsg",
+      "displayName": "LSG",
+      "embeddedCodes": [
+        "lsg"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "sinod",
+      "displayName": "SINOD",
+      "embeddedCodes": [
+        "sinod"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "svrj",
+      "displayName": "SVRJ",
+      "embeddedCodes": [
+        "svrj"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "rdv24",
+      "displayName": "RDV24",
+      "embeddedCodes": [
+        "rdv24"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "ubg",
+      "displayName": "UBG",
+      "embeddedCodes": [
+        "ubg"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "ubio",
+      "displayName": "UBIO",
+      "embeddedCodes": [
+        "ubio"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "sven",
+      "displayName": "SVEN",
+      "embeddedCodes": [
+        "sven"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "cunp",
+      "displayName": "CUNP",
+      "embeddedCodes": [
+        "cunp"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "krv",
+      "displayName": "KRV",
+      "embeddedCodes": [
+        "krv"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "jc",
+      "displayName": "JC",
+      "embeddedCodes": [
+        "jc"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "ayt",
+      "displayName": "AYT",
+      "embeddedCodes": [
+        "ayt"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "th1971",
+      "displayName": "TH1971",
+      "embeddedCodes": [
+        "th1971"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvhin",
+      "displayName": "IRVHIN",
+      "embeddedCodes": [
+        "irvhin"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvben",
+      "displayName": "IRVBEN",
+      "embeddedCodes": [
+        "irvben"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvtam",
+      "displayName": "IRVTAM",
+      "embeddedCodes": [
+        "irvtam"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "npiulb",
+      "displayName": "NPIULB",
+      "embeddedCodes": [
+        "npiulb"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "abtag",
+      "displayName": "ABTAG",
+      "embeddedCodes": [
+        "abtag"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "kttv",
+      "displayName": "KTTV",
+      "embeddedCodes": [
+        "kttv"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvguj",
+      "displayName": "IRVGUJ",
+      "embeddedCodes": [
+        "irvguj"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvmar",
+      "displayName": "IRVMAR",
+      "embeddedCodes": [
+        "irvmar"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvtel",
+      "displayName": "IRVTEL",
+      "embeddedCodes": [
+        "irvtel"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "irvurd",
+      "displayName": "IRVURD",
+      "embeddedCodes": [
+        "irvurd"
+      ],
+      "kind": "single"
+    },
+    {
+      "id": "webus-kjv",
+      "displayName": "WEBUS + KJV",
+      "embeddedCodes": [
+        "webus",
+        "kjv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-rvr09",
+      "displayName": "WEBUS + RVR09",
+      "embeddedCodes": [
+        "webus",
+        "rvr09"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-tb",
+      "displayName": "WEBUS + TB",
+      "embeddedCodes": [
+        "webus",
+        "tb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-delut",
+      "displayName": "WEBUS + DELUT",
+      "embeddedCodes": [
+        "webus",
+        "delut"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-lsg",
+      "displayName": "WEBUS + LSG",
+      "embeddedCodes": [
+        "webus",
+        "lsg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-sinod",
+      "displayName": "WEBUS + SINOD",
+      "embeddedCodes": [
+        "webus",
+        "sinod"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-svrj",
+      "displayName": "WEBUS + SVRJ",
+      "embeddedCodes": [
+        "webus",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-rdv24",
+      "displayName": "WEBUS + RDV24",
+      "embeddedCodes": [
+        "webus",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-ubg",
+      "displayName": "WEBUS + UBG",
+      "embeddedCodes": [
+        "webus",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-ubio",
+      "displayName": "WEBUS + UBIO",
+      "embeddedCodes": [
+        "webus",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-sven",
+      "displayName": "WEBUS + SVEN",
+      "embeddedCodes": [
+        "webus",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-cunp",
+      "displayName": "WEBUS + CUNP",
+      "embeddedCodes": [
+        "webus",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-krv",
+      "displayName": "WEBUS + KRV",
+      "embeddedCodes": [
+        "webus",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-jc",
+      "displayName": "WEBUS + JC",
+      "embeddedCodes": [
+        "webus",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-ayt",
+      "displayName": "WEBUS + AYT",
+      "embeddedCodes": [
+        "webus",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-th1971",
+      "displayName": "WEBUS + TH1971",
+      "embeddedCodes": [
+        "webus",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvhin",
+      "displayName": "WEBUS + IRVHIN",
+      "embeddedCodes": [
+        "webus",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvben",
+      "displayName": "WEBUS + IRVBEN",
+      "embeddedCodes": [
+        "webus",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvtam",
+      "displayName": "WEBUS + IRVTAM",
+      "embeddedCodes": [
+        "webus",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-npiulb",
+      "displayName": "WEBUS + NPIULB",
+      "embeddedCodes": [
+        "webus",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-abtag",
+      "displayName": "WEBUS + ABTAG",
+      "embeddedCodes": [
+        "webus",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-kttv",
+      "displayName": "WEBUS + KTTV",
+      "embeddedCodes": [
+        "webus",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvguj",
+      "displayName": "WEBUS + IRVGUJ",
+      "embeddedCodes": [
+        "webus",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvmar",
+      "displayName": "WEBUS + IRVMAR",
+      "embeddedCodes": [
+        "webus",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvtel",
+      "displayName": "WEBUS + IRVTEL",
+      "embeddedCodes": [
+        "webus",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "webus-irvurd",
+      "displayName": "WEBUS + IRVURD",
+      "embeddedCodes": [
+        "webus",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-tb",
+      "displayName": "RVR09 + TB",
+      "embeddedCodes": [
+        "rvr09",
+        "tb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-delut",
+      "displayName": "RVR09 + DELUT",
+      "embeddedCodes": [
+        "rvr09",
+        "delut"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-lsg",
+      "displayName": "RVR09 + LSG",
+      "embeddedCodes": [
+        "rvr09",
+        "lsg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-sinod",
+      "displayName": "RVR09 + SINOD",
+      "embeddedCodes": [
+        "rvr09",
+        "sinod"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-svrj",
+      "displayName": "RVR09 + SVRJ",
+      "embeddedCodes": [
+        "rvr09",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-rdv24",
+      "displayName": "RVR09 + RDV24",
+      "embeddedCodes": [
+        "rvr09",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-ubg",
+      "displayName": "RVR09 + UBG",
+      "embeddedCodes": [
+        "rvr09",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-ubio",
+      "displayName": "RVR09 + UBIO",
+      "embeddedCodes": [
+        "rvr09",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-sven",
+      "displayName": "RVR09 + SVEN",
+      "embeddedCodes": [
+        "rvr09",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-cunp",
+      "displayName": "RVR09 + CUNP",
+      "embeddedCodes": [
+        "rvr09",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-krv",
+      "displayName": "RVR09 + KRV",
+      "embeddedCodes": [
+        "rvr09",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-jc",
+      "displayName": "RVR09 + JC",
+      "embeddedCodes": [
+        "rvr09",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-ayt",
+      "displayName": "RVR09 + AYT",
+      "embeddedCodes": [
+        "rvr09",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-th1971",
+      "displayName": "RVR09 + TH1971",
+      "embeddedCodes": [
+        "rvr09",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvhin",
+      "displayName": "RVR09 + IRVHIN",
+      "embeddedCodes": [
+        "rvr09",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvben",
+      "displayName": "RVR09 + IRVBEN",
+      "embeddedCodes": [
+        "rvr09",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvtam",
+      "displayName": "RVR09 + IRVTAM",
+      "embeddedCodes": [
+        "rvr09",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-npiulb",
+      "displayName": "RVR09 + NPIULB",
+      "embeddedCodes": [
+        "rvr09",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-abtag",
+      "displayName": "RVR09 + ABTAG",
+      "embeddedCodes": [
+        "rvr09",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-kttv",
+      "displayName": "RVR09 + KTTV",
+      "embeddedCodes": [
+        "rvr09",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvguj",
+      "displayName": "RVR09 + IRVGUJ",
+      "embeddedCodes": [
+        "rvr09",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvmar",
+      "displayName": "RVR09 + IRVMAR",
+      "embeddedCodes": [
+        "rvr09",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvtel",
+      "displayName": "RVR09 + IRVTEL",
+      "embeddedCodes": [
+        "rvr09",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rvr09-irvurd",
+      "displayName": "RVR09 + IRVURD",
+      "embeddedCodes": [
+        "rvr09",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-delut",
+      "displayName": "TB + DELUT",
+      "embeddedCodes": [
+        "tb",
+        "delut"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-lsg",
+      "displayName": "TB + LSG",
+      "embeddedCodes": [
+        "tb",
+        "lsg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-sinod",
+      "displayName": "TB + SINOD",
+      "embeddedCodes": [
+        "tb",
+        "sinod"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-svrj",
+      "displayName": "TB + SVRJ",
+      "embeddedCodes": [
+        "tb",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-rdv24",
+      "displayName": "TB + RDV24",
+      "embeddedCodes": [
+        "tb",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-ubg",
+      "displayName": "TB + UBG",
+      "embeddedCodes": [
+        "tb",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-ubio",
+      "displayName": "TB + UBIO",
+      "embeddedCodes": [
+        "tb",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-sven",
+      "displayName": "TB + SVEN",
+      "embeddedCodes": [
+        "tb",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-cunp",
+      "displayName": "TB + CUNP",
+      "embeddedCodes": [
+        "tb",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-krv",
+      "displayName": "TB + KRV",
+      "embeddedCodes": [
+        "tb",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-jc",
+      "displayName": "TB + JC",
+      "embeddedCodes": [
+        "tb",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-ayt",
+      "displayName": "TB + AYT",
+      "embeddedCodes": [
+        "tb",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-th1971",
+      "displayName": "TB + TH1971",
+      "embeddedCodes": [
+        "tb",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvhin",
+      "displayName": "TB + IRVHIN",
+      "embeddedCodes": [
+        "tb",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvben",
+      "displayName": "TB + IRVBEN",
+      "embeddedCodes": [
+        "tb",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvtam",
+      "displayName": "TB + IRVTAM",
+      "embeddedCodes": [
+        "tb",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-npiulb",
+      "displayName": "TB + NPIULB",
+      "embeddedCodes": [
+        "tb",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-abtag",
+      "displayName": "TB + ABTAG",
+      "embeddedCodes": [
+        "tb",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-kttv",
+      "displayName": "TB + KTTV",
+      "embeddedCodes": [
+        "tb",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvguj",
+      "displayName": "TB + IRVGUJ",
+      "embeddedCodes": [
+        "tb",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvmar",
+      "displayName": "TB + IRVMAR",
+      "embeddedCodes": [
+        "tb",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvtel",
+      "displayName": "TB + IRVTEL",
+      "embeddedCodes": [
+        "tb",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "tb-irvurd",
+      "displayName": "TB + IRVURD",
+      "embeddedCodes": [
+        "tb",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-lsg",
+      "displayName": "DELUT + LSG",
+      "embeddedCodes": [
+        "delut",
+        "lsg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-sinod",
+      "displayName": "DELUT + SINOD",
+      "embeddedCodes": [
+        "delut",
+        "sinod"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-svrj",
+      "displayName": "DELUT + SVRJ",
+      "embeddedCodes": [
+        "delut",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-rdv24",
+      "displayName": "DELUT + RDV24",
+      "embeddedCodes": [
+        "delut",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-ubg",
+      "displayName": "DELUT + UBG",
+      "embeddedCodes": [
+        "delut",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-ubio",
+      "displayName": "DELUT + UBIO",
+      "embeddedCodes": [
+        "delut",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-sven",
+      "displayName": "DELUT + SVEN",
+      "embeddedCodes": [
+        "delut",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-cunp",
+      "displayName": "DELUT + CUNP",
+      "embeddedCodes": [
+        "delut",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-krv",
+      "displayName": "DELUT + KRV",
+      "embeddedCodes": [
+        "delut",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-jc",
+      "displayName": "DELUT + JC",
+      "embeddedCodes": [
+        "delut",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-ayt",
+      "displayName": "DELUT + AYT",
+      "embeddedCodes": [
+        "delut",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-th1971",
+      "displayName": "DELUT + TH1971",
+      "embeddedCodes": [
+        "delut",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvhin",
+      "displayName": "DELUT + IRVHIN",
+      "embeddedCodes": [
+        "delut",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvben",
+      "displayName": "DELUT + IRVBEN",
+      "embeddedCodes": [
+        "delut",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvtam",
+      "displayName": "DELUT + IRVTAM",
+      "embeddedCodes": [
+        "delut",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-npiulb",
+      "displayName": "DELUT + NPIULB",
+      "embeddedCodes": [
+        "delut",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-abtag",
+      "displayName": "DELUT + ABTAG",
+      "embeddedCodes": [
+        "delut",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-kttv",
+      "displayName": "DELUT + KTTV",
+      "embeddedCodes": [
+        "delut",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvguj",
+      "displayName": "DELUT + IRVGUJ",
+      "embeddedCodes": [
+        "delut",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvmar",
+      "displayName": "DELUT + IRVMAR",
+      "embeddedCodes": [
+        "delut",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvtel",
+      "displayName": "DELUT + IRVTEL",
+      "embeddedCodes": [
+        "delut",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "delut-irvurd",
+      "displayName": "DELUT + IRVURD",
+      "embeddedCodes": [
+        "delut",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-sinod",
+      "displayName": "LSG + SINOD",
+      "embeddedCodes": [
+        "lsg",
+        "sinod"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-svrj",
+      "displayName": "LSG + SVRJ",
+      "embeddedCodes": [
+        "lsg",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-rdv24",
+      "displayName": "LSG + RDV24",
+      "embeddedCodes": [
+        "lsg",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-ubg",
+      "displayName": "LSG + UBG",
+      "embeddedCodes": [
+        "lsg",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-ubio",
+      "displayName": "LSG + UBIO",
+      "embeddedCodes": [
+        "lsg",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-sven",
+      "displayName": "LSG + SVEN",
+      "embeddedCodes": [
+        "lsg",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-cunp",
+      "displayName": "LSG + CUNP",
+      "embeddedCodes": [
+        "lsg",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-krv",
+      "displayName": "LSG + KRV",
+      "embeddedCodes": [
+        "lsg",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-jc",
+      "displayName": "LSG + JC",
+      "embeddedCodes": [
+        "lsg",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-ayt",
+      "displayName": "LSG + AYT",
+      "embeddedCodes": [
+        "lsg",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-th1971",
+      "displayName": "LSG + TH1971",
+      "embeddedCodes": [
+        "lsg",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvhin",
+      "displayName": "LSG + IRVHIN",
+      "embeddedCodes": [
+        "lsg",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvben",
+      "displayName": "LSG + IRVBEN",
+      "embeddedCodes": [
+        "lsg",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvtam",
+      "displayName": "LSG + IRVTAM",
+      "embeddedCodes": [
+        "lsg",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-npiulb",
+      "displayName": "LSG + NPIULB",
+      "embeddedCodes": [
+        "lsg",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-abtag",
+      "displayName": "LSG + ABTAG",
+      "embeddedCodes": [
+        "lsg",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-kttv",
+      "displayName": "LSG + KTTV",
+      "embeddedCodes": [
+        "lsg",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvguj",
+      "displayName": "LSG + IRVGUJ",
+      "embeddedCodes": [
+        "lsg",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvmar",
+      "displayName": "LSG + IRVMAR",
+      "embeddedCodes": [
+        "lsg",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvtel",
+      "displayName": "LSG + IRVTEL",
+      "embeddedCodes": [
+        "lsg",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "lsg-irvurd",
+      "displayName": "LSG + IRVURD",
+      "embeddedCodes": [
+        "lsg",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-svrj",
+      "displayName": "SINOD + SVRJ",
+      "embeddedCodes": [
+        "sinod",
+        "svrj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-rdv24",
+      "displayName": "SINOD + RDV24",
+      "embeddedCodes": [
+        "sinod",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-ubg",
+      "displayName": "SINOD + UBG",
+      "embeddedCodes": [
+        "sinod",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-ubio",
+      "displayName": "SINOD + UBIO",
+      "embeddedCodes": [
+        "sinod",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-sven",
+      "displayName": "SINOD + SVEN",
+      "embeddedCodes": [
+        "sinod",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-cunp",
+      "displayName": "SINOD + CUNP",
+      "embeddedCodes": [
+        "sinod",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-krv",
+      "displayName": "SINOD + KRV",
+      "embeddedCodes": [
+        "sinod",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-jc",
+      "displayName": "SINOD + JC",
+      "embeddedCodes": [
+        "sinod",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-ayt",
+      "displayName": "SINOD + AYT",
+      "embeddedCodes": [
+        "sinod",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-th1971",
+      "displayName": "SINOD + TH1971",
+      "embeddedCodes": [
+        "sinod",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvhin",
+      "displayName": "SINOD + IRVHIN",
+      "embeddedCodes": [
+        "sinod",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvben",
+      "displayName": "SINOD + IRVBEN",
+      "embeddedCodes": [
+        "sinod",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvtam",
+      "displayName": "SINOD + IRVTAM",
+      "embeddedCodes": [
+        "sinod",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-npiulb",
+      "displayName": "SINOD + NPIULB",
+      "embeddedCodes": [
+        "sinod",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-abtag",
+      "displayName": "SINOD + ABTAG",
+      "embeddedCodes": [
+        "sinod",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-kttv",
+      "displayName": "SINOD + KTTV",
+      "embeddedCodes": [
+        "sinod",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvguj",
+      "displayName": "SINOD + IRVGUJ",
+      "embeddedCodes": [
+        "sinod",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvmar",
+      "displayName": "SINOD + IRVMAR",
+      "embeddedCodes": [
+        "sinod",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvtel",
+      "displayName": "SINOD + IRVTEL",
+      "embeddedCodes": [
+        "sinod",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sinod-irvurd",
+      "displayName": "SINOD + IRVURD",
+      "embeddedCodes": [
+        "sinod",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-rdv24",
+      "displayName": "SVRJ + RDV24",
+      "embeddedCodes": [
+        "svrj",
+        "rdv24"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-ubg",
+      "displayName": "SVRJ + UBG",
+      "embeddedCodes": [
+        "svrj",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-ubio",
+      "displayName": "SVRJ + UBIO",
+      "embeddedCodes": [
+        "svrj",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-sven",
+      "displayName": "SVRJ + SVEN",
+      "embeddedCodes": [
+        "svrj",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-cunp",
+      "displayName": "SVRJ + CUNP",
+      "embeddedCodes": [
+        "svrj",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-krv",
+      "displayName": "SVRJ + KRV",
+      "embeddedCodes": [
+        "svrj",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-jc",
+      "displayName": "SVRJ + JC",
+      "embeddedCodes": [
+        "svrj",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-ayt",
+      "displayName": "SVRJ + AYT",
+      "embeddedCodes": [
+        "svrj",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-th1971",
+      "displayName": "SVRJ + TH1971",
+      "embeddedCodes": [
+        "svrj",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvhin",
+      "displayName": "SVRJ + IRVHIN",
+      "embeddedCodes": [
+        "svrj",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvben",
+      "displayName": "SVRJ + IRVBEN",
+      "embeddedCodes": [
+        "svrj",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvtam",
+      "displayName": "SVRJ + IRVTAM",
+      "embeddedCodes": [
+        "svrj",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-npiulb",
+      "displayName": "SVRJ + NPIULB",
+      "embeddedCodes": [
+        "svrj",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-abtag",
+      "displayName": "SVRJ + ABTAG",
+      "embeddedCodes": [
+        "svrj",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-kttv",
+      "displayName": "SVRJ + KTTV",
+      "embeddedCodes": [
+        "svrj",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvguj",
+      "displayName": "SVRJ + IRVGUJ",
+      "embeddedCodes": [
+        "svrj",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvmar",
+      "displayName": "SVRJ + IRVMAR",
+      "embeddedCodes": [
+        "svrj",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvtel",
+      "displayName": "SVRJ + IRVTEL",
+      "embeddedCodes": [
+        "svrj",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "svrj-irvurd",
+      "displayName": "SVRJ + IRVURD",
+      "embeddedCodes": [
+        "svrj",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-ubg",
+      "displayName": "RDV24 + UBG",
+      "embeddedCodes": [
+        "rdv24",
+        "ubg"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-ubio",
+      "displayName": "RDV24 + UBIO",
+      "embeddedCodes": [
+        "rdv24",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-sven",
+      "displayName": "RDV24 + SVEN",
+      "embeddedCodes": [
+        "rdv24",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-cunp",
+      "displayName": "RDV24 + CUNP",
+      "embeddedCodes": [
+        "rdv24",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-krv",
+      "displayName": "RDV24 + KRV",
+      "embeddedCodes": [
+        "rdv24",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-jc",
+      "displayName": "RDV24 + JC",
+      "embeddedCodes": [
+        "rdv24",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-ayt",
+      "displayName": "RDV24 + AYT",
+      "embeddedCodes": [
+        "rdv24",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-th1971",
+      "displayName": "RDV24 + TH1971",
+      "embeddedCodes": [
+        "rdv24",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvhin",
+      "displayName": "RDV24 + IRVHIN",
+      "embeddedCodes": [
+        "rdv24",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvben",
+      "displayName": "RDV24 + IRVBEN",
+      "embeddedCodes": [
+        "rdv24",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvtam",
+      "displayName": "RDV24 + IRVTAM",
+      "embeddedCodes": [
+        "rdv24",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-npiulb",
+      "displayName": "RDV24 + NPIULB",
+      "embeddedCodes": [
+        "rdv24",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-abtag",
+      "displayName": "RDV24 + ABTAG",
+      "embeddedCodes": [
+        "rdv24",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-kttv",
+      "displayName": "RDV24 + KTTV",
+      "embeddedCodes": [
+        "rdv24",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvguj",
+      "displayName": "RDV24 + IRVGUJ",
+      "embeddedCodes": [
+        "rdv24",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvmar",
+      "displayName": "RDV24 + IRVMAR",
+      "embeddedCodes": [
+        "rdv24",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvtel",
+      "displayName": "RDV24 + IRVTEL",
+      "embeddedCodes": [
+        "rdv24",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "rdv24-irvurd",
+      "displayName": "RDV24 + IRVURD",
+      "embeddedCodes": [
+        "rdv24",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-ubio",
+      "displayName": "UBG + UBIO",
+      "embeddedCodes": [
+        "ubg",
+        "ubio"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-sven",
+      "displayName": "UBG + SVEN",
+      "embeddedCodes": [
+        "ubg",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-cunp",
+      "displayName": "UBG + CUNP",
+      "embeddedCodes": [
+        "ubg",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-krv",
+      "displayName": "UBG + KRV",
+      "embeddedCodes": [
+        "ubg",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-jc",
+      "displayName": "UBG + JC",
+      "embeddedCodes": [
+        "ubg",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-ayt",
+      "displayName": "UBG + AYT",
+      "embeddedCodes": [
+        "ubg",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-th1971",
+      "displayName": "UBG + TH1971",
+      "embeddedCodes": [
+        "ubg",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvhin",
+      "displayName": "UBG + IRVHIN",
+      "embeddedCodes": [
+        "ubg",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvben",
+      "displayName": "UBG + IRVBEN",
+      "embeddedCodes": [
+        "ubg",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvtam",
+      "displayName": "UBG + IRVTAM",
+      "embeddedCodes": [
+        "ubg",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-npiulb",
+      "displayName": "UBG + NPIULB",
+      "embeddedCodes": [
+        "ubg",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-abtag",
+      "displayName": "UBG + ABTAG",
+      "embeddedCodes": [
+        "ubg",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-kttv",
+      "displayName": "UBG + KTTV",
+      "embeddedCodes": [
+        "ubg",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvguj",
+      "displayName": "UBG + IRVGUJ",
+      "embeddedCodes": [
+        "ubg",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvmar",
+      "displayName": "UBG + IRVMAR",
+      "embeddedCodes": [
+        "ubg",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvtel",
+      "displayName": "UBG + IRVTEL",
+      "embeddedCodes": [
+        "ubg",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubg-irvurd",
+      "displayName": "UBG + IRVURD",
+      "embeddedCodes": [
+        "ubg",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-sven",
+      "displayName": "UBIO + SVEN",
+      "embeddedCodes": [
+        "ubio",
+        "sven"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-cunp",
+      "displayName": "UBIO + CUNP",
+      "embeddedCodes": [
+        "ubio",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-krv",
+      "displayName": "UBIO + KRV",
+      "embeddedCodes": [
+        "ubio",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-jc",
+      "displayName": "UBIO + JC",
+      "embeddedCodes": [
+        "ubio",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-ayt",
+      "displayName": "UBIO + AYT",
+      "embeddedCodes": [
+        "ubio",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-th1971",
+      "displayName": "UBIO + TH1971",
+      "embeddedCodes": [
+        "ubio",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvhin",
+      "displayName": "UBIO + IRVHIN",
+      "embeddedCodes": [
+        "ubio",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvben",
+      "displayName": "UBIO + IRVBEN",
+      "embeddedCodes": [
+        "ubio",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvtam",
+      "displayName": "UBIO + IRVTAM",
+      "embeddedCodes": [
+        "ubio",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-npiulb",
+      "displayName": "UBIO + NPIULB",
+      "embeddedCodes": [
+        "ubio",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-abtag",
+      "displayName": "UBIO + ABTAG",
+      "embeddedCodes": [
+        "ubio",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-kttv",
+      "displayName": "UBIO + KTTV",
+      "embeddedCodes": [
+        "ubio",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvguj",
+      "displayName": "UBIO + IRVGUJ",
+      "embeddedCodes": [
+        "ubio",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvmar",
+      "displayName": "UBIO + IRVMAR",
+      "embeddedCodes": [
+        "ubio",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvtel",
+      "displayName": "UBIO + IRVTEL",
+      "embeddedCodes": [
+        "ubio",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ubio-irvurd",
+      "displayName": "UBIO + IRVURD",
+      "embeddedCodes": [
+        "ubio",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-cunp",
+      "displayName": "SVEN + CUNP",
+      "embeddedCodes": [
+        "sven",
+        "cunp"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-krv",
+      "displayName": "SVEN + KRV",
+      "embeddedCodes": [
+        "sven",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-jc",
+      "displayName": "SVEN + JC",
+      "embeddedCodes": [
+        "sven",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-ayt",
+      "displayName": "SVEN + AYT",
+      "embeddedCodes": [
+        "sven",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-th1971",
+      "displayName": "SVEN + TH1971",
+      "embeddedCodes": [
+        "sven",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvhin",
+      "displayName": "SVEN + IRVHIN",
+      "embeddedCodes": [
+        "sven",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvben",
+      "displayName": "SVEN + IRVBEN",
+      "embeddedCodes": [
+        "sven",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvtam",
+      "displayName": "SVEN + IRVTAM",
+      "embeddedCodes": [
+        "sven",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-npiulb",
+      "displayName": "SVEN + NPIULB",
+      "embeddedCodes": [
+        "sven",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-abtag",
+      "displayName": "SVEN + ABTAG",
+      "embeddedCodes": [
+        "sven",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-kttv",
+      "displayName": "SVEN + KTTV",
+      "embeddedCodes": [
+        "sven",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvguj",
+      "displayName": "SVEN + IRVGUJ",
+      "embeddedCodes": [
+        "sven",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvmar",
+      "displayName": "SVEN + IRVMAR",
+      "embeddedCodes": [
+        "sven",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvtel",
+      "displayName": "SVEN + IRVTEL",
+      "embeddedCodes": [
+        "sven",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "sven-irvurd",
+      "displayName": "SVEN + IRVURD",
+      "embeddedCodes": [
+        "sven",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-krv",
+      "displayName": "CUNP + KRV",
+      "embeddedCodes": [
+        "cunp",
+        "krv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-jc",
+      "displayName": "CUNP + JC",
+      "embeddedCodes": [
+        "cunp",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-ayt",
+      "displayName": "CUNP + AYT",
+      "embeddedCodes": [
+        "cunp",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-th1971",
+      "displayName": "CUNP + TH1971",
+      "embeddedCodes": [
+        "cunp",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvhin",
+      "displayName": "CUNP + IRVHIN",
+      "embeddedCodes": [
+        "cunp",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvben",
+      "displayName": "CUNP + IRVBEN",
+      "embeddedCodes": [
+        "cunp",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvtam",
+      "displayName": "CUNP + IRVTAM",
+      "embeddedCodes": [
+        "cunp",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-npiulb",
+      "displayName": "CUNP + NPIULB",
+      "embeddedCodes": [
+        "cunp",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-abtag",
+      "displayName": "CUNP + ABTAG",
+      "embeddedCodes": [
+        "cunp",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-kttv",
+      "displayName": "CUNP + KTTV",
+      "embeddedCodes": [
+        "cunp",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvguj",
+      "displayName": "CUNP + IRVGUJ",
+      "embeddedCodes": [
+        "cunp",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvmar",
+      "displayName": "CUNP + IRVMAR",
+      "embeddedCodes": [
+        "cunp",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvtel",
+      "displayName": "CUNP + IRVTEL",
+      "embeddedCodes": [
+        "cunp",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "cunp-irvurd",
+      "displayName": "CUNP + IRVURD",
+      "embeddedCodes": [
+        "cunp",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-jc",
+      "displayName": "KRV + JC",
+      "embeddedCodes": [
+        "krv",
+        "jc"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-ayt",
+      "displayName": "KRV + AYT",
+      "embeddedCodes": [
+        "krv",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-th1971",
+      "displayName": "KRV + TH1971",
+      "embeddedCodes": [
+        "krv",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvhin",
+      "displayName": "KRV + IRVHIN",
+      "embeddedCodes": [
+        "krv",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvben",
+      "displayName": "KRV + IRVBEN",
+      "embeddedCodes": [
+        "krv",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvtam",
+      "displayName": "KRV + IRVTAM",
+      "embeddedCodes": [
+        "krv",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-npiulb",
+      "displayName": "KRV + NPIULB",
+      "embeddedCodes": [
+        "krv",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-abtag",
+      "displayName": "KRV + ABTAG",
+      "embeddedCodes": [
+        "krv",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-kttv",
+      "displayName": "KRV + KTTV",
+      "embeddedCodes": [
+        "krv",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvguj",
+      "displayName": "KRV + IRVGUJ",
+      "embeddedCodes": [
+        "krv",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvmar",
+      "displayName": "KRV + IRVMAR",
+      "embeddedCodes": [
+        "krv",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvtel",
+      "displayName": "KRV + IRVTEL",
+      "embeddedCodes": [
+        "krv",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "krv-irvurd",
+      "displayName": "KRV + IRVURD",
+      "embeddedCodes": [
+        "krv",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-ayt",
+      "displayName": "JC + AYT",
+      "embeddedCodes": [
+        "jc",
+        "ayt"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-th1971",
+      "displayName": "JC + TH1971",
+      "embeddedCodes": [
+        "jc",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvhin",
+      "displayName": "JC + IRVHIN",
+      "embeddedCodes": [
+        "jc",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvben",
+      "displayName": "JC + IRVBEN",
+      "embeddedCodes": [
+        "jc",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvtam",
+      "displayName": "JC + IRVTAM",
+      "embeddedCodes": [
+        "jc",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-npiulb",
+      "displayName": "JC + NPIULB",
+      "embeddedCodes": [
+        "jc",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-abtag",
+      "displayName": "JC + ABTAG",
+      "embeddedCodes": [
+        "jc",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-kttv",
+      "displayName": "JC + KTTV",
+      "embeddedCodes": [
+        "jc",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvguj",
+      "displayName": "JC + IRVGUJ",
+      "embeddedCodes": [
+        "jc",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvmar",
+      "displayName": "JC + IRVMAR",
+      "embeddedCodes": [
+        "jc",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvtel",
+      "displayName": "JC + IRVTEL",
+      "embeddedCodes": [
+        "jc",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "jc-irvurd",
+      "displayName": "JC + IRVURD",
+      "embeddedCodes": [
+        "jc",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-th1971",
+      "displayName": "AYT + TH1971",
+      "embeddedCodes": [
+        "ayt",
+        "th1971"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvhin",
+      "displayName": "AYT + IRVHIN",
+      "embeddedCodes": [
+        "ayt",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvben",
+      "displayName": "AYT + IRVBEN",
+      "embeddedCodes": [
+        "ayt",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvtam",
+      "displayName": "AYT + IRVTAM",
+      "embeddedCodes": [
+        "ayt",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-npiulb",
+      "displayName": "AYT + NPIULB",
+      "embeddedCodes": [
+        "ayt",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-abtag",
+      "displayName": "AYT + ABTAG",
+      "embeddedCodes": [
+        "ayt",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-kttv",
+      "displayName": "AYT + KTTV",
+      "embeddedCodes": [
+        "ayt",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvguj",
+      "displayName": "AYT + IRVGUJ",
+      "embeddedCodes": [
+        "ayt",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvmar",
+      "displayName": "AYT + IRVMAR",
+      "embeddedCodes": [
+        "ayt",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvtel",
+      "displayName": "AYT + IRVTEL",
+      "embeddedCodes": [
+        "ayt",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "ayt-irvurd",
+      "displayName": "AYT + IRVURD",
+      "embeddedCodes": [
+        "ayt",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvhin",
+      "displayName": "TH1971 + IRVHIN",
+      "embeddedCodes": [
+        "th1971",
+        "irvhin"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvben",
+      "displayName": "TH1971 + IRVBEN",
+      "embeddedCodes": [
+        "th1971",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvtam",
+      "displayName": "TH1971 + IRVTAM",
+      "embeddedCodes": [
+        "th1971",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-npiulb",
+      "displayName": "TH1971 + NPIULB",
+      "embeddedCodes": [
+        "th1971",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-abtag",
+      "displayName": "TH1971 + ABTAG",
+      "embeddedCodes": [
+        "th1971",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-kttv",
+      "displayName": "TH1971 + KTTV",
+      "embeddedCodes": [
+        "th1971",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvguj",
+      "displayName": "TH1971 + IRVGUJ",
+      "embeddedCodes": [
+        "th1971",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvmar",
+      "displayName": "TH1971 + IRVMAR",
+      "embeddedCodes": [
+        "th1971",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvtel",
+      "displayName": "TH1971 + IRVTEL",
+      "embeddedCodes": [
+        "th1971",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "th1971-irvurd",
+      "displayName": "TH1971 + IRVURD",
+      "embeddedCodes": [
+        "th1971",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvben",
+      "displayName": "IRVHIN + IRVBEN",
+      "embeddedCodes": [
+        "irvhin",
+        "irvben"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvtam",
+      "displayName": "IRVHIN + IRVTAM",
+      "embeddedCodes": [
+        "irvhin",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-npiulb",
+      "displayName": "IRVHIN + NPIULB",
+      "embeddedCodes": [
+        "irvhin",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-abtag",
+      "displayName": "IRVHIN + ABTAG",
+      "embeddedCodes": [
+        "irvhin",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-kttv",
+      "displayName": "IRVHIN + KTTV",
+      "embeddedCodes": [
+        "irvhin",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvguj",
+      "displayName": "IRVHIN + IRVGUJ",
+      "embeddedCodes": [
+        "irvhin",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvmar",
+      "displayName": "IRVHIN + IRVMAR",
+      "embeddedCodes": [
+        "irvhin",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvtel",
+      "displayName": "IRVHIN + IRVTEL",
+      "embeddedCodes": [
+        "irvhin",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvhin-irvurd",
+      "displayName": "IRVHIN + IRVURD",
+      "embeddedCodes": [
+        "irvhin",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-irvtam",
+      "displayName": "IRVBEN + IRVTAM",
+      "embeddedCodes": [
+        "irvben",
+        "irvtam"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-npiulb",
+      "displayName": "IRVBEN + NPIULB",
+      "embeddedCodes": [
+        "irvben",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-abtag",
+      "displayName": "IRVBEN + ABTAG",
+      "embeddedCodes": [
+        "irvben",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-kttv",
+      "displayName": "IRVBEN + KTTV",
+      "embeddedCodes": [
+        "irvben",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-irvguj",
+      "displayName": "IRVBEN + IRVGUJ",
+      "embeddedCodes": [
+        "irvben",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-irvmar",
+      "displayName": "IRVBEN + IRVMAR",
+      "embeddedCodes": [
+        "irvben",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-irvtel",
+      "displayName": "IRVBEN + IRVTEL",
+      "embeddedCodes": [
+        "irvben",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvben-irvurd",
+      "displayName": "IRVBEN + IRVURD",
+      "embeddedCodes": [
+        "irvben",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-npiulb",
+      "displayName": "IRVTAM + NPIULB",
+      "embeddedCodes": [
+        "irvtam",
+        "npiulb"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-abtag",
+      "displayName": "IRVTAM + ABTAG",
+      "embeddedCodes": [
+        "irvtam",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-kttv",
+      "displayName": "IRVTAM + KTTV",
+      "embeddedCodes": [
+        "irvtam",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-irvguj",
+      "displayName": "IRVTAM + IRVGUJ",
+      "embeddedCodes": [
+        "irvtam",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-irvmar",
+      "displayName": "IRVTAM + IRVMAR",
+      "embeddedCodes": [
+        "irvtam",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-irvtel",
+      "displayName": "IRVTAM + IRVTEL",
+      "embeddedCodes": [
+        "irvtam",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtam-irvurd",
+      "displayName": "IRVTAM + IRVURD",
+      "embeddedCodes": [
+        "irvtam",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-abtag",
+      "displayName": "NPIULB + ABTAG",
+      "embeddedCodes": [
+        "npiulb",
+        "abtag"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-kttv",
+      "displayName": "NPIULB + KTTV",
+      "embeddedCodes": [
+        "npiulb",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-irvguj",
+      "displayName": "NPIULB + IRVGUJ",
+      "embeddedCodes": [
+        "npiulb",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-irvmar",
+      "displayName": "NPIULB + IRVMAR",
+      "embeddedCodes": [
+        "npiulb",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-irvtel",
+      "displayName": "NPIULB + IRVTEL",
+      "embeddedCodes": [
+        "npiulb",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "npiulb-irvurd",
+      "displayName": "NPIULB + IRVURD",
+      "embeddedCodes": [
+        "npiulb",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "abtag-kttv",
+      "displayName": "ABTAG + KTTV",
+      "embeddedCodes": [
+        "abtag",
+        "kttv"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "abtag-irvguj",
+      "displayName": "ABTAG + IRVGUJ",
+      "embeddedCodes": [
+        "abtag",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "abtag-irvmar",
+      "displayName": "ABTAG + IRVMAR",
+      "embeddedCodes": [
+        "abtag",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "abtag-irvtel",
+      "displayName": "ABTAG + IRVTEL",
+      "embeddedCodes": [
+        "abtag",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "abtag-irvurd",
+      "displayName": "ABTAG + IRVURD",
+      "embeddedCodes": [
+        "abtag",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "kttv-irvguj",
+      "displayName": "KTTV + IRVGUJ",
+      "embeddedCodes": [
+        "kttv",
+        "irvguj"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "kttv-irvmar",
+      "displayName": "KTTV + IRVMAR",
+      "embeddedCodes": [
+        "kttv",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "kttv-irvtel",
+      "displayName": "KTTV + IRVTEL",
+      "embeddedCodes": [
+        "kttv",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "kttv-irvurd",
+      "displayName": "KTTV + IRVURD",
+      "embeddedCodes": [
+        "kttv",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvguj-irvmar",
+      "displayName": "IRVGUJ + IRVMAR",
+      "embeddedCodes": [
+        "irvguj",
+        "irvmar"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvguj-irvtel",
+      "displayName": "IRVGUJ + IRVTEL",
+      "embeddedCodes": [
+        "irvguj",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvguj-irvurd",
+      "displayName": "IRVGUJ + IRVURD",
+      "embeddedCodes": [
+        "irvguj",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvmar-irvtel",
+      "displayName": "IRVMAR + IRVTEL",
+      "embeddedCodes": [
+        "irvmar",
+        "irvtel"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvmar-irvurd",
+      "displayName": "IRVMAR + IRVURD",
+      "embeddedCodes": [
+        "irvmar",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "irvtel-irvurd",
+      "displayName": "IRVTEL + IRVURD",
+      "embeddedCodes": [
+        "irvtel",
+        "irvurd"
+      ],
+      "kind": "pair"
+    },
+    {
+      "id": "western",
+      "displayName": "Western",
+      "embeddedCodes": [
+        "webus",
+        "kjv",
+        "rvr09",
+        "tb",
+        "delut",
+        "lsg",
+        "sinod",
+        "svrj",
+        "rdv24",
+        "ubg",
+        "ubio",
+        "sven"
+      ],
+      "kind": "regional"
+    },
+    {
+      "id": "east-asia",
+      "displayName": "East Asia",
+      "embeddedCodes": [
+        "webus",
+        "kjv",
+        "cunp",
+        "krv",
+        "jc"
+      ],
+      "kind": "regional"
+    },
+    {
+      "id": "sea",
+      "displayName": "SEA",
+      "embeddedCodes": [
+        "webus",
+        "kjv",
+        "ayt",
+        "th1971",
+        "abtag",
+        "kttv"
+      ],
+      "kind": "regional"
+    },
+    {
+      "id": "south-asia",
+      "displayName": "South Asia",
+      "embeddedCodes": [
+        "webus",
+        "kjv",
+        "irvhin",
+        "irvben",
+        "irvtam",
+        "irvguj",
+        "irvmar",
+        "irvtel",
+        "irvurd",
+        "npiulb"
+      ],
+      "kind": "regional"
+    }
+  ]
+}

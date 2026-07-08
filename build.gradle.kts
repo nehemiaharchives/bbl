@@ -1,3 +1,11 @@
+import groovy.json.JsonSlurper
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -2684,4 +2692,303 @@ tasks.register("stageBblInstallCommonFixtures") {
     description = "Stage Linux and Windows fixture files for bbl_install Kitchen tests."
     dependsOn(stageBblInstallFixtureTasks.filter { !it.name.contains("Macos") })
     dependsOn(stageBblInstallCompletionFixtureTasks.filter { !it.name.contains("Macos") })
+}
+
+data class RootBblAppEdition(
+    val id: String,
+    val displayName: String,
+    val embeddedCodes: List<String>,
+    val kind: String,
+)
+
+data class RootBblAppTranslation(
+    val code: String,
+    val languageCode: String,
+    val languageName: String,
+    val languageOrder: Int,
+    val englishName: String,
+    val nativeName: String,
+)
+
+val rootBblAppEditionCatalog = JsonSlurper().parse(layout.projectDirectory.file("resources/bbl-app-editions.json").asFile) as Map<*, *>
+val rootBblAppTranslations = (rootBblAppEditionCatalog["translations"] as List<*>).map { rawTranslation ->
+    val translation = rawTranslation as Map<*, *>
+    RootBblAppTranslation(
+        code = translation["code"] as String,
+        languageCode = translation["languageCode"] as String,
+        languageName = translation["languageName"] as String,
+        languageOrder = (translation["languageOrder"] as Number).toInt(),
+        englishName = translation["englishName"] as String,
+        nativeName = translation["nativeName"] as String
+    )
+}
+val rootBblAllAppEditions = (rootBblAppEditionCatalog["editions"] as List<*>).map { rawEdition ->
+    val edition = rawEdition as Map<*, *>
+    RootBblAppEdition(
+        id = edition["id"] as String,
+        displayName = edition["displayName"] as String,
+        embeddedCodes = (edition["embeddedCodes"] as List<*>).map { it as String },
+        kind = edition["kind"] as String
+    )
+}
+val rootBblAllAppEditionsById = rootBblAllAppEditions.associateBy { it.id }
+
+fun rootBblMarkdownCell(text: String): String =
+    text.replace("|", "\\|").replace("\n", " ")
+
+fun rootBblApkLink(baseUrl: String, editionId: String, label: String = "bbl-app-$editionId.apk"): String =
+    "[`${rootBblMarkdownCell(label)}`]($baseUrl/bbl-app-$editionId.apk)"
+
+fun rootBblMatrixLabel(translation: RootBblAppTranslation): String = translation.languageName
+
+fun rootBblPairEditionId(firstCode: String, secondCode: String): String? {
+    val direct = "$firstCode-$secondCode"
+    val reverse = "$secondCode-$firstCode"
+    return when {
+        rootBblAllAppEditionsById[direct]?.kind == "pair" -> direct
+        rootBblAllAppEditionsById[reverse]?.kind == "pair" -> reverse
+        else -> null
+    }
+}
+
+abstract class PrintBblAppEditionRowsTask : DefaultTask() {
+    @get:Input
+    abstract val editionRows: ListProperty<String>
+
+    @TaskAction
+    fun printRows() {
+        editionRows.get().forEach(::println)
+    }
+}
+
+abstract class PrintBblAppEditionIdsForShardTask : DefaultTask() {
+    @get:Input
+    abstract val editionIds: ListProperty<String>
+
+    @get:Input
+    abstract val shardIndex: Property<Int>
+
+    @get:Input
+    abstract val shardCount: Property<Int>
+
+    @TaskAction
+    fun printShardIds() {
+        val index = shardIndex.get()
+        val count = shardCount.get()
+        require(count > 0) { "bbl.app.shardCount must be greater than zero." }
+        require(index in 0 until count) { "bbl.app.shardIndex must be in 0 until bbl.app.shardCount." }
+        editionIds.get().forEachIndexed { editionIndex, editionId ->
+            if (editionIndex % count == index) {
+                println(editionId)
+            }
+        }
+    }
+}
+
+tasks.register<PrintBblAppEditionRowsTask>("listBblAppEditions") {
+    group = "bbl app"
+    description = "Print all Android app APK editions with embedded translation codes."
+    editionRows.set(rootBblAllAppEditions.map { edition ->
+        "${edition.id}\t${edition.kind}\t${edition.embeddedCodes.joinToString(",")}"
+    })
+}
+
+tasks.register<PrintBblAppEditionRowsTask>("printBblAppEditionIds") {
+    group = "bbl app"
+    description = "Print Android app APK edition IDs in stable build order."
+    editionRows.set(rootBblAllAppEditions.map { it.id })
+}
+
+tasks.register<PrintBblAppEditionIdsForShardTask>("printBblAppEditionIdsForShard") {
+    group = "bbl app"
+    description = "Print Android app APK edition IDs assigned to a deterministic shard."
+    editionIds.set(rootBblAllAppEditions.map { it.id })
+    shardIndex.set(
+        providers.gradleProperty("bbl.app.shardIndex").map { value ->
+            value.toIntOrNull() ?: error("Missing or invalid -Pbbl.app.shardIndex=<index>")
+        }
+    )
+    shardCount.set(
+        providers.gradleProperty("bbl.app.shardCount").map { value ->
+            value.toIntOrNull() ?: error("Missing or invalid -Pbbl.app.shardCount=<count>")
+        }
+    )
+}
+
+abstract class GenerateBblAndroidApkEditionTableTask : DefaultTask() {
+    @get:Input
+    abstract val releaseTag: Property<String>
+
+    @get:Input
+    abstract val translationRows: ListProperty<String>
+
+    @get:Input
+    abstract val editionRows: ListProperty<String>
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        data class TranslationRow(
+            val code: String,
+            val languageCode: String,
+            val languageName: String,
+            val languageOrder: Int,
+            val englishName: String,
+            val nativeName: String,
+        )
+
+        data class EditionRow(
+            val id: String,
+            val displayName: String,
+            val embeddedCodes: List<String>,
+            val kind: String,
+        )
+
+        fun markdownCell(text: String): String =
+            text.replace("|", "\\|").replace("\n", " ")
+
+        fun apkLink(baseUrl: String, editionId: String, label: String = "bbl-app-$editionId.apk"): String =
+            "[`${markdownCell(label)}`]($baseUrl/bbl-app-$editionId.apk)"
+
+        val translations = translationRows.get().map { row ->
+            val parts = row.split('\t')
+            TranslationRow(
+                code = parts[0],
+                languageCode = parts[1],
+                languageName = parts[2],
+                languageOrder = parts[3].toInt(),
+                englishName = parts[4],
+                nativeName = parts[5],
+            )
+        }
+        val editions = editionRows.get().map { row ->
+            val parts = row.split('\t')
+            EditionRow(
+                id = parts[0],
+                displayName = parts[1],
+                embeddedCodes = parts[2].split(',').filter { it.isNotEmpty() },
+                kind = parts[3],
+            )
+        }
+        val translationsByCode = translations.associateBy { it.code }
+        val editionsById = editions.associateBy { it.id }
+        val matrixLanguages = translations
+            .distinctBy { it.languageCode }
+            .sortedBy { it.languageOrder }
+
+        fun pairEditionId(firstCode: String, secondCode: String): String? {
+            val direct = "$firstCode-$secondCode"
+            val reverse = "$secondCode-$firstCode"
+            return when {
+                editionsById[direct]?.kind == "pair" -> direct
+                editionsById[reverse]?.kind == "pair" -> reverse
+                else -> null
+            }
+        }
+
+        val baseUrl = "https://github.com/nehemiaharchives/bbl/releases/download/${releaseTag.get()}"
+        val singleEditions = editions
+            .filter { it.kind == "single" }
+            .sortedWith(
+                compareBy<EditionRow> { edition ->
+                    val translation = translationsByCode.getValue(edition.id)
+                    if (translation.languageCode == "en") 0 else 1
+                }
+                    .thenBy { edition ->
+                        val translation = translationsByCode.getValue(edition.id)
+                        if (translation.languageCode == "en") {
+                            if (translation.code == "webus") 0 else 1
+                        } else {
+                            translation.languageOrder
+                        }
+                    }
+                    .thenBy { edition -> translationsByCode.getValue(edition.id).code }
+            )
+        val regionalEditions = editions.filter { it.kind == "regional" }
+        val output = buildString {
+            appendLine("# Android APK Editions")
+            appendLine()
+            appendLine("F-Droid will likely publish one default APK edition first. Other edition APKs are distributed through GitHub Releases.")
+            appendLine()
+            appendLine("## Single Language Editions")
+            appendLine()
+            appendLine("| Language name | Translation code | Translation name | Translation native name | APK |")
+            appendLine("|---|---|---|---|---|")
+            singleEditions.forEach { edition ->
+                val translation = translationsByCode.getValue(edition.id)
+                appendLine(
+                    "| ${markdownCell(translation.languageName)} | ${translation.code} | ${markdownCell(translation.englishName)} | ${markdownCell(translation.nativeName)} | ${apkLink(baseUrl, edition.id)} |"
+                )
+            }
+            appendLine()
+            appendLine("## Bilingual Editions")
+            appendLine()
+            appendLine("Matrix cells show language-code combinations only and link to the APK for each supported pair. Blank cells do not have a corresponding language-pair APK.")
+            appendLine()
+            append("| Translation |")
+            matrixLanguages.forEach { column ->
+                append(" ${markdownCell(column.languageName)} |")
+            }
+            appendLine()
+            append("|---|")
+            repeat(matrixLanguages.size) {
+                append("---|")
+            }
+            appendLine()
+            matrixLanguages.forEach { row ->
+                append("| ${markdownCell(row.languageName)} |")
+                matrixLanguages.forEach { column ->
+                    val editionId = if (row.languageCode == column.languageCode) {
+                        null
+                    } else {
+                        pairEditionId(row.code, column.code)
+                    }
+                    val cell = if (editionId != null) {
+                        apkLink(baseUrl, editionId, "${row.languageCode}-${column.languageCode}")
+                    } else {
+                        ""
+                    }
+                    append(" $cell |")
+                }
+                appendLine()
+            }
+            appendLine()
+            appendLine("## Reginal Editions")
+            appendLine()
+            appendLine("| Edition | Languages | Embedded translations | APK |")
+            appendLine("|---|---|---|---|")
+            regionalEditions.forEach { edition ->
+                val languageCodes = edition.embeddedCodes
+                    .map { code -> translationsByCode.getValue(code) }
+                    .distinctBy { it.languageCode }
+                    .sortedBy { it.languageOrder }
+                    .joinToString(", ") { it.languageCode }
+                appendLine("| ${edition.displayName} | $languageCodes | ${edition.embeddedCodes.joinToString(", ") { it.uppercase(java.util.Locale.ROOT) }} | ${apkLink(baseUrl, edition.id)} |")
+            }
+        }
+        val file = outputFile.get().asFile
+        file.parentFile.mkdirs()
+        file.writeText(output)
+    }
+}
+
+tasks.register<GenerateBblAndroidApkEditionTableTask>("generateBblAndroidApkEditionTable") {
+    group = "bbl app"
+    description = "Generate docs/android-apk-editions.md for GitHub Release APK editions."
+    outputFile.set(layout.projectDirectory.file("docs/android-apk-editions.md"))
+    releaseTag.set(providers.gradleProperty("bbl.release.tag").orElse("app-v4.0"))
+    translationRows.set(rootBblAppTranslations.map {
+        listOf(it.code, it.languageCode, it.languageName, it.languageOrder, it.englishName, it.nativeName).joinToString("\t")
+    })
+    editionRows.set(rootBblAllAppEditions.map {
+        listOf(it.id, it.displayName, it.embeddedCodes.joinToString(","), it.kind).joinToString("\t")
+    })
+}
+
+tasks.register("generateBblAppEditionReadmeTable") {
+    group = "bbl app"
+    description = "Compatibility alias for generating Android APK edition documentation."
+    dependsOn("generateBblAndroidApkEditionTable")
 }

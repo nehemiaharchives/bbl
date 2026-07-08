@@ -78,3 +78,63 @@ jobs:
           echo "* Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "* Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "* Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+
+  android-release-smoke:
+    name: Android release smoke (${{ matrix.edition }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [webus, jc, webus-jc, western, east-asia, sea, south-asia]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build smoke APK
+        run: ./gradlew :app:androidApp:assembleRelease "-Pbbl.app.edition=${{ matrix.edition }}"
+
+      - name: Stage smoke APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/android-smoke
+          source_apk="$(find app/androidApp/build/outputs/apk/release -name '*.apk' | head -n 1)"
+          test -f "$source_apk"
+          cp "$source_apk" "dist/android-smoke/bbl-app-${{ matrix.edition }}.apk"
+
+      - name: Verify smoke APK pack contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="dist/android-smoke/bbl-app-${{ matrix.edition }}.apk"
+          unzip -l "$apk" | grep 'files/bblpacks/' > "$RUNNER_TEMP/apk-files.txt"
+          case "${{ matrix.edition }}" in
+            webus)
+              grep 'files/bblpacks/webus/' "$RUNNER_TEMP/apk-files.txt"
+              ! grep 'files/bblpacks/jc/' "$RUNNER_TEMP/apk-files.txt"
+              ;;
+            webus-jc)
+              grep 'files/bblpacks/webus/' "$RUNNER_TEMP/apk-files.txt"
+              grep 'files/bblpacks/jc/' "$RUNNER_TEMP/apk-files.txt"
+              ! grep 'files/bblpacks/krv/' "$RUNNER_TEMP/apk-files.txt"
+              ;;
+            east-asia)
+              for code in webus kjv cunp krv jc; do grep "files/bblpacks/$code/" "$RUNNER_TEMP/apk-files.txt"; done
+              ! grep 'files/bblpacks/lsg/' "$RUNNER_TEMP/apk-files.txt"
+              ! grep 'files/bblpacks/irvhin/' "$RUNNER_TEMP/apk-files.txt"
+              ;;
+          esac

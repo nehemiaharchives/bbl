@@ -20,6 +20,25 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 }
 
+val releaseKeystorePath = providers.gradleProperty("bbl.android.keystore")
+    .orElse(providers.environmentVariable("BBL_ANDROID_KEYSTORE"))
+    .orNull
+val releaseKeystorePassword = providers.gradleProperty("bbl.android.keystorePassword")
+    .orElse(providers.environmentVariable("BBL_ANDROID_KEYSTORE_PASSWORD"))
+    .orNull
+val releaseKeyAlias = providers.gradleProperty("bbl.android.keyAlias")
+    .orElse(providers.environmentVariable("BBL_ANDROID_KEY_ALIAS"))
+    .orNull
+val releaseKeyPassword = providers.gradleProperty("bbl.android.keyPassword")
+    .orElse(providers.environmentVariable("BBL_ANDROID_KEY_PASSWORD"))
+    .orNull
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "org.gnit.bible.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -36,9 +55,23 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
         create("profile") {
             initWith(getByName("release"))

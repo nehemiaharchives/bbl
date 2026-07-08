@@ -1,4 +1,4 @@
-name: Publish
+name: Publish CLI
 
 on:
   push:
@@ -200,7 +200,6 @@ jobs:
           path: artifact
           if-no-files-found: error
           retention-days: 7
-
   package-cli-assets:
     name: Package CLI assets (${{ matrix.asset }})
     needs: link-release-executables
@@ -437,7 +436,6 @@ jobs:
           path: dist/*
           if-no-files-found: error
           retention-days: 7
-
   build-pack-assets:
     name: Build bbl pack assets
     needs: link-release-executables
@@ -479,7 +477,6 @@ jobs:
           path: resources/bblpacks/*.zip
           if-no-files-found: error
           retention-days: 7
-
   publish-release:
     name: Publish GitHub Release
     needs:
@@ -494,16 +491,19 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            release_tag="${{ inputs.tag }}"
+            echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
             echo "target=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
             echo "draft=${{ inputs.draft }}" >> "$GITHUB_OUTPUT"
             echo "prerelease=${{ inputs.prerelease }}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            release_tag="${GITHUB_REF_NAME}"
+            echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
             echo "target=" >> "$GITHUB_OUTPUT"
             echo "draft=false" >> "$GITHUB_OUTPUT"
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
+          [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+$ ]] || { echo "CLI release tag must match vX.X, for example v2.0" >&2; exit 1; }
 
       - name: Download linked executables
         uses: actions/download-artifact@v8
@@ -518,6 +518,7 @@ jobs:
           pattern: packaged-*
           path: dist
           merge-multiple: true
+
 
       - name: Collect raw executables
         shell: bash
@@ -541,7 +542,6 @@ jobs:
           draft: ${{ steps.release.outputs.draft }}
           prerelease: ${{ steps.release.outputs.prerelease }}
           overwrite: true
-
   publish-homebrew-tap:
     name: Update Homebrew tap
     needs: publish-release

@@ -20,8 +20,10 @@ internal fun seedComposePackDirFromResources(platform: Platform) {
     val packDir = packDirPath.toPath()
     fileSystem.createDirectories(packDir)
 
+    val defaultEmbeddedCodes = SupportedTranslation.appEditionById(SupportedTranslation.defaultAppEditionId).embeddedCodes
+
     SupportedTranslation.entries
-        .filterNot { it.embedded }
+        .filterNot { it.code in defaultEmbeddedCodes }
         .map { it.translation.code }
         .forEach { code ->
             val destination = packDir / "$code.zip"

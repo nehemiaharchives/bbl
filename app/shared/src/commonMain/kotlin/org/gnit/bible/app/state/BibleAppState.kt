@@ -11,6 +11,8 @@ import org.gnit.bible.Books
 import org.gnit.bible.HistoryRecord
 import org.gnit.bible.Translation
 import org.gnit.bible.VersePointer
+import org.gnit.bible.app.EmbeddedPackRegistry
+import org.gnit.bible.app.currentAssetManager
 import org.gnit.bible.app.currentPlatform
 import org.gnit.bible.app.logger
 
@@ -201,29 +203,86 @@ private fun translationByCode(code: String): Translation? {
     return SupportedTranslation.entries.firstOrNull { it.translation.code == code }?.translation
 }
 
+fun initialBibleStateForAvailableTranslations(
+    availableCodes: Set<String>,
+    preferredLanguageCode: String?
+): BibleState {
+    return BibleState(
+        mainTranslation = chooseAvailableTranslation(
+            availableCodes = availableCodes,
+            preferredLanguageCode = preferredLanguageCode
+        )
+    ).normalizedForAvailableTranslations(
+        availableCodes = availableCodes,
+        preferredLanguageCode = preferredLanguageCode
+    )
+}
+
+fun BibleState.normalizedForAvailableTranslations(
+    availableCodes: Set<String>,
+    preferredLanguageCode: String?
+): BibleState {
+    val normalizedCodes = availableCodes.map { it.lowercase() }.toSet()
+    val fallbackTranslation = chooseAvailableTranslation(normalizedCodes, preferredLanguageCode)
+    val normalizedMainTranslation = mainTranslation.takeIf { it.code in normalizedCodes }
+        ?: fallbackTranslation
+    val normalizedSubTranslation = subTranslation?.takeIf { it.code in normalizedCodes }
+    val normalizedReadingMode =
+        if (readingMode == ReadingMode.SINGLE || normalizedSubTranslation != null) {
+            readingMode
+        } else {
+            ReadingMode.SINGLE
+        }
+
+    return copy(
+        mainTranslation = normalizedMainTranslation,
+        subTranslation = normalizedSubTranslation,
+        readingMode = normalizedReadingMode
+    )
+}
+
+private fun chooseAvailableTranslation(
+    availableCodes: Set<String>,
+    preferredLanguageCode: String?
+): Translation {
+    val normalizedCodes = availableCodes.map { it.lowercase() }.toSet()
+    val availableTranslations = SupportedTranslation.all.filter { it.code in normalizedCodes }
+    return availableTranslations.firstOrNull { translation ->
+        translation.languageCode == preferredLanguageCode
+    } ?: availableTranslations.firstOrNull()
+    ?: SupportedTranslation.WEBUS.translation
+}
+
+@Composable
+fun currentAvailableTranslationCodes(): Set<String> {
+    val assetManager = currentAssetManager()
+    val downloadedCodes = runCatching { assetManager.downloadedTranslationCodes() }
+        .getOrElse { emptyList() }
+    return EmbeddedPackRegistry.embeddedCodes + downloadedCodes
+}
+
 @Composable
 fun rememberBibleState(): BibleState {
     val platform = currentPlatform()
+    val availableCodes = currentAvailableTranslationCodes()
+    val defaultLanguage = Languages.currentLanguageCode()
 
     val bibleStateJson = platform.settings.getStringOrNull(SHARED_PREFERENCE_KEY_BIBLE_STATE)
     if (bibleStateJson != null) {
-        val initialBibleState = bibleStateJson.toBibleState()
+        val initialBibleState = bibleStateJson.toBibleState().normalizedForAvailableTranslations(
+            availableCodes = availableCodes,
+            preferredLanguageCode = defaultLanguage
+        )
         logger.debug { "Bible Lifecycle sharedPreferences had initialBibleState: $initialBibleState" }
         return initialBibleState
     }
 
-    val defaultLanguage = Languages.currentLanguageCode()
     logger.debug { "rememberBibleSate default language is $defaultLanguage" }
 
-    val initialMainTranslation = if (defaultLanguage == "en") {
-        SupportedTranslation.WEBUS.translation
-    } else {
-        SupportedTranslation.embeddedTranslations.firstOrNull { translation ->
-            translation.languageCode == defaultLanguage
-        } ?: SupportedTranslation.WEBUS.translation
-    }
-
-    val initialBibleState = BibleState(mainTranslation = initialMainTranslation)
+    val initialBibleState = initialBibleStateForAvailableTranslations(
+        availableCodes = availableCodes,
+        preferredLanguageCode = defaultLanguage
+    )
     logger.debug { "Bible Lifecycle sharedPreferences was null, computed initialBibleState: $initialBibleState" }
     return initialBibleState
 }

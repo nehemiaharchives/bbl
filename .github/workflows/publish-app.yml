@@ -1,0 +1,164 @@
+name: Publish Android App
+
+on:
+  push:
+    tags:
+      - 'app-v[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'App release tag, for example app-v4.0'
+        required: true
+        type: string
+      ref:
+        description: 'Branch, tag, or commit SHA to build'
+        required: true
+        default: master
+        type: string
+      draft:
+        description: 'Create a draft release'
+        required: true
+        default: true
+        type: boolean
+      prerelease:
+        description: 'Mark the release as a prerelease'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-app-assets:
+    name: Build Android APK assets (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+    steps:
+      - name: Resolve release ref
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.release.outputs.ref }}
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Configure release signing
+        shell: bash
+        env:
+          BBL_ANDROID_KEYSTORE_BASE64: ${{ secrets.BBL_ANDROID_KEYSTORE_BASE64 }}
+          BBL_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.BBL_ANDROID_KEYSTORE_PASSWORD }}
+          BBL_ANDROID_KEY_ALIAS: ${{ secrets.BBL_ANDROID_KEY_ALIAS }}
+          BBL_ANDROID_KEY_PASSWORD: ${{ secrets.BBL_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in BBL_ANDROID_KEYSTORE_BASE64 BBL_ANDROID_KEYSTORE_PASSWORD BBL_ANDROID_KEY_ALIAS BBL_ANDROID_KEY_PASSWORD; do
+            test -n "${!name}" || { echo "Missing required Android signing secret: $name" >&2; exit 1; }
+          done
+          echo "$BBL_ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/bbl-release.keystore"
+
+      - name: Build shard APKs
+        shell: bash
+        env:
+          BBL_ANDROID_KEYSTORE: ${{ runner.temp }}/bbl-release.keystore
+          BBL_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.BBL_ANDROID_KEYSTORE_PASSWORD }}
+          BBL_ANDROID_KEY_ALIAS: ${{ secrets.BBL_ANDROID_KEY_ALIAS }}
+          BBL_ANDROID_KEY_PASSWORD: ${{ secrets.BBL_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/android-apks
+          ./gradlew -q printBblAppEditionIdsForShard \
+            "-Pbbl.app.shardIndex=${{ matrix.shard }}" \
+            "-Pbbl.app.shardCount=16" > "$RUNNER_TEMP/edition-ids.txt"
+          while IFS= read -r edition; do
+            [ -n "$edition" ] || continue
+            ./gradlew :app:androidApp:assembleRelease "-Pbbl.app.edition=$edition"
+            source_apk="$(find app/androidApp/build/outputs/apk/release -name '*.apk' | head -n 1)"
+            test -f "$source_apk"
+            cp "$source_apk" "dist/android-apks/bbl-app-$edition.apk"
+            rm -f app/androidApp/build/outputs/apk/release/*.apk
+          done < "$RUNNER_TEMP/edition-ids.txt"
+
+      - name: Upload Android APK assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-apks-shard-${{ matrix.shard }}
+          path: dist/android-apks/*.apk
+          if-no-files-found: error
+          retention-days: 7
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-android-app-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Resolve release options
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            release_tag="${{ inputs.tag }}"
+            echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+            echo "target=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+            echo "draft=${{ inputs.draft }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ inputs.prerelease }}" >> "$GITHUB_OUTPUT"
+          else
+            release_tag="${GITHUB_REF_NAME}"
+            echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+            echo "target=" >> "$GITHUB_OUTPUT"
+            echo "draft=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          [[ "$release_tag" =~ ^app-v[0-9]+\.[0-9]+$ ]] || { echo "App release tag must match app-vX.X, for example app-v4.0" >&2; exit 1; }
+
+      - name: Download Android APK assets
+        uses: actions/download-artifact@v8
+        with:
+          pattern: android-apks-*
+          path: dist
+          merge-multiple: true
+
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create or update release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ github.token }}
+          file: dist/*
+          file_glob: true
+          tag: ${{ steps.release.outputs.tag }}
+          release_name: ${{ steps.release.outputs.tag }}
+          target_commit: ${{ steps.release.outputs.target || github.sha }}
+          draft: ${{ steps.release.outputs.draft }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          overwrite: true

@@ -24,6 +24,8 @@ node_modules/
 
 app/androidApp/release/
 !app/androidApp/release/README.md
+app/shared/build/generated/bblAppEdition/
+app/androidApp/build/bblAppEditions/
 
 /bbl_install/.bundle/
 /bbl_install/.kitchen/

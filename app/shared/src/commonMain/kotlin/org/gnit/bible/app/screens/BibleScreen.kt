@@ -31,9 +31,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.vanniktech.locale.Languages
 import org.gnit.bible.app.state.BibleState
 import org.gnit.bible.app.state.BibleStateSaver
 import org.gnit.bible.app.state.SHARED_PREFERENCE_KEY_BIBLE_STATE
+import org.gnit.bible.app.state.normalizedForAvailableTranslations
 import org.gnit.bible.app.state.rememberBibleState
 import org.gnit.bible.app.ui.widgets.TranslationManagerScreen
 
@@ -43,8 +45,21 @@ fun BibleApp(
     initialBibleState: BibleState? = null
 ) {
     val platform = currentPlatform()
+    val assetManager = currentAssetManager()
+    fun availableCodesNow(): Set<String> {
+        val downloadedCodes = runCatching { assetManager.downloadedTranslationCodes() }
+            .getOrElse { emptyList() }
+        return EmbeddedPackRegistry.embeddedCodes + downloadedCodes
+    }
 
-    val initialState = initialBibleState ?: rememberBibleState()
+    val availableCodes = availableCodesNow()
+    val preferredLanguageCode = Languages.currentLanguageCode()
+
+    val initialState =
+        (initialBibleState ?: rememberBibleState()).normalizedForAvailableTranslations(
+            availableCodes = availableCodes,
+            preferredLanguageCode = preferredLanguageCode
+        )
     var bibleState by rememberSaveable(stateSaver = BibleStateSaver) {
         mutableStateOf(initialState)
     }
@@ -53,6 +68,16 @@ fun BibleApp(
     var closeTranslationManagerAfterDropdownRestored by rememberSaveable { mutableStateOf(false) }
 
     logger.debug { "Bible Lifecycle by rememberSavable { mutableStateOf(initialState) } called, bibleState:$bibleState" }
+
+    fun normalizeBibleState(state: BibleState): BibleState =
+        state.normalizedForAvailableTranslations(
+            availableCodes = availableCodesNow(),
+            preferredLanguageCode = preferredLanguageCode
+        )
+
+    fun updateBibleState(nextState: BibleState) {
+        bibleState = normalizeBibleState(nextState)
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val latestBibleState by rememberUpdatedState(bibleState)
@@ -67,8 +92,10 @@ fun BibleApp(
     val chrome = rememberChromeAutoHide(initialChromeVisible)
     var wasChromeVisibleBeforeSearch by rememberSaveable { mutableStateOf(initialChromeVisible) }
     val isChromeVisible = chrome.isVisible()
-    val shouldShowTopChromeContent = bibleState.isSearchActive || isChromeVisible || wasChromeVisibleBeforeSearch
-    val shouldShowReadingChromeControls = !bibleState.isSearchActive && (isChromeVisible || wasChromeVisibleBeforeSearch)
+    val shouldShowTopChromeContent =
+        bibleState.isSearchActive || isChromeVisible || wasChromeVisibleBeforeSearch
+    val shouldShowReadingChromeControls =
+        !bibleState.isSearchActive && (isChromeVisible || wasChromeVisibleBeforeSearch)
     val density = LocalDensity.current
     var topChromeHeightPx by rememberSaveable { mutableStateOf(0) }
     var bookControlsHeightPx by rememberSaveable { mutableStateOf(0) }
@@ -103,12 +130,12 @@ fun BibleApp(
 
     fun startSearch() {
         wasChromeVisibleBeforeSearch = chrome.isVisible()
-        bibleState = bibleState.startSearch()
+        updateBibleState(bibleState.startSearch())
         chrome.forceShow()
     }
 
     fun cancelSearch() {
-        bibleState = bibleState.handleBack() ?: bibleState.clearSearch()
+        updateBibleState(bibleState.handleBack() ?: bibleState.clearSearch())
         chrome.setPause(false)
         if (wasChromeVisibleBeforeSearch) {
             chrome.forceShow()
@@ -127,8 +154,9 @@ fun BibleApp(
             cancelSearch()
         } else {
             bibleState.handleBack()?.let { nextState ->
-                bibleState = nextState
-                if (nextState.isSearchActive) chrome.forceShow() else chrome.onUserInteraction()
+                val normalizedNextState = normalizeBibleState(nextState)
+                updateBibleState(normalizedNextState)
+                if (normalizedNextState.isSearchActive) chrome.forceShow() else chrome.onUserInteraction()
             }
         }
     }
@@ -138,7 +166,7 @@ fun BibleApp(
         if (activeSearchQuery == null) {
             BibleReadingArea(
                 state = bibleState,
-                onStateChange = { bibleState = it },
+                onStateChange = { updateBibleState(it) },
                 chrome = chrome,
                 innerPadding = PaddingValues(0.dp),
                 topContentPadding = topReadingSpacer,
@@ -155,7 +183,7 @@ fun BibleApp(
                     bottom = if (bibleState.isSearchActive) 0.dp else bottomChromeHeight
                 ),
                 onResultClick = { pointer ->
-                    bibleState = bibleState.openSearchResult(pointer)
+                    updateBibleState(bibleState.openSearchResult(pointer))
                     chrome.onUserInteraction()
                 }
             )
@@ -180,7 +208,7 @@ fun BibleApp(
                         Box(modifier = Modifier.zIndex(1f)) {
                             TopBarContent(
                                 bibleState = bibleState,
-                                onStateChange = { bibleState = it },
+                                onStateChange = { updateBibleState(it) },
                                 onAnyUserAction = { chrome.onUserInteraction() },
                                 onDropdownVisibilityChange = { isOpen ->
                                     chrome.setPause(isOpen)
@@ -193,12 +221,12 @@ fun BibleApp(
                                 hideDropdown = hideDropdownForTranslationManager,
                                 isSearchActive = bibleState.isSearchActive,
                                 searchQuery = bibleState.searchQuery,
-                                onSearchQueryChange = { bibleState = bibleState.copy(searchQuery = it) },
+                                onSearchQueryChange = { updateBibleState(bibleState.copy(searchQuery = it)) },
                                 onSearchRequested = { startSearch() },
                                 onSearchSubmit = {
                                     val trimmedQuery = bibleState.searchQuery.trim()
                                     if (trimmedQuery.isNotEmpty()) {
-                                        bibleState = bibleState.submitSearch(trimmedQuery)
+                                        updateBibleState(bibleState.submitSearch(trimmedQuery))
                                         chrome.forceShow()
                                     }
                                 },
@@ -216,7 +244,7 @@ fun BibleApp(
                         ) {
                             BookControlsBar(
                                 bibleState = bibleState,
-                                onStateChange = { bibleState = it },
+                                onStateChange = { updateBibleState(it) },
                                 onAnyUserAction = { chrome.onUserInteraction() }
                             )
                             Spacer(modifier = Modifier.height(BOOK_CONTROLS_BAR_BOTTOM_MARGIN.dp))
@@ -246,7 +274,7 @@ fun BibleApp(
                         Spacer(modifier = Modifier.height(CHAPTER_CONTROLS_BAR_TOP_MARGIN.dp))
                         ChapterControlsBar(
                             bibleState = bibleState,
-                            onStateChange = { bibleState = it },
+                            onStateChange = { updateBibleState(it) },
                             onAnyUserAction = { chrome.onUserInteraction() }
                         )
                     }
@@ -261,7 +289,7 @@ fun BibleApp(
 
             TranslationManagerScreen(
                 bibleState = bibleState,
-                onStateChange = { bibleState = it },
+                onStateChange = { updateBibleState(it) },
                 onClose = {
                     closeTranslationManager()
                 }

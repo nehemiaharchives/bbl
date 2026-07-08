@@ -13,6 +13,9 @@ class ComposeBibleResourcesReader : BibleResourcesReader {
 
     private val cache = HashMap<String, String>()
 
+    override val embeddedCodes: Set<String>
+        get() = EmbeddedPackRegistry.embeddedCodes
+
     override fun chapterFile(translation: String, book: Int, chapter: Int): String =
         "files/$base/$translation/$translation.$book.$chapter.txt"
 

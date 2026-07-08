@@ -16,6 +16,9 @@ import org.gnit.bible.test.search.person.NTGospelsPersonTest
 interface SearchTestBase {
     var bible: Bible
 
+    val defaultEmbeddedCodes: Set<String>
+        get() = SupportedTranslation.appEditionById(SupportedTranslation.defaultAppEditionId).embeddedCodes
+
     val analyzerProvider: AnalyzerProvider
         get() = SimpleAnalyzerProvider()
 
@@ -28,13 +31,13 @@ interface SearchTestBase {
 
     fun searchCommonEmbedded() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && it.embedded }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && it.code in defaultEmbeddedCodes }
         )
     }
 
     fun searchCommonDownloaded() {
         runSearchTests(
-            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && !it.embedded }
+            SupportedTranslation.entries.filter { it.searchModuleId == SearchModuleId.COMMON && it.code !in defaultEmbeddedCodes }
         )
     }
 

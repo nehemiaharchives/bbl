@@ -604,7 +604,7 @@ private fun availableTranslationsForDropdown(
     visibility: Map<String, Boolean> = emptyMap(),
     selectedTranslations: List<Translation> = emptyList()
 ): List<Translation> {
-    val embeddedCodes = SupportedTranslation.embeddedTranslations.map { it.code }.toSet()
+    val embeddedCodes = EmbeddedPackRegistry.embeddedCodes
     val downloadedCodes = runCatching { assetManager.downloadedTranslationCodes().toSet() }.getOrElse { emptySet() }
     val availableCodes = embeddedCodes + downloadedCodes
     val catalogTranslations = SupportedTranslation.all

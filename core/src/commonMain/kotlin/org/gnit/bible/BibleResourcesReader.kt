@@ -5,6 +5,9 @@ interface BibleResourcesReader {
     val base: String
         get() = "bblpacks"
 
+    val embeddedCodes: Set<String>
+        get() = emptySet()
+
     fun chapterFile(translation: String, book: Int, chapter: Int): String
 
     fun readByPath(path: String): String
