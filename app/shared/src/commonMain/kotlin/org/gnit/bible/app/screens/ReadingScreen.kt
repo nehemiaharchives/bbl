@@ -16,12 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,8 +41,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -83,6 +83,10 @@ const val READING_SCREEN_VERTICAL_SPACE = 1
 const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val READING_SCREEN_HORIZONTAL_PADDING = 4
+const val SELECTION_POPUP_ICON_SIZE: Int = 24
+const val SELECTION_POPUP_PADDING: Int = 2
+const val SELECTION_POPUP_GAP: Int = 1
+private const val SELECTION_POPUP_HEIGHT: Int = SELECTION_POPUP_ICON_SIZE + (SELECTION_POPUP_PADDING * 2)
 
 @Composable
 fun BibleReadingArea(
@@ -391,8 +395,8 @@ private fun BibleTextSelectionPopup(
     if (selectedVerseLayout == null || viewportHeight <= 0) return
 
     val density = LocalDensity.current
-    val popupHeightPx = with(density) { 52.dp.roundToPx() }
-    val gapPx = with(density) { 1.dp.roundToPx() }
+    val popupHeightPx = with(density) { SELECTION_POPUP_HEIGHT.dp.roundToPx() }
+    val gapPx = with(density) { SELECTION_POPUP_GAP.dp.roundToPx() }
     val verseTopInViewport = selectedVerseLayout.topPx - scrollState.value
     val shouldShowAbove = verseTopInViewport > viewportHeight / 2
     val rawPopupY = if (shouldShowAbove) {
@@ -416,25 +420,39 @@ private fun BibleTextSelectionPopup(
             color = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onCopy) {
+                SelectionPopupIconButton(onClick = onCopy) {
                     Icon(
                         painter = painterResource(Res.drawable.content_copy),
-                        contentDescription = null/*,
-                        tint = MaterialTheme.colorScheme.primary*/
+                        contentDescription = null,
+                        modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
                     )
                 }
-                IconButton(onClick = onSelectAll) {
+                SelectionPopupIconButton(onClick = onSelectAll) {
                     Icon(
                         painter = painterResource(Res.drawable.select_all),
-                        contentDescription = null/*,
-                        tint = MaterialTheme.colorScheme.primary*/
+                        contentDescription = null,
+                        modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SelectionPopupIconButton(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(SELECTION_POPUP_PADDING.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
     }
 }
 
