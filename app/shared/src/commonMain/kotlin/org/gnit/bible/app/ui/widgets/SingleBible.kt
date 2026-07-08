@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.gnit.bible.app.BibleTextSelection
 import org.gnit.bible.app.ScrollableColumn
 import org.gnit.bible.app.VerseLayoutInfo
 import org.gnit.bible.app.state.BibleState
@@ -30,8 +32,10 @@ fun SingleBible(
     onScrollPercentChange: (Float) -> Unit = {},
     onVersePositioned: (Int, VerseLayoutInfo) -> Unit = { _, _ -> },
     highlightedVerse: Int? = null,
+    selectedTextSelection: BibleTextSelection? = null,
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
+    onVerseLongPress: (Int) -> Unit = {},
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
     onTitleTap: () -> Unit = {}
@@ -47,8 +51,11 @@ fun SingleBible(
         onTitleTap = onTitleTap
     ) {
         verses.forEachIndexed { verse, text ->
-            val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
-            val textColor = animatedVerseTextColor(verse, highlightedVerse).value
+            val animatedBackground = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+            val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
+            val isSelected = selectedTextSelection?.containsSingleVerse(verse + 1) == true
+            val background = if (isSelected) MaterialTheme.colorScheme.primaryContainer else animatedBackground
+            val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
 
             Column(
                 modifier = Modifier
@@ -56,7 +63,8 @@ fun SingleBible(
                     .verseTapGestures(
                         verse = verse + 1,
                         onVerseTap = onVerseTap,
-                        onVerseDoubleTap = onVerseDoubleTap
+                        onVerseDoubleTap = onVerseDoubleTap,
+                        onVerseLongPress = onVerseLongPress
                     )
                     .onGloballyPositioned { coordinates ->
                         onVersePositioned(
