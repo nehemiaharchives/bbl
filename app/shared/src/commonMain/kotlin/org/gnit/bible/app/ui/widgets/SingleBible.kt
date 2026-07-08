@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ fun SingleBible(
     onTitleTap: () -> Unit = {}
 ) {
     val translation = bibleState.mainTranslation
+    val verseSpacingPx = with(LocalDensity.current) { bibleState.spaceBetweenVerses.dp.roundToPx() }
 
     ScrollableColumn(
         bibleState = bibleState,
@@ -71,7 +73,7 @@ fun SingleBible(
                             verse + 1,
                             VerseLayoutInfo(
                                 topPx = coordinates.positionInParent().y.toInt(),
-                                heightPx = coordinates.size.height
+                                heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
                             )
                         )
                     }
