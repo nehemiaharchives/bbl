@@ -30,6 +30,18 @@ private fun normalVerseBackgroundColor(bibleState: BibleState, verseIndex: Int):
     }
 }
 
+@Composable
+private fun normalBilingualUnderTranslationBackgroundColor(
+    bibleState: BibleState,
+    isSubTranslation: Boolean
+): Color {
+    return if (bibleState.isZebraBackground && isSubTranslation) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+}
+
 internal fun Modifier.verseTapGestures(
     verse: Int,
     onVerseTap: (Int) -> Unit,
@@ -58,6 +70,32 @@ internal fun animatedVerseBackgroundColor(
         targetValue = target,
         animationSpec = tween(historySaveEventColorTransitionDurationSeconds * 1_000 / 2),
         label = "verseHistoryBackground"
+    )
+}
+
+@Composable
+internal fun animatedBilingualUnderTranslationBackgroundColor(
+    bibleState: BibleState,
+    verseIndex: Int,
+    highlightedVerse: Int?,
+    isSubTranslation: Boolean
+): State<Color> {
+    val target = if (isHighlightedVerse(verseIndex, highlightedVerse)) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        normalBilingualUnderTranslationBackgroundColor(
+            bibleState = bibleState,
+            isSubTranslation = isSubTranslation
+        )
+    }
+    return animateColorAsState(
+        targetValue = target,
+        animationSpec = tween(historySaveEventColorTransitionDurationSeconds * 1_000 / 2),
+        label = if (isSubTranslation) {
+            "bilingualUnderSubTranslationBackground"
+        } else {
+            "bilingualUnderMainTranslationBackground"
+        }
     )
 }
 

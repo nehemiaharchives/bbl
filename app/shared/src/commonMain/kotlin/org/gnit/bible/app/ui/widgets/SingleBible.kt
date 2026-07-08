@@ -2,9 +2,10 @@ package org.gnit.bible.app.ui.widgets
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,10 +50,9 @@ fun SingleBible(
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
             val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(background)
                     .verseTapGestures(
                         verse = verse + 1,
                         onVerseTap = onVerseTap,
@@ -67,7 +67,6 @@ fun SingleBible(
                             )
                         )
                     }
-                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
             ) {
                 Text(
                     text = "${verse + 1} $text",
@@ -80,8 +79,11 @@ fun SingleBible(
                         },
                         color = textColor
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(background)
                 )
+                Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
             }
         }
     }

@@ -5,8 +5,9 @@ import org.gnit.bible.SupportedTranslation
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,13 +52,23 @@ fun BilingualUnderBible(
         onTitleTap = onTitleTap
     ) {
         versePairs.forEachIndexed { verse, pair ->
-            val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
+            val mainBackground = animatedBilingualUnderTranslationBackgroundColor(
+                bibleState = bibleState,
+                verseIndex = verse,
+                highlightedVerse = highlightedVerse,
+                isSubTranslation = false
+            ).value
+            val subBackground = animatedBilingualUnderTranslationBackgroundColor(
+                bibleState = bibleState,
+                verseIndex = verse,
+                highlightedVerse = highlightedVerse,
+                isSubTranslation = true
+            ).value
             val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(background)
                     .verseTapGestures(
                         verse = verse + 1,
                         onVerseTap = onVerseTap,
@@ -80,6 +91,9 @@ fun BilingualUnderBible(
                         fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
                         color = textColor
                     ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(mainBackground)
                 )
                 Text(
                     text = "${verse + 1} ${pair.second}",
@@ -90,8 +104,9 @@ fun BilingualUnderBible(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
+                        .background(subBackground)
                 )
+                Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
             }
         }
     }
