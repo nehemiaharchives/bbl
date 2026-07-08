@@ -53,7 +53,7 @@ internal fun Modifier.verseTapGestures(
             onTap = { onVerseTap(verse) },
             onDoubleTap = { onVerseDoubleTap(verse) },
             onLongPress = onVerseLongPress?.let { longPress ->
-                { longPress(verse) }
+                { _ -> longPress(verse) }
             }
         )
     }
