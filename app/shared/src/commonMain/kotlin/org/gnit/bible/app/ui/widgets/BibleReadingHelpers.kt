@@ -45,12 +45,14 @@ private fun normalBilingualUnderTranslationBackgroundColor(
 internal fun Modifier.verseTapGestures(
     verse: Int,
     onVerseTap: (Int) -> Unit,
-    onVerseDoubleTap: (Int) -> Unit
+    onVerseDoubleTap: (Int) -> Unit,
+    onVerseLongPress: (Int) -> Unit = {}
 ): Modifier {
-    return pointerInput(verse) {
+    return pointerInput(verse, onVerseTap, onVerseDoubleTap, onVerseLongPress) {
         detectTapGestures(
             onTap = { onVerseTap(verse) },
-            onDoubleTap = { onVerseDoubleTap(verse) }
+            onDoubleTap = { onVerseDoubleTap(verse) },
+            onLongPress = { onVerseLongPress(verse) }
         )
     }
 }
