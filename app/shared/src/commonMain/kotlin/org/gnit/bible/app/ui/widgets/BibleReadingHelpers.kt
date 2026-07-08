@@ -46,13 +46,15 @@ internal fun Modifier.verseTapGestures(
     verse: Int,
     onVerseTap: (Int) -> Unit,
     onVerseDoubleTap: (Int) -> Unit,
-    onVerseLongPress: (Int) -> Unit = {}
+    onVerseLongPress: ((Int) -> Unit)? = null
 ): Modifier {
     return pointerInput(verse, onVerseTap, onVerseDoubleTap, onVerseLongPress) {
         detectTapGestures(
             onTap = { onVerseTap(verse) },
             onDoubleTap = { onVerseDoubleTap(verse) },
-            onLongPress = { onVerseLongPress(verse) }
+            onLongPress = onVerseLongPress?.let { longPress ->
+                { longPress(verse) }
+            }
         )
     }
 }
