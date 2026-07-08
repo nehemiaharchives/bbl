@@ -423,14 +423,14 @@ private fun BibleTextSelectionPopup(
                     Icon(
                         painter = painterResource(Res.drawable.content_copy),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 IconButton(onClick = onSelectAll) {
                     Icon(
                         painter = painterResource(Res.drawable.select_all),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
