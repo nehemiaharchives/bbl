@@ -88,3 +88,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
+
+val cleanStaleMergedComposeAssets = tasks.register<Delete>("cleanStaleMergedComposeAssets") {
+    delete(layout.buildDirectory.dir("intermediates/assets"))
+}
+
+tasks.matching {
+    it.name.startsWith("merge", ignoreCase = true) &&
+        it.name.endsWith("Assets", ignoreCase = true)
+}.configureEach {
+    dependsOn(cleanStaleMergedComposeAssets)
+}

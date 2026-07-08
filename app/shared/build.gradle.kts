@@ -344,6 +344,7 @@ tasks.matching {
         it.name.contains("Assets", ignoreCase = true)
 }.configureEach {
     dependsOn(cleanBblAppGeneratedAndroidAssets)
+    doNotTrackState("Generated Compose resource assets include many embedded pack files; Gradle output snapshotting can exhaust file descriptors.")
 }
 
 dependencies {
