@@ -47,7 +47,7 @@ internal fun Modifier.verseTapGestures(
     onVerseTap: (Int) -> Unit,
     onVerseDoubleTap: (Int) -> Unit
 ): Modifier {
-    return pointerInput(verse) {
+    return pointerInput(verse, onVerseTap, onVerseDoubleTap) {
         detectTapGestures(
             onTap = { onVerseTap(verse) },
             onDoubleTap = { onVerseDoubleTap(verse) }
