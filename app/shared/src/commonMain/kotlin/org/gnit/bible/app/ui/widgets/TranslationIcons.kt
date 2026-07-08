@@ -2,6 +2,8 @@ package org.gnit.bible.app.ui.widgets
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.gnit.bible.app.Res
 import org.jetbrains.compose.resources.vectorResource
-import org.gnit.bible.app.translation_delete
 import org.gnit.bible.app.translation_download
 import org.gnit.bible.app.translation_hide
 import org.gnit.bible.app.translation_show
@@ -95,7 +96,7 @@ fun DeleteIcon(
         modifier = Modifier.size(buttonSize.dp)
     ) {
         Icon(
-            imageVector = vectorResource(Res.drawable.translation_delete),
+            imageVector = Icons.Default.Delete,
             contentDescription = "Delete",
             modifier = Modifier.size((iconSize - 4).dp),
             tint = MaterialTheme.colorScheme.error
