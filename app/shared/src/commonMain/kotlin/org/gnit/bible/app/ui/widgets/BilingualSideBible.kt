@@ -4,9 +4,11 @@ import org.gnit.bible.SupportedTranslation
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,10 +56,9 @@ fun BilingualSideBible(
             val background = animatedVerseBackgroundColor(bibleState, verse, highlightedVerse).value
             val textColor = animatedVerseTextColor(verse, highlightedVerse).value
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(background)
                     .verseTapGestures(
                         verse = verse + 1,
                         onVerseTap = onVerseTap,
@@ -72,26 +73,32 @@ fun BilingualSideBible(
                             )
                         )
                     }
-                    .absolutePadding(bottom = bibleState.spaceBetweenVerses.dp)
             ) {
-                Text(
-                    text = "${verse + 1} ${pair.first}",
-                    style = TextStyle(
-                        fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
-                        color = textColor
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${verse + 1} ${pair.second}",
-                    style = TextStyle(
-                        fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
-                        color = textColor
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(background)
+                ) {
+                    Text(
+                        text = "${verse + 1} ${pair.first}",
+                        style = TextStyle(
+                            fontSize = bibleState.fontSize.sp,
+                            fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
+                            color = textColor
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${verse + 1} ${pair.second}",
+                        style = TextStyle(
+                            fontSize = bibleState.fontSize.sp,
+                            fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
+                            color = textColor
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
             }
         }
     }
