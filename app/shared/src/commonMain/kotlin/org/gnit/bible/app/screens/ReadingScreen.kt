@@ -83,9 +83,9 @@ const val READING_SCREEN_VERTICAL_SPACE = 1
 const val BOOK_CONTROLS_BAR_BOTTOM_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val CHAPTER_CONTROLS_BAR_TOP_MARGIN = READING_SCREEN_VERTICAL_SPACE
 const val READING_SCREEN_HORIZONTAL_PADDING = 4
-const val SELECTION_POPUP_ICON_SIZE: Int = 24
-const val SELECTION_POPUP_PADDING: Int = 2
-const val SELECTION_POPUP_GAP: Int = 1
+const val SELECTION_POPUP_ICON_SIZE: Int = 20
+const val SELECTION_POPUP_PADDING: Int = 6
+const val SELECTION_POPUP_GAP: Int = 0
 private const val SELECTION_POPUP_HEIGHT: Int = SELECTION_POPUP_ICON_SIZE + (SELECTION_POPUP_PADDING * 2)
 
 @Composable
@@ -422,6 +422,7 @@ private fun BibleTextSelectionPopup(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
                 SelectionPopupIconButton(onClick = onCopy) {
                     Icon(
                         painter = painterResource(Res.drawable.content_copy),
@@ -429,6 +430,7 @@ private fun BibleTextSelectionPopup(
                         modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
                     )
                 }
+                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
                 SelectionPopupIconButton(onClick = onSelectAll) {
                     Icon(
                         painter = painterResource(Res.drawable.select_all),
@@ -436,6 +438,7 @@ private fun BibleTextSelectionPopup(
                         modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp)
                     )
                 }
+                Spacer(modifier = Modifier.size(SELECTION_POPUP_ICON_SIZE.dp))
             }
         }
     }
