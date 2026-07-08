@@ -145,6 +145,10 @@ fun BibleApp(
     }
 
     fun closeTranslationManager() {
+        val availableCodesAfterManager = availableCodesNow()
+        val visibleAvailableTranslations = bibleState.translationVisibility
+            .filterKeys { it in availableCodesAfterManager }
+        updateBibleState(bibleState.copy(translationVisibility = visibleAvailableTranslations))
         hideDropdownForTranslationManager = false
         closeTranslationManagerAfterDropdownRestored = true
     }
