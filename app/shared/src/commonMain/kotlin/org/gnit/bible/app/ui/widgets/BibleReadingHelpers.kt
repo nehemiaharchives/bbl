@@ -119,7 +119,7 @@ internal fun animatedVerseTextColor(
 fun addEmptyEntryToMakeSameSize(
     listA: List<String>,
     listB: List<String>
-): Pair<List<String>, String> {
+): Pair<List<String>, List<String>> {
     val longerList = if (listA.size > listB.size) listA else listB
     val shorterList = if (listA.size < listB.size) listA else listB
 
