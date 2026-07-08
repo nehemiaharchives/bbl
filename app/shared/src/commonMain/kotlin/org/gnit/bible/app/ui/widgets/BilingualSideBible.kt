@@ -38,7 +38,6 @@ fun BilingualSideBible(
     highlightedVerse: Int? = null,
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
-    onVerseLongPress: ((Int) -> Unit)? = null,
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
     onTitleTap: () -> Unit = {}
@@ -69,8 +68,7 @@ fun BilingualSideBible(
                             .verseTapGestures(
                                 verse = verseNumber,
                                 onVerseTap = onVerseTap,
-                                onVerseDoubleTap = onVerseDoubleTap,
-                                onVerseLongPress = onVerseLongPress
+                                onVerseDoubleTap = onVerseDoubleTap
                             )
                             .onGloballyPositioned { coordinates ->
                                 onVersePositioned(
