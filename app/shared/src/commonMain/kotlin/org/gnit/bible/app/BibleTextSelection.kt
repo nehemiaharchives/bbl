@@ -3,7 +3,7 @@ package org.gnit.bible.app
 import org.gnit.bible.Translation
 import org.gnit.bible.app.state.BibleState
 
-internal data class BibleTextSelection(
+data class BibleTextSelection(
     val firstUnit: Int,
     val lastUnit: Int,
     val unitCount: Int,
