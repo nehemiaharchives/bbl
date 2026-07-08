@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +40,7 @@ fun BilingualUnderBible(
     selectedTextSelection: BibleTextSelection? = null,
     onVerseTap: (Int) -> Unit = {},
     onVerseDoubleTap: (Int) -> Unit = {},
-    onVerseLongPress: (Int) -> Unit = {},
+    onVerseLongPress: ((Int) -> Unit)? = null,
     topContentPadding: Dp = 0.dp,
     bottomContentPadding: Dp = 0.dp,
     onTitleTap: () -> Unit = {}
@@ -57,76 +58,80 @@ fun BilingualUnderBible(
         bottomContentPadding = bottomContentPadding,
         onTitleTap = onTitleTap
     ) {
-        versePairs.forEachIndexed { verse, pair ->
-            val animatedMainBackground = animatedBilingualUnderTranslationBackgroundColor(
-                bibleState = bibleState,
-                verseIndex = verse,
-                highlightedVerse = highlightedVerse,
-                isSubTranslation = false
-            ).value
-            val animatedSubBackground = animatedBilingualUnderTranslationBackgroundColor(
-                bibleState = bibleState,
-                verseIndex = verse,
-                highlightedVerse = highlightedVerse,
-                isSubTranslation = true
-            ).value
-            val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
-            val verseNumber = verse + 1
-            val isMainSelected = selectedTextSelection?.containsBilingualVersePart(
-                verse = verseNumber,
-                isSubTranslation = false
-            ) == true
-            val isSubSelected = selectedTextSelection?.containsBilingualVersePart(
-                verse = verseNumber,
-                isSubTranslation = true
-            ) == true
-            val mainBackground = if (isMainSelected) MaterialTheme.colorScheme.primaryContainer else animatedMainBackground
-            val subBackground = if (isSubSelected) MaterialTheme.colorScheme.primaryContainer else animatedSubBackground
-            val mainTextColor = if (isMainSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
-            val subTextColor = if (isSubSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verseTapGestures(
+        SelectionContainer {
+            Column {
+                versePairs.forEachIndexed { verse, pair ->
+                    val animatedMainBackground = animatedBilingualUnderTranslationBackgroundColor(
+                        bibleState = bibleState,
+                        verseIndex = verse,
+                        highlightedVerse = highlightedVerse,
+                        isSubTranslation = false
+                    ).value
+                    val animatedSubBackground = animatedBilingualUnderTranslationBackgroundColor(
+                        bibleState = bibleState,
+                        verseIndex = verse,
+                        highlightedVerse = highlightedVerse,
+                        isSubTranslation = true
+                    ).value
+                    val animatedTextColor = animatedVerseTextColor(verse, highlightedVerse).value
+                    val verseNumber = verse + 1
+                    val isMainSelected = selectedTextSelection?.containsBilingualVersePart(
                         verse = verseNumber,
-                        onVerseTap = onVerseTap,
-                        onVerseDoubleTap = onVerseDoubleTap,
-                        onVerseLongPress = onVerseLongPress
-                    )
-                    .onGloballyPositioned { coordinates ->
-                        onVersePositioned(
-                            verseNumber,
-                            VerseLayoutInfo(
-                                topPx = coordinates.positionInParent().y.toInt(),
-                                heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
+                        isSubTranslation = false
+                    ) == true
+                    val isSubSelected = selectedTextSelection?.containsBilingualVersePart(
+                        verse = verseNumber,
+                        isSubTranslation = true
+                    ) == true
+                    val mainBackground = if (isMainSelected) MaterialTheme.colorScheme.primaryContainer else animatedMainBackground
+                    val subBackground = if (isSubSelected) MaterialTheme.colorScheme.primaryContainer else animatedSubBackground
+                    val mainTextColor = if (isMainSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
+                    val subTextColor = if (isSubSelected) MaterialTheme.colorScheme.onPrimaryContainer else animatedTextColor
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verseTapGestures(
+                                verse = verseNumber,
+                                onVerseTap = onVerseTap,
+                                onVerseDoubleTap = onVerseDoubleTap,
+                                onVerseLongPress = onVerseLongPress
                             )
+                            .onGloballyPositioned { coordinates ->
+                                onVersePositioned(
+                                    verseNumber,
+                                    VerseLayoutInfo(
+                                        topPx = coordinates.positionInParent().y.toInt(),
+                                        heightPx = (coordinates.size.height - verseSpacingPx).coerceAtLeast(0)
+                                    )
+                                )
+                            }
+                    ) {
+                        Text(
+                            text = "$verseNumber ${pair.first}",
+                            style = TextStyle(
+                                fontSize = bibleState.fontSize.sp,
+                                fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
+                                color = mainTextColor
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(mainBackground)
                         )
+                        Text(
+                            text = "$verseNumber ${pair.second}",
+                            style = TextStyle(
+                                fontSize = bibleState.fontSize.sp,
+                                fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
+                                color = subTextColor
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(subBackground)
+                        )
+                        Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
                     }
-            ) {
-                Text(
-                    text = "$verseNumber ${pair.first}",
-                    style = TextStyle(
-                        fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.mainTranslation.language.serifFontFamily() else bibleState.mainTranslation.language.sansFontFamily(),
-                        color = mainTextColor
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(mainBackground)
-                )
-                Text(
-                    text = "$verseNumber ${pair.second}",
-                    style = TextStyle(
-                        fontSize = bibleState.fontSize.sp,
-                        fontFamily = if (bibleState.isFontFamilySerif) bibleState.subTranslation.language.serifFontFamily() else bibleState.subTranslation.language.sansFontFamily(),
-                        color = subTextColor
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(subBackground)
-                )
-                Spacer(modifier = Modifier.height(bibleState.spaceBetweenVerses.dp))
+                }
             }
         }
     }
