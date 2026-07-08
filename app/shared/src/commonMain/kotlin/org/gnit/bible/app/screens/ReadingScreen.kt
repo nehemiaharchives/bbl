@@ -308,7 +308,6 @@ fun BibleReadingArea(
                 selectedTextSelection = selectedTextSelection,
                 onVerseTap = onVerseTap,
                 onVerseDoubleTap = onVerseDoubleTap,
-                onVerseLongPress = onVerseLongPress,
                 topContentPadding = topContentPadding,
                 bottomContentPadding = bottomContentPadding,
                 onTitleTap = onTitleTap
@@ -325,7 +324,6 @@ fun BibleReadingArea(
                     selectedTextSelection = selectedTextSelection,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
-                    onVerseLongPress = onVerseLongPress,
                     topContentPadding = topContentPadding,
                     bottomContentPadding = bottomContentPadding,
                     onTitleTap = onTitleTap
@@ -341,7 +339,6 @@ fun BibleReadingArea(
                     selectedTextSelection = selectedTextSelection,
                     onVerseTap = onVerseTap,
                     onVerseDoubleTap = onVerseDoubleTap,
-                    onVerseLongPress = onVerseLongPress,
                     topContentPadding = topContentPadding,
                     bottomContentPadding = bottomContentPadding,
                     onTitleTap = onTitleTap
