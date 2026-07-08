@@ -45,16 +45,12 @@ private fun normalBilingualUnderTranslationBackgroundColor(
 internal fun Modifier.verseTapGestures(
     verse: Int,
     onVerseTap: (Int) -> Unit,
-    onVerseDoubleTap: (Int) -> Unit,
-    onVerseLongPress: ((Int) -> Unit)? = null
+    onVerseDoubleTap: (Int) -> Unit
 ): Modifier {
-    return pointerInput(verse, onVerseTap, onVerseDoubleTap, onVerseLongPress) {
+    return pointerInput(verse, onVerseTap, onVerseDoubleTap) {
         detectTapGestures(
             onTap = { onVerseTap(verse) },
-            onDoubleTap = { onVerseDoubleTap(verse) },
-            onLongPress = onVerseLongPress?.let { longPress ->
-                { _ -> longPress(verse) }
-            }
+            onDoubleTap = { onVerseDoubleTap(verse) }
         )
     }
 }
@@ -123,7 +119,7 @@ internal fun animatedVerseTextColor(
 fun addEmptyEntryToMakeSameSize(
     listA: List<String>,
     listB: List<String>
-): Pair<List<String>, List<String>> {
+): Pair<List<String>, String> {
     val longerList = if (listA.size > listB.size) listA else listB
     val shorterList = if (listA.size < listB.size) listA else listB
 
