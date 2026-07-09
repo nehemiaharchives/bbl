@@ -622,8 +622,11 @@ bbl was made available thanks to following:
 
 ## Why Kotlin?
 
-1. I was long time Java developper and suffered from JAVA but loved Java, and I met kotlin and it solved all the suffering. So I love Kotlin more than Java now. I have no C, C++, Rust, Go skill. ~~If I had, I haven written bbl in them to prduce single binary. But installation size is smaller than pre-Java 9 application because bbl only includes reqired java modules, not entire JVM. I know Rust is the best. Sorry for inconvenience making installation directory dirty with many binary files.~~ bbl now provides single binary executables by Kotlin Multiplatform and Kotlin/Native. This is a real joy because the original dream of bbl was a small command line Bible tool that can be installed and run as one executable.
+1. I was long time Java developer and suffered from JAVA but loved Java, and I met kotlin, and it solved all the suffering. So I love Kotlin more than Java now. I have no C, C++, Rust, Go skill. 
+~~If I had, I haven't written bbl in them to produce single binary. But installation size is smaller than pre-Java 9 application because bbl only includes required java modules, not entire JVM. I know Rust is the best. Sorry for inconvenience making installation directory dirty with many binary files.~~ 
+bbl now provides single binary executables by Kotlin Multiplatform and Kotlin/Native. This is a real joy because the original dream of bbl was a small command line Bible tool that can be installed and run as one executable.
 
-2. I think Apache Lucene is the best search library and I used it in old bbl as search provider. I did not want to use DBMS in command line app. However if we use Kotlin/Native we can not use use Lucene as it is. So I went on and port Apache Lucene as kmp library: [lucene-kmp](https://github.com/nehemiaharchives/lucene-kmp) class-by-class, function-by-function port indexing and search capabiilty brought to Kotlin Multiplatform. bbl and lucene-kmp are developed together so bbl can dogfood and improve lucene-kmp search quality. 
+2. I think Apache Lucene is the best search library and I used it in old bbl as search provider. I did not want to use DBMS in command line app. However, if we use Kotlin/Native we can not use Lucene as it is. 
+So I went on and port Apache Lucene as kmp library: [lucene-kmp](https://github.com/nehemiaharchives/lucene-kmp) class-by-class, function-by-function port indexing and search capabiilty brought to Kotlin Multiplatform. bbl and lucene-kmp are developed together so bbl can dogfood and improve lucene-kmp search quality. 
 
-3. bbl uses Kotlin Multiplatform so the Bible, translation, and search logic can be shared by the command line tool and app targets.
+3. bbl uses Kotlin Multiplatform so the Bible translations and search logic can be shared by the command line tool and [app](docs/android-apk-editions.md) targets.
