@@ -214,10 +214,22 @@ fun TopBarContent(
                             )
                         },
                         trailingIcon = {
-                            IconButton(onClick = onSearchCancel) {
+                            IconButton(
+                                onClick = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        onSearchQueryChange("")
+                                    } else {
+                                        onSearchCancel()
+                                    }
+                                }
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "Close search"
+                                    contentDescription = if (searchQuery.isNotEmpty()) {
+                                        "Clear search query"
+                                    } else {
+                                        "Close search"
+                                    }
                                 )
                             }
                         },
