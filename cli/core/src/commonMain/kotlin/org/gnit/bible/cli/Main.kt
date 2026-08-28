@@ -68,7 +68,7 @@ class Bbl(
         bbl (install|uninstall) kjv                 download/delete one or more bible(s)
         bbl config ([key]|translation)              show config value of [key]
         bbl config ([key] [value]|translation kjv)  set config [key] to [value]
-        bbl hisotry (read|search|config)            show or filter past commands
+        bbl history (read|search|config)            show or filter past commands
         bbl help [sub command]                      learn how to use bbl and sub commands
     """.trimIndent()
 
